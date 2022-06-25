@@ -5,6 +5,11 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
+use ironcc::tokenize::tokenize;
+use ironcc::tokenize::BinOpToken;
+use ironcc::tokenize::TokenKind;
+use ironcc::tokenize::TokenStream;
+
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
     let (mut in_f, mut out_f) = get_io_file(args)?;
@@ -15,70 +20,24 @@ fn main() -> Result<(), std::io::Error> {
     writeln!(&mut out_f, ".intel_syntax noprefix\n")?;
     writeln!(&mut out_f, ".global main")?;
     writeln!(&mut out_f, "main:")?;
-    let return_code = input
-        .trim_end_matches("\n")
-        .parse::<usize>()
-        .expect("Currently support only a number literal.");
-    writeln!(&mut out_f, "  mov rax, {}", return_code)?;
-    // println!("{:?}", tokenize(input));
+    let tokens = tokenize(input);
+    let mut token_stream = TokenStream::new(tokens.into_iter());
+    writeln!(&mut out_f, "  mov rax, {}", token_stream.expect_number())?;
+    while let Some(token) = token_stream.next() {
+        match *token.kind {
+            TokenKind::BinOp(BinOpToken::Plus) => {
+                writeln!(&mut out_f, "  add rax, {}", token_stream.expect_number())?
+            }
+            TokenKind::BinOp(BinOpToken::Minus) => {
+                writeln!(&mut out_f, "  sub rax, {}", token_stream.expect_number())?
+            }
+            TokenKind::Num(_) => panic!("Unexpected `Num` token: {:?}", token.kind),
+            TokenKind::Eof => break,
+        }
+    }
     writeln!(&mut out_f, "  ret")?;
 
     Ok(())
-}
-
-fn tokenize(input: String) -> Vec<Token> {
-    let mut tokens = Vec::new();
-    let mut input_chars = input.chars().peekable();
-    while let Some(c) = input_chars.next() {
-        match c {
-            // skip white spaces
-            ' ' | '\n' | '\t' => continue,
-            '+' => tokens.push(Token::new(TokenKind::BinOp(BinOpToken::Plus))),
-            '-' => tokens.push(Token::new(TokenKind::BinOp(BinOpToken::Minus))),
-            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                let mut number = String::from(c);
-                while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
-                    input_chars.peek()
-                {
-                    number.push(input_chars.next().unwrap())
-                }
-                let num = number
-                    .parse::<usize>()
-                    .expect("Currently support only a number literal.");
-                tokens.push(Token::new(TokenKind::Num(num as isize)))
-            }
-            _ => panic!("Unexpected char while tokenize: {}", c),
-        }
-    }
-    tokens.push(Token::new(TokenKind::Eof));
-
-    tokens
-}
-
-#[derive(Debug)]
-enum TokenKind {
-    BinOp(BinOpToken),
-    Num(isize),
-    Eof,
-}
-
-#[derive(Debug)]
-enum BinOpToken {
-    Plus,
-    Minus,
-}
-
-#[derive(Debug)]
-struct Token {
-    kind: Box<TokenKind>,
-}
-
-impl Token {
-    fn new(token_kind: TokenKind) -> Self {
-        Self {
-            kind: Box::new(token_kind),
-        }
-    }
 }
 
 fn get_io_file(args: Vec<String>) -> Result<(File, File), std::io::Error> {
