@@ -31,3 +31,8 @@ assert() {
 assert 1 "1"
 assert 0 "0"
 assert 255 "255"
+assert 2 "1 + 1"
+assert 2 "3 - 1"
+assert 96 "0 - 1   + 99 -2"
+
+echo "OK"

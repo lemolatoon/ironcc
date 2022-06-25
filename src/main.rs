@@ -5,6 +5,11 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
+use ironcc::tokenize::tokenize;
+use ironcc::tokenize::BinOpToken;
+use ironcc::tokenize::TokenKind;
+use ironcc::tokenize::TokenStream;
+
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
     let (mut in_f, mut out_f) = get_io_file(args)?;
@@ -15,11 +20,21 @@ fn main() -> Result<(), std::io::Error> {
     writeln!(&mut out_f, ".intel_syntax noprefix\n")?;
     writeln!(&mut out_f, ".global main")?;
     writeln!(&mut out_f, "main:")?;
-    let return_code = input
-        .trim_end_matches("\n")
-        .parse::<usize>()
-        .expect("Currently support only a number literal.");
-    writeln!(&mut out_f, "  mov rax, {}", return_code)?;
+    let tokens = tokenize(input);
+    let mut token_stream = TokenStream::new(tokens.into_iter());
+    writeln!(&mut out_f, "  mov rax, {}", token_stream.expect_number())?;
+    while let Some(token) = token_stream.next() {
+        match *token.kind {
+            TokenKind::BinOp(BinOpToken::Plus) => {
+                writeln!(&mut out_f, "  add rax, {}", token_stream.expect_number())?
+            }
+            TokenKind::BinOp(BinOpToken::Minus) => {
+                writeln!(&mut out_f, "  sub rax, {}", token_stream.expect_number())?
+            }
+            TokenKind::Num(_) => panic!("Unexpected `Num` token: {:?}", token.kind),
+            TokenKind::Eof => break,
+        }
+    }
     writeln!(&mut out_f, "  ret")?;
 
     Ok(())
