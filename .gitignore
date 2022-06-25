@@ -1,5 +1,6 @@
 /target
 /tmp.s
+/tmp.c
 /tmp
 /test/tmp.c
 /test/tmp.s
