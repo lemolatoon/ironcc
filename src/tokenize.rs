@@ -80,10 +80,7 @@ impl<I: Iterator<Item = Token>> TokenStream<I> {
 
     pub fn at_eof(&mut self) -> bool {
         match self.peek_kind() {
-            Some(token) => match *token {
-                TokenKind::Eof => true,
-                _ => false,
-            },
+            Some(token) => matches!(*token, TokenKind::Eof),
             None => panic!("This stream is already used."),
         }
     }

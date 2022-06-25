@@ -14,5 +14,10 @@ tmp: tmp.s
 test: $(COMPILER)
 	./test/test.sh
 
+cargo_test: FORCE
+	cargo test
 
-.PHONY: FORCE test
+testall: test cargo_test
+
+
+.PHONY: FORCE test cargo_test testall
