@@ -5,3 +5,6 @@
 /test/tmp.c
 /test/tmp.s
 /test/tmp
+/.vscode/
+/src.c
+/src.s
