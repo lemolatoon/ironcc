@@ -85,6 +85,8 @@ pub enum TokenKind {
 pub enum BinOpToken {
     Plus,
     Minus,
+    Mul,
+    Div,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -142,12 +144,19 @@ impl Position {
     }
 }
 
-pub struct TokenStream<'a, I: Iterator<Item = Token>> {
+#[derive(Debug, Clone)]
+pub struct TokenStream<'a, I: Iterator<Item = Token>>
+where
+    I: Clone,
+{
     iter: Peekable<I>,
     input: &'a str,
 }
 
-impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I> {
+impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I>
+where
+    I: Clone,
+{
     pub fn new(iter: I, input: &'a str) -> Self {
         Self {
             iter: iter.peekable(),
@@ -165,6 +174,10 @@ impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I> {
             },
             _ => self.error_at(None, &format!("number expected, but got {:?}", token)),
         }
+    }
+
+    pub fn peek(&mut self) -> Option<&I::Item> {
+        self.iter.peek()
     }
 
     pub fn peek_kind(&mut self) -> Option<Box<TokenKind>> {
@@ -204,11 +217,15 @@ impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I> {
     }
 }
 
-impl<'a, I: Iterator<Item = Token>> Iterator for TokenStream<'a, I> {
+impl<'a, I: Iterator<Item = Token>> Iterator for TokenStream<'a, I>
+where
+    I: Clone,
+{
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        let next = self.iter.next();
+        next
     }
 }
 

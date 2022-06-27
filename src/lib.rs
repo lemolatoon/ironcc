@@ -1,7 +1,10 @@
+pub mod parse;
 pub mod tokenize;
 
 #[cfg(test)]
 mod tests {
+
+    use crate::tokenize::TokenStream;
 
     use super::*;
 
@@ -111,5 +114,60 @@ mod tests {
                 (TokenKind::Eof, Position::new(3, 1))
             )
         );
+    }
+
+    #[test]
+    fn parse_test() {
+        use crate::{
+            parse::{BinOpKind, Expr, Parser},
+            tokenize::{BinOpToken, Position, Token, TokenKind},
+        };
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(2),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            Expr::new_binary(
+                BinOpKind::Add,
+                Expr::new_num(1, Position::default()),
+                Expr::new_num(2, Position::default()),
+                Position::default(),
+            )
+            .kind
+        );
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(3),
+            TokenKind::Eof
+        );
+        println!("{:?}", tokens);
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            Expr::new_binary(
+                BinOpKind::Add,
+                Expr::new_num(1, Position::default()),
+                Expr::new_binary(
+                    BinOpKind::Mul,
+                    Expr::new_num(2, Position::default()),
+                    Expr::new_num(3, Position::default()),
+                    Position::default()
+                ),
+                Position::default(),
+            )
+            .kind
+        )
     }
 }

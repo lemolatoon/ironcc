@@ -5,6 +5,7 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
+use ironcc::parse::Parser;
 use ironcc::tokenize::BinOpToken;
 use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
@@ -19,25 +20,28 @@ fn main() -> Result<(), std::io::Error> {
 
     let tokenizer = Tokenizer::new(&input);
     let tokens = tokenizer.tokenize();
-
-    writeln!(out_f, ".intel_syntax noprefix\n")?;
-    writeln!(out_f, ".global main")?;
-    writeln!(out_f, "main:")?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
-    writeln!(out_f, "  mov rax, {}", token_stream.expect_number())?;
-    while let Some(token) = token_stream.next() {
-        match *token.kind {
-            TokenKind::BinOp(BinOpToken::Plus) => {
-                writeln!(out_f, "  add rax, {}", token_stream.expect_number())?
-            }
-            TokenKind::BinOp(BinOpToken::Minus) => {
-                writeln!(out_f, "  sub rax, {}", token_stream.expect_number())?
-            }
-            TokenKind::Num(_) => panic!("Unexpected `Num` token: {:?}", token.kind),
-            TokenKind::Eof => break,
-        }
-    }
-    writeln!(out_f, "  ret")?;
+    let parser = Parser::new(&input);
+    let expr = parser.parse_expr(&mut token_stream);
+
+    // writeln!(out_f, ".intel_syntax noprefix\n")?;
+    // writeln!(out_f, ".global main")?;
+    // writeln!(out_f, "main:")?;
+    // writeln!(out_f, "  mov rax, {}", token_stream.expect_number())?;
+    // while let Some(token) = token_stream.next() {
+    //     match *token.kind {
+    //         TokenKind::BinOp(BinOpToken::Plus) => {
+    //             writeln!(out_f, "  add rax, {}", token_stream.expect_number())?
+    //         }
+    //         TokenKind::BinOp(BinOpToken::Minus) => {
+    //             writeln!(out_f, "  sub rax, {}", token_stream.expect_number())?
+    //         }
+    //         TokenKind::Num(_) => panic!("Unexpected `Num` token: {:?}", token.kind),
+    //         TokenKind::Eof => break,
+    //         _ => panic!(),
+    //     }
+    // }
+    // writeln!(out_f, "  ret")?;
 
     Ok(())
 }
