@@ -5,10 +5,10 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
-use ironcc::tokenize::tokenize;
 use ironcc::tokenize::BinOpToken;
 use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
+use ironcc::tokenize::Tokenizer;
 
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
@@ -17,11 +17,13 @@ fn main() -> Result<(), std::io::Error> {
     in_f.read_to_string(&mut input)
         .expect("This source is not valid UTF8");
 
+    let tokenizer = Tokenizer::new(&input);
+    let tokens = tokenizer.tokenize();
+
     writeln!(out_f, ".intel_syntax noprefix\n")?;
     writeln!(out_f, ".global main")?;
     writeln!(out_f, "main:")?;
-    let tokens = tokenize(input);
-    let mut token_stream = TokenStream::new(tokens.into_iter());
+    let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
     writeln!(out_f, "  mov rax, {}", token_stream.expect_number())?;
     while let Some(token) = token_stream.next() {
         match *token.kind {

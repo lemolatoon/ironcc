@@ -3,16 +3,17 @@ pub mod tokenize;
 #[cfg(test)]
 mod tests {
 
-    use crate::tokenize::{kind_eq, tokenize_and_kinds, Position};
-
     use super::*;
 
     #[test]
     fn tokenize_plus_minus_test() {
-        use crate::tokenize::{tokenize, BinOpToken, Token, TokenKind};
+        use crate::tokenize::{
+            kind_eq, tokenize_and_kinds, BinOpToken, Token, TokenKind, Tokenizer,
+        };
         let input = String::from("1 + 4 -       909");
+        let tokenizer = Tokenizer::new(&input);
         assert!(kind_eq(
-            &tokenize(input),
+            &tokenizer.tokenize(),
             &tokens!(
                 TokenKind::Num(1),
                 TokenKind::BinOp(BinOpToken::Plus),
@@ -24,8 +25,9 @@ mod tests {
         ));
 
         let input = String::from("0\t + 5+1+9-3 -  \n     909");
+        let tokenizer = Tokenizer::new(&input);
         assert!(kind_eq(
-            &tokenize(input),
+            &tokenizer.tokenize(),
             &tokens!(
                 TokenKind::Num(0),
                 TokenKind::BinOp(BinOpToken::Plus),
@@ -43,8 +45,10 @@ mod tests {
         ));
 
         let input = String::from("0 + 0 + 11  -4");
+        let tokenizer = Tokenizer::new(&input);
         assert_eq!(
-            tokenize(input)
+            tokenizer
+                .tokenize()
                 .into_iter()
                 .map(|token| token.kind())
                 .collect::<Vec<_>>(),
@@ -81,10 +85,11 @@ mod tests {
 
     #[test]
     fn tokenize_pos_test() {
-        use crate::tokenize::{tokenize, BinOpToken, Position, Token, TokenKind};
+        use crate::tokenize::{BinOpToken, Position, Token, TokenKind, Tokenizer};
         let input = String::from("1 +1");
+        let tokenizer = Tokenizer::new(&input);
         assert_eq!(
-            tokenize(input),
+            tokenizer.tokenize(),
             token_poses!(
                 (TokenKind::Num(1), Position::new(0, 0)),
                 (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
@@ -94,8 +99,9 @@ mod tests {
         );
 
         let input = String::from("1 +1\n\t+5");
+        let tokenizer = Tokenizer::new(&input);
         assert_eq!(
-            tokenize(input),
+            tokenizer.tokenize(),
             token_poses!(
                 (TokenKind::Num(1), Position::new(0, 0)),
                 (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),

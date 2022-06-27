@@ -1,48 +1,77 @@
 use std::iter::Peekable;
 
-pub fn tokenize(input: String) -> Vec<Token> {
-    let mut tokens = Vec::new();
-    let mut input_chars = input.chars().peekable();
-    let mut pos = Position::default(); // 0, 0
-    while let Some(c) = input_chars.next() {
-        match c {
-            // skip white spaces
-            ' ' | '\t' => {
-                pos.next_char();
-            }
-            '\n' => {
-                pos.next_line();
-            }
-            '+' => tokens.push(Token::new(
-                TokenKind::BinOp(BinOpToken::Plus),
-                pos.next_char(),
-            )),
-            '-' => tokens.push(Token::new(
-                TokenKind::BinOp(BinOpToken::Minus),
-                pos.next_char(),
-            )),
-            '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                let mut number = String::from(c);
-                while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
-                    input_chars.peek()
-                {
-                    number.push(input_chars.next().unwrap())
-                }
-                let len_token = number.len();
-                let num = number
-                    .parse::<usize>()
-                    .expect("Currently support only a number literal.");
-                tokens.push(Token::new(
-                    TokenKind::Num(num as isize),
-                    pos.next_token(len_token),
-                ))
-            }
-            _ => panic!("Unexpected char while tokenize: {}", c),
-        }
-    }
-    tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
+pub struct Tokenizer<'a> {
+    input: &'a str,
+}
 
-    tokens
+impl<'a> Tokenizer<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Self { input }
+    }
+
+    pub fn tokenize(&self) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        let mut input_chars = self.input.chars().peekable();
+        let mut pos = Position::default(); // 0, 0
+        while let Some(c) = input_chars.next() {
+            match c {
+                // skip white spaces
+                ' ' | '\t' => {
+                    pos.next_char();
+                }
+                '\n' => {
+                    pos.next_line();
+                }
+                '+' => tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Plus),
+                    pos.next_char(),
+                )),
+                '-' => tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Minus),
+                    pos.next_char(),
+                )),
+                '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+                    let mut number = String::from(c);
+                    while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
+                        input_chars.peek()
+                    {
+                        number.push(input_chars.next().unwrap())
+                    }
+                    let len_token = number.len();
+                    let num = number
+                        .parse::<usize>()
+                        .expect("Currently support only a number literal.");
+                    tokens.push(Token::new(
+                        TokenKind::Num(num as isize),
+                        pos.next_token(len_token),
+                    ))
+                }
+                _ => self.error_at(&pos, &format!("Unexpected char while tokenize: {:?}", &pos)),
+            }
+        }
+        tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
+
+        tokens
+    }
+
+    pub fn error_at(&self, pos: &Position, msg: &str) -> ! {
+        let mut splited = self.input.split('\n');
+        let line = splited.nth(pos.n_line).unwrap_or_else(|| {
+            panic!(
+                "Position is illegal, pos: {:?},\n input: {}",
+                pos, self.input
+            )
+        });
+        eprintln!("{}", line);
+        let mut buffer = String::with_capacity(pos.n_char + 1);
+        for _ in 0..pos.n_char {
+            buffer.push(' ');
+        }
+        buffer.push('^');
+        eprintln!("{}", buffer);
+        eprintln!("{}", msg);
+        panic!()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -83,8 +112,8 @@ impl Token {
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct Position {
-    n_char: usize,
-    n_line: usize,
+    pub n_char: usize,
+    pub n_line: usize,
 }
 
 impl Position {
@@ -113,22 +142,28 @@ impl Position {
     }
 }
 
-pub struct TokenStream<I: Iterator<Item = Token>> {
+pub struct TokenStream<'a, I: Iterator<Item = Token>> {
     iter: Peekable<I>,
+    input: &'a str,
 }
 
-impl<I: Iterator<Item = Token>> TokenStream<I> {
-    pub fn new(iter: I) -> Self {
+impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I> {
+    pub fn new(iter: I, input: &'a str) -> Self {
         Self {
             iter: iter.peekable(),
+            input,
         }
     }
 
     pub fn expect_number(&mut self) -> isize {
-        let next = self.next().map(|token| *token.kind);
-        match next {
-            Some(TokenKind::Num(num)) => num,
-            _ => panic!("number expected, but got {:?}", next),
+        let token = self.next();
+        // let next = token.map(|token| *token.kind);
+        match token {
+            Some(Token { kind, pos }) => match *kind {
+                TokenKind::Num(num) => num,
+                _ => self.error_at(Some(pos), &format!("number expected, but got {:?}", kind)),
+            },
+            _ => self.error_at(None, &format!("number expected, but got {:?}", token)),
         }
     }
 
@@ -142,9 +177,34 @@ impl<I: Iterator<Item = Token>> TokenStream<I> {
             None => panic!("This stream is already used."),
         }
     }
+
+    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
+        let pos: Option<Position> = pos.into();
+        match pos {
+            None => panic!("Passed pos info was None.\n{}", msg),
+            Some(pos) => {
+                let mut splited = self.input.split('\n');
+                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
+                    panic!(
+                        "Position is illegal, pos: {:?},\n input: {}",
+                        pos, self.input
+                    )
+                });
+                eprintln!("{}", line);
+                let mut buffer = String::with_capacity(pos.n_char + 1);
+                for _ in 0..pos.n_char {
+                    buffer.push(' ');
+                }
+                buffer.push('^');
+                eprintln!("{}", buffer);
+                eprintln!("{}", msg);
+                panic!();
+            }
+        }
+    }
 }
 
-impl<I: Iterator<Item = Token>> Iterator for TokenStream<I> {
+impl<'a, I: Iterator<Item = Token>> Iterator for TokenStream<'a, I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -202,7 +262,9 @@ pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
 }
 
 pub fn tokenize_and_kinds(input: String) -> Vec<Box<TokenKind>> {
-    tokenize(input)
+    let tokenizer = Tokenizer::new(&input);
+    tokenizer
+        .tokenize()
         .into_iter()
         .map(|token| token.kind())
         .collect()
