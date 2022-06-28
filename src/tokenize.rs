@@ -38,6 +38,14 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::BinOp(BinOpToken::Div),
                     pos.next_char(),
                 )),
+                '(' => tokens.push(Token::new(
+                    TokenKind::OpenDelim(DelimToken::Paran),
+                    pos.next_char(),
+                )),
+                ')' => tokens.push(Token::new(
+                    TokenKind::CloseDelim(DelimToken::Paran),
+                    pos.next_char(),
+                )),
                 '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
                     let mut number = String::from(c);
                     while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
@@ -86,7 +94,21 @@ impl<'a> Tokenizer<'a> {
 pub enum TokenKind {
     BinOp(BinOpToken),
     Num(isize),
+    /// An opening delimiter (e.g., `{`)
+    OpenDelim(DelimToken),
+    /// An closing delimiter (e.g., `}`)
+    CloseDelim(DelimToken),
     Eof,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum DelimToken {
+    /// A round parenthesis (i.e., `(` or `)`)
+    Paran,
+    /// A square bracket (i.e., `[` or `]`)
+    Bracket,
+    /// A curly brase (i.e., `{` or `}`)
+    Brace,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -184,6 +206,22 @@ where
         }
     }
 
+    /// if next token is expected kind, do nothing, otherwise `panic`
+    pub fn expect(&mut self, kind: TokenKind) {
+        let peeked_token = self.next();
+        match peeked_token {
+            Some(token) => {
+                if kind != *token.kind {
+                    self.error_at(
+                        token.pos,
+                        &format!("Expected {:?}, but got {:?}", kind, token.kind),
+                    )
+                }
+            }
+            None => self.error_at(None, &format!("Expected {:?}, but got None", kind)),
+        }
+    }
+
     pub fn peek(&mut self) -> Option<&I::Item> {
         self.iter.peek()
     }
@@ -232,8 +270,7 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.iter.next();
-        next
+        self.iter.next()
     }
 }
 

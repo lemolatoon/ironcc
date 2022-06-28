@@ -6,16 +6,13 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
-use ironcc::generate::Generater;
-use ironcc::parse::Parser;
-use ironcc::tokenize::BinOpToken;
-use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
+use ironcc::{generate::Generater, parse::Parser};
 
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
-    let (mut in_f, mut out_f) = get_io_file(args)?;
+    let (mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
     in_f.read_to_string(&mut input)
         .expect("This source is not valid UTF8");

@@ -1,3 +1,4 @@
+#![feature(box_patterns)]
 pub mod generate;
 pub mod parse;
 pub mod tokenize;
@@ -5,9 +6,11 @@ pub mod tokenize;
 #[cfg(test)]
 mod tests {
 
+    use core::panic;
+
     use crate::{
         parse::{BinOpKind, Expr},
-        tokenize::{Position, TokenStream},
+        tokenize::{DelimToken, Position, TokenStream},
     };
 
     use super::*;
@@ -85,6 +88,20 @@ mod tests {
                 TokenKind::Num(11),
                 TokenKind::BinOp(BinOpToken::Minus),
                 TokenKind::Num(4),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("(1 +1) -2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Num(1),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(1),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(2),
                 TokenKind::Eof
             )
         )
@@ -196,7 +213,58 @@ mod tests {
                 bin(BinOpKind::Div, num(4), num(5))
             )
             .kind
-        )
+        );
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(2),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(3),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(BinOpKind::Mul, bin(BinOpKind::Add, num(1), num(2)), num(3)).kind
+        );
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(2),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(31),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(4),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(5),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Add,
+                bin(
+                    BinOpKind::Div,
+                    bin(BinOpKind::Sub, num(1), num(2)),
+                    bin(BinOpKind::Mul, num(31), num(4))
+                ),
+                num(5)
+            )
+            .kind
+        );
     }
 
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {

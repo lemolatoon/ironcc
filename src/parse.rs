@@ -1,4 +1,4 @@
-use crate::tokenize::{BinOpToken, Position, Token, TokenKind, TokenStream};
+use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream};
 
 pub struct Parser<'a> {
     input: &'a str,
@@ -15,19 +15,14 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
-            lhs = match &**kind {
-                TokenKind::BinOp(op @ (BinOpToken::Plus | BinOpToken::Minus)) => {
-                    let op = match op {
-                        BinOpToken::Plus => BinOpKind::Add,
-                        BinOpToken::Minus => BinOpKind::Sub,
-                        _ => panic!(),
-                    };
-                    let pos = pos.clone();
-                    tokens.next();
-                    Expr::new_binary(op, lhs, self.parse_mul(tokens), pos)
-                }
+            let op = match &**kind {
+                TokenKind::BinOp(BinOpToken::Plus) => BinOpKind::Add,
+                TokenKind::BinOp(BinOpToken::Minus) => BinOpKind::Sub,
                 _ => break,
             };
+            let pos = pos.clone();
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens), pos);
         }
         lhs
     }
@@ -38,19 +33,14 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_primary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
-            lhs = match &**kind {
-                TokenKind::BinOp(op @ (BinOpToken::Mul | BinOpToken::Div)) => {
-                    let op = match op {
-                        BinOpToken::Mul => BinOpKind::Mul,
-                        BinOpToken::Div => BinOpKind::Div,
-                        _ => panic!(),
-                    };
-                    let pos = pos.clone();
-                    tokens.next();
-                    Expr::new_binary(op, lhs, self.parse_primary(tokens), pos)
-                }
+            let op = match &**kind {
+                TokenKind::BinOp(BinOpToken::Mul) => BinOpKind::Mul,
+                TokenKind::BinOp(BinOpToken::Div) => BinOpKind::Div,
                 _ => break,
             };
+            let pos = pos.clone();
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens), pos);
         }
         lhs
     }
@@ -61,11 +51,13 @@ impl<'a> Parser<'a> {
     {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
-                TokenKind::Num(num) => Expr::new_num(num, pos.clone()),
-                _ => self.error_at(
-                    Some(pos.clone()),
-                    &format!("Expected number, but got {:?}", kind),
-                ),
+                TokenKind::Num(num) => Expr::new_num(num, pos),
+                TokenKind::OpenDelim(DelimToken::Paran) => {
+                    let expr = self.parse_expr(tokens);
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+                    expr
+                }
+                _ => self.error_at(Some(pos), &format!("Expected number, but got {:?}", kind)),
             },
             None => self.error_at(None, "Next token is None. in `parse_primary`"),
         }
