@@ -9,9 +9,9 @@ impl<'a> Parser<'a> {
         Self { input }
     }
 
-    pub fn parse_expr<'b, I: Iterator<Item = Token>>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone,
+        I: Clone + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -32,9 +32,9 @@ impl<'a> Parser<'a> {
         lhs
     }
 
-    pub fn parse_mul<'b, I: Iterator<Item = Token>>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    pub fn parse_mul<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone,
+        I: Clone + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_primary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -55,12 +55,9 @@ impl<'a> Parser<'a> {
         lhs
     }
 
-    pub fn parse_primary<'b, I: Iterator<Item = Token>>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Expr
+    pub fn parse_primary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone,
+        I: Clone + Iterator<Item = Token>,
     {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
@@ -135,9 +132,9 @@ impl Expr {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Binary {
-    kind: BinOpKind,
-    lhs: Box<Expr>,
-    rhs: Box<Expr>,
+    pub kind: BinOpKind,
+    pub lhs: Box<Expr>,
+    pub rhs: Box<Expr>,
 }
 
 impl Binary {

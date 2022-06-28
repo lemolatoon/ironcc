@@ -34,5 +34,8 @@ assert 255 "255"
 assert 2 "1 + 1"
 assert 2 "3 - 1"
 assert 96 "0 - 1   + 99 -2"
+assert 4 "1 * 2 + 8 / 4"
+assert 6 "1 * 2 + 2 *8 / 4"
+assert 97 "1 * 2 - 2 *8 / 4 + 99"
 
 echo "OK"

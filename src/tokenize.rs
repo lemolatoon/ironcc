@@ -30,6 +30,14 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::BinOp(BinOpToken::Minus),
                     pos.next_char(),
                 )),
+                '*' => tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Mul),
+                    pos.next_char(),
+                )),
+                '/' => tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Div),
+                    pos.next_char(),
+                )),
                 '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
                     let mut number = String::from(c);
                     while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =

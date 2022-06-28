@@ -1,10 +1,14 @@
+pub mod generate;
 pub mod parse;
 pub mod tokenize;
 
 #[cfg(test)]
 mod tests {
 
-    use crate::tokenize::TokenStream;
+    use crate::{
+        parse::{BinOpKind, Expr},
+        tokenize::{Position, TokenStream},
+    };
 
     use super::*;
 
@@ -152,7 +156,6 @@ mod tests {
             TokenKind::Num(3),
             TokenKind::Eof
         );
-        println!("{:?}", tokens);
         let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
         assert_eq!(
             expr.kind,
@@ -168,6 +171,39 @@ mod tests {
                 Position::default(),
             )
             .kind
+        );
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(3),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(4),
+            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::Num(5),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Sub,
+                bin(BinOpKind::Add, num(1), bin(BinOpKind::Mul, num(2), num(3))),
+                bin(BinOpKind::Div, num(4), num(5))
+            )
+            .kind
         )
+    }
+
+    fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
+        Expr::new_binary(op, lhs, rhs, Position::default())
+    }
+
+    fn num(n: isize) -> Expr {
+        Expr::new_num(n, Position::default())
     }
 }
