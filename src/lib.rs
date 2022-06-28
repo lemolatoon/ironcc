@@ -1,12 +1,9 @@
-#![feature(box_patterns)]
 pub mod generate;
 pub mod parse;
 pub mod tokenize;
 
 #[cfg(test)]
 mod tests {
-
-    use core::panic;
 
     use crate::{
         parse::{BinOpKind, Expr},
