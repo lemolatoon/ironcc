@@ -1,43 +1,36 @@
 use std::env;
 use std::ffi::OsString;
 use std::fs::File;
+use std::io::BufWriter;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
-use ironcc::tokenize::BinOpToken;
-use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
+use ironcc::{generate::Generater, parse::Parser};
 
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
-    let (mut in_f, mut out_f) = get_io_file(args)?;
+    let (mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
     in_f.read_to_string(&mut input)
         .expect("This source is not valid UTF8");
 
     let tokenizer = Tokenizer::new(&input);
     let tokens = tokenizer.tokenize();
-
-    writeln!(out_f, ".intel_syntax noprefix\n")?;
-    writeln!(out_f, ".global main")?;
-    writeln!(out_f, "main:")?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
-    writeln!(out_f, "  mov rax, {}", token_stream.expect_number())?;
-    while let Some(token) = token_stream.next() {
-        match *token.kind {
-            TokenKind::BinOp(BinOpToken::Plus) => {
-                writeln!(out_f, "  add rax, {}", token_stream.expect_number())?
-            }
-            TokenKind::BinOp(BinOpToken::Minus) => {
-                writeln!(out_f, "  sub rax, {}", token_stream.expect_number())?
-            }
-            TokenKind::Num(_) => panic!("Unexpected `Num` token: {:?}", token.kind),
-            TokenKind::Eof => break,
-        }
-    }
-    writeln!(out_f, "  ret")?;
+    let parser = Parser::new(&input);
+    let expr = parser.parse_expr(&mut token_stream);
+    let mut buf_writer = BufWriter::new(out_f);
+    let generater = Generater::new(&input);
+    writeln!(buf_writer, ".intel_syntax noprefix\n")?;
+    writeln!(buf_writer, ".global main")?;
+    writeln!(buf_writer, "main:")?;
+    generater.gen_expr(&mut buf_writer, expr)?;
+    writeln!(buf_writer, "  pop rax")?;
+    writeln!(buf_writer, "  ret")?;
+    buf_writer.flush()?;
 
     Ok(())
 }
