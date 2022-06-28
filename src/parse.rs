@@ -57,7 +57,10 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
                     expr
                 }
-                _ => self.error_at(Some(pos), &format!("Expected number, but got {:?}", kind)),
+                _ => self.error_at(
+                    Some(pos),
+                    &format!("In `parse_primary`, got unexpected token: {:?}", kind),
+                ),
             },
             None => self.error_at(None, "Next token is None. in `parse_primary`"),
         }
