@@ -15,15 +15,40 @@ impl<'a> Analyzer<'a> {
     pub fn down_expr(&self, expr: Expr) -> ConvExpr {
         let pos = expr.pos.clone();
         match expr.kind {
+            // `a >= b` := `b <= a`
+            ExprKind::Binary(Binary {
+                kind: BinOpKind::Ge,
+                lhs,
+                rhs,
+            }) => ConvExpr::new_binary(
+                ConvBinOpKind::Le,
+                self.down_expr(*rhs),
+                self.down_expr(*lhs),
+                pos,
+            ),
+            // `a > b` := `b < a`
+            ExprKind::Binary(Binary {
+                kind: BinOpKind::Gt,
+                lhs,
+                rhs,
+            }) => ConvExpr::new_binary(
+                ConvBinOpKind::Lt,
+                self.down_expr(*rhs),
+                self.down_expr(*lhs),
+                pos,
+            ),
             // do nothing
-            ExprKind::Binary(Binary { kind, lhs, rhs }) => {
-                ConvExpr::new_binary(kind, self.down_expr(*lhs), self.down_expr(*rhs), pos)
-            }
+            ExprKind::Binary(Binary { kind, lhs, rhs }) => ConvExpr::new_binary(
+                ConvBinOpKind::new(kind).unwrap(),
+                self.down_expr(*lhs),
+                self.down_expr(*rhs),
+                pos,
+            ),
             // do nothing
             ExprKind::Num(n) => ConvExpr::new_num(n, pos),
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => ConvExpr::new_binary(
-                BinOpKind::Sub,
+                ConvBinOpKind::Sub,
                 ConvExpr::new_num(0, pos.clone()),
                 self.down_expr(*operand),
                 pos,
@@ -66,7 +91,7 @@ pub struct ConvExpr {
     pub pos: Position,
 }
 impl ConvExpr {
-    pub fn new_binary(kind: BinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+    pub fn new_binary(kind: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
             pos,
@@ -89,13 +114,45 @@ pub enum ConvExprKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvBinary {
-    pub kind: BinOpKind,
+    pub kind: ConvBinOpKind,
     pub lhs: Box<ConvExpr>,
     pub rhs: Box<ConvExpr>,
 }
 
 impl ConvBinary {
-    pub fn new(kind: BinOpKind, lhs: Box<ConvExpr>, rhs: Box<ConvExpr>) -> Self {
+    pub fn new(kind: ConvBinOpKind, lhs: Box<ConvExpr>, rhs: Box<ConvExpr>) -> Self {
         Self { kind, lhs, rhs }
+    }
+}
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ConvBinOpKind {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    /// The `==` operator (equality)
+    Eq,
+    /// The `<=` operator (less than or equal to)
+    Le,
+    /// The `<` operator (less than)
+    Lt,
+    /// The `!=` operator (Not equal to)
+    Ne,
+}
+
+impl ConvBinOpKind {
+    pub fn new(kind: BinOpKind) -> Option<Self> {
+        match kind {
+            BinOpKind::Add => Some(ConvBinOpKind::Add),
+            BinOpKind::Sub => Some(ConvBinOpKind::Sub),
+            BinOpKind::Mul => Some(ConvBinOpKind::Mul),
+            BinOpKind::Div => Some(ConvBinOpKind::Div),
+            BinOpKind::Eq => Some(ConvBinOpKind::Eq),
+            BinOpKind::Le => Some(ConvBinOpKind::Le),
+            BinOpKind::Lt => Some(ConvBinOpKind::Le),
+            BinOpKind::Ge => None,
+            BinOpKind::Gt => None,
+            BinOpKind::Ne => Some(ConvBinOpKind::Ne),
+        }
     }
 }

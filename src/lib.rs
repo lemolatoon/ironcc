@@ -7,7 +7,7 @@ pub mod tokenize;
 mod tests {
 
     use crate::{
-        analyze::{Analyzer, ConvExpr},
+        analyze::{Analyzer, ConvBinOpKind, ConvExpr},
         parse::{BinOpKind, Expr, Parser, UnOp},
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
@@ -471,14 +471,32 @@ mod tests {
         assert_eq!(
             converted_expr.kind,
             cbin(
-                BinOpKind::Sub,
+                ConvBinOpKind::Sub,
                 cnum(0),
-                cbin(BinOpKind::Mul, cnum(1), cnum(22))
+                cbin(ConvBinOpKind::Mul, cnum(1), cnum(22))
             )
             .kind
+        );
+
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = bin(BinOpKind::Ge, num(1), num(2));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(
+            converted_expr.kind,
+            cbin(ConvBinOpKind::Le, cnum(2), cnum(1),).kind
+        );
+
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = bin(BinOpKind::Gt, num(1), num(2));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(
+            converted_expr.kind,
+            cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
         )
     }
-    fn cbin(op: BinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
+    fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
         ConvExpr::new_binary(op, lhs, rhs, Position::default())
     }
 

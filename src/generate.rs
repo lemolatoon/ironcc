@@ -1,8 +1,7 @@
 use std::io::{BufWriter, Write};
 
 use crate::{
-    analyze::{ConvBinary, ConvExpr, ConvExprKind},
-    parse::BinOpKind,
+    analyze::{ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind},
     tokenize::Position,
 };
 
@@ -43,17 +42,41 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  pop rdi")?;
                 writeln!(f, "  pop rax")?;
                 match op {
-                    BinOpKind::Add => writeln!(f, "  add rax, rdi")?,
-                    BinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
-                    BinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
-                    BinOpKind::Div => {
+                    ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
+                    ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
+                    ConvBinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
+                    ConvBinOpKind::Div => {
                         // rdx-rax = rax
                         writeln!(f, "  cqo")?;
                         // rax = rdx-rax / rdi
                         // rdx = rdx-rax % rdi
                         writeln!(f, "  idiv rdi")?;
                     }
-                    _ => unimplemented!(),
+                    ConvBinOpKind::Eq => {
+                        writeln!(f, "  cmp rax, rdi")?;
+                        // al : lowwer 8bit of rax
+                        // al = flag-reg(eq)
+                        writeln!(f, "  sete al")?;
+                        writeln!(f, "  movzx rax, al")?;
+                    }
+                    ConvBinOpKind::Le => {
+                        writeln!(f, "  cmp rax, rdi")?;
+                        // al = flag-reg(less than or equal to)
+                        writeln!(f, "  setle al")?;
+                        writeln!(f, "  movzx rax, al")?;
+                    }
+                    ConvBinOpKind::Lt => {
+                        writeln!(f, "  cmp rax, rdi")?;
+                        // al = flag-reg(less than)
+                        writeln!(f, "  setl al")?;
+                        writeln!(f, "  movzx rax, al")?;
+                    }
+                    ConvBinOpKind::Ne => {
+                        writeln!(f, "  cmp rax, rdi")?;
+                        // al = flag-reg(not equal to)
+                        writeln!(f, "  setne al")?;
+                        writeln!(f, "  movzx rax, al")?;
+                    }
                 };
                 writeln!(f, "  push rax")?;
                 Ok(())

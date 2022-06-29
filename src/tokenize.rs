@@ -12,8 +12,8 @@ impl<'a> Tokenizer<'a> {
     pub fn tokenize(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
         let mut pos = Position::default(); // 0, 0
-        let mut input = self.input.clone();
-        while input.len() != 0 {
+        let mut input = <&str>::clone(&self.input);
+        while !input.is_empty() {
             // <, <=, >, >=, ==, !=
             if input.starts_with("<=") {
                 tokens.push(Token::new(TokenKind::Le, pos.next_token(2)));
