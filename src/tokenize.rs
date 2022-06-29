@@ -162,7 +162,6 @@ pub enum BinOpToken {
     Minus,
     Mul,
     Div,
-    Gt,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
