@@ -42,6 +42,7 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  push rax")?;
                 Ok(())
             }
+            ExprKind::Unary(_, _) => unimplemented!(),
         }
     }
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
