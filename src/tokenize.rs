@@ -11,59 +11,92 @@ impl<'a> Tokenizer<'a> {
 
     pub fn tokenize(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
-        let mut input_chars = self.input.chars().peekable();
         let mut pos = Position::default(); // 0, 0
-        while let Some(c) = input_chars.next() {
-            match c {
-                // skip white spaces
-                ' ' | '\t' => {
-                    pos.next_char();
-                }
-                '\n' => {
-                    pos.next_line();
-                }
-                '+' => tokens.push(Token::new(
+        let mut input = <&str>::clone(&self.input);
+        while !input.is_empty() {
+            // <, <=, >, >=, ==, !=
+            if input.starts_with("<=") {
+                tokens.push(Token::new(TokenKind::Le, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with(">=") {
+                tokens.push(Token::new(TokenKind::Ge, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with("==") {
+                tokens.push(Token::new(TokenKind::EqEq, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with("!=") {
+                tokens.push(Token::new(TokenKind::Ne, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            }
+
+            // skip white spaces
+            if input.starts_with(' ') || input.starts_with('\t') {
+                pos.next_char();
+            } else if input.starts_with('\n') {
+                pos.next_line();
+            } else if input.starts_with('+') {
+                tokens.push(Token::new(
                     TokenKind::BinOp(BinOpToken::Plus),
                     pos.next_char(),
-                )),
-                '-' => tokens.push(Token::new(
+                ));
+            } else if input.starts_with('-') {
+                tokens.push(Token::new(
                     TokenKind::BinOp(BinOpToken::Minus),
                     pos.next_char(),
-                )),
-                '*' => tokens.push(Token::new(
+                ));
+            } else if input.starts_with('*') {
+                tokens.push(Token::new(
                     TokenKind::BinOp(BinOpToken::Mul),
                     pos.next_char(),
-                )),
-                '/' => tokens.push(Token::new(
+                ));
+            } else if input.starts_with('/') {
+                tokens.push(Token::new(
                     TokenKind::BinOp(BinOpToken::Div),
                     pos.next_char(),
-                )),
-                '(' => tokens.push(Token::new(
+                ));
+            } else if input.starts_with('(') {
+                tokens.push(Token::new(
                     TokenKind::OpenDelim(DelimToken::Paran),
                     pos.next_char(),
-                )),
-                ')' => tokens.push(Token::new(
+                ));
+            } else if input.starts_with(')') {
+                tokens.push(Token::new(
                     TokenKind::CloseDelim(DelimToken::Paran),
                     pos.next_char(),
-                )),
-                '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                    let mut number = String::from(c);
-                    while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
-                        input_chars.peek()
-                    {
-                        number.push(input_chars.next().unwrap())
-                    }
-                    let len_token = number.len();
-                    let num = number
-                        .parse::<usize>()
-                        .expect("Currently support only a number literal.");
-                    tokens.push(Token::new(
-                        TokenKind::Num(num as isize),
-                        pos.next_token(len_token),
-                    ))
+                ));
+            } else if input.starts_with('<') {
+                tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
+            } else if input.starts_with('>') {
+                tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
+            } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+                let mut chars = input.chars().peekable();
+                let mut number = String::from(chars.next().unwrap());
+                while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
+                    chars.peek()
+                {
+                    number.push(chars.next().unwrap())
                 }
-                _ => self.error_at(&pos, &format!("Unexpected char while tokenize: {:?}", &pos)),
-            }
+                let len_token = number.len();
+                let num = number
+                    .parse::<usize>()
+                    .expect("Currently support only a number literal.");
+                tokens.push(Token::new(
+                    TokenKind::Num(num as isize),
+                    pos.next_token(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
+            } else {
+                self.error_at(
+                    &pos,
+                    &format!("Unexpected char while tokenize : {:?}", &pos),
+                )
+            } // one character tokenize
+            input = &input[1..];
         }
         tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
 
@@ -98,6 +131,18 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
+    /// < Less that
+    Lt,
+    /// < Less equal
+    Le,
+    /// > Greater than
+    Gt,
+    /// >= Greater equal
+    Ge,
+    /// == Equal equal
+    EqEq,
+    /// != Not equal
+    Ne,
     Eof,
 }
 

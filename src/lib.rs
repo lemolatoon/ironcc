@@ -7,9 +7,11 @@ pub mod tokenize;
 mod tests {
 
     use crate::{
-        analyze::{Analyzer, ConvExpr},
+        analyze::{Analyzer, ConvBinOpKind, ConvExpr},
         parse::{BinOpKind, Expr, Parser, UnOp},
-        tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream},
+        tokenize::{
+            tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
+        },
     };
 
     use super::*;
@@ -19,39 +21,6 @@ mod tests {
         use crate::tokenize::{
             kind_eq, tokenize_and_kinds, BinOpToken, Token, TokenKind, Tokenizer,
         };
-        let input = String::from("1 + 4 -       909");
-        let tokenizer = Tokenizer::new(&input);
-        assert!(kind_eq(
-            &tokenizer.tokenize(),
-            &tokens!(
-                TokenKind::Num(1),
-                TokenKind::BinOp(BinOpToken::Plus),
-                TokenKind::Num(4),
-                TokenKind::BinOp(BinOpToken::Minus),
-                TokenKind::Num(909),
-                TokenKind::Eof
-            )
-        ));
-
-        let input = String::from("0\t + 5+1+9-3 -  \n     909");
-        let tokenizer = Tokenizer::new(&input);
-        assert!(kind_eq(
-            &tokenizer.tokenize(),
-            &tokens!(
-                TokenKind::Num(0),
-                TokenKind::BinOp(BinOpToken::Plus),
-                TokenKind::Num(5),
-                TokenKind::BinOp(BinOpToken::Plus),
-                TokenKind::Num(1),
-                TokenKind::BinOp(BinOpToken::Plus),
-                TokenKind::Num(9),
-                TokenKind::BinOp(BinOpToken::Minus),
-                TokenKind::Num(3),
-                TokenKind::BinOp(BinOpToken::Minus),
-                TokenKind::Num(909),
-                TokenKind::Eof
-            )
-        ));
 
         let input = String::from("0 + 0 + 11  -4");
         let tokenizer = Tokenizer::new(&input);
@@ -103,7 +72,39 @@ mod tests {
                 TokenKind::Num(2),
                 TokenKind::Eof
             )
-        )
+        );
+        let input = String::from("1 + 4 -       909");
+        let tokenizer = Tokenizer::new(&input);
+        assert!(kind_eq(
+            &tokenizer.tokenize(),
+            &tokens!(
+                TokenKind::Num(1),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(4),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(909),
+                TokenKind::Eof
+            )
+        ));
+        let input = String::from("0\t + 5+1+9-3 -  \n     909");
+        let tokenizer = Tokenizer::new(&input);
+        assert!(kind_eq(
+            &tokenizer.tokenize(),
+            &tokens!(
+                TokenKind::Num(0),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(5),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(1),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(9),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(3),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(909),
+                TokenKind::Eof
+            )
+        ));
     }
 
     #[test]
@@ -136,6 +137,69 @@ mod tests {
         );
     }
 
+    #[test]
+    fn tokenize_compare_op_test() {
+        let input = String::from("1 == 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::EqEq,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 < 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Lt,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 > 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Gt,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 <= 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Le,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 >= 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Ge,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 != 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Ne,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+    }
     #[test]
     fn parse_test() {
         use crate::{
@@ -332,6 +396,60 @@ mod tests {
         );
     }
 
+    #[test]
+    fn parse_compare_op_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::EqEq,
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(3),
+            TokenKind::Lt,
+            TokenKind::Num(4),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Eq,
+                num(1),
+                bin(BinOpKind::Lt, bin(BinOpKind::Add, num(2), num(3)), num(4))
+            )
+            .kind
+        );
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::Ne,
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(3),
+            TokenKind::Ge,
+            TokenKind::Num(4),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(5),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Ne,
+                num(1),
+                bin(
+                    BinOpKind::Ge,
+                    bin(BinOpKind::Mul, num(2), num(3)),
+                    bin(BinOpKind::Add, num(4), num(5))
+                ),
+            )
+            .kind
+        );
+    }
+
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
         Expr::new_binary(op, lhs, rhs, Position::default())
     }
@@ -353,14 +471,32 @@ mod tests {
         assert_eq!(
             converted_expr.kind,
             cbin(
-                BinOpKind::Sub,
+                ConvBinOpKind::Sub,
                 cnum(0),
-                cbin(BinOpKind::Mul, cnum(1), cnum(22))
+                cbin(ConvBinOpKind::Mul, cnum(1), cnum(22))
             )
             .kind
+        );
+
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = bin(BinOpKind::Ge, num(1), num(2));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(
+            converted_expr.kind,
+            cbin(ConvBinOpKind::Le, cnum(2), cnum(1),).kind
+        );
+
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = bin(BinOpKind::Gt, num(1), num(2));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(
+            converted_expr.kind,
+            cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
         )
     }
-    fn cbin(op: BinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
+    fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
         ConvExpr::new_binary(op, lhs, rhs, Position::default())
     }
 

@@ -13,6 +13,51 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Iterator<Item = Token>,
     {
+        self.parse_equality(tokens)
+    }
+
+    pub fn parse_equality<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_relational(tokens);
+        while let Some(Token { kind, pos }) = tokens.peek() {
+            let op = match &**kind {
+                TokenKind::EqEq => BinOpKind::Eq,
+                TokenKind::Ne => BinOpKind::Ne,
+                _ => break,
+            };
+            let pos = pos.clone();
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_relational(tokens), pos);
+        }
+        lhs
+    }
+
+    pub fn parse_relational<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_add(tokens);
+        while let Some(Token { kind, pos }) = tokens.peek() {
+            let op = match &**kind {
+                TokenKind::Lt => BinOpKind::Lt,
+                TokenKind::Le => BinOpKind::Le,
+                TokenKind::Gt => BinOpKind::Gt,
+                TokenKind::Ge => BinOpKind::Ge,
+                _ => break,
+            };
+            let pos = pos.clone();
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_add(tokens), pos);
+        }
+        lhs
+    }
+
+    pub fn parse_add<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
             let op = match &**kind {
@@ -180,4 +225,16 @@ pub enum BinOpKind {
     Sub,
     Mul,
     Div,
+    /// The `==` operator (equality)
+    Eq,
+    /// The `<=` operator (less than or equal to)
+    Le,
+    /// The `<` operator (less than)
+    Lt,
+    /// The `>=` operator (greater than or equal to)
+    Ge,
+    /// The `>` operator (greater than)
+    Gt,
+    /// The `!=` operator (Not equal to)
+    Ne,
 }
