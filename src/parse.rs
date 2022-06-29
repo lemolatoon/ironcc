@@ -31,7 +31,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Iterator<Item = Token>,
     {
-        let mut lhs = self.parse_primary(tokens);
+        let mut lhs = self.parse_unary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Mul) => BinOpKind::Mul,
@@ -40,9 +40,30 @@ impl<'a> Parser<'a> {
             };
             let pos = pos.clone();
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens), pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_unary(tokens), pos);
         }
         lhs
+    }
+
+    pub fn parse_unary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let (kind, pos) = match tokens.peek() {
+            Some(Token { kind, pos }) => (kind, pos.clone()),
+            None => self.error_at(None, "Expected token, but got None"),
+        };
+        match **kind {
+            TokenKind::BinOp(BinOpToken::Plus) => {
+                tokens.next();
+                Expr::new_unary(UnOp::Plus, self.parse_primary(tokens), pos)
+            }
+            TokenKind::BinOp(BinOpToken::Minus) => {
+                tokens.next();
+                Expr::new_unary(UnOp::Minus, self.parse_primary(tokens), pos)
+            }
+            _ => self.parse_primary(tokens),
+        }
     }
 
     pub fn parse_primary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
@@ -102,6 +123,14 @@ pub struct Expr {
 pub enum ExprKind {
     Binary(Binary),
     Num(isize),
+    Unary(UnOp, Box<Expr>),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum UnOp {
+    Plus,
+    /// before analysis only
+    Minus,
 }
 
 impl Expr {
@@ -115,6 +144,13 @@ impl Expr {
     pub fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ExprKind::Num(num),
+            pos,
+        }
+    }
+
+    pub fn new_unary(kind: UnOp, expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Unary(kind, Box::new(expr)),
             pos,
         }
     }

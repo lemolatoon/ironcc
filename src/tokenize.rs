@@ -226,13 +226,13 @@ where
         self.iter.peek()
     }
 
-    pub fn peek_kind(&mut self) -> Option<Box<TokenKind>> {
-        self.iter.peek().map(|token| token.kind.clone())
+    pub fn peek_kind(&mut self) -> Option<TokenKind> {
+        self.iter.peek().map(|token| *token.kind.clone())
     }
 
     pub fn at_eof(&mut self) -> bool {
         match self.peek_kind() {
-            Some(token) => matches!(*token, TokenKind::Eof),
+            Some(token) => matches!(token, TokenKind::Eof),
             None => panic!("This stream is already used."),
         }
     }
