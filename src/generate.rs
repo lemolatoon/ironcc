@@ -53,6 +53,7 @@ impl<'a> Generater<'a> {
                         // rdx = rdx-rax % rdi
                         writeln!(f, "  idiv rdi")?;
                     }
+                    _ => unimplemented!(),
                 };
                 writeln!(f, "  push rax")?;
                 Ok(())

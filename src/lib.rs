@@ -396,6 +396,60 @@ mod tests {
         );
     }
 
+    #[test]
+    fn parse_compare_op_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::EqEq,
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(3),
+            TokenKind::Lt,
+            TokenKind::Num(4),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Eq,
+                num(1),
+                bin(BinOpKind::Lt, bin(BinOpKind::Add, num(2), num(3)), num(4))
+            )
+            .kind
+        );
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::Ne,
+            TokenKind::Num(2),
+            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::Num(3),
+            TokenKind::Ge,
+            TokenKind::Num(4),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(5),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Ne,
+                num(1),
+                bin(
+                    BinOpKind::Ge,
+                    bin(BinOpKind::Mul, num(2), num(3)),
+                    bin(BinOpKind::Add, num(4), num(5))
+                ),
+            )
+            .kind
+        );
+    }
+
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
         Expr::new_binary(op, lhs, rhs, Position::default())
     }
