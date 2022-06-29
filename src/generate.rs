@@ -16,6 +16,20 @@ impl<'a> Generater<'a> {
         Self { input }
     }
 
+    pub fn gen_head<W: Write>(
+        &self,
+        f: &mut BufWriter<W>,
+        expr: ConvExpr,
+    ) -> Result<(), std::io::Error> {
+        writeln!(f, ".intel_syntax noprefix\n")?;
+        writeln!(f, ".global main")?;
+        writeln!(f, "main:")?;
+        self.gen_expr(f, expr)?;
+        writeln!(f, "  pop rax")?;
+        writeln!(f, "  ret")?;
+        Ok(())
+    }
+
     pub fn gen_expr<W: Write>(
         &self,
         f: &mut BufWriter<W>,

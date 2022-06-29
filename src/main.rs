@@ -21,18 +21,16 @@ fn main() -> Result<(), std::io::Error> {
     let tokenizer = Tokenizer::new(&input);
     let tokens = tokenizer.tokenize();
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
+
     let parser = Parser::new(&input);
     let expr = parser.parse_expr(&mut token_stream);
+
     let analyzer = Analyzer::new(&input);
-    let expr = analyzer.down_expr(expr);
+    let converted_expr = analyzer.down_expr(expr);
+
     let mut buf_writer = BufWriter::new(out_f);
     let generater = Generater::new(&input);
-    writeln!(buf_writer, ".intel_syntax noprefix\n")?;
-    writeln!(buf_writer, ".global main")?;
-    writeln!(buf_writer, "main:")?;
-    generater.gen_expr(&mut buf_writer, expr)?;
-    writeln!(buf_writer, "  pop rax")?;
-    writeln!(buf_writer, "  ret")?;
+    generater.gen_head(&mut buf_writer, converted_expr)?;
     buf_writer.flush()?;
 
     Ok(())
