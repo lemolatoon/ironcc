@@ -1,7 +1,7 @@
 use std::io::{BufWriter, Write};
 
 use crate::{
-    parse::{BinOpKind, Binary, Expr, ExprKind},
+    parse::{BinOpKind, Binary, Expr, ExprKind, UnOp},
     tokenize::Position,
 };
 
@@ -42,7 +42,16 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  push rax")?;
                 Ok(())
             }
-            ExprKind::Unary(_, _) => unimplemented!(),
+            ExprKind::Unary(UnOp::Plus, expr) => self.gen_expr(f, *expr),
+            ExprKind::Unary(UnOp::Minus, expr) => {
+                self.gen_expr(f, *expr)?;
+                writeln!(f, "  pop rdi")?;
+                writeln!(f, "  mov rax, 0")?;
+                // -x := 0 - x
+                writeln!(f, "  sub rax, rdi")?;
+                writeln!(f, "  push rax")?;
+                Ok(())
+            }
         }
     }
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {

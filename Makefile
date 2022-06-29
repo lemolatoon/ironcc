@@ -5,7 +5,7 @@ COMPILER=target/debug/ironcc
 $(COMPILER): FORCE
 	cargo build
 
-tmp.s: tmp.c
+tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
 tmp: tmp.s
