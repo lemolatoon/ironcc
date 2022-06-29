@@ -1,4 +1,4 @@
-use std::{fmt::format, iter::Peekable};
+use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
     input: &'a str,
@@ -11,10 +11,28 @@ impl<'a> Tokenizer<'a> {
 
     pub fn tokenize(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
-        let mut input_chars = self.input.chars().peekable();
         let mut pos = Position::default(); // 0, 0
         let mut input = self.input.clone();
         while input.len() != 0 {
+            // <, <=, >, >=, ==, !=
+            if input.starts_with("<=") {
+                tokens.push(Token::new(TokenKind::Le, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with(">=") {
+                tokens.push(Token::new(TokenKind::Ge, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with("==") {
+                tokens.push(Token::new(TokenKind::EqEq, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            } else if input.starts_with("!=") {
+                tokens.push(Token::new(TokenKind::Ne, pos.next_token(2)));
+                input = &input[2..];
+                continue;
+            }
+
             // skip white spaces
             if input.starts_with(' ') || input.starts_with('\t') {
                 pos.next_char();
@@ -50,6 +68,10 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::CloseDelim(DelimToken::Paran),
                     pos.next_char(),
                 ));
+            } else if input.starts_with('<') {
+                tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
+            } else if input.starts_with('>') {
+                tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
             } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());
@@ -109,6 +131,18 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
+    /// < Less that
+    Lt,
+    /// < Less equal
+    Le,
+    /// > Greater than
+    Gt,
+    /// >= Greater equal
+    Ge,
+    /// == Equal equal
+    EqEq,
+    /// != Not equal
+    Ne,
     Eof,
 }
 
@@ -128,6 +162,7 @@ pub enum BinOpToken {
     Minus,
     Mul,
     Div,
+    Gt,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

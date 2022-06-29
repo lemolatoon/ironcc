@@ -9,7 +9,9 @@ mod tests {
     use crate::{
         analyze::{Analyzer, ConvExpr},
         parse::{BinOpKind, Expr, Parser, UnOp},
-        tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream},
+        tokenize::{
+            tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
+        },
     };
 
     use super::*;
@@ -135,6 +137,69 @@ mod tests {
         );
     }
 
+    #[test]
+    fn tokenize_compare_op_test() {
+        let input = String::from("1 == 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::EqEq,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 < 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Lt,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 > 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Gt,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 <= 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Le,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 >= 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Ge,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+        let input = String::from("1 != 2");
+        assert_eq!(
+            tokenize_and_kinds(input),
+            token_kinds!(
+                TokenKind::Num(1),
+                TokenKind::Ne,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+    }
     #[test]
     fn parse_test() {
         use crate::{
