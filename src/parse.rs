@@ -129,6 +129,7 @@ pub enum ExprKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum UnOp {
     Plus,
+    /// before analysis only
     Minus,
 }
 

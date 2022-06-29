@@ -6,6 +6,7 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
+use ironcc::analyze::Analyzer;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
 use ironcc::{generate::Generater, parse::Parser};
@@ -22,6 +23,8 @@ fn main() -> Result<(), std::io::Error> {
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
     let parser = Parser::new(&input);
     let expr = parser.parse_expr(&mut token_stream);
+    let analyzer = Analyzer::new(&input);
+    let expr = analyzer.down_expr(expr);
     let mut buf_writer = BufWriter::new(out_f);
     let generater = Generater::new(&input);
     writeln!(buf_writer, ".intel_syntax noprefix\n")?;

@@ -1,3 +1,4 @@
+pub mod analyze;
 pub mod generate;
 pub mod parse;
 pub mod tokenize;
@@ -6,6 +7,7 @@ pub mod tokenize;
 mod tests {
 
     use crate::{
+        analyze::{Analyzer, ConvExpr},
         parse::{BinOpKind, Expr, Parser, UnOp},
         tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream},
     };
@@ -340,5 +342,29 @@ mod tests {
 
     fn unary(op: UnOp, operand: Expr) -> Expr {
         Expr::new_unary(op, operand, Position::default())
+    }
+
+    #[test]
+    fn analysis_test() {
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(
+            converted_expr.kind,
+            cbin(
+                BinOpKind::Sub,
+                cnum(0),
+                cbin(BinOpKind::Mul, cnum(1), cnum(22))
+            )
+            .kind
+        )
+    }
+    fn cbin(op: BinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
+        ConvExpr::new_binary(op, lhs, rhs, Position::default())
+    }
+
+    fn cnum(n: isize) -> ConvExpr {
+        ConvExpr::new_num(n, Position::default())
     }
 }
