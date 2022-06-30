@@ -72,6 +72,8 @@ impl<'a> Tokenizer<'a> {
                 tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
             } else if input.starts_with('>') {
                 tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
+            } else if input.starts_with(';') {
+                tokens.push(Token::new(TokenKind::Semi, pos.next_char()));
             } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());
@@ -142,6 +144,8 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
+    /// Semicoron `;`
+    Semi,
     /// An ident
     Ident(String),
     /// `<` Less than

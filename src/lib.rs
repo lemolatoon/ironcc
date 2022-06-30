@@ -8,7 +8,7 @@ mod tests {
 
     use crate::{
         analyze::{Analyzer, ConvBinOpKind, ConvExpr},
-        parse::{BinOpKind, Expr, Parser, UnOp},
+        parse::{BinOpKind, Expr, Parser, Program, ProgramKind, Stmt, UnOp},
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
         },
@@ -468,6 +468,27 @@ mod tests {
             )
             .kind
         );
+    }
+
+    #[test]
+    fn parse_stmt_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(num(1)), stmt(num(2))]);
+
+        assert_eq!(parsed, expected);
+    }
+
+    fn stmt(expr: Expr) -> ProgramKind {
+        ProgramKind::Stmt(Stmt::expr(expr))
     }
 
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {

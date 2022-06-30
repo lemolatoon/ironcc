@@ -8,6 +8,27 @@ impl<'a> Parser<'a> {
     pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
+    pub fn parse_program<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Program
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let mut program = Program::new();
+        while !tokens.at_eof() {
+            program.push_stmt(self.parse_stmt(tokens));
+            tokens.expect(TokenKind::Semi);
+        }
+        tokens.expect(TokenKind::Eof);
+        assert!(tokens.next().is_none());
+        program
+    }
+
+    pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let expr = self.parse_expr(tokens);
+        Stmt::expr(expr)
+    }
 
     pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
@@ -158,6 +179,50 @@ impl<'a> Parser<'a> {
             }
         }
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Program {
+    components: Vec<ProgramKind>,
+}
+
+impl Program {
+    pub fn new() -> Self {
+        Self {
+            components: Vec::new(),
+        }
+    }
+
+    pub fn with_vec(vec: Vec<ProgramKind>) -> Self {
+        Self { components: vec }
+    }
+
+    pub fn push_stmt(&mut self, stmt: Stmt) {
+        self.components.push(ProgramKind::Stmt(stmt));
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ProgramKind {
+    Stmt(Stmt),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Stmt {
+    pub kind: StmtKind,
+}
+
+impl Stmt {
+    pub fn expr(expr: Expr) -> Self {
+        Self {
+            kind: StmtKind::Expr(expr),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum StmtKind {
+    Expr(Expr),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
