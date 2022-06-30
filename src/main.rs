@@ -23,14 +23,14 @@ fn main() -> Result<(), std::io::Error> {
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);
-    let expr = parser.parse_expr(&mut token_stream);
+    let program = parser.parse_program(&mut token_stream);
 
     let analyzer = Analyzer::new(&input);
-    let converted_expr = analyzer.down_expr(expr);
+    let converted_program = analyzer.down_program(program);
 
     let mut buf_writer = BufWriter::new(out_f);
     let generater = Generater::new(&input);
-    generater.gen_head(&mut buf_writer, converted_expr)?;
+    generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 
     Ok(())

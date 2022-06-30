@@ -128,6 +128,10 @@ impl ConvProgram {
     pub fn push_stmt(&mut self, stmt: ConvStmt) {
         self.components.push(ConvProgramKind::Stmt(stmt));
     }
+
+    pub fn into_iter(self) -> impl Iterator<Item = ConvProgramKind> {
+        self.components.into_iter()
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

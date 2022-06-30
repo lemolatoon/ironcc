@@ -1,7 +1,10 @@
 use std::io::{BufWriter, Write};
 
 use crate::{
-    analyze::{ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind},
+    analyze::{
+        ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvProgram, ConvProgramKind, ConvStmt,
+        ConvStmtKind,
+    },
     tokenize::Position,
 };
 
@@ -20,15 +23,37 @@ impl<'a> Generater<'a> {
     pub fn gen_head<W: Write>(
         &self,
         f: &mut BufWriter<W>,
-        expr: ConvExpr,
+        program: ConvProgram,
     ) -> Result<(), std::io::Error> {
         writeln!(f, ".intel_syntax noprefix\n")?;
         writeln!(f, ".global main")?;
         writeln!(f, "main:")?;
-        self.gen_expr(f, expr)?;
-        writeln!(f, "  pop rax")?;
+
+        writeln!(f, "  push rbp")?;
+        writeln!(f, "  mov rbp, rsp")?;
+        writeln!(f, "  mov rbp, rsp")?;
+        // TODO: determine this dynamically by counting the number of local variables
+        writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
+        for component in program.into_iter() {
+            match component {
+                ConvProgramKind::Stmt(stmt) => self.gen_stmt(f, stmt)?,
+            }
+            writeln!(f, "  pop rax")?;
+        }
+        writeln!(f, "  mov rsp, rbp")?;
+        writeln!(f, "  pop rbp")?;
         writeln!(f, "  ret")?;
         Ok(())
+    }
+
+    pub fn gen_stmt<W: Write>(
+        &self,
+        f: &mut BufWriter<W>,
+        stmt: ConvStmt,
+    ) -> Result<(), std::io::Error> {
+        match stmt.kind {
+            ConvStmtKind::Expr(expr) => self.gen_expr(f, expr),
+        }
     }
 
     /// # Errors
