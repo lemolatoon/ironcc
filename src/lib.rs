@@ -638,6 +638,7 @@ mod tests {
         assert_eq!(converted_expr.kind, cassign(clvar("a"), cnum(1)).kind)
     }
 
+    #[test]
     fn analysis_program_test() {
         let input = String::new();
         let analyzer = Analyzer::new(&input);
