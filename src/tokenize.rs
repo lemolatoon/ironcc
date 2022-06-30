@@ -74,6 +74,8 @@ impl<'a> Tokenizer<'a> {
                 tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
             } else if input.starts_with(';') {
                 tokens.push(Token::new(TokenKind::Semi, pos.next_char()));
+            } else if input.starts_with('=') {
+                tokens.push(Token::new(TokenKind::Eq, pos.next_char()));
             } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());
@@ -218,6 +220,7 @@ impl Position {
     }
 
     pub fn next_line(&mut self) -> Self {
+        // eprintln!("next_line: {:?}", self);
         let return_struct = self.clone();
         self.n_char = 0;
         self.n_line += 1;
@@ -226,12 +229,14 @@ impl Position {
 
     // increment self.n_char and return not incremented, cloned Position struct
     pub fn next_char(&mut self) -> Self {
+        // eprintln!("next_char: {:?}", self);
         let return_struct = self.clone();
         self.n_char += 1;
         return_struct
     }
 
     pub fn next_token(&mut self, len_token: usize) -> Self {
+        // eprintln!("next_token: {}, {:?}", len_token, self);
         let return_struct = self.clone();
         self.n_char += len_token;
         return_struct
@@ -304,6 +309,10 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
         match pos {
             None => panic!("Passed pos info was None.\n{}", msg),
             Some(pos) => {
+                eprintln!("=====");
+                eprintln!("{}", self.input);
+                eprintln!("{:?}", pos);
+                eprintln!("=====");
                 let mut splited = self.input.split('\n');
                 let line = splited.nth(pos.n_line).unwrap_or_else(|| {
                     panic!(

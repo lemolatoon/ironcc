@@ -128,8 +128,14 @@ impl ConvProgram {
     pub fn push_stmt(&mut self, stmt: ConvStmt) {
         self.components.push(ConvProgramKind::Stmt(stmt));
     }
+}
 
-    pub fn into_iter(self) -> impl Iterator<Item = ConvProgramKind> {
+impl IntoIterator for ConvProgram {
+    type Item = ConvProgramKind;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
         self.components.into_iter()
     }
 }
@@ -180,20 +186,21 @@ impl ConvExpr {
     pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
-            pos: pos,
+            pos,
         }
     }
 
     pub fn new_lvar(name: String, pos: Position) -> Self {
         // assume name is one character currently
         assert!(name.len() == 1);
-        let index = ('a'..='z')
-            .position(|c| c == name.chars().next().unwrap())
-            .expect("Expected alphabet here");
+        let index = 1
+            + ('a'..='z')
+                .position(|c| c == name.chars().next().unwrap())
+                .expect("Expected alphabet here");
         let offset = index * 8;
         ConvExpr {
             kind: ConvExprKind::Lvar(Lvar { offset }),
-            pos: pos,
+            pos,
         }
     }
 }
@@ -208,7 +215,7 @@ pub enum ConvExprKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Lvar {
-    offset: usize,
+    pub offset: usize,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

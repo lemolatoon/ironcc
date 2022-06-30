@@ -5,11 +5,14 @@ COMPILER=target/debug/ironcc
 $(COMPILER): FORCE
 	cargo build
 
-tmp.s: tmp.c $(COMPILERCOMPILER)
+tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
 tmp: tmp.s
 	$(CC) tmp.s -o tmp $(CFLAGS)
+
+run: tmp
+	./tmp
 
 test: $(COMPILER)
 	./test/test.sh
@@ -20,4 +23,4 @@ cargo_test: FORCE
 testall: test cargo_test
 
 
-.PHONY: FORCE test cargo_test testall
+.PHONY: FORCE test cargo_test testall run

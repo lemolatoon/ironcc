@@ -202,6 +202,20 @@ mod tests {
     }
 
     #[test]
+    fn tokenize_tokens_test() {
+        let input = String::from("a = 2");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("a".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+    }
+
+    #[test]
     fn tokenize_ident_test() {
         let input = String::from("a");
         assert_eq!(
