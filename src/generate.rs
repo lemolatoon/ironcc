@@ -85,6 +85,7 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  push rax")?;
                 Ok(())
             }
+            _ => unimplemented!(),
         }
     }
 

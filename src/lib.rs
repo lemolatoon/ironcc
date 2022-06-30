@@ -7,7 +7,7 @@ pub mod tokenize;
 mod tests {
 
     use crate::{
-        analyze::{Analyzer, ConvBinOpKind, ConvExpr},
+        analyze::{Analyzer, ConvBinOpKind, ConvExpr, ConvProgram, ConvProgramKind, ConvStmt},
         parse::{BinOpKind, Expr, Parser, Program, ProgramKind, Stmt, UnOp},
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
@@ -549,6 +549,25 @@ mod tests {
             Program::with_vec(vec![stmt(assign(ident("a"), assign(ident("b"), num(2))))]);
 
         assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(1),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(assign(
+            bin(BinOpKind::Add, ident("a"), num(1)),
+            num(2),
+        ))]);
+
+        assert_eq!(parsed, expected);
     }
 
     fn stmt(expr: Expr) -> ProgramKind {
@@ -609,6 +628,52 @@ mod tests {
             cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
         )
     }
+
+    #[test]
+    fn analysis_ident_test() {
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let expr = assign(ident("a"), num(1));
+        let converted_expr = analyzer.down_expr(expr);
+        assert_eq!(converted_expr.kind, cassign(clvar("a"), cnum(1)).kind)
+    }
+
+    fn analysis_program_test() {
+        let input = String::new();
+        let analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![
+            stmt(assign(ident("a"), bin(BinOpKind::Ge, num(1), ident("k")))),
+            stmt(ident("b")),
+        ]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![
+                cstmt(cassign(
+                    clvar("a"),
+                    cbin(ConvBinOpKind::Le, clvar("k"), cnum(1))
+                )),
+                cstmt(clvar("b"))
+            ])
+        )
+    }
+
+    fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
+        ConvProgram::with_vec(components)
+    }
+
+    fn cstmt(expr: ConvExpr) -> ConvProgramKind {
+        ConvProgramKind::Stmt(ConvStmt::new_expr(expr))
+    }
+
+    fn clvar(name: &str) -> ConvExpr {
+        ConvExpr::new_lvar(name.to_string(), Position::default())
+    }
+
+    fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
+        ConvExpr::new_assign(lhs, rhs, Position::default())
+    }
+
     fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
         ConvExpr::new_binary(op, lhs, rhs, Position::default())
     }

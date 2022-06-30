@@ -1,5 +1,5 @@
 use crate::{
-    parse::{BinOpKind, Binary, Expr, ExprKind, UnOp},
+    parse::{BinOpKind, Binary, Expr, ExprKind, Program, ProgramKind, Stmt, StmtKind, UnOp},
     tokenize::Position,
 };
 
@@ -10,6 +10,22 @@ pub struct Analyzer<'a> {
 impl<'a> Analyzer<'a> {
     pub const fn new(input: &'a str) -> Self {
         Self { input }
+    }
+
+    pub fn down_program(&self, program: Program) -> ConvProgram {
+        let mut conv_program = ConvProgram::new();
+        for component in program.into_iter() {
+            match component {
+                ProgramKind::Stmt(stmt) => conv_program.push_stmt(self.down_stmt(stmt)),
+            }
+        }
+        conv_program
+    }
+
+    pub fn down_stmt(&self, stmt: Stmt) -> ConvStmt {
+        match stmt.kind {
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr)),
+        }
     }
 
     pub fn down_expr(&self, expr: Expr) -> ConvExpr {
@@ -56,7 +72,12 @@ impl<'a> Analyzer<'a> {
 
             // do nothing
             ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand),
-            _ => unimplemented!(),
+            // do nothing
+            ExprKind::Assign(lhs, rhs) => {
+                ConvExpr::new_assign(self.down_expr(*lhs), self.down_expr(*rhs), pos)
+            }
+            // currently all ident is local variable
+            ExprKind::Ident(name) => ConvExpr::new_lvar(name, pos),
         }
     }
 
@@ -89,6 +110,50 @@ impl<'a> Analyzer<'a> {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvProgram {
+    components: Vec<ConvProgramKind>,
+}
+
+impl ConvProgram {
+    pub fn new() -> Self {
+        Self {
+            components: Vec::new(),
+        }
+    }
+
+    pub fn with_vec(vec: Vec<ConvProgramKind>) -> Self {
+        Self { components: vec }
+    }
+
+    pub fn push_stmt(&mut self, stmt: ConvStmt) {
+        self.components.push(ConvProgramKind::Stmt(stmt));
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ConvProgramKind {
+    Stmt(ConvStmt),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvStmt {
+    pub kind: ConvStmtKind,
+}
+
+impl ConvStmt {
+    pub fn new_expr(expr: ConvExpr) -> Self {
+        Self {
+            kind: ConvStmtKind::Expr(expr),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ConvStmtKind {
+    Expr(ConvExpr),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvExpr {
     pub kind: ConvExprKind,
     pub pos: Position,
@@ -107,12 +172,39 @@ impl ConvExpr {
             pos,
         }
     }
+
+    pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        ConvExpr {
+            kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            pos: pos,
+        }
+    }
+
+    pub fn new_lvar(name: String, pos: Position) -> Self {
+        // assume name is one character currently
+        assert!(name.len() == 1);
+        let index = ('a'..='z')
+            .position(|c| c == name.chars().next().unwrap())
+            .expect("Expected alphabet here");
+        let offset = index * 8;
+        ConvExpr {
+            kind: ConvExprKind::Lvar(Lvar { offset }),
+            pos: pos,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
     Binary(ConvBinary),
     Num(isize),
+    Lvar(Lvar),
+    Assign(Box<ConvExpr>, Box<ConvExpr>),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Lvar {
+    offset: usize,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

@@ -219,6 +219,10 @@ impl Program {
     pub fn push_stmt(&mut self, stmt: Stmt) {
         self.components.push(ProgramKind::Stmt(stmt));
     }
+
+    pub fn into_iter(self) -> impl Iterator<Item = ProgramKind> {
+        self.components.into_iter()
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
