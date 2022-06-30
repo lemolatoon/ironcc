@@ -34,7 +34,25 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Iterator<Item = Token>,
     {
-        self.parse_equality(tokens)
+        self.parse_assign(tokens)
+    }
+
+    pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let lhs = self.parse_equality(tokens);
+        let (kind, pos) = match tokens.peek() {
+            Some(Token { kind, pos }) => (kind, pos.clone()),
+            None => self.error_at(None, "Expected token, but got None"),
+        };
+        match **kind {
+            TokenKind::Eq => {
+                tokens.next();
+                Expr::new_assign(lhs, self.parse_assign(tokens), pos)
+            }
+            _ => lhs,
+        }
     }
 
     pub fn parse_equality<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
@@ -144,6 +162,7 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
                     expr
                 }
+                TokenKind::Ident(name) => Expr::new_ident(name, pos),
                 _ => self.error_at(
                     Some(pos),
                     &format!("In `parse_primary`, got unexpected token: {:?}", kind),
@@ -236,6 +255,8 @@ pub enum ExprKind {
     Binary(Binary),
     Num(isize),
     Unary(UnOp, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>),
+    Ident(String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -260,10 +281,25 @@ impl Expr {
         }
     }
 
+    pub fn new_ident(name: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Ident(name),
+            pos,
+        }
+    }
+
     pub fn new_unary(kind: UnOp, expr: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Unary(kind, Box::new(expr)),
             pos,
+        }
+    }
+
+    pub fn new_assign(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+        // pos is Position of TokenKind::Eq (i.e. `=`)
+        Self {
+            kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            pos: pos,
         }
     }
 

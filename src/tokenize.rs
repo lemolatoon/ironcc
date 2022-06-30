@@ -160,6 +160,8 @@ pub enum TokenKind {
     EqEq,
     /// `!=` Not equal
     Ne,
+    /// `=` assign
+    Eq,
     Eof,
 }
 

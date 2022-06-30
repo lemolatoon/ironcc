@@ -220,6 +220,36 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn tokenize_stmt_test() {
+        let input = String::from("a;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("a".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("q * z;\nc +c;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("q".to_string()),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Ident("z".to_string()),
+                TokenKind::Semi,
+                TokenKind::Ident("c".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Ident("c".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+    }
+
     #[test]
     fn parse_test() {
         use crate::{
@@ -487,8 +517,50 @@ mod tests {
         assert_eq!(parsed, expected);
     }
 
+    #[test]
+    fn parse_assign_expr_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(assign(ident("a"), num(2)))]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident('b'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected =
+            Program::with_vec(vec![stmt(assign(ident("a"), assign(ident("b"), num(2))))]);
+
+        assert_eq!(parsed, expected);
+    }
+
     fn stmt(expr: Expr) -> ProgramKind {
         ProgramKind::Stmt(Stmt::expr(expr))
+    }
+
+    fn ident(name: &str) -> Expr {
+        Expr::new_ident(name.to_string(), Position::default())
+    }
+
+    fn assign(lhs: Expr, rhs: Expr) -> Expr {
+        Expr::new_assign(lhs, rhs, Position::default())
     }
 
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
