@@ -90,10 +90,19 @@ impl<'a> Tokenizer<'a> {
                 ));
                 input = &input[len_token..];
                 continue;
+            } else if input.starts_with(&('a'..='z').collect::<Vec<_>>()[..]) {
+                // Ident
+                tokens.push(Token::new(
+                    TokenKind::Ident(input.chars().next().unwrap().to_string()), // one char var
+                    pos.next_char(),
+                ));
             } else {
                 self.error_at(
                     &pos,
-                    &format!("Unexpected char while tokenize : {:?}", &pos),
+                    &format!(
+                        "Unexpected char while tokenize : {:?}\nrest input: {:?}\n",
+                        &pos, input
+                    ),
                 )
             } // one character tokenize
             input = &input[1..];
@@ -133,17 +142,19 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
-    /// < Less that
+    /// An ident
+    Ident(String),
+    /// `<` Less than
     Lt,
-    /// < Less equal
+    /// `<=` Less equal
     Le,
-    /// > Greater than
+    /// `>` Greater than
     Gt,
-    /// >= Greater equal
+    /// `>=` Greater equal
     Ge,
-    /// == Equal equal
+    /// `==` Equal equal
     EqEq,
-    /// != Not equal
+    /// `!=` Not equal
     Ne,
     Eof,
 }

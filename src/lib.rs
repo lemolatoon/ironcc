@@ -200,6 +200,26 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn tokenize_ident_test() {
+        let input = String::from("a");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(TokenKind::Ident("a".to_string()), TokenKind::Eof)
+        );
+
+        let input = String::from("q * z");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("q".to_string()),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Ident("z".to_string()),
+                TokenKind::Eof
+            )
+        );
+    }
     #[test]
     fn parse_test() {
         use crate::{
