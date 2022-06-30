@@ -47,7 +47,7 @@ mod tests {
 
         let input = String::from("10101010101 + 0 + 11  -4");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(10101010101),
                 TokenKind::BinOp(BinOpToken::Plus),
@@ -61,7 +61,7 @@ mod tests {
         );
         let input = String::from("(1 +1) -2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::OpenDelim(DelimToken::Paran),
                 TokenKind::Num(1),
@@ -141,7 +141,7 @@ mod tests {
     fn tokenize_compare_op_test() {
         let input = String::from("1 == 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::EqEq,
@@ -151,7 +151,7 @@ mod tests {
         );
         let input = String::from("1 < 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::Lt,
@@ -161,7 +161,7 @@ mod tests {
         );
         let input = String::from("1 > 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::Gt,
@@ -171,7 +171,7 @@ mod tests {
         );
         let input = String::from("1 <= 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::Le,
@@ -181,7 +181,7 @@ mod tests {
         );
         let input = String::from("1 >= 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::Ge,
@@ -191,7 +191,7 @@ mod tests {
         );
         let input = String::from("1 != 2");
         assert_eq!(
-            tokenize_and_kinds(input),
+            tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Num(1),
                 TokenKind::Ne,
