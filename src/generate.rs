@@ -11,10 +11,12 @@ pub struct Generater<'a> {
 }
 
 impl<'a> Generater<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
 
+    /// # Errors
+    /// return errors when file IO failed
     pub fn gen_head<W: Write>(
         &self,
         f: &mut BufWriter<W>,
@@ -29,6 +31,8 @@ impl<'a> Generater<'a> {
         Ok(())
     }
 
+    /// # Errors
+    /// return errors when file IO failed
     pub fn gen_expr<W: Write>(
         &self,
         f: &mut BufWriter<W>,
@@ -84,6 +88,8 @@ impl<'a> Generater<'a> {
         }
     }
 
+    /// # Panics
+    /// always
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
         let pos: Option<Position> = pos.into();
         match pos {

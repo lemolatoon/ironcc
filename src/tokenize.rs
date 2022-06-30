@@ -78,7 +78,7 @@ impl<'a> Tokenizer<'a> {
                 while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
                     chars.peek()
                 {
-                    number.push(chars.next().unwrap())
+                    number.push(chars.next().unwrap());
                 }
                 let len_token = number.len();
                 let num = number
@@ -103,6 +103,8 @@ impl<'a> Tokenizer<'a> {
         tokens
     }
 
+    /// # Panics
+    /// always
     pub fn error_at(&self, pos: &Position, msg: &str) -> ! {
         let mut splited = self.input.split('\n');
         let line = splited.nth(pos.n_line).unwrap_or_else(|| {
@@ -194,7 +196,7 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn new(n_char: usize, n_line: usize) -> Self {
+    pub const fn new(n_char: usize, n_line: usize) -> Self {
         Self { n_char, n_line }
     }
 
@@ -220,18 +222,12 @@ impl Position {
 }
 
 #[derive(Debug, Clone)]
-pub struct TokenStream<'a, I: Iterator<Item = Token>>
-where
-    I: Clone,
-{
+pub struct TokenStream<'a, I: Iterator<Item = Token> + Clone> {
     iter: Peekable<I>,
     input: &'a str,
 }
 
-impl<'a, I: Iterator<Item = Token>> TokenStream<'a, I>
-where
-    I: Clone,
-{
+impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
     pub fn new(iter: I, input: &'a str) -> Self {
         Self {
             iter: iter.peekable(),
@@ -275,6 +271,8 @@ where
         self.iter.peek().map(|token| *token.kind.clone())
     }
 
+    /// # Panics
+    /// when `token_stream` does not have next token
     pub fn at_eof(&mut self) -> bool {
         match self.peek_kind() {
             Some(token) => matches!(token, TokenKind::Eof),
@@ -282,6 +280,8 @@ where
         }
     }
 
+    /// # Panics
+    /// always panic
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
         let pos: Option<Position> = pos.into();
         match pos {
@@ -308,10 +308,7 @@ where
     }
 }
 
-impl<'a, I: Iterator<Item = Token>> Iterator for TokenStream<'a, I>
-where
-    I: Clone,
-{
+impl<'a, I: Iterator<Item = Token> + Clone> Iterator for TokenStream<'a, I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -368,11 +365,7 @@ pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
         })
 }
 
-pub fn tokenize_and_kinds(input: String) -> Vec<Box<TokenKind>> {
-    let tokenizer = Tokenizer::new(&input);
-    tokenizer
-        .tokenize()
-        .into_iter()
-        .map(|token| token.kind())
-        .collect()
+pub fn tokenize_and_kinds(input: &str) -> Vec<Box<TokenKind>> {
+    let tokenizer = Tokenizer::new(input);
+    tokenizer.tokenize().into_iter().map(Token::kind).collect()
 }

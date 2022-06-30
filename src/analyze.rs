@@ -8,7 +8,7 @@ pub struct Analyzer<'a> {
 }
 
 impl<'a> Analyzer<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
 
@@ -59,6 +59,8 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    /// # Panics
+    /// always
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
         let pos: Option<Position> = pos.into();
         match pos {
@@ -98,7 +100,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_num(num: isize, pos: Position) -> Self {
+    pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Num(num),
             pos,
@@ -141,7 +143,7 @@ pub enum ConvBinOpKind {
 }
 
 impl ConvBinOpKind {
-    pub fn new(kind: BinOpKind) -> Option<Self> {
+    pub const fn new(kind: BinOpKind) -> Option<Self> {
         match kind {
             BinOpKind::Add => Some(ConvBinOpKind::Add),
             BinOpKind::Sub => Some(ConvBinOpKind::Sub),
@@ -150,8 +152,7 @@ impl ConvBinOpKind {
             BinOpKind::Eq => Some(ConvBinOpKind::Eq),
             BinOpKind::Le => Some(ConvBinOpKind::Le),
             BinOpKind::Lt => Some(ConvBinOpKind::Le),
-            BinOpKind::Ge => None,
-            BinOpKind::Gt => None,
+            BinOpKind::Ge | BinOpKind::Gt => None,
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
         }
     }

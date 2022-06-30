@@ -5,7 +5,7 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
 
@@ -132,6 +132,8 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// # Panics
+    /// always
     pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
         let pos: Option<Position> = pos.into();
         match pos {
@@ -219,7 +221,7 @@ impl Binary {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum BinOpKind {
     Add,
     Sub,
