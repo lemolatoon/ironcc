@@ -26,6 +26,11 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Iterator<Item = Token>,
     {
+        if tokens.consume(TokenKind::Return) {
+            // return stmt
+            let returning_expr = self.parse_expr(tokens);
+            return Stmt::ret(returning_expr);
+        }
         let expr = self.parse_expr(tokens);
         Stmt::expr(expr)
     }
@@ -247,11 +252,18 @@ impl Stmt {
             kind: StmtKind::Expr(expr),
         }
     }
+
+    pub fn ret(expr: Expr) -> Self {
+        Self {
+            kind: StmtKind::Return(expr),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum StmtKind {
     Expr(Expr),
+    Return(Expr),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

@@ -282,6 +282,24 @@ mod tests {
     }
 
     #[test]
+    fn tokenize_reserved_test() {
+        let input = String::from("returnx = 1;\nreturn returnx;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("returnx".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::Return,
+                TokenKind::Ident("returnx".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+    }
+
+    #[test]
     fn parse_test() {
         use crate::{
             parse::{BinOpKind, Expr, Parser},
@@ -543,7 +561,27 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected = Program::with_vec(vec![stmt(num(1)), stmt(num(2))]);
+        let expected = Program::with_vec(vec![stmt(expr_stmt(num(1))), stmt(expr_stmt(num(2)))]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Return,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![
+            stmt(expr_stmt(assign(ident("a"), num(2)))),
+            stmt(ret(ident("a"))),
+        ]);
 
         assert_eq!(parsed, expected);
     }
@@ -560,7 +598,7 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected = Program::with_vec(vec![stmt(assign(ident("a"), num(2)))]);
+        let expected = Program::with_vec(vec![stmt(expr_stmt(assign(ident("a"), num(2))))]);
 
         assert_eq!(parsed, expected);
 
@@ -576,8 +614,10 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected =
-            Program::with_vec(vec![stmt(assign(ident("a"), assign(ident("b"), num(2))))]);
+        let expected = Program::with_vec(vec![stmt(expr_stmt(assign(
+            ident("a"),
+            assign(ident("b"), num(2)),
+        )))]);
 
         assert_eq!(parsed, expected);
 
@@ -593,16 +633,24 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected = Program::with_vec(vec![stmt(assign(
+        let expected = Program::with_vec(vec![stmt(expr_stmt(assign(
             bin(BinOpKind::Add, ident("a"), num(1)),
             num(2),
-        ))]);
+        )))]);
 
         assert_eq!(parsed, expected);
     }
 
-    fn stmt(expr: Expr) -> ProgramKind {
-        ProgramKind::Stmt(Stmt::expr(expr))
+    fn stmt(stmt: Stmt) -> ProgramKind {
+        ProgramKind::Stmt(stmt)
+    }
+
+    fn expr_stmt(expr: Expr) -> Stmt {
+        Stmt::expr(expr)
+    }
+
+    fn ret(expr: Expr) -> Stmt {
+        Stmt::ret(expr)
     }
 
     fn ident(name: &str) -> Expr {
@@ -678,8 +726,11 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![
-            stmt(assign(ident("a"), bin(BinOpKind::Ge, num(1), ident("k")))),
-            stmt(ident("b")),
+            stmt(expr_stmt(assign(
+                ident("a"),
+                bin(BinOpKind::Ge, num(1), ident("k")),
+            ))),
+            stmt(expr_stmt(ident("b"))),
         ]);
         let converted_program = analyzer.down_program(program);
         assert_eq!(
@@ -699,9 +750,9 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![
-            stmt(assign(ident("a"), assign(ident("k"), num(1)))),
-            stmt(assign(ident("c"), num(3))),
-            stmt(bin(BinOpKind::Div, ident("a"), ident("k"))),
+            stmt(expr_stmt(assign(ident("a"), assign(ident("k"), num(1))))),
+            stmt(expr_stmt(assign(ident("c"), num(3)))),
+            stmt(expr_stmt(bin(BinOpKind::Div, ident("a"), ident("k")))),
         ]);
         let converted_program = analyzer.down_program(program);
         assert_eq!(

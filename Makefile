@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-g -static
+CFLAGS=-g3 -static
 COMPILER=target/debug/ironcc
 
 $(COMPILER): FORCE
@@ -8,11 +8,12 @@ $(COMPILER): FORCE
 tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
-tmp: tmp.s
-	$(CC) tmp.s -o tmp $(CFLAGS)
+a.out: tmp.s
+	$(CC) tmp.s -o a.out $(CFLAGS)
 
-run: tmp
-	./tmp
+run: a.out 
+	./a.out
+
 
 test: $(COMPILER)
 	./test/test.sh

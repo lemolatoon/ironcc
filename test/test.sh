@@ -2,18 +2,27 @@
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 cd $SCRIPT_DIR
 COMPILER="$SCRIPT_DIR/../target/debug/ironcc"
+mkdir ../tmp -p
+
+unique() {
+  echo $RANDOM | md5sum | head -c 10
+}
+
 
 call () {
     input="$1"
 
-    echo "$input" > tmp.c
-    $COMPILER tmp.c
+    UNIQ=$(unique)
 
-    clang -o tmp tmp.s
-    ./tmp
+    echo "$input" > ../tmp/tmp$UNIQ.c && \
+    cd ../tmp && \
+    $COMPILER tmp$UNIQ.c && \
+    cd $SCRIPT_DIR && \
+    clang -o ../tmp/tmp$UNIQ ../tmp/tmp$UNIQ.s && \
+    ../tmp/tmp$UNIQ
 }
 
-assert() {
+_assert() {
     expected="$1"
     input="$2"
 
@@ -27,6 +36,15 @@ assert() {
         exit 1
     fi
 }
+
+assert() {
+    _assert "$1" "$2" &
+}
+
+clean() {
+    rm ../tmp/*
+}
+
 
 assert 1 "1;"
 assert 0 "0;"
@@ -67,6 +85,10 @@ assert 3 "1 + 1; 1 + 2;"
 assert 5 "a = 5; a;"
 assert 55 "a = 1; b = 2; c = 3; z = 4; y = 5; x = 6; t = 10; u = 9; v = 8; w = 7; a +  b + c + z + y + x + t + u + v + w;"
 assert 3 "abc = 22; cde=7; abc / cde;"
+assert 1 "abc = 22; cde=7; return abc > cde;"
+assert 4 "return 4; return 5;"
 
+wait
+clean
 
 echo "OK"

@@ -39,6 +39,9 @@ impl<'a> Generater<'a> {
             }
             writeln!(f, "  pop rax")?;
         }
+
+        // TODO: change this label dynamically base on func name
+        writeln!(f, ".main_retL:")?;
         writeln!(f, "  mov rsp, rbp")?;
         writeln!(f, "  pop rbp")?;
         writeln!(f, "  ret")?;
@@ -51,8 +54,14 @@ impl<'a> Generater<'a> {
         stmt: ConvStmt,
     ) -> Result<(), std::io::Error> {
         match stmt.kind {
-            ConvStmtKind::Expr(expr) => self.gen_expr(f, expr),
-        }
+            ConvStmtKind::Expr(expr) => self.gen_expr(f, expr)?,
+            ConvStmtKind::Return(expr) => {
+                self.gen_expr(f, expr)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  jmp .main_retL")?;
+            }
+        };
+        Ok(())
     }
 
     /// # Errors
