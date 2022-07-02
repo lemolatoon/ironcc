@@ -6,6 +6,8 @@ pub mod tokenize;
 #[cfg(test)]
 mod tests {
 
+    use std::collections::BTreeMap;
+
     use crate::{
         analyze::{Analyzer, ConvBinOpKind, ConvExpr, ConvProgram, ConvProgramKind, ConvStmt},
         parse::{BinOpKind, Expr, Parser, Program, ProgramKind, Stmt, UnOp},
@@ -626,9 +628,10 @@ mod tests {
     #[test]
     fn analysis_test() {
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(
@@ -640,18 +643,20 @@ mod tests {
         );
 
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = bin(BinOpKind::Ge, num(1), num(2));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(ConvBinOpKind::Le, cnum(2), cnum(1),).kind
         );
 
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = bin(BinOpKind::Gt, num(1), num(2));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
@@ -661,16 +666,17 @@ mod tests {
     #[test]
     fn analysis_ident_test() {
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = assign(ident("a"), num(1));
-        let converted_expr = analyzer.down_expr(expr);
-        assert_eq!(converted_expr.kind, cassign(clvar("a"), cnum(1)).kind)
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+        assert_eq!(converted_expr.kind, cassign(clvar("a", 0), cnum(1)).kind)
     }
 
     #[test]
     fn analysis_program_test() {
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![
             stmt(assign(ident("a"), bin(BinOpKind::Ge, num(1), ident("k")))),
             stmt(ident("b")),
@@ -680,10 +686,30 @@ mod tests {
             converted_program,
             cprog(vec![
                 cstmt(cassign(
-                    clvar("a"),
-                    cbin(ConvBinOpKind::Le, clvar("k"), cnum(1))
+                    clvar("a", 0),
+                    cbin(ConvBinOpKind::Le, clvar("k", 8), cnum(1))
                 )),
-                cstmt(clvar("b"))
+                cstmt(clvar("b", 16))
+            ])
+        )
+    }
+
+    #[test]
+    fn analysis_local_variable_test() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![
+            stmt(assign(ident("a"), assign(ident("k"), num(1)))),
+            stmt(assign(ident("c"), num(3))),
+            stmt(bin(BinOpKind::Div, ident("a"), ident("k"))),
+        ]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![
+                cstmt(cassign(clvar("a", 0), cassign(clvar("k", 8), cnum(1)))),
+                cstmt(cassign(clvar("c", 16), cnum(3))),
+                cstmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 8))),
             ])
         )
     }
@@ -696,8 +722,15 @@ mod tests {
         ConvProgramKind::Stmt(ConvStmt::new_expr(expr))
     }
 
-    fn clvar(name: &str) -> ConvExpr {
-        ConvExpr::new_lvar(name.to_string(), Position::default())
+    fn clvar(name: &str, mut offset: usize) -> ConvExpr {
+        let offset = &mut offset;
+        let mut empty_lvar_map = BTreeMap::new();
+        ConvExpr::new_lvar(
+            name.to_string(),
+            Position::default(),
+            offset,
+            &mut empty_lvar_map,
+        )
     }
 
     fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {

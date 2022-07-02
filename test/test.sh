@@ -66,6 +66,7 @@ assert 100 "((32 + -980) <= (-  5*4 * (-2) + 9 -997 * (-2) / (-2))) + 99;"
 assert 3 "1 + 1; 1 + 2;"
 assert 5 "a = 5; a;"
 assert 55 "a = 1; b = 2; c = 3; z = 4; y = 5; x = 6; t = 10; u = 9; v = 8; w = 7; a +  b + c + z + y + x + t + u + v + w;"
+assert 3 "abc = 22; cde=7; abc / cde;"
 
 
 echo "OK"

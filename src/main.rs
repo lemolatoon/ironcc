@@ -25,7 +25,7 @@ fn main() -> Result<(), std::io::Error> {
     let parser = Parser::new(&input);
     let program = parser.parse_program(&mut token_stream);
 
-    let analyzer = Analyzer::new(&input);
+    let mut analyzer = Analyzer::new(&input);
     let converted_program = analyzer.down_program(program);
 
     let mut buf_writer = BufWriter::new(out_f);
