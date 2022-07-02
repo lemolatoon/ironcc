@@ -6,6 +6,7 @@ pub mod tokenize;
 #[cfg(test)]
 mod tests {
 
+    use pretty_assertions::assert_eq;
     use std::collections::BTreeMap;
 
     use crate::{
@@ -293,6 +294,127 @@ mod tests {
                 TokenKind::Semi,
                 TokenKind::Return,
                 TokenKind::Ident("returnx".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("x = 2;ifx = 1; if (x == 1) ifx = 3;\nreturn ifx;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(2),
+                TokenKind::Semi,
+                TokenKind::Ident("ifx".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::If,
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::EqEq,
+                TokenKind::Num(1),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Ident("ifx".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(3),
+                TokenKind::Semi,
+                TokenKind::Return,
+                TokenKind::Ident("ifx".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("x = 2; while(x>0) x = x -1; return x;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(2),
+                TokenKind::Semi,
+                TokenKind::While,
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Gt,
+                TokenKind::Num(0),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::Return,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("x = 2; if(x>0) x = x -1; else x = 5; return x;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(2),
+                TokenKind::Semi,
+                TokenKind::If,
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Gt,
+                TokenKind::Num(0),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Minus),
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::Else,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(5),
+                TokenKind::Semi,
+                TokenKind::Return,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("for (x = 1; x <= 11; x = x + 1) x = x + 2; return x;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::For,
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Le,
+                TokenKind::Num(11),
+                TokenKind::Semi,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(1),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(2),
+                TokenKind::Semi,
+                TokenKind::Return,
+                TokenKind::Ident("x".to_string()),
                 TokenKind::Semi,
                 TokenKind::Eof
             )
@@ -641,6 +763,132 @@ mod tests {
         assert_eq!(parsed, expected);
     }
 
+    #[test]
+    fn parse_various_stmts() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(22),
+            TokenKind::Semi,
+            TokenKind::If,
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Ge,
+            TokenKind::Num(10),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Return,
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::Else,
+            TokenKind::Return,
+            TokenKind::Num(0),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![
+            stmt(expr_stmt(assign(ident("a"), num(22)))),
+            stmt(if_(
+                bin(BinOpKind::Ge, ident("a"), num(10)),
+                ret(num(1)),
+                Some(ret(num(0))),
+            )),
+        ]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(22),
+            TokenKind::Semi,
+            TokenKind::While,
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Gt,
+            TokenKind::Num(0),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::Return,
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Semi,
+            TokenKind::Eof
+        ); // -> 1
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![
+            stmt(expr_stmt(assign(ident("a"), num(22)))),
+            stmt(while_(
+                bin(BinOpKind::Gt, ident("a"), num(0)),
+                expr_stmt(assign(ident("a"), bin(BinOpKind::Sub, ident("a"), num(1)))),
+            )),
+            stmt(ret(ident("a"))),
+        ]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('x'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::For,
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(3),
+            TokenKind::Semi,
+            TokenKind::Semi,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(2),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::If,
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(1),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::Else,
+            TokenKind::Return,
+            TokenKind::Num(200),
+            TokenKind::Semi,
+            TokenKind::Eof
+        ); // -> 1
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![
+            stmt(expr_stmt(assign(ident("x"), num(1)))),
+            stmt(for_(
+                Some(assign(ident("a"), num(3))),
+                None,
+                Some(assign(ident("a"), bin(BinOpKind::Sub, ident("a"), num(2)))),
+                if_(
+                    num(1),
+                    expr_stmt(assign(ident("a"), bin(BinOpKind::Add, ident("a"), num(1)))),
+                    Some(ret(num(200))),
+                ),
+            )),
+        ]);
+
+        assert_eq!(parsed, expected);
+    }
+
     fn stmt(stmt: Stmt) -> ProgramKind {
         ProgramKind::Stmt(stmt)
     }
@@ -651,6 +899,18 @@ mod tests {
 
     fn ret(expr: Expr) -> Stmt {
         Stmt::ret(expr)
+    }
+
+    fn if_(cond: Expr, then: Stmt, els: Option<Stmt>) -> Stmt {
+        Stmt::new_if(cond, then, els)
+    }
+
+    fn while_(cond: Expr, then: Stmt) -> Stmt {
+        Stmt::new_while(cond, then)
+    }
+
+    fn for_(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Stmt {
+        Stmt::new_for(init, cond, inc, then)
     }
 
     fn ident(name: &str) -> Expr {

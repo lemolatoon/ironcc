@@ -110,6 +110,10 @@ impl<'a> Tokenizer<'a> {
                 tokens.push(Token::new(
                     match ident.as_str() {
                         "return" => TokenKind::Return,
+                        "if" => TokenKind::If,
+                        "else" => TokenKind::Else,
+                        "while" => TokenKind::While,
+                        "for" => TokenKind::For,
                         _ => TokenKind::Ident(ident),
                     },
                     pos.next_token(len_token),
@@ -168,6 +172,14 @@ pub enum TokenKind {
     Ident(String),
     /// `return`, reserved word
     Return,
+    /// `if`, reserved word
+    If,
+    /// `else`, reserved word
+    Else,
+    /// `while`, reserved word
+    While,
+    /// `for`, reserved word
+    For,
     /// `<` Less than
     Lt,
     /// `<=` Less equal

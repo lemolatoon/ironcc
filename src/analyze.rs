@@ -33,6 +33,9 @@ impl<'a> Analyzer<'a> {
         match stmt.kind {
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
             StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map)),
+            StmtKind::If(_, _, _) => todo!(),
+            StmtKind::While(_, _) => todo!(),
+            StmtKind::For(_, _, _, _) => todo!(),
         }
     }
 

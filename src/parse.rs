@@ -15,7 +15,6 @@ impl<'a> Parser<'a> {
         let mut program = Program::new();
         while !tokens.at_eof() {
             program.push_stmt(self.parse_stmt(tokens));
-            tokens.expect(TokenKind::Semi);
         }
         tokens.expect(TokenKind::Eof);
         assert!(tokens.next().is_none());
@@ -29,10 +28,57 @@ impl<'a> Parser<'a> {
         if tokens.consume(TokenKind::Return) {
             // return stmt
             let returning_expr = self.parse_expr(tokens);
+            tokens.expect(TokenKind::Semi);
             return Stmt::ret(returning_expr);
+        } else if tokens.consume(TokenKind::If) {
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
+            let conditional_expr = self.parse_expr(tokens);
+            dbg!(conditional_expr.clone());
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+            let then_stmt = self.parse_stmt(tokens);
+            dbg!(then_stmt.clone());
+            let mut else_stmt = None;
+            if tokens.consume(TokenKind::Else) {
+                else_stmt = Some(self.parse_stmt(tokens));
+            }
+            dbg!(else_stmt.clone());
+            return Stmt::new_if(conditional_expr, then_stmt, else_stmt);
+        } else if tokens.consume(TokenKind::While) {
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
+            let conditional_expr = self.parse_expr(tokens);
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+            let then_stmt = self.parse_stmt(tokens);
+            return Stmt::new_while(conditional_expr, then_stmt);
+        } else if tokens.consume(TokenKind::For) {
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
+            let init_expr = if tokens.consume(TokenKind::Semi) {
+                None
+            } else {
+                let expr = self.parse_expr(tokens);
+                tokens.expect(TokenKind::Semi);
+                Some(expr)
+            };
+            let cond_expr = if tokens.consume(TokenKind::Semi) {
+                None
+            } else {
+                let expr = self.parse_expr(tokens);
+                tokens.expect(TokenKind::Semi);
+                Some(expr)
+            };
+            let inc_expr = if tokens.consume(TokenKind::Semi) {
+                None
+            } else {
+                let expr = self.parse_expr(tokens);
+                Some(expr)
+            };
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+            let then_stmt = self.parse_stmt(tokens);
+            return Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt);
+        } else {
+            let expr = self.parse_expr(tokens);
+            tokens.expect(TokenKind::Semi);
+            return Stmt::expr(expr);
         }
-        let expr = self.parse_expr(tokens);
-        Stmt::expr(expr)
     }
 
     pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
@@ -258,12 +304,33 @@ impl Stmt {
             kind: StmtKind::Return(expr),
         }
     }
+
+    pub fn new_if(cond: Expr, then: Stmt, els: Option<Stmt>) -> Self {
+        Self {
+            kind: StmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
+        }
+    }
+
+    pub fn new_while(cond: Expr, then: Stmt) -> Self {
+        Self {
+            kind: StmtKind::While(cond, Box::new(then)),
+        }
+    }
+
+    pub fn new_for(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Self {
+        Self {
+            kind: StmtKind::For(init, cond, inc, Box::new(then)),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum StmtKind {
     Expr(Expr),
     Return(Expr),
+    If(Expr, Box<Stmt>, Option<Box<Stmt>>),
+    While(Expr, Box<Stmt>),
+    For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
