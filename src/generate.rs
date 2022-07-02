@@ -82,7 +82,17 @@ impl<'a> Generater<'a> {
                 self.gen_stmt(f, *then)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::While(_, _) => todo!(),
+            ConvStmtKind::While(cond, then) => {
+                let label_index = self.label();
+                writeln!(f, ".Lbegin{}:", label_index)?;
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  cmp rax, 0")?;
+                writeln!(f, "  je .Lend{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, "  jmp .Lbegin{}", label_index)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
             ConvStmtKind::For(_, _, _, _) => todo!(),
         };
         Ok(())

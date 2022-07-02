@@ -94,6 +94,9 @@ assert 4 "return 4; return 5;"
 assert 3 " a = 1; if (44 > 32) a = 3; if(44 < 32) a = 5; return a;"
 assert 100 " a = 5; if (55 != 43) a = 100; else a = 50; return a;"
 
+assert 1 "i = 0; sum = 1; while(i <= 10) i = 11; return sum;"
+assert 64 "i = 1; while(i <=55) i = i*2; return i;"
+
 wait
 clean
 
