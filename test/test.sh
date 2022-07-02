@@ -97,6 +97,11 @@ assert 100 " a = 5; if (55 != 43) a = 100; else a = 50; return a;"
 assert 1 "i = 0; sum = 1; while(i <= 10) i = 11; return sum;"
 assert 64 "i = 1; while(i <=55) i = i*2; return i;"
 
+assert 1 "10 <= 10;"
+
+assert 55 " sum = 0; for (i = 1; i <= 10; i = i + 1) sum = sum + i; return sum;"
+assert 1 " sum = 0; for (i = 1; i == 1; i = i + 1) sum = sum + i; return sum;"
+
 wait
 clean
 

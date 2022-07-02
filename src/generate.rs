@@ -42,7 +42,7 @@ impl<'a> Generater<'a> {
         }
 
         // TODO: change this label dynamically base on func name
-        writeln!(f, ".main_retL:")?;
+        writeln!(f, ".Lmain_ret:")?;
         writeln!(f, "  mov rsp, rbp")?;
         writeln!(f, "  pop rbp")?;
         writeln!(f, "  ret")?;
@@ -59,7 +59,7 @@ impl<'a> Generater<'a> {
             ConvStmtKind::Return(expr) => {
                 self.gen_expr(f, expr)?;
                 writeln!(f, "  pop rax")?;
-                writeln!(f, "  jmp .main_retL")?;
+                writeln!(f, "  jmp .Lmain_ret")?;
             }
             ConvStmtKind::If(cond, then, Some(els)) => {
                 let label_index = self.label();
@@ -93,7 +93,26 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::For(_, _, _, _) => todo!(),
+            ConvStmtKind::For(init, cond, inc, then) => {
+                let label_index = self.label();
+                if let Some(init) = init {
+                    self.gen_expr(f, init)?;
+                }
+                writeln!(f, "  pop rax")?;
+                writeln!(f, ".Lbegin{}:", label_index)?;
+                if let Some(cond) = cond {
+                    self.gen_expr(f, cond)?;
+                    writeln!(f, "  pop rax")?;
+                    writeln!(f, "  cmp rax, 0")?;
+                    writeln!(f, "  je .Lend{}", label_index)?;
+                }
+                self.gen_stmt(f, *then)?;
+                if let Some(inc) = inc {
+                    self.gen_expr(f, inc)?;
+                }
+                writeln!(f, "  jmp .Lbegin{}", label_index)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
         };
         Ok(())
     }
