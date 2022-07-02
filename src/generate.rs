@@ -60,6 +60,9 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  pop rax")?;
                 writeln!(f, "  jmp .main_retL")?;
             }
+            ConvStmtKind::If(_, _, _) => todo!(),
+            ConvStmtKind::While(_, _) => todo!(),
+            ConvStmtKind::For(_, _, _, _) => todo!(),
         };
         Ok(())
     }
