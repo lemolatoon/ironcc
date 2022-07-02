@@ -11,17 +11,18 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct Generater<'a> {
     input: &'a str,
+    label: usize,
 }
 
 impl<'a> Generater<'a> {
     pub const fn new(input: &'a str) -> Self {
-        Self { input }
+        Self { input, label: 0 }
     }
 
     /// # Errors
     /// return errors when file IO failed
     pub fn gen_head<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         program: ConvProgram,
     ) -> Result<(), std::io::Error> {
@@ -49,7 +50,7 @@ impl<'a> Generater<'a> {
     }
 
     pub fn gen_stmt<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
     ) -> Result<(), std::io::Error> {
@@ -60,7 +61,27 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  pop rax")?;
                 writeln!(f, "  jmp .main_retL")?;
             }
-            ConvStmtKind::If(_, _, _) => todo!(),
+            ConvStmtKind::If(cond, then, Some(els)) => {
+                let label_index = self.label();
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?; // conditional expr
+                writeln!(f, "  cmp rax, 0")?; // false
+                writeln!(f, "  je .Lelse{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, "  jmp .Lend{}", label_index)?;
+                writeln!(f, ".Lelse{}:", label_index)?;
+                self.gen_stmt(f, *els)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::If(cond, then, None) => {
+                let label_index = self.label();
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  cmp rax, 0")?;
+                writeln!(f, "  je .Lend{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
             ConvStmtKind::While(_, _) => todo!(),
             ConvStmtKind::For(_, _, _, _) => todo!(),
         };
@@ -194,5 +215,10 @@ impl<'a> Generater<'a> {
                 panic!();
             }
         }
+    }
+
+    pub fn label(&mut self) -> usize {
+        self.label += 1;
+        self.label
     }
 }

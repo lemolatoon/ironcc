@@ -4,9 +4,12 @@ cd $SCRIPT_DIR
 COMPILER="$SCRIPT_DIR/../target/debug/ironcc"
 mkdir ../tmp -p
 
+
 unique() {
   echo $RANDOM | md5sum | head -c 10
 }
+
+LOG=../tmp/log$(unique)
 
 
 call () {
@@ -32,7 +35,7 @@ _assert() {
     if [ "$actual" = "$expected" ]; then
         echo "$input => $actual"
     else
-        echo "$input => $expected expected, but got $actual"
+        printf "\033[31m$input => $expected expected, but got $actual\033[0m\n" | tee $LOG -a
         exit 1
     fi
 }
@@ -87,6 +90,9 @@ assert 55 "a = 1; b = 2; c = 3; z = 4; y = 5; x = 6; t = 10; u = 9; v = 8; w = 7
 assert 3 "abc = 22; cde=7; abc / cde;"
 assert 1 "abc = 22; cde=7; return abc > cde;"
 assert 4 "return 4; return 5;"
+
+assert 3 " a = 1; if (44 > 32) a = 3; if(44 < 32) a = 5; return a;"
+assert 100 " a = 5; if (55 != 43) a = 100; else a = 50; return a;"
 
 wait
 clean

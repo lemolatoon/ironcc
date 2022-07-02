@@ -33,15 +33,12 @@ impl<'a> Parser<'a> {
         } else if tokens.consume(TokenKind::If) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
             let conditional_expr = self.parse_expr(tokens);
-            dbg!(conditional_expr.clone());
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
             let then_stmt = self.parse_stmt(tokens);
-            dbg!(then_stmt.clone());
             let mut else_stmt = None;
             if tokens.consume(TokenKind::Else) {
                 else_stmt = Some(self.parse_stmt(tokens));
             }
-            dbg!(else_stmt.clone());
             return Stmt::new_if(conditional_expr, then_stmt, else_stmt);
         } else if tokens.consume(TokenKind::While) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));

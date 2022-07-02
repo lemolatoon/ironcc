@@ -29,7 +29,7 @@ fn main() -> Result<(), std::io::Error> {
     let converted_program = analyzer.down_program(program);
 
     let mut buf_writer = BufWriter::new(out_f);
-    let generater = Generater::new(&input);
+    let mut generater = Generater::new(&input);
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 
