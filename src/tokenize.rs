@@ -72,6 +72,10 @@ impl<'a> Tokenizer<'a> {
                 tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
             } else if input.starts_with('>') {
                 tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
+            } else if input.starts_with(';') {
+                tokens.push(Token::new(TokenKind::Semi, pos.next_char()));
+            } else if input.starts_with('=') {
+                tokens.push(Token::new(TokenKind::Eq, pos.next_char()));
             } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());
@@ -90,10 +94,29 @@ impl<'a> Tokenizer<'a> {
                 ));
                 input = &input[len_token..];
                 continue;
+            } else if input
+                .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
+            {
+                // Ident
+                let mut chars = input.chars().peekable();
+                let mut ident = String::from(chars.next().unwrap());
+                while let Some(&('a'..='z') | '_') = chars.peek() {
+                    ident.push(chars.next().unwrap());
+                }
+                let len_token = ident.len();
+                tokens.push(Token::new(
+                    TokenKind::Ident(ident),
+                    pos.next_token(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
             } else {
                 self.error_at(
                     &pos,
-                    &format!("Unexpected char while tokenize : {:?}", &pos),
+                    &format!(
+                        "Unexpected char while tokenize : {:?}\nrest input: {:?}\n",
+                        &pos, input
+                    ),
                 )
             } // one character tokenize
             input = &input[1..];
@@ -133,18 +156,24 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
-    /// < Less that
+    /// Semicoron `;`
+    Semi,
+    /// An ident
+    Ident(String),
+    /// `<` Less than
     Lt,
-    /// < Less equal
+    /// `<=` Less equal
     Le,
-    /// > Greater than
+    /// `>` Greater than
     Gt,
-    /// >= Greater equal
+    /// `>=` Greater equal
     Ge,
-    /// == Equal equal
+    /// `==` Equal equal
     EqEq,
-    /// != Not equal
+    /// `!=` Not equal
     Ne,
+    /// `=` assign
+    Eq,
     Eof,
 }
 
@@ -201,6 +230,7 @@ impl Position {
     }
 
     pub fn next_line(&mut self) -> Self {
+        // eprintln!("next_line: {:?}", self);
         let return_struct = self.clone();
         self.n_char = 0;
         self.n_line += 1;
@@ -209,12 +239,14 @@ impl Position {
 
     // increment self.n_char and return not incremented, cloned Position struct
     pub fn next_char(&mut self) -> Self {
+        // eprintln!("next_char: {:?}", self);
         let return_struct = self.clone();
         self.n_char += 1;
         return_struct
     }
 
     pub fn next_token(&mut self, len_token: usize) -> Self {
+        // eprintln!("next_token: {}, {:?}", len_token, self);
         let return_struct = self.clone();
         self.n_char += len_token;
         return_struct
@@ -287,6 +319,10 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
         match pos {
             None => panic!("Passed pos info was None.\n{}", msg),
             Some(pos) => {
+                eprintln!("=====");
+                eprintln!("{}", self.input);
+                eprintln!("{:?}", pos);
+                eprintln!("=====");
                 let mut splited = self.input.split('\n');
                 let line = splited.nth(pos.n_line).unwrap_or_else(|| {
                     panic!(

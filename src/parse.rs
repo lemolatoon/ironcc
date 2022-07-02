@@ -8,12 +8,51 @@ impl<'a> Parser<'a> {
     pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
+    pub fn parse_program<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Program
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let mut program = Program::new();
+        while !tokens.at_eof() {
+            program.push_stmt(self.parse_stmt(tokens));
+            tokens.expect(TokenKind::Semi);
+        }
+        tokens.expect(TokenKind::Eof);
+        assert!(tokens.next().is_none());
+        program
+    }
+
+    pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let expr = self.parse_expr(tokens);
+        Stmt::expr(expr)
+    }
 
     pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
         I: Clone + Iterator<Item = Token>,
     {
-        self.parse_equality(tokens)
+        self.parse_assign(tokens)
+    }
+
+    pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let lhs = self.parse_equality(tokens);
+        let (kind, pos) = match tokens.peek() {
+            Some(Token { kind, pos }) => (kind, pos.clone()),
+            None => self.error_at(None, "Expected token, but got None"),
+        };
+        match **kind {
+            TokenKind::Eq => {
+                tokens.next();
+                Expr::new_assign(lhs, self.parse_assign(tokens), pos)
+            }
+            _ => lhs,
+        }
     }
 
     pub fn parse_equality<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
@@ -123,6 +162,7 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
                     expr
                 }
+                TokenKind::Ident(name) => Expr::new_ident(name, pos),
                 _ => self.error_at(
                     Some(pos),
                     &format!("In `parse_primary`, got unexpected token: {:?}", kind),
@@ -161,6 +201,60 @@ impl<'a> Parser<'a> {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Program {
+    components: Vec<ProgramKind>,
+}
+
+impl Program {
+    pub fn new() -> Self {
+        Self {
+            components: Vec::new(),
+        }
+    }
+
+    pub fn with_vec(vec: Vec<ProgramKind>) -> Self {
+        Self { components: vec }
+    }
+
+    pub fn push_stmt(&mut self, stmt: Stmt) {
+        self.components.push(ProgramKind::Stmt(stmt));
+    }
+}
+
+impl IntoIterator for Program {
+    type Item = ProgramKind;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.components.into_iter()
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ProgramKind {
+    Stmt(Stmt),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Stmt {
+    pub kind: StmtKind,
+}
+
+impl Stmt {
+    pub fn expr(expr: Expr) -> Self {
+        Self {
+            kind: StmtKind::Expr(expr),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum StmtKind {
+    Expr(Expr),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Expr {
     pub kind: ExprKind,
     pub pos: Position,
@@ -171,6 +265,8 @@ pub enum ExprKind {
     Binary(Binary),
     Num(isize),
     Unary(UnOp, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>),
+    Ident(String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -195,9 +291,24 @@ impl Expr {
         }
     }
 
+    pub fn new_ident(name: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Ident(name),
+            pos,
+        }
+    }
+
     pub fn new_unary(kind: UnOp, expr: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Unary(kind, Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_assign(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+        // pos is Position of TokenKind::Eq (i.e. `=`)
+        Self {
+            kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
             pos,
         }
     }

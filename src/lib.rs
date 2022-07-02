@@ -6,9 +6,11 @@ pub mod tokenize;
 #[cfg(test)]
 mod tests {
 
+    use std::collections::BTreeMap;
+
     use crate::{
-        analyze::{Analyzer, ConvBinOpKind, ConvExpr},
-        parse::{BinOpKind, Expr, Parser, UnOp},
+        analyze::{Analyzer, ConvBinOpKind, ConvExpr, ConvProgram, ConvProgramKind, ConvStmt},
+        parse::{BinOpKind, Expr, Parser, Program, ProgramKind, Stmt, UnOp},
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
         },
@@ -200,6 +202,85 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn tokenize_tokens_test() {
+        let input = String::from("a = 2");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("a".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
+    }
+
+    #[test]
+    fn tokenize_ident_test() {
+        let input = String::from("a");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(TokenKind::Ident("a".to_string()), TokenKind::Eof)
+        );
+
+        let input = String::from("q * z");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("q".to_string()),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Ident("z".to_string()),
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("abc = cdf = 8*7");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("abc".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("cdf".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(8),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Num(7),
+                TokenKind::Eof
+            )
+        );
+    }
+
+    #[test]
+    fn tokenize_stmt_test() {
+        let input = String::from("a;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("a".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+
+        let input = String::from("q * z;\nc +c;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("q".to_string()),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Ident("z".to_string()),
+                TokenKind::Semi,
+                TokenKind::Ident("c".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Ident("c".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
+    }
+
     #[test]
     fn parse_test() {
         use crate::{
@@ -450,6 +531,88 @@ mod tests {
         );
     }
 
+    #[test]
+    fn parse_stmt_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Num(1),
+            TokenKind::Semi,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(num(1)), stmt(num(2))]);
+
+        assert_eq!(parsed, expected);
+    }
+
+    #[test]
+    fn parse_assign_expr_test() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(assign(ident("a"), num(2)))]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident('b'.to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected =
+            Program::with_vec(vec![stmt(assign(ident("a"), assign(ident("b"), num(2))))]);
+
+        assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident('a'.to_string()),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(1),
+            TokenKind::Eq,
+            TokenKind::Num(2),
+            TokenKind::Semi,
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(assign(
+            bin(BinOpKind::Add, ident("a"), num(1)),
+            num(2),
+        ))]);
+
+        assert_eq!(parsed, expected);
+    }
+
+    fn stmt(expr: Expr) -> ProgramKind {
+        ProgramKind::Stmt(Stmt::expr(expr))
+    }
+
+    fn ident(name: &str) -> Expr {
+        Expr::new_ident(name.to_string(), Position::default())
+    }
+
+    fn assign(lhs: Expr, rhs: Expr) -> Expr {
+        Expr::new_assign(lhs, rhs, Position::default())
+    }
+
     fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
         Expr::new_binary(op, lhs, rhs, Position::default())
     }
@@ -465,9 +628,10 @@ mod tests {
     #[test]
     fn analysis_test() {
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(
@@ -479,23 +643,100 @@ mod tests {
         );
 
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = bin(BinOpKind::Ge, num(1), num(2));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(ConvBinOpKind::Le, cnum(2), cnum(1),).kind
         );
 
         let input = String::new();
-        let analyzer = Analyzer::new(&input);
+        let mut analyzer = Analyzer::new(&input);
         let expr = bin(BinOpKind::Gt, num(1), num(2));
-        let converted_expr = analyzer.down_expr(expr);
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
             cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
         )
     }
+
+    #[test]
+    fn analysis_ident_test() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let expr = assign(ident("a"), num(1));
+        let mut lvar_map = BTreeMap::new();
+        let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+        assert_eq!(converted_expr.kind, cassign(clvar("a", 0), cnum(1)).kind)
+    }
+
+    #[test]
+    fn analysis_program_test() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![
+            stmt(assign(ident("a"), bin(BinOpKind::Ge, num(1), ident("k")))),
+            stmt(ident("b")),
+        ]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![
+                cstmt(cassign(
+                    clvar("a", 0),
+                    cbin(ConvBinOpKind::Le, clvar("k", 8), cnum(1))
+                )),
+                cstmt(clvar("b", 16))
+            ])
+        )
+    }
+
+    #[test]
+    fn analysis_local_variable_test() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![
+            stmt(assign(ident("a"), assign(ident("k"), num(1)))),
+            stmt(assign(ident("c"), num(3))),
+            stmt(bin(BinOpKind::Div, ident("a"), ident("k"))),
+        ]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![
+                cstmt(cassign(clvar("a", 0), cassign(clvar("k", 8), cnum(1)))),
+                cstmt(cassign(clvar("c", 16), cnum(3))),
+                cstmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 8))),
+            ])
+        )
+    }
+
+    fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
+        ConvProgram::with_vec(components)
+    }
+
+    fn cstmt(expr: ConvExpr) -> ConvProgramKind {
+        ConvProgramKind::Stmt(ConvStmt::new_expr(expr))
+    }
+
+    fn clvar(name: &str, mut offset: usize) -> ConvExpr {
+        let offset = &mut offset;
+        let mut empty_lvar_map = BTreeMap::new();
+        ConvExpr::new_lvar(
+            name.to_string(),
+            Position::default(),
+            offset,
+            &mut empty_lvar_map,
+        )
+    }
+
+    fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
+        ConvExpr::new_assign(lhs, rhs, Position::default())
+    }
+
     fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
         ConvExpr::new_binary(op, lhs, rhs, Position::default())
     }

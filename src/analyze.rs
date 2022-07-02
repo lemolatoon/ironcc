@@ -1,18 +1,41 @@
+use std::collections::BTreeMap;
+
 use crate::{
-    parse::{BinOpKind, Binary, Expr, ExprKind, UnOp},
+    parse::{BinOpKind, Binary, Expr, ExprKind, Program, ProgramKind, Stmt, StmtKind, UnOp},
     tokenize::Position,
 };
 
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Analyzer<'a> {
     input: &'a str,
+    offset: usize,
 }
 
 impl<'a> Analyzer<'a> {
     pub const fn new(input: &'a str) -> Self {
-        Self { input }
+        Self { input, offset: 0 }
     }
 
-    pub fn down_expr(&self, expr: Expr) -> ConvExpr {
+    pub fn down_program(&mut self, program: Program) -> ConvProgram {
+        let mut conv_program = ConvProgram::new();
+        let mut lvar_map = BTreeMap::new();
+        for component in program.into_iter() {
+            match component {
+                ProgramKind::Stmt(stmt) => {
+                    conv_program.push_stmt(self.down_stmt(stmt, &mut lvar_map))
+                }
+            }
+        }
+        conv_program
+    }
+
+    pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, usize>) -> ConvStmt {
+        match stmt.kind {
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
+        }
+    }
+
+    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, usize>) -> ConvExpr {
         let pos = expr.pos.clone();
         match expr.kind {
             // `a >= b` := `b <= a`
@@ -22,8 +45,8 @@ impl<'a> Analyzer<'a> {
                 rhs,
             }) => ConvExpr::new_binary(
                 ConvBinOpKind::Le,
-                self.down_expr(*rhs),
-                self.down_expr(*lhs),
+                self.down_expr(*rhs, lvar_map),
+                self.down_expr(*lhs, lvar_map),
                 pos,
             ),
             // `a > b` := `b < a`
@@ -33,15 +56,15 @@ impl<'a> Analyzer<'a> {
                 rhs,
             }) => ConvExpr::new_binary(
                 ConvBinOpKind::Lt,
-                self.down_expr(*rhs),
-                self.down_expr(*lhs),
+                self.down_expr(*rhs, lvar_map),
+                self.down_expr(*lhs, lvar_map),
                 pos,
             ),
             // do nothing
             ExprKind::Binary(Binary { kind, lhs, rhs }) => ConvExpr::new_binary(
                 ConvBinOpKind::new(kind).unwrap(),
-                self.down_expr(*lhs),
-                self.down_expr(*rhs),
+                self.down_expr(*lhs, lvar_map),
+                self.down_expr(*rhs, lvar_map),
                 pos,
             ),
             // do nothing
@@ -50,12 +73,20 @@ impl<'a> Analyzer<'a> {
             ExprKind::Unary(UnOp::Minus, operand) => ConvExpr::new_binary(
                 ConvBinOpKind::Sub,
                 ConvExpr::new_num(0, pos.clone()),
-                self.down_expr(*operand),
+                self.down_expr(*operand, lvar_map),
                 pos,
             ),
 
             // do nothing
-            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand),
+            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, lvar_map),
+            // do nothing
+            ExprKind::Assign(lhs, rhs) => ConvExpr::new_assign(
+                self.down_expr(*lhs, lvar_map),
+                self.down_expr(*rhs, lvar_map),
+                pos,
+            ),
+            // currently all ident is local variable
+            ExprKind::Ident(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
         }
     }
 
@@ -88,6 +119,60 @@ impl<'a> Analyzer<'a> {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvProgram {
+    components: Vec<ConvProgramKind>,
+}
+
+impl ConvProgram {
+    pub fn new() -> Self {
+        Self {
+            components: Vec::new(),
+        }
+    }
+
+    pub fn with_vec(vec: Vec<ConvProgramKind>) -> Self {
+        Self { components: vec }
+    }
+
+    pub fn push_stmt(&mut self, stmt: ConvStmt) {
+        self.components.push(ConvProgramKind::Stmt(stmt));
+    }
+}
+
+impl IntoIterator for ConvProgram {
+    type Item = ConvProgramKind;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.components.into_iter()
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ConvProgramKind {
+    Stmt(ConvStmt),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvStmt {
+    pub kind: ConvStmtKind,
+}
+
+impl ConvStmt {
+    pub fn new_expr(expr: ConvExpr) -> Self {
+        Self {
+            kind: ConvStmtKind::Expr(expr),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum ConvStmtKind {
+    Expr(ConvExpr),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvExpr {
     pub kind: ConvExprKind,
     pub pos: Position,
@@ -106,12 +191,47 @@ impl ConvExpr {
             pos,
         }
     }
+
+    pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        ConvExpr {
+            kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            pos,
+        }
+    }
+
+    pub fn new_lvar(
+        name: String,
+        pos: Position,
+        new_offset: &mut usize,
+        lvar_map: &mut BTreeMap<String, usize>,
+    ) -> Self {
+        let offset = match lvar_map.get(&name) {
+            Some(offset) => *offset,
+            None => {
+                *new_offset += 8;
+                lvar_map.insert(name, *new_offset);
+                *new_offset
+            }
+        };
+        ConvExpr {
+            kind: ConvExprKind::Lvar(Lvar { offset: offset }),
+            pos,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
     Binary(ConvBinary),
     Num(isize),
+    Lvar(Lvar),
+    Assign(Box<ConvExpr>, Box<ConvExpr>),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Lvar {
+    /// Used like `mov rax, [rbp - offset]`
+    pub offset: usize,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
