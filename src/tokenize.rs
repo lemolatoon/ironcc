@@ -94,12 +94,22 @@ impl<'a> Tokenizer<'a> {
                 ));
                 input = &input[len_token..];
                 continue;
-            } else if input.starts_with(&('a'..='z').collect::<Vec<_>>()[..]) {
+            } else if input
+                .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
+            {
                 // Ident
+                let mut chars = input.chars().peekable();
+                let mut ident = String::from(chars.next().unwrap());
+                while let Some(&('a'..='z') | '_') = chars.peek() {
+                    ident.push(chars.next().unwrap());
+                }
+                let len_token = ident.len();
                 tokens.push(Token::new(
-                    TokenKind::Ident(input.chars().next().unwrap().to_string()), // one char var
-                    pos.next_char(),
+                    TokenKind::Ident(ident),
+                    pos.next_token(len_token),
                 ));
+                input = &input[len_token..];
+                continue;
             } else {
                 self.error_at(
                     &pos,

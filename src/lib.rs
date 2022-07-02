@@ -233,6 +233,21 @@ mod tests {
                 TokenKind::Eof
             )
         );
+
+        let input = String::from("abc = cdf = 8*7");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("abc".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("cdf".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(8),
+                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::Num(7),
+                TokenKind::Eof
+            )
+        );
     }
 
     #[test]
