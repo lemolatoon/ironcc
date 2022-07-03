@@ -430,6 +430,40 @@ mod tests {
                 TokenKind::Eof
             )
         );
+        let input = String::from("for (x = 1; x <= 11; x = x + 1) {x = x + 2;} return x;");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::For,
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Num(1),
+                TokenKind::Semi,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Le,
+                TokenKind::Num(11),
+                TokenKind::Semi,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(1),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::OpenDelim(DelimToken::Brace),
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Eq,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::BinOp(BinOpToken::Plus),
+                TokenKind::Num(2),
+                TokenKind::Semi,
+                TokenKind::CloseDelim(DelimToken::Brace),
+                TokenKind::Return,
+                TokenKind::Ident("x".to_string()),
+                TokenKind::Semi,
+                TokenKind::Eof
+            )
+        );
     }
 
     #[test]
@@ -931,6 +965,38 @@ mod tests {
         ]);
 
         assert_eq!(parsed, expected);
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Num(13),
+            TokenKind::Semi,
+            TokenKind::Return,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::BinOp(BinOpToken::Percent),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(3),
+            TokenKind::BinOp(BinOpToken::Percent),
+            TokenKind::Num(1),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Semi,
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        ); // -> 1
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(block(vec![
+            expr_stmt(assign(ident("a"), num(13))),
+            ret(bin(
+                BinOpKind::Rem,
+                ident("a"),
+                bin(BinOpKind::Rem, num(3), num(1)),
+            )),
+        ]))]);
+
+        assert_eq!(parsed, expected);
     }
 
     fn stmt(stmt: Stmt) -> ProgramKind {
@@ -943,6 +1009,10 @@ mod tests {
 
     fn ret(expr: Expr) -> Stmt {
         Stmt::ret(expr)
+    }
+
+    fn block(stmts: Vec<Stmt>) -> Stmt {
+        Stmt::new_block(stmts)
     }
 
     fn if_(cond: Expr, then: Stmt, els: Option<Stmt>) -> Stmt {

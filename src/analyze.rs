@@ -53,6 +53,12 @@ impl<'a> Analyzer<'a> {
                 inc.map(|expr| self.down_expr(expr, lvar_map)),
                 self.down_stmt(*then, lvar_map),
             ),
+            StmtKind::Block(stmts) => ConvStmt::new_block(
+                stmts
+                    .into_iter()
+                    .map(|stmt| self.down_stmt(stmt, lvar_map))
+                    .collect::<Vec<_>>(),
+            ),
         }
     }
 
@@ -193,6 +199,12 @@ impl ConvStmt {
         }
     }
 
+    pub fn new_block(stmts: Vec<ConvStmt>) -> Self {
+        Self {
+            kind: ConvStmtKind::Block(stmts),
+        }
+    }
+
     pub fn new_if(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> Self {
         Self {
             kind: ConvStmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
@@ -221,6 +233,7 @@ impl ConvStmt {
 pub enum ConvStmtKind {
     Expr(ConvExpr),
     Return(ConvExpr),
+    Block(Vec<ConvStmt>),
     If(ConvExpr, Box<ConvStmt>, Option<Box<ConvStmt>>),
     While(ConvExpr, Box<ConvStmt>),
     For(
@@ -337,7 +350,7 @@ impl ConvBinOpKind {
             BinOpKind::Rem => Some(ConvBinOpKind::Rem),
             BinOpKind::Eq => Some(ConvBinOpKind::Eq),
             BinOpKind::Le => Some(ConvBinOpKind::Le),
-            BinOpKind::Lt => Some(ConvBinOpKind::Le),
+            BinOpKind::Lt => Some(ConvBinOpKind::Lt),
             BinOpKind::Ge | BinOpKind::Gt => None,
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
         }

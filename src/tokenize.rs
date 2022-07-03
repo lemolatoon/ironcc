@@ -76,6 +76,26 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::CloseDelim(DelimToken::Paran),
                     pos.next_char(),
                 ));
+            } else if input.starts_with('{') {
+                tokens.push(Token::new(
+                    TokenKind::OpenDelim(DelimToken::Brace),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('}') {
+                tokens.push(Token::new(
+                    TokenKind::CloseDelim(DelimToken::Brace),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('[') {
+                tokens.push(Token::new(
+                    TokenKind::OpenDelim(DelimToken::Bracket),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with(']') {
+                tokens.push(Token::new(
+                    TokenKind::CloseDelim(DelimToken::Bracket),
+                    pos.next_char(),
+                ));
             } else if input.starts_with('<') {
                 tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
             } else if input.starts_with('>') {

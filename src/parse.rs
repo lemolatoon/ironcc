@@ -71,6 +71,12 @@ impl<'a> Parser<'a> {
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
             let then_stmt = self.parse_stmt(tokens);
             return Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt);
+        } else if tokens.consume(TokenKind::OpenDelim(DelimToken::Brace)) {
+            let mut stmts = Vec::new();
+            while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
+                stmts.push(self.parse_stmt(tokens));
+            }
+            return Stmt::new_block(stmts);
         } else {
             let expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::Semi);
@@ -303,6 +309,12 @@ impl Stmt {
         }
     }
 
+    pub fn new_block(stmts: Vec<Stmt>) -> Self {
+        Self {
+            kind: StmtKind::Block(stmts),
+        }
+    }
+
     pub fn new_if(cond: Expr, then: Stmt, els: Option<Stmt>) -> Self {
         Self {
             kind: StmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
@@ -326,6 +338,7 @@ impl Stmt {
 pub enum StmtKind {
     Expr(Expr),
     Return(Expr),
+    Block(Vec<Stmt>),
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
     For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),

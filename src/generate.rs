@@ -38,7 +38,6 @@ impl<'a> Generater<'a> {
             match component {
                 ConvProgramKind::Stmt(stmt) => self.gen_stmt(f, stmt)?,
             }
-            writeln!(f, "  pop rax")?;
         }
 
         // TODO: change this label dynamically base on func name
@@ -55,7 +54,10 @@ impl<'a> Generater<'a> {
         stmt: ConvStmt,
     ) -> Result<(), std::io::Error> {
         match stmt.kind {
-            ConvStmtKind::Expr(expr) => self.gen_expr(f, expr)?,
+            ConvStmtKind::Expr(expr) => {
+                self.gen_expr(f, expr)?;
+                writeln!(f, "  pop rax")?;
+            }
             ConvStmtKind::Return(expr) => {
                 self.gen_expr(f, expr)?;
                 writeln!(f, "  pop rax")?;
@@ -112,6 +114,11 @@ impl<'a> Generater<'a> {
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::Block(stmts) => {
+                for stmt in stmts {
+                    self.gen_stmt(f, stmt)?;
+                }
             }
         };
         Ok(())
