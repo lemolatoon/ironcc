@@ -20,10 +20,10 @@ impl<'a> Analyzer<'a> {
 
     pub fn down_program(&mut self, program: Program) -> ConvProgram {
         let mut conv_program = ConvProgram::new();
-        let mut lvar_map = BTreeMap::new();
         for component in program.into_iter() {
             match component {
                 ProgramKind::Func(func_def) => {
+                    let mut lvar_map = BTreeMap::new();
                     conv_program.push(self.down_func(func_def, &mut lvar_map))
                 }
             }
