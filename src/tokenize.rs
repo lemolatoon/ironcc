@@ -96,6 +96,8 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::CloseDelim(DelimToken::Bracket),
                     pos.next_char(),
                 ));
+            } else if input.starts_with(',') {
+                tokens.push(Token::new(TokenKind::Comma, pos.next_char()));
             } else if input.starts_with('<') {
                 tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
             } else if input.starts_with('>') {
@@ -219,6 +221,8 @@ pub enum TokenKind {
     Ne,
     /// `=` assign
     Eq,
+    /// `,`
+    Comma,
     Eof,
 }
 

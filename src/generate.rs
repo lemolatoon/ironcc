@@ -148,6 +148,7 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  mov [rax], rdi")?; // curently only 64 bit
                 writeln!(f, "  push rdi")?; // evaluated value of assign expr is rhs's value
             }
+            ConvExprKind::Func(_) => todo!(),
         }
         Ok(())
     }

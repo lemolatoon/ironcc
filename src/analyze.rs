@@ -114,6 +114,7 @@ impl<'a> Analyzer<'a> {
             ),
             // currently all ident is local variable
             ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
+            ExprKind::Func(_) => todo!(),
         }
     }
 
@@ -257,6 +258,13 @@ impl ConvExpr {
         }
     }
 
+    pub fn new_func(args: Vec<ConvExpr>, pos: Position) -> Self {
+        Self {
+            kind: ConvExprKind::Func(args),
+            pos,
+        }
+    }
+
     pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Num(num),
@@ -298,6 +306,7 @@ pub enum ConvExprKind {
     Num(isize),
     Lvar(Lvar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
+    Func(Vec<ConvExpr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

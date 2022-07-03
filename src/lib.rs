@@ -467,6 +467,26 @@ mod tests {
     }
 
     #[test]
+    fn tokenize_call_func_test() {
+        let input = String::from("{return foo(1, 2);}");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::OpenDelim(DelimToken::Brace),
+                TokenKind::Return,
+                TokenKind::Ident("foo".to_string()),
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Num(1),
+                TokenKind::Comma,
+                TokenKind::Num(2),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Semi,
+                TokenKind::CloseDelim(DelimToken::Brace),
+                TokenKind::Eof
+            )
+        );
+    }
+    #[test]
     fn parse_test() {
         use crate::{
             parse::{BinOpKind, Expr, Parser},
@@ -999,6 +1019,31 @@ mod tests {
         assert_eq!(parsed, expected);
     }
 
+    #[test]
+    fn parse_call_func() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Ident("foo".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(3),
+            TokenKind::Comma,
+            TokenKind::Num(1),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Semi,
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(block(vec![expr_stmt(func(vec![
+            num(3),
+            num(1),
+        ]))]))]);
+
+        assert_eq!(parsed, expected);
+    }
+
     fn stmt(stmt: Stmt) -> ProgramKind {
         ProgramKind::Stmt(stmt)
     }
@@ -1025,6 +1070,10 @@ mod tests {
 
     fn for_(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Stmt {
         Stmt::new_for(init, cond, inc, then)
+    }
+
+    fn func(args: Vec<Expr>) -> Expr {
+        Expr::new_func(args, Position::default())
     }
 
     fn lvar(name: &str) -> Expr {
