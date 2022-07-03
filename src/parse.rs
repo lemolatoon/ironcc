@@ -217,7 +217,7 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
                     expr
                 }
-                TokenKind::Ident(name) => Expr::new_ident(name, pos),
+                TokenKind::Ident(name) => Expr::new_lvar(name, pos),
                 _ => self.error_at(
                     Some(pos),
                     &format!("In `parse_primary`, got unexpected token: {:?}", kind),
@@ -356,7 +356,7 @@ pub enum ExprKind {
     Num(isize),
     Unary(UnOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
-    Ident(String),
+    LVar(String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -381,9 +381,9 @@ impl Expr {
         }
     }
 
-    pub fn new_ident(name: String, pos: Position) -> Self {
+    pub fn new_lvar(name: String, pos: Position) -> Self {
         Self {
-            kind: ExprKind::Ident(name),
+            kind: ExprKind::LVar(name),
             pos,
         }
     }

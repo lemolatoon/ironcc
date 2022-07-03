@@ -113,7 +113,7 @@ impl<'a> Analyzer<'a> {
                 pos,
             ),
             // currently all ident is local variable
-            ExprKind::Ident(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
+            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
         }
     }
 
