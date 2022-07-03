@@ -13,7 +13,10 @@ impl<'a> Tokenizer<'a> {
         let mut tokens = Vec::new();
         let mut pos = Position::default(); // 0, 0
         let mut input = <&str>::clone(&self.input);
+
         while !input.is_empty() {
+            // reserved token
+
             // <, <=, >, >=, ==, !=
             if input.starts_with("<=") {
                 tokens.push(Token::new(TokenKind::Le, pos.next_token(2)));
@@ -58,6 +61,11 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::BinOp(BinOpToken::Div),
                     pos.next_char(),
                 ));
+            } else if input.starts_with('%') {
+                tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Percent),
+                    pos.next_char(),
+                ));
             } else if input.starts_with('(') {
                 tokens.push(Token::new(
                     TokenKind::OpenDelim(DelimToken::Paran),
@@ -66,6 +74,26 @@ impl<'a> Tokenizer<'a> {
             } else if input.starts_with(')') {
                 tokens.push(Token::new(
                     TokenKind::CloseDelim(DelimToken::Paran),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('{') {
+                tokens.push(Token::new(
+                    TokenKind::OpenDelim(DelimToken::Brace),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('}') {
+                tokens.push(Token::new(
+                    TokenKind::CloseDelim(DelimToken::Brace),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('[') {
+                tokens.push(Token::new(
+                    TokenKind::OpenDelim(DelimToken::Bracket),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with(']') {
+                tokens.push(Token::new(
+                    TokenKind::CloseDelim(DelimToken::Bracket),
                     pos.next_char(),
                 ));
             } else if input.starts_with('<') {
@@ -97,7 +125,7 @@ impl<'a> Tokenizer<'a> {
             } else if input
                 .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
             {
-                // Ident
+                // Ident or reserved Token
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
                 while let Some(&('a'..='z') | '_') = chars.peek() {
@@ -105,7 +133,14 @@ impl<'a> Tokenizer<'a> {
                 }
                 let len_token = ident.len();
                 tokens.push(Token::new(
-                    TokenKind::Ident(ident),
+                    match ident.as_str() {
+                        "return" => TokenKind::Return,
+                        "if" => TokenKind::If,
+                        "else" => TokenKind::Else,
+                        "while" => TokenKind::While,
+                        "for" => TokenKind::For,
+                        _ => TokenKind::Ident(ident),
+                    },
                     pos.next_token(len_token),
                 ));
                 input = &input[len_token..];
@@ -160,6 +195,16 @@ pub enum TokenKind {
     Semi,
     /// An ident
     Ident(String),
+    /// `return`, reserved word
+    Return,
+    /// `if`, reserved word
+    If,
+    /// `else`, reserved word
+    Else,
+    /// `while`, reserved word
+    While,
+    /// `for`, reserved word
+    For,
     /// `<` Less than
     Lt,
     /// `<=` Less equal
@@ -189,10 +234,16 @@ pub enum DelimToken {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BinOpToken {
+    /// `+`
     Plus,
+    /// `-`
     Minus,
+    /// `*`
     Mul,
+    /// `/`
     Div,
+    /// `%`
+    Percent,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -265,6 +316,17 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
             iter: iter.peekable(),
             input,
         }
+    }
+
+    /// if next token is passed kind consume it and return true, else do nothing and return false
+    pub fn consume(&mut self, kind: TokenKind) -> bool {
+        if let Some(token) = self.peek() {
+            if *token.kind == kind {
+                self.next();
+                return true;
+            }
+        }
+        false
     }
 
     pub fn expect_number(&mut self) -> isize {

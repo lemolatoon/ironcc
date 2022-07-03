@@ -24,12 +24,13 @@ fn main() -> Result<(), std::io::Error> {
 
     let parser = Parser::new(&input);
     let program = parser.parse_program(&mut token_stream);
+    // println!("{:#?}", program.clone().into_iter().collect::<Vec<_>>());
 
     let mut analyzer = Analyzer::new(&input);
     let converted_program = analyzer.down_program(program);
 
     let mut buf_writer = BufWriter::new(out_f);
-    let generater = Generater::new(&input);
+    let mut generater = Generater::new(&input);
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 

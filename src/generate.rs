@@ -11,17 +11,18 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct Generater<'a> {
     input: &'a str,
+    label: usize,
 }
 
 impl<'a> Generater<'a> {
     pub const fn new(input: &'a str) -> Self {
-        Self { input }
+        Self { input, label: 0 }
     }
 
     /// # Errors
     /// return errors when file IO failed
     pub fn gen_head<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         program: ConvProgram,
     ) -> Result<(), std::io::Error> {
@@ -37,8 +38,10 @@ impl<'a> Generater<'a> {
             match component {
                 ConvProgramKind::Stmt(stmt) => self.gen_stmt(f, stmt)?,
             }
-            writeln!(f, "  pop rax")?;
         }
+
+        // TODO: change this label dynamically base on func name
+        writeln!(f, ".Lmain_ret:")?;
         writeln!(f, "  mov rsp, rbp")?;
         writeln!(f, "  pop rbp")?;
         writeln!(f, "  ret")?;
@@ -46,13 +49,79 @@ impl<'a> Generater<'a> {
     }
 
     pub fn gen_stmt<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
     ) -> Result<(), std::io::Error> {
         match stmt.kind {
-            ConvStmtKind::Expr(expr) => self.gen_expr(f, expr),
-        }
+            ConvStmtKind::Expr(expr) => {
+                self.gen_expr(f, expr)?;
+                writeln!(f, "  pop rax")?;
+            }
+            ConvStmtKind::Return(expr) => {
+                self.gen_expr(f, expr)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  jmp .Lmain_ret")?;
+            }
+            ConvStmtKind::If(cond, then, Some(els)) => {
+                let label_index = self.label();
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?; // conditional expr
+                writeln!(f, "  cmp rax, 0")?; // false
+                writeln!(f, "  je .Lelse{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, "  jmp .Lend{}", label_index)?;
+                writeln!(f, ".Lelse{}:", label_index)?;
+                self.gen_stmt(f, *els)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::If(cond, then, None) => {
+                let label_index = self.label();
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  cmp rax, 0")?;
+                writeln!(f, "  je .Lend{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::While(cond, then) => {
+                let label_index = self.label();
+                writeln!(f, ".Lbegin{}:", label_index)?;
+                self.gen_expr(f, cond)?;
+                writeln!(f, "  pop rax")?;
+                writeln!(f, "  cmp rax, 0")?;
+                writeln!(f, "  je .Lend{}", label_index)?;
+                self.gen_stmt(f, *then)?;
+                writeln!(f, "  jmp .Lbegin{}", label_index)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::For(init, cond, inc, then) => {
+                let label_index = self.label();
+                if let Some(init) = init {
+                    self.gen_expr(f, init)?;
+                }
+                writeln!(f, "  pop rax")?;
+                writeln!(f, ".Lbegin{}:", label_index)?;
+                if let Some(cond) = cond {
+                    self.gen_expr(f, cond)?;
+                    writeln!(f, "  pop rax")?;
+                    writeln!(f, "  cmp rax, 0")?;
+                    writeln!(f, "  je .Lend{}", label_index)?;
+                }
+                self.gen_stmt(f, *then)?;
+                if let Some(inc) = inc {
+                    self.gen_expr(f, inc)?;
+                }
+                writeln!(f, "  jmp .Lbegin{}", label_index)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
+            ConvStmtKind::Block(stmts) => {
+                for stmt in stmts {
+                    self.gen_stmt(f, stmt)?;
+                }
+            }
+        };
+        Ok(())
     }
 
     /// # Errors
@@ -127,6 +196,14 @@ impl<'a> Generater<'a> {
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv rdi")?;
             }
+            ConvBinOpKind::Rem => {
+                // rdx-rax = rax
+                writeln!(f, "  cqo")?;
+                // rax = rdx-rax / rdi
+                // rdx = rdx-rax % rdi
+                writeln!(f, "  idiv rdi")?;
+                writeln!(f, "  mov rax, rdx")?;
+            }
             ConvBinOpKind::Eq => {
                 writeln!(f, "  cmp rax, rdi")?;
                 // al : lowwer 8bit of rax
@@ -182,5 +259,10 @@ impl<'a> Generater<'a> {
                 panic!();
             }
         }
+    }
+
+    pub fn label(&mut self) -> usize {
+        self.label += 1;
+        self.label
     }
 }

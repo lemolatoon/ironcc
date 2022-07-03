@@ -31,7 +31,34 @@ impl<'a> Analyzer<'a> {
 
     pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, usize>) -> ConvStmt {
         match stmt.kind {
+            // do nothing
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
+            // do nothing
+            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map)),
+            // do nothing
+            StmtKind::If(cond, then, els) => ConvStmt::new_if(
+                self.down_expr(cond, lvar_map),
+                self.down_stmt(*then, lvar_map),
+                els.map(|stmt| self.down_stmt(*stmt, lvar_map)),
+            ),
+            // do nothing
+            StmtKind::While(cond, then) => ConvStmt::new_while(
+                self.down_expr(cond, lvar_map),
+                self.down_stmt(*then, lvar_map),
+            ),
+            // do nothing
+            StmtKind::For(init, cond, inc, then) => ConvStmt::new_for(
+                init.map(|expr| self.down_expr(expr, lvar_map)),
+                cond.map(|expr| self.down_expr(expr, lvar_map)),
+                inc.map(|expr| self.down_expr(expr, lvar_map)),
+                self.down_stmt(*then, lvar_map),
+            ),
+            StmtKind::Block(stmts) => ConvStmt::new_block(
+                stmts
+                    .into_iter()
+                    .map(|stmt| self.down_stmt(stmt, lvar_map))
+                    .collect::<Vec<_>>(),
+            ),
         }
     }
 
@@ -165,11 +192,56 @@ impl ConvStmt {
             kind: ConvStmtKind::Expr(expr),
         }
     }
+
+    pub fn new_ret(expr: ConvExpr) -> Self {
+        Self {
+            kind: ConvStmtKind::Return(expr),
+        }
+    }
+
+    pub fn new_block(stmts: Vec<ConvStmt>) -> Self {
+        Self {
+            kind: ConvStmtKind::Block(stmts),
+        }
+    }
+
+    pub fn new_if(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> Self {
+        Self {
+            kind: ConvStmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
+        }
+    }
+
+    pub fn new_while(cond: ConvExpr, then: ConvStmt) -> Self {
+        Self {
+            kind: ConvStmtKind::While(cond, Box::new(then)),
+        }
+    }
+
+    pub fn new_for(
+        init: Option<ConvExpr>,
+        cond: Option<ConvExpr>,
+        inc: Option<ConvExpr>,
+        then: ConvStmt,
+    ) -> Self {
+        Self {
+            kind: ConvStmtKind::For(init, cond, inc, Box::new(then)),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvStmtKind {
     Expr(ConvExpr),
+    Return(ConvExpr),
+    Block(Vec<ConvStmt>),
+    If(ConvExpr, Box<ConvStmt>, Option<Box<ConvStmt>>),
+    While(ConvExpr, Box<ConvStmt>),
+    For(
+        Option<ConvExpr>,
+        Option<ConvExpr>,
+        Option<ConvExpr>,
+        Box<ConvStmt>,
+    ),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -248,10 +320,16 @@ impl ConvBinary {
 }
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvBinOpKind {
+    /// The `+` operator (addition)
     Add,
+    /// The `-` operator (subtraction)
     Sub,
+    /// The `*` operator (multiplication)
     Mul,
+    /// The `/` operator (division)
     Div,
+    /// The `%` operator (remains)
+    Rem,
     /// The `==` operator (equality)
     Eq,
     /// The `<=` operator (less than or equal to)
@@ -269,9 +347,10 @@ impl ConvBinOpKind {
             BinOpKind::Sub => Some(ConvBinOpKind::Sub),
             BinOpKind::Mul => Some(ConvBinOpKind::Mul),
             BinOpKind::Div => Some(ConvBinOpKind::Div),
+            BinOpKind::Rem => Some(ConvBinOpKind::Rem),
             BinOpKind::Eq => Some(ConvBinOpKind::Eq),
             BinOpKind::Le => Some(ConvBinOpKind::Le),
-            BinOpKind::Lt => Some(ConvBinOpKind::Le),
+            BinOpKind::Lt => Some(ConvBinOpKind::Lt),
             BinOpKind::Ge | BinOpKind::Gt => None,
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
         }
