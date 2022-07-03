@@ -14,11 +14,35 @@ impl<'a> Parser<'a> {
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
-            program.push_stmt(self.parse_stmt(tokens));
+            program.push(self.parse_func(tokens));
         }
         tokens.expect(TokenKind::Eof);
         assert!(tokens.next().is_none());
         program
+    }
+
+    pub fn parse_func<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> ProgramKind
+    where
+        I: Clone + Iterator<Item = Token>,
+    {
+        let name = tokens.consume_ident();
+        let mut args = Vec::new();
+        tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
+        if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+            args.push(tokens.consume_ident());
+            while tokens.consume(TokenKind::Comma) {
+                args.push(tokens.consume_ident());
+            }
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+        }
+        // have to be block stmt
+        tokens.expect(TokenKind::OpenDelim(DelimToken::Brace));
+        let mut stmts = Vec::new();
+        while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
+            stmts.push(self.parse_stmt(tokens));
+        }
+        let body = Stmt::new_block(stmts);
+        ProgramKind::Func(FuncDef::new(name, args, body))
     }
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
@@ -287,8 +311,8 @@ impl Program {
         Self { components: vec }
     }
 
-    pub fn push_stmt(&mut self, stmt: Stmt) {
-        self.components.push(ProgramKind::Stmt(stmt));
+    pub fn push(&mut self, func: ProgramKind) {
+        self.components.push(func);
     }
 }
 
@@ -304,7 +328,20 @@ impl IntoIterator for Program {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ProgramKind {
-    Stmt(Stmt),
+    Func(FuncDef),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct FuncDef {
+    pub name: String,
+    pub args: Vec<String>,
+    pub body: Stmt,
+}
+
+impl FuncDef {
+    pub fn new(name: String, args: Vec<String>, body: Stmt) -> Self {
+        Self { name, args, body }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

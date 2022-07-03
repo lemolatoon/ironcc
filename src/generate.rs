@@ -2,8 +2,8 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvProgram, ConvProgramKind, ConvStmt,
-        ConvStmtKind, Lvar,
+        ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram,
+        ConvProgramKind, ConvStmt, ConvStmtKind, Lvar,
     },
     tokenize::Position,
 };
@@ -13,6 +13,7 @@ pub struct Generater<'a> {
     input: &'a str,
     label: usize,
     depth: usize,
+    current_func_name: Option<String>,
 }
 
 impl<'a> Generater<'a> {
@@ -21,6 +22,7 @@ impl<'a> Generater<'a> {
             input,
             label: 0,
             depth: 0,
+            current_func_name: None,
         }
     }
 
@@ -53,23 +55,33 @@ impl<'a> Generater<'a> {
     ) -> Result<(), std::io::Error> {
         writeln!(f, ".intel_syntax noprefix\n")?;
         writeln!(f, ".global main")?;
-        writeln!(f, "main:")?;
 
-        self.push(f, format_args!("rbp"))?;
-        writeln!(f, "  mov rbp, rsp")?;
-        // TODO: determine this dynamically by counting the number of local variables
-        writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
         for component in program.into_iter() {
             match component {
-                ConvProgramKind::Stmt(stmt) => self.gen_stmt(f, stmt)?,
+                ConvProgramKind::Func(ConvFuncDef { name, args, body }) => {
+                    writeln!(f, "{}:", name)?;
+                    self.current_func_name = Some(name.clone());
+                    self.push(f, format_args!("rbp"))?;
+                    writeln!(f, "  mov rbp, rsp")?;
+                    // TODO: determine this dynamically by counting the number of local variables
+                    writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
+                    self.gen_stmt(f, body)?;
+                    // TODO: change this label dynamically base on func name
+                    writeln!(
+                        f,
+                        ".L{}_ret:",
+                        self.current_func_name
+                            .as_ref()
+                            .expect("Not generating func def")
+                    )?;
+                    writeln!(f, "  mov rsp, rbp")?;
+                    self.pop(f, format_args!("rbp"))?;
+                    writeln!(f, "  ret")?;
+                    self.current_func_name = None;
+                }
             }
         }
 
-        // TODO: change this label dynamically base on func name
-        writeln!(f, ".Lmain_ret:")?;
-        writeln!(f, "  mov rsp, rbp")?;
-        self.pop(f, format_args!("rbp"))?;
-        writeln!(f, "  ret")?;
         Ok(())
     }
 
@@ -86,7 +98,13 @@ impl<'a> Generater<'a> {
             ConvStmtKind::Return(expr) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
-                writeln!(f, "  jmp .Lmain_ret")?;
+                writeln!(
+                    f,
+                    "  jmp .L{}_ret",
+                    self.current_func_name
+                        .as_ref()
+                        .expect("Not generating func def")
+                )?;
             }
             ConvStmtKind::If(cond, then, Some(els)) => {
                 let label_index = self.label();

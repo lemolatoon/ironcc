@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use crate::{
-    parse::{BinOpKind, Binary, Expr, ExprKind, Program, ProgramKind, Stmt, StmtKind, UnOp},
+    parse::{
+        BinOpKind, Binary, Expr, ExprKind, FuncDef, Program, ProgramKind, Stmt, StmtKind, UnOp,
+    },
     tokenize::Position,
 };
 
@@ -21,12 +23,24 @@ impl<'a> Analyzer<'a> {
         let mut lvar_map = BTreeMap::new();
         for component in program.into_iter() {
             match component {
-                ProgramKind::Stmt(stmt) => {
-                    conv_program.push_stmt(self.down_stmt(stmt, &mut lvar_map))
+                ProgramKind::Func(func_def) => {
+                    conv_program.push(self.down_func(func_def, &mut lvar_map))
                 }
             }
         }
         conv_program
+    }
+
+    pub fn down_func(
+        &mut self,
+        func_def: FuncDef,
+        lvar_map: &mut BTreeMap<String, usize>,
+    ) -> ConvProgramKind {
+        ConvProgramKind::Func(ConvFuncDef::new(
+            func_def.name,
+            func_def.args,
+            self.down_stmt(func_def.body, lvar_map),
+        ))
     }
 
     pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, usize>) -> ConvStmt {
@@ -168,8 +182,8 @@ impl ConvProgram {
         Self { components: vec }
     }
 
-    pub fn push_stmt(&mut self, stmt: ConvStmt) {
-        self.components.push(ConvProgramKind::Stmt(stmt));
+    pub fn push(&mut self, kind: ConvProgramKind) {
+        self.components.push(kind);
     }
 }
 
@@ -185,7 +199,20 @@ impl IntoIterator for ConvProgram {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvProgramKind {
-    Stmt(ConvStmt),
+    Func(ConvFuncDef),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvFuncDef {
+    pub name: String,
+    pub args: Vec<String>,
+    pub body: ConvStmt,
+}
+
+impl ConvFuncDef {
+    pub fn new(name: String, args: Vec<String>, body: ConvStmt) -> Self {
+        Self { name, args, body }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
