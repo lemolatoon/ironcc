@@ -12,11 +12,36 @@ use crate::{
 pub struct Generater<'a> {
     input: &'a str,
     label: usize,
+    depth: usize,
 }
 
 impl<'a> Generater<'a> {
     pub const fn new(input: &'a str) -> Self {
-        Self { input, label: 0 }
+        Self {
+            input,
+            label: 0,
+            depth: 0,
+        }
+    }
+
+    pub fn push<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        arg: std::fmt::Arguments,
+    ) -> Result<(), std::io::Error> {
+        writeln!(f, "  push {}", arg)?;
+        self.depth += 1;
+        Ok(())
+    }
+
+    pub fn pop<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        arg: std::fmt::Arguments,
+    ) -> Result<(), std::io::Error> {
+        writeln!(f, "  pop {}", arg)?;
+        self.depth -= 1;
+        Ok(())
     }
 
     /// # Errors
@@ -30,7 +55,7 @@ impl<'a> Generater<'a> {
         writeln!(f, ".global main")?;
         writeln!(f, "main:")?;
 
-        writeln!(f, "  push rbp")?;
+        self.push(f, format_args!("rbp"))?;
         writeln!(f, "  mov rbp, rsp")?;
         // TODO: determine this dynamically by counting the number of local variables
         writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
@@ -43,7 +68,7 @@ impl<'a> Generater<'a> {
         // TODO: change this label dynamically base on func name
         writeln!(f, ".Lmain_ret:")?;
         writeln!(f, "  mov rsp, rbp")?;
-        writeln!(f, "  pop rbp")?;
+        self.pop(f, format_args!("rbp"))?;
         writeln!(f, "  ret")?;
         Ok(())
     }
@@ -56,17 +81,17 @@ impl<'a> Generater<'a> {
         match stmt.kind {
             ConvStmtKind::Expr(expr) => {
                 self.gen_expr(f, expr)?;
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
             }
             ConvStmtKind::Return(expr) => {
                 self.gen_expr(f, expr)?;
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  jmp .Lmain_ret")?;
             }
             ConvStmtKind::If(cond, then, Some(els)) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
-                writeln!(f, "  pop rax")?; // conditional expr
+                self.pop(f, format_args!("rax"))?; // conditional expr
                 writeln!(f, "  cmp rax, 0")?; // false
                 writeln!(f, "  je .Lelse{}", label_index)?;
                 self.gen_stmt(f, *then)?;
@@ -78,7 +103,7 @@ impl<'a> Generater<'a> {
             ConvStmtKind::If(cond, then, None) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  cmp rax, 0")?;
                 writeln!(f, "  je .Lend{}", label_index)?;
                 self.gen_stmt(f, *then)?;
@@ -88,7 +113,7 @@ impl<'a> Generater<'a> {
                 let label_index = self.label();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  cmp rax, 0")?;
                 writeln!(f, "  je .Lend{}", label_index)?;
                 self.gen_stmt(f, *then)?;
@@ -100,11 +125,11 @@ impl<'a> Generater<'a> {
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
                 }
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 if let Some(cond) = cond {
                     self.gen_expr(f, cond)?;
-                    writeln!(f, "  pop rax")?;
+                    self.pop(f, format_args!("rax"))?;
                     writeln!(f, "  cmp rax, 0")?;
                     writeln!(f, "  je .Lend{}", label_index)?;
                 }
@@ -127,26 +152,26 @@ impl<'a> Generater<'a> {
     /// # Errors
     /// return errors when file IO failed
     pub fn gen_expr<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), std::io::Error> {
         match expr.kind {
-            ConvExprKind::Num(val) => writeln!(f, "  push {}", val)?,
+            ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
             ConvExprKind::Lvar(_) => {
                 self.gen_lvalue(f, expr)?;
-                writeln!(f, "  pop rax")?;
+                self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  mov rax, [rax]")?; // curently only 64 bit
-                writeln!(f, "  push rax")?;
+                self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
                 self.gen_lvalue(f, *lhs)?;
                 self.gen_expr(f, *rhs)?;
-                writeln!(f, "  pop rdi")?; // rhs
-                writeln!(f, "  pop rax")?; // lhs's addr
+                self.pop(f, format_args!("rdi"))?; // rhs
+                self.pop(f, format_args!("rax"))?; // lhs's addr
                 writeln!(f, "  mov [rax], rdi")?; // curently only 64 bit
-                writeln!(f, "  push rdi")?; // evaluated value of assign expr is rhs's value
+                self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
             ConvExprKind::Func(_) => todo!(),
         }
@@ -156,7 +181,7 @@ impl<'a> Generater<'a> {
     /// # Errors
     /// return errors when file IO failed
     pub fn gen_lvalue<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), std::io::Error> {
@@ -164,7 +189,7 @@ impl<'a> Generater<'a> {
             ConvExprKind::Lvar(Lvar { offset }) => {
                 writeln!(f, "  mov rax, rbp")?;
                 writeln!(f, "  sub rax, {}", offset)?;
-                writeln!(f, "  push rax")
+                self.push(f, format_args!("rax"))?;
             }
             _ => self.error_at(
                 expr.pos,
@@ -174,18 +199,19 @@ impl<'a> Generater<'a> {
                 ),
             ),
         }
+        Ok(())
     }
 
     pub fn gen_binary<W: Write>(
-        &self,
+        &mut self,
         f: &mut BufWriter<W>,
         c_binary: ConvBinary,
     ) -> Result<(), std::io::Error> {
         let ConvBinary { kind: op, lhs, rhs } = c_binary;
         self.gen_expr(f, *lhs)?;
         self.gen_expr(f, *rhs)?;
-        writeln!(f, "  pop rdi")?;
-        writeln!(f, "  pop rax")?;
+        self.pop(f, format_args!("rdi"))?;
+        self.pop(f, format_args!("rax"))?;
         match op {
             ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
             ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
@@ -231,7 +257,7 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  movzx rax, al")?;
             }
         }
-        writeln!(f, "  push rax")?;
+        self.push(f, format_args!("rax"))?;
         Ok(())
     }
 
