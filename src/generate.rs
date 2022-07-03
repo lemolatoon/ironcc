@@ -173,7 +173,29 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  mov [rax], rdi")?; // curently only 64 bit
                 self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
-            ConvExprKind::Func(_) => todo!(),
+            ConvExprKind::Func(name, args) => {
+                let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+                let len = args.len();
+                if len > arg_reg.len() {
+                    panic!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
+                }
+                for arg in args {
+                    self.gen_expr(f, arg)?;
+                } // push args
+                for i in 0..len {
+                    self.pop(f, format_args!("{}", arg_reg[i]))?;
+                } // pop args
+
+                // 16bit align
+                if self.depth % 2 == 0 {
+                    writeln!(f, "  call {}", name)?;
+                } else {
+                    writeln!(f, "  sub rsp, 8")?; // align
+                    writeln!(f, "  call {}", name)?;
+                    writeln!(f, "  add rsp, 8")?; // revert
+                }
+                self.push(f, format_args!("rax"))?;
+            }
         }
         Ok(())
     }

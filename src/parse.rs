@@ -222,14 +222,14 @@ impl<'a> Parser<'a> {
                         // func call
                         let mut args = Vec::new();
                         if tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
-                            return Expr::new_func(args, pos);
+                            return Expr::new_func(name, args, pos);
                         }
                         args.push(self.parse_expr(tokens));
                         while !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
                             tokens.expect(TokenKind::Comma);
                             args.push(self.parse_expr(tokens));
                         }
-                        return Expr::new_func(args, pos);
+                        return Expr::new_func(name, args, pos);
                     }
                     // local variable
                     Expr::new_lvar(name, pos)
@@ -373,7 +373,7 @@ pub enum ExprKind {
     Unary(UnOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
     LVar(String),
-    Func(Vec<Expr>),
+    Func(String, Vec<Expr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -420,9 +420,9 @@ impl Expr {
         }
     }
 
-    pub fn new_func(args: Vec<Expr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
         Self {
-            kind: ExprKind::Func(args),
+            kind: ExprKind::Func(name, args),
             pos,
         }
     }

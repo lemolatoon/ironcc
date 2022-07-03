@@ -1036,10 +1036,10 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected = Program::with_vec(vec![stmt(block(vec![expr_stmt(func(vec![
-            num(3),
-            num(1),
-        ]))]))]);
+        let expected = Program::with_vec(vec![stmt(block(vec![expr_stmt(func(
+            "foo",
+            vec![num(3), num(1)],
+        ))]))]);
 
         assert_eq!(parsed, expected);
     }
@@ -1072,8 +1072,8 @@ mod tests {
         Stmt::new_for(init, cond, inc, then)
     }
 
-    fn func(args: Vec<Expr>) -> Expr {
-        Expr::new_func(args, Position::default())
+    fn func(name: &str, args: Vec<Expr>) -> Expr {
+        Expr::new_func(name.to_string(), args, Position::default())
     }
 
     fn lvar(name: &str) -> Expr {

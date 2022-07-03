@@ -114,7 +114,8 @@ impl<'a> Analyzer<'a> {
             ),
             // currently all ident is local variable
             ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
-            ExprKind::Func(args) => ConvExpr::new_func(
+            ExprKind::Func(name, args) => ConvExpr::new_func(
+                name,
                 args.into_iter()
                     .map(|expr| self.down_expr(expr, lvar_map))
                     .collect::<Vec<_>>(),
@@ -263,9 +264,9 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_func(args: Vec<ConvExpr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<ConvExpr>, pos: Position) -> Self {
         Self {
-            kind: ConvExprKind::Func(args),
+            kind: ConvExprKind::Func(name, args),
             pos,
         }
     }
@@ -311,7 +312,7 @@ pub enum ConvExprKind {
     Num(isize),
     Lvar(Lvar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
-    Func(Vec<ConvExpr>),
+    Func(String, Vec<ConvExpr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
