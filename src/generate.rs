@@ -58,13 +58,18 @@ impl<'a> Generater<'a> {
 
         for component in program.into_iter() {
             match component {
-                ConvProgramKind::Func(ConvFuncDef { name, args, body }) => {
+                ConvProgramKind::Func(ConvFuncDef {
+                    name,
+                    args,
+                    body,
+                    lvars,
+                }) => {
                     writeln!(f, "{}:", name)?;
                     self.current_func_name = Some(name.clone());
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
                     // TODO: determine this dynamically by counting the number of local variables
-                    writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
+                    writeln!(f, "  sub rsp, {}", lvars.len() * 8)?; // 64bit var * 8
 
                     // assign args
                     let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];

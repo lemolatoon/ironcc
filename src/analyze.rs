@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     parse::{
@@ -34,7 +34,7 @@ impl<'a> Analyzer<'a> {
     pub fn down_func(
         &mut self,
         func_def: FuncDef,
-        lvar_map: &mut BTreeMap<String, usize>,
+        lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> ConvProgramKind {
         let mut lvars = Vec::new();
         for arg in func_def.args {
@@ -45,10 +45,11 @@ impl<'a> Analyzer<'a> {
             func_def.name,
             lvars,
             self.down_stmt(func_def.body, lvar_map),
+            lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
         ))
     }
 
-    pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, usize>) -> ConvStmt {
+    pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, Lvar>) -> ConvStmt {
         match stmt.kind {
             // do nothing
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
@@ -81,7 +82,7 @@ impl<'a> Analyzer<'a> {
         }
     }
 
-    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, usize>) -> ConvExpr {
+    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, Lvar>) -> ConvExpr {
         let pos = expr.pos.clone();
         match expr.kind {
             // `a >= b` := `b <= a`
@@ -212,11 +213,17 @@ pub struct ConvFuncDef {
     pub name: String,
     pub args: Vec<Lvar>,
     pub body: ConvStmt,
+    pub lvars: BTreeSet<Lvar>,
 }
 
 impl ConvFuncDef {
-    pub fn new(name: String, args: Vec<Lvar>, body: ConvStmt) -> Self {
-        Self { name, args, body }
+    pub fn new(name: String, args: Vec<Lvar>, body: ConvStmt, lvars: BTreeSet<Lvar>) -> Self {
+        Self {
+            name,
+            args,
+            body,
+            lvars,
+        }
     }
 }
 
@@ -321,7 +328,7 @@ impl ConvExpr {
         name: String,
         pos: Position,
         new_offset: &mut usize,
-        lvar_map: &mut BTreeMap<String, usize>,
+        lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Self {
         ConvExpr {
             kind: ConvExprKind::Lvar(Lvar::new(name, new_offset, lvar_map)),
@@ -339,7 +346,7 @@ pub enum ConvExprKind {
     Func(String, Vec<ConvExpr>),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Lvar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
@@ -349,13 +356,18 @@ impl Lvar {
     pub fn new(
         name: String,
         new_offset: &mut usize,
-        lvar_map: &mut BTreeMap<String, usize>,
+        lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Self {
         let offset = match lvar_map.get(&name) {
-            Some(offset) => *offset,
+            Some(lvar) => lvar.offset,
             None => {
                 *new_offset += 8;
-                lvar_map.insert(name, *new_offset);
+                lvar_map.insert(
+                    name,
+                    Self {
+                        offset: *new_offset,
+                    },
+                );
                 *new_offset
             }
         };

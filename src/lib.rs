@@ -1255,7 +1255,12 @@ mod tests {
                         cbin(ConvBinOpKind::Le, clvar("k", 8), cnum(1))
                     )),
                     cexpr_stmt(clvar("b", 16))
-                ])
+                ]),
+                vec![
+                    clvar_strct("a", 0),
+                    clvar_strct("k", 8),
+                    clvar_strct("b", 16)
+                ]
             )])
         )
     }
@@ -1283,7 +1288,12 @@ mod tests {
                     cexpr_stmt(cassign(clvar("a", 0), cassign(clvar("k", 8), cnum(1)))),
                     cexpr_stmt(cassign(clvar("c", 16), cnum(3))),
                     cexpr_stmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 8))),
-                ])
+                ]),
+                vec![
+                    clvar_strct("a", 0),
+                    clvar_strct("k", 8),
+                    clvar_strct("c", 16)
+                ]
             )])
         )
     }
@@ -1317,7 +1327,13 @@ mod tests {
                     cexpr_stmt(cassign(clvar("c", 16), cnum(3))),
                     cexpr_stmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 24))),
                     cret(cbin(ConvBinOpKind::Div, clvar("b", 8), clvar("c", 16))),
-                ])
+                ]),
+                vec![
+                    clvar_strct("a", 0),
+                    clvar_strct("b", 8),
+                    clvar_strct("c", 16),
+                    clvar_strct("k", 24)
+                ]
             )])
         )
     }
@@ -1326,8 +1342,13 @@ mod tests {
         ConvProgram::with_vec(components)
     }
 
-    fn cfunc_def(name: &str, args: Vec<Lvar>, body: ConvStmt) -> ConvProgramKind {
-        ConvProgramKind::Func(ConvFuncDef::new(name.to_string(), args, body))
+    fn cfunc_def(name: &str, args: Vec<Lvar>, body: ConvStmt, lvars: Vec<Lvar>) -> ConvProgramKind {
+        ConvProgramKind::Func(ConvFuncDef::new(
+            name.to_string(),
+            args,
+            body,
+            lvars.into_iter().collect(),
+        ))
     }
 
     fn cblock(stmts: Vec<ConvStmt>) -> ConvStmt {
