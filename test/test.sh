@@ -102,6 +102,10 @@ assert 1 "10 <= 10;"
 assert 55 " sum = 0; for (i = 1; i <= 10; i = i + 1) sum = sum + i; return sum;"
 assert 1 " sum = 0; for (i = 1; i == 1; i = i + 1) sum = sum + i; return sum;"
 
+# remains
+assert 1 "6 % 3 == 0;"
+assert 3 "6 / 2 % (3 + 1);"
+
 wait
 clean
 

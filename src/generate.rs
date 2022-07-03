@@ -189,6 +189,14 @@ impl<'a> Generater<'a> {
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv rdi")?;
             }
+            ConvBinOpKind::Rem => {
+                // rdx-rax = rax
+                writeln!(f, "  cqo")?;
+                // rax = rdx-rax / rdi
+                // rdx = rdx-rax % rdi
+                writeln!(f, "  idiv rdi")?;
+                writeln!(f, "  mov rax, rdx")?;
+            }
             ConvBinOpKind::Eq => {
                 writeln!(f, "  cmp rax, rdi")?;
                 // al : lowwer 8bit of rax

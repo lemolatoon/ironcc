@@ -61,6 +61,11 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::BinOp(BinOpToken::Div),
                     pos.next_char(),
                 ));
+            } else if input.starts_with('%') {
+                tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::Percent),
+                    pos.next_char(),
+                ));
             } else if input.starts_with('(') {
                 tokens.push(Token::new(
                     TokenKind::OpenDelim(DelimToken::Paran),
@@ -209,10 +214,16 @@ pub enum DelimToken {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BinOpToken {
+    /// `+`
     Plus,
+    /// `-`
     Minus,
+    /// `*`
     Mul,
+    /// `/`
     Div,
+    /// `%`
+    Percent,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

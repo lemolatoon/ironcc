@@ -307,10 +307,16 @@ impl ConvBinary {
 }
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvBinOpKind {
+    /// The `+` operator (addition)
     Add,
+    /// The `-` operator (subtraction)
     Sub,
+    /// The `*` operator (multiplication)
     Mul,
+    /// The `/` operator (division)
     Div,
+    /// The `%` operator (remains)
+    Rem,
     /// The `==` operator (equality)
     Eq,
     /// The `<=` operator (less than or equal to)
@@ -328,6 +334,7 @@ impl ConvBinOpKind {
             BinOpKind::Sub => Some(ConvBinOpKind::Sub),
             BinOpKind::Mul => Some(ConvBinOpKind::Mul),
             BinOpKind::Div => Some(ConvBinOpKind::Div),
+            BinOpKind::Rem => Some(ConvBinOpKind::Rem),
             BinOpKind::Eq => Some(ConvBinOpKind::Eq),
             BinOpKind::Le => Some(ConvBinOpKind::Le),
             BinOpKind::Lt => Some(ConvBinOpKind::Le),

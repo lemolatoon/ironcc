@@ -216,6 +216,17 @@ mod tests {
                 TokenKind::Eof
             )
         );
+
+        let input = String::from("a % 2");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::Ident("a".to_string()),
+                TokenKind::BinOp(BinOpToken::Percent),
+                TokenKind::Num(2),
+                TokenKind::Eof
+            )
+        );
     }
 
     #[test]
@@ -544,6 +555,39 @@ mod tests {
                     BinOpKind::Div,
                     bin(BinOpKind::Sub, num(1), num(2)),
                     bin(BinOpKind::Mul, num(31), num(4))
+                ),
+                num(5)
+            )
+            .kind
+        );
+
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(1),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(2),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(31),
+            TokenKind::BinOp(BinOpToken::Percent),
+            TokenKind::Num(4),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(5),
+            TokenKind::Eof
+        );
+        let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+        assert_eq!(
+            expr.kind,
+            bin(
+                BinOpKind::Add,
+                bin(
+                    BinOpKind::Div,
+                    bin(BinOpKind::Sub, num(1), num(2)),
+                    bin(BinOpKind::Rem, num(31), num(4))
                 ),
                 num(5)
             )

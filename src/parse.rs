@@ -168,6 +168,7 @@ impl<'a> Parser<'a> {
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Mul) => BinOpKind::Mul,
                 TokenKind::BinOp(BinOpToken::Div) => BinOpKind::Div,
+                TokenKind::BinOp(BinOpToken::Percent) => BinOpKind::Rem,
                 _ => break,
             };
             let pos = pos.clone();
@@ -410,10 +411,16 @@ impl Binary {
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum BinOpKind {
+    /// The `+` operator (addition)
     Add,
+    /// The `-` operator (subtraction)
     Sub,
+    /// The `*` operator (multiplication)
     Mul,
+    /// The `/` operator (division)
     Div,
+    /// The `%` operator (remains)
+    Rem,
     /// The `==` operator (equality)
     Eq,
     /// The `<=` operator (less than or equal to)
