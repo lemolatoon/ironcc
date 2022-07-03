@@ -3,6 +3,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 cd $SCRIPT_DIR
 COMPILER="$SCRIPT_DIR/../target/debug/ironcc"
 mkdir ../tmp -p
+CC=clang
 
 
 unique() {
@@ -21,7 +22,7 @@ call () {
     cd ../tmp && \
     $COMPILER tmp$UNIQ.c && \
     cd $SCRIPT_DIR && \
-    clang -o ../tmp/tmp$UNIQ ../tmp/tmp$UNIQ.s && \
+    $CC -o ../tmp/tmp$UNIQ link.c ../tmp/tmp$UNIQ.s && \
     ../tmp/tmp$UNIQ
 }
 
@@ -118,6 +119,10 @@ assert 102 "   { sum  = 5;i  = 10;while (i * 2 <= 90000){if ((i + 5) % 4 == 0){i
 assert 10 "a  = 1; for (i = 0; i < 2; i = i + 1) {for (j = 0; j < 3; j = j + 1) {a = a + i + j;}} return a;"
 
 assert 105 "{ sum = 4; i = 0; while (i < 74) {for (j = 1; j < 10; j = j + 1) { sum = sum + j;}i = i + 3;} return sum % 256;}"
+
+assert 2 "{return just2();}"
+assert 198 "{return just_ret(198);}"
+
 
 
 wait

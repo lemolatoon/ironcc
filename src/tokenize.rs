@@ -96,6 +96,8 @@ impl<'a> Tokenizer<'a> {
                     TokenKind::CloseDelim(DelimToken::Bracket),
                     pos.next_char(),
                 ));
+            } else if input.starts_with(',') {
+                tokens.push(Token::new(TokenKind::Comma, pos.next_char()));
             } else if input.starts_with('<') {
                 tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
             } else if input.starts_with('>') {
@@ -128,7 +130,10 @@ impl<'a> Tokenizer<'a> {
                 // Ident or reserved Token
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
-                while let Some(&('a'..='z') | '_') = chars.peek() {
+                while let Some(
+                    &('a'..='z') | '_' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9',
+                ) = chars.peek()
+                {
                     ident.push(chars.next().unwrap());
                 }
                 let len_token = ident.len();
@@ -219,6 +224,8 @@ pub enum TokenKind {
     Ne,
     /// `=` assign
     Eq,
+    /// `,`
+    Comma,
     Eof,
 }
 

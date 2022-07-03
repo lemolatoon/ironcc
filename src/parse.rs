@@ -217,7 +217,23 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
                     expr
                 }
-                TokenKind::Ident(name) => Expr::new_ident(name, pos),
+                TokenKind::Ident(name) => {
+                    if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
+                        // func call
+                        let mut args = Vec::new();
+                        if tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                            return Expr::new_func(name, args, pos);
+                        }
+                        args.push(self.parse_expr(tokens));
+                        while !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                            tokens.expect(TokenKind::Comma);
+                            args.push(self.parse_expr(tokens));
+                        }
+                        return Expr::new_func(name, args, pos);
+                    }
+                    // local variable
+                    Expr::new_lvar(name, pos)
+                }
                 _ => self.error_at(
                     Some(pos),
                     &format!("In `parse_primary`, got unexpected token: {:?}", kind),
@@ -356,7 +372,8 @@ pub enum ExprKind {
     Num(isize),
     Unary(UnOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
-    Ident(String),
+    LVar(String),
+    Func(String, Vec<Expr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -381,9 +398,9 @@ impl Expr {
         }
     }
 
-    pub fn new_ident(name: String, pos: Position) -> Self {
+    pub fn new_lvar(name: String, pos: Position) -> Self {
         Self {
-            kind: ExprKind::Ident(name),
+            kind: ExprKind::LVar(name),
             pos,
         }
     }
@@ -399,6 +416,13 @@ impl Expr {
         // pos is Position of TokenKind::Eq (i.e. `=`)
         Self {
             kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            pos,
+        }
+    }
+
+    pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Func(name, args),
             pos,
         }
     }

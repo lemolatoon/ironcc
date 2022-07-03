@@ -467,6 +467,26 @@ mod tests {
     }
 
     #[test]
+    fn tokenize_call_func_test() {
+        let input = String::from("{return foo(1, 2);}");
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            token_kinds!(
+                TokenKind::OpenDelim(DelimToken::Brace),
+                TokenKind::Return,
+                TokenKind::Ident("foo".to_string()),
+                TokenKind::OpenDelim(DelimToken::Paran),
+                TokenKind::Num(1),
+                TokenKind::Comma,
+                TokenKind::Num(2),
+                TokenKind::CloseDelim(DelimToken::Paran),
+                TokenKind::Semi,
+                TokenKind::CloseDelim(DelimToken::Brace),
+                TokenKind::Eof
+            )
+        );
+    }
+    #[test]
     fn parse_test() {
         use crate::{
             parse::{BinOpKind, Expr, Parser},
@@ -779,8 +799,8 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![
-            stmt(expr_stmt(assign(ident("a"), num(2)))),
-            stmt(ret(ident("a"))),
+            stmt(expr_stmt(assign(lvar("a"), num(2)))),
+            stmt(ret(lvar("a"))),
         ]);
 
         assert_eq!(parsed, expected);
@@ -798,7 +818,7 @@ mod tests {
             TokenKind::Eof
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
-        let expected = Program::with_vec(vec![stmt(expr_stmt(assign(ident("a"), num(2))))]);
+        let expected = Program::with_vec(vec![stmt(expr_stmt(assign(lvar("a"), num(2))))]);
 
         assert_eq!(parsed, expected);
 
@@ -815,8 +835,8 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![stmt(expr_stmt(assign(
-            ident("a"),
-            assign(ident("b"), num(2)),
+            lvar("a"),
+            assign(lvar("b"), num(2)),
         )))]);
 
         assert_eq!(parsed, expected);
@@ -834,7 +854,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![stmt(expr_stmt(assign(
-            bin(BinOpKind::Add, ident("a"), num(1)),
+            bin(BinOpKind::Add, lvar("a"), num(1)),
             num(2),
         )))]);
 
@@ -867,9 +887,9 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![
-            stmt(expr_stmt(assign(ident("a"), num(22)))),
+            stmt(expr_stmt(assign(lvar("a"), num(22)))),
             stmt(if_(
-                bin(BinOpKind::Ge, ident("a"), num(10)),
+                bin(BinOpKind::Ge, lvar("a"), num(10)),
                 ret(num(1)),
                 Some(ret(num(0))),
             )),
@@ -903,12 +923,12 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![
-            stmt(expr_stmt(assign(ident("a"), num(22)))),
+            stmt(expr_stmt(assign(lvar("a"), num(22)))),
             stmt(while_(
-                bin(BinOpKind::Gt, ident("a"), num(0)),
-                expr_stmt(assign(ident("a"), bin(BinOpKind::Sub, ident("a"), num(1)))),
+                bin(BinOpKind::Gt, lvar("a"), num(0)),
+                expr_stmt(assign(lvar("a"), bin(BinOpKind::Sub, lvar("a"), num(1)))),
             )),
-            stmt(ret(ident("a"))),
+            stmt(ret(lvar("a"))),
         ]);
 
         assert_eq!(parsed, expected);
@@ -951,14 +971,14 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![
-            stmt(expr_stmt(assign(ident("x"), num(1)))),
+            stmt(expr_stmt(assign(lvar("x"), num(1)))),
             stmt(for_(
-                Some(assign(ident("a"), num(3))),
+                Some(assign(lvar("a"), num(3))),
                 None,
-                Some(assign(ident("a"), bin(BinOpKind::Sub, ident("a"), num(2)))),
+                Some(assign(lvar("a"), bin(BinOpKind::Sub, lvar("a"), num(2)))),
                 if_(
                     num(1),
-                    expr_stmt(assign(ident("a"), bin(BinOpKind::Add, ident("a"), num(1)))),
+                    expr_stmt(assign(lvar("a"), bin(BinOpKind::Add, lvar("a"), num(1)))),
                     Some(ret(num(200))),
                 ),
             )),
@@ -988,13 +1008,38 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![stmt(block(vec![
-            expr_stmt(assign(ident("a"), num(13))),
+            expr_stmt(assign(lvar("a"), num(13))),
             ret(bin(
                 BinOpKind::Rem,
-                ident("a"),
+                lvar("a"),
                 bin(BinOpKind::Rem, num(3), num(1)),
             )),
         ]))]);
+
+        assert_eq!(parsed, expected);
+    }
+
+    #[test]
+    fn parse_call_func() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Ident("foo".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(3),
+            TokenKind::Comma,
+            TokenKind::Num(1),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Semi,
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![stmt(block(vec![expr_stmt(func(
+            "foo",
+            vec![num(3), num(1)],
+        ))]))]);
 
         assert_eq!(parsed, expected);
     }
@@ -1027,8 +1072,12 @@ mod tests {
         Stmt::new_for(init, cond, inc, then)
     }
 
-    fn ident(name: &str) -> Expr {
-        Expr::new_ident(name.to_string(), Position::default())
+    fn func(name: &str, args: Vec<Expr>) -> Expr {
+        Expr::new_func(name.to_string(), args, Position::default())
+    }
+
+    fn lvar(name: &str) -> Expr {
+        Expr::new_lvar(name.to_string(), Position::default())
     }
 
     fn assign(lhs: Expr, rhs: Expr) -> Expr {
@@ -1089,7 +1138,7 @@ mod tests {
     fn analysis_ident_test() {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
-        let expr = assign(ident("a"), num(1));
+        let expr = assign(lvar("a"), num(1));
         let mut lvar_map = BTreeMap::new();
         let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(converted_expr.kind, cassign(clvar("a", 0), cnum(1)).kind)
@@ -1101,10 +1150,10 @@ mod tests {
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![
             stmt(expr_stmt(assign(
-                ident("a"),
-                bin(BinOpKind::Ge, num(1), ident("k")),
+                lvar("a"),
+                bin(BinOpKind::Ge, num(1), lvar("k")),
             ))),
-            stmt(expr_stmt(ident("b"))),
+            stmt(expr_stmt(lvar("b"))),
         ]);
         let converted_program = analyzer.down_program(program);
         assert_eq!(
@@ -1124,9 +1173,9 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![
-            stmt(expr_stmt(assign(ident("a"), assign(ident("k"), num(1))))),
-            stmt(expr_stmt(assign(ident("c"), num(3)))),
-            stmt(expr_stmt(bin(BinOpKind::Div, ident("a"), ident("k")))),
+            stmt(expr_stmt(assign(lvar("a"), assign(lvar("k"), num(1))))),
+            stmt(expr_stmt(assign(lvar("c"), num(3)))),
+            stmt(expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k")))),
         ]);
         let converted_program = analyzer.down_program(program);
         assert_eq!(
