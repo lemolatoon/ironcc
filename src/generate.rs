@@ -65,6 +65,15 @@ impl<'a> Generater<'a> {
                     writeln!(f, "  mov rbp, rsp")?;
                     // TODO: determine this dynamically by counting the number of local variables
                     writeln!(f, "  sub rsp, {}", 26 * 8)?; // 64bit var * 8
+
+                    // assign args
+                    let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+                    for (idx, Lvar { offset }) in args.into_iter().enumerate() {
+                        writeln!(f, "  mov rax, rbp")?;
+                        writeln!(f, "  sub rax, {}", offset)?;
+                        writeln!(f, "  mov [rax], {}", arg_reg[idx])?;
+                    }
+                    // gen body stmt
                     self.gen_stmt(f, body)?;
                     // TODO: change this label dynamically base on func name
                     writeln!(

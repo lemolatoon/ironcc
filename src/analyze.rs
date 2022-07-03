@@ -36,9 +36,14 @@ impl<'a> Analyzer<'a> {
         func_def: FuncDef,
         lvar_map: &mut BTreeMap<String, usize>,
     ) -> ConvProgramKind {
+        let mut lvars = Vec::new();
+        for arg in func_def.args {
+            // register func args as lvar
+            lvars.push(Lvar::new(arg, &mut self.offset, lvar_map));
+        }
         ConvProgramKind::Func(ConvFuncDef::new(
             func_def.name,
-            func_def.args,
+            lvars,
             self.down_stmt(func_def.body, lvar_map),
         ))
     }
@@ -205,12 +210,12 @@ pub enum ConvProgramKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvFuncDef {
     pub name: String,
-    pub args: Vec<String>,
+    pub args: Vec<Lvar>,
     pub body: ConvStmt,
 }
 
 impl ConvFuncDef {
-    pub fn new(name: String, args: Vec<String>, body: ConvStmt) -> Self {
+    pub fn new(name: String, args: Vec<Lvar>, body: ConvStmt) -> Self {
         Self { name, args, body }
     }
 }
@@ -318,16 +323,8 @@ impl ConvExpr {
         new_offset: &mut usize,
         lvar_map: &mut BTreeMap<String, usize>,
     ) -> Self {
-        let offset = match lvar_map.get(&name) {
-            Some(offset) => *offset,
-            None => {
-                *new_offset += 8;
-                lvar_map.insert(name, *new_offset);
-                *new_offset
-            }
-        };
         ConvExpr {
-            kind: ConvExprKind::Lvar(Lvar { offset: offset }),
+            kind: ConvExprKind::Lvar(Lvar::new(name, new_offset, lvar_map)),
             pos,
         }
     }
@@ -346,6 +343,24 @@ pub enum ConvExprKind {
 pub struct Lvar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
+}
+
+impl Lvar {
+    pub fn new(
+        name: String,
+        new_offset: &mut usize,
+        lvar_map: &mut BTreeMap<String, usize>,
+    ) -> Self {
+        let offset = match lvar_map.get(&name) {
+            Some(offset) => *offset,
+            None => {
+                *new_offset += 8;
+                lvar_map.insert(name, *new_offset);
+                *new_offset
+            }
+        };
+        Self { offset: offset }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

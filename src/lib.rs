@@ -12,6 +12,7 @@ mod tests {
     use crate::{
         analyze::{
             Analyzer, ConvBinOpKind, ConvExpr, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt,
+            Lvar,
         },
         parse::{BinOpKind, Expr, FuncDef, Parser, Program, ProgramKind, Stmt, UnOp},
         tokenize::{
@@ -1287,16 +1288,46 @@ mod tests {
         )
     }
 
+    #[test]
+    fn analysis_func_def_test() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![func_def(
+            "main",
+            vec!["a", "b", "c"],
+            block(vec![
+                expr_stmt(assign(lvar("a"), assign(lvar("k"), num(1)))),
+                expr_stmt(assign(lvar("c"), num(3))),
+                expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
+                ret(bin(BinOpKind::Div, lvar("b"), lvar("c"))),
+            ]),
+        )]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![cfunc_def(
+                "main",
+                vec![
+                    clvar_strct("a", 0),
+                    clvar_strct("b", 8),
+                    clvar_strct("c", 16)
+                ],
+                cblock(vec![
+                    cexpr_stmt(cassign(clvar("a", 0), cassign(clvar("k", 24), cnum(1)))),
+                    cexpr_stmt(cassign(clvar("c", 16), cnum(3))),
+                    cexpr_stmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 24))),
+                    cret(cbin(ConvBinOpKind::Div, clvar("b", 8), clvar("c", 16))),
+                ])
+            )])
+        )
+    }
+
     fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
         ConvProgram::with_vec(components)
     }
 
-    fn cfunc_def(name: &str, args: Vec<&str>, body: ConvStmt) -> ConvProgramKind {
-        ConvProgramKind::Func(ConvFuncDef::new(
-            name.to_string(),
-            args.into_iter().map(|s| s.to_string()).collect(),
-            body,
-        ))
+    fn cfunc_def(name: &str, args: Vec<Lvar>, body: ConvStmt) -> ConvProgramKind {
+        ConvProgramKind::Func(ConvFuncDef::new(name.to_string(), args, body))
     }
 
     fn cblock(stmts: Vec<ConvStmt>) -> ConvStmt {
@@ -1312,6 +1343,12 @@ mod tests {
             offset,
             &mut empty_lvar_map,
         )
+    }
+
+    fn clvar_strct(name: &str, mut offset: usize) -> Lvar {
+        let offset = &mut offset;
+        let mut empty_lvar_map = BTreeMap::new();
+        Lvar::new(name.to_string(), offset, &mut empty_lvar_map)
     }
 
     fn cexpr_stmt(expr: ConvExpr) -> ConvStmt {

@@ -129,7 +129,9 @@ assert 1 "main(){b = 0; a= 100; a=b=1; return a == 1;}"
 
 
 assert 4 "just4() {return 4;} main() {return just4();}"
-# assert 10 "double_it( i) {return 2*i;} main() {return double_it(5);}"
+assert 10 "double_it( i) {return 2*i;} main() {return double_it(5);}"
+assert 27 "mul(a, b) {return a*b;} main() {return mul(3, 9);}"
+assert 1 "add6(a, b, c, d, e, f) {return a+b+c+d+e+f;} main() {val = 0; for (i = 0; i <= 6; i = i + 1) {val = val + i;}return add6(1, 2, 3, 4, 5, 6) == val;}"
 
 wait
 clean
