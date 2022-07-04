@@ -42,41 +42,47 @@ impl<'a> Analyzer<'a> {
             lvars.push(Lvar::new(arg, &mut self.offset, lvar_map));
         }
         ConvProgramKind::Func(ConvFuncDef::new(
-            func_def.name,
+            func_def.name.clone(),
             lvars,
-            self.down_stmt(func_def.body, lvar_map),
+            self.down_stmt(func_def.body, lvar_map, func_def.name),
             lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
         ))
     }
 
-    pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, Lvar>) -> ConvStmt {
+    pub fn down_stmt(
+        &mut self,
+        stmt: Stmt,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+        fn_name: String,
+    ) -> ConvStmt {
         match stmt.kind {
             // do nothing
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
             // do nothing
-            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map)),
+            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map), fn_name),
             // do nothing
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
                 self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map),
-                els.map(|stmt| self.down_stmt(*stmt, lvar_map)),
+                self.down_stmt(*then, lvar_map, fn_name.clone()),
+                els.map(|stmt| self.down_stmt(*stmt, lvar_map, fn_name.clone())),
             ),
             // do nothing
             StmtKind::While(cond, then) => ConvStmt::new_while(
                 self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map),
+                self.down_stmt(*then, lvar_map, fn_name),
             ),
             // do nothing
             StmtKind::For(init, cond, inc, then) => ConvStmt::new_for(
                 init.map(|expr| self.down_expr(expr, lvar_map)),
                 cond.map(|expr| self.down_expr(expr, lvar_map)),
                 inc.map(|expr| self.down_expr(expr, lvar_map)),
-                self.down_stmt(*then, lvar_map),
+                self.down_stmt(*then, lvar_map, fn_name),
             ),
+            // do nothing
             StmtKind::Block(stmts) => ConvStmt::new_block(
                 stmts
                     .into_iter()
-                    .map(|stmt| self.down_stmt(stmt, lvar_map))
+                    .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
         }
@@ -239,9 +245,9 @@ impl ConvStmt {
         }
     }
 
-    pub fn new_ret(expr: ConvExpr) -> Self {
+    pub fn new_ret(expr: ConvExpr, name: String) -> Self {
         Self {
-            kind: ConvStmtKind::Return(expr),
+            kind: ConvStmtKind::Return(expr, name),
         }
     }
 
@@ -278,7 +284,7 @@ impl ConvStmt {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvStmtKind {
     Expr(ConvExpr),
-    Return(ConvExpr),
+    Return(ConvExpr, String),
     Block(Vec<ConvStmt>),
     If(ConvExpr, Box<ConvStmt>, Option<Box<ConvStmt>>),
     While(ConvExpr, Box<ConvStmt>),

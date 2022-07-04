@@ -13,7 +13,6 @@ pub struct Generater<'a> {
     input: &'a str,
     label: usize,
     depth: usize,
-    current_func_name: Option<String>,
 }
 
 impl<'a> Generater<'a> {
@@ -22,7 +21,6 @@ impl<'a> Generater<'a> {
             input,
             label: 0,
             depth: 0,
-            current_func_name: None,
         }
     }
 
@@ -65,7 +63,6 @@ impl<'a> Generater<'a> {
                     lvars,
                 }) => {
                     writeln!(f, "{}:", name)?;
-                    self.current_func_name = Some(name.clone());
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
                     // TODO: determine this dynamically by counting the number of local variables
@@ -81,17 +78,10 @@ impl<'a> Generater<'a> {
                     // gen body stmt
                     self.gen_stmt(f, body)?;
                     // TODO: change this label dynamically base on func name
-                    writeln!(
-                        f,
-                        ".L{}_ret:",
-                        self.current_func_name
-                            .as_ref()
-                            .expect("Not generating func def")
-                    )?;
+                    writeln!(f, ".L{}_ret:", name)?;
                     writeln!(f, "  mov rsp, rbp")?;
                     self.pop(f, format_args!("rbp"))?;
                     writeln!(f, "  ret")?;
-                    self.current_func_name = None;
                 }
             }
         }
@@ -109,16 +99,10 @@ impl<'a> Generater<'a> {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
             }
-            ConvStmtKind::Return(expr) => {
+            ConvStmtKind::Return(expr, name) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
-                writeln!(
-                    f,
-                    "  jmp .L{}_ret",
-                    self.current_func_name
-                        .as_ref()
-                        .expect("Not generating func def")
-                )?;
+                writeln!(f, "  jmp .L{}_ret", name)?;
             }
             ConvStmtKind::If(cond, then, Some(els)) => {
                 let label_index = self.label();

@@ -1326,7 +1326,10 @@ mod tests {
                     cexpr_stmt(cassign(clvar("a", 0), cassign(clvar("k", 24), cnum(1)))),
                     cexpr_stmt(cassign(clvar("c", 16), cnum(3))),
                     cexpr_stmt(cbin(ConvBinOpKind::Div, clvar("a", 0), clvar("k", 24))),
-                    cret(cbin(ConvBinOpKind::Div, clvar("b", 8), clvar("c", 16))),
+                    cret(
+                        cbin(ConvBinOpKind::Div, clvar("b", 8), clvar("c", 16)),
+                        "main"
+                    ),
                 ]),
                 vec![
                     clvar_strct("a", 0),
@@ -1376,8 +1379,8 @@ mod tests {
         ConvStmt::new_expr(expr)
     }
 
-    fn cret(expr: ConvExpr) -> ConvStmt {
-        ConvStmt::new_ret(expr)
+    fn cret(expr: ConvExpr, name: &str) -> ConvStmt {
+        ConvStmt::new_ret(expr, name.to_string())
     }
 
     fn cif_(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> ConvStmt {
