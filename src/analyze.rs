@@ -147,6 +147,8 @@ impl<'a> Analyzer<'a> {
                     .collect::<Vec<_>>(),
                 pos,
             ),
+            ExprKind::Deref(expr) => ConvExpr::new_deref(self.down_expr(*expr, lvar_map), pos),
+            ExprKind::Addr(expr) => ConvExpr::new_addr(self.down_expr(*expr, lvar_map), pos),
         }
     }
 
@@ -341,6 +343,20 @@ impl ConvExpr {
             pos,
         }
     }
+
+    pub fn new_deref(expr: ConvExpr, pos: Position) -> Self {
+        Self {
+            kind: ConvExprKind::Deref(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_addr(expr: ConvExpr, pos: Position) -> Self {
+        Self {
+            kind: ConvExprKind::Addr(Box::new(expr)),
+            pos,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -350,6 +366,8 @@ pub enum ConvExprKind {
     Lvar(Lvar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
     Func(String, Vec<ConvExpr>),
+    Deref(Box<ConvExpr>),
+    Addr(Box<ConvExpr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

@@ -1127,6 +1127,94 @@ mod tests {
         assert_eq!(parsed, expected);
     }
 
+    #[test]
+    fn parse_ptr() {
+        let input = String::new();
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident("main".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Return,
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Semi,
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![func_def(
+            "main",
+            Vec::new(),
+            block(vec![ret(deref(lvar("a")))]),
+        )]);
+
+        assert_eq!(parsed, expected);
+        let input = String::from("main() {a = foo(3, 1); ap = &a; *a = a + 1;}");
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident("main".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident("foo".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::Num(3),
+            TokenKind::Comma,
+            TokenKind::Num(1),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::Semi, // a = foo(3, 1);
+            TokenKind::Ident("ap".to_string()),
+            TokenKind::Eq,
+            TokenKind::BinOp(BinOpToken::And),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Semi, // ap = &a;
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Eq,
+            TokenKind::Ident("a".to_string()),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(1),
+            TokenKind::Semi, // *a = a + 1;
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        assert_eq!(
+            tokenize_and_kinds(&input),
+            tokens
+                .clone()
+                .into_iter()
+                .map(|k| k.kind)
+                .collect::<Vec<_>>()
+        );
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![func_def(
+            "main",
+            Vec::new(),
+            block(vec![
+                expr_stmt(assign(lvar("a"), func("foo", vec![num(3), num(1)]))),
+                expr_stmt(assign(lvar("ap"), addr(lvar("a")))),
+                expr_stmt(assign(
+                    deref(lvar("a")),
+                    bin(BinOpKind::Add, lvar("a"), num(1)),
+                )),
+            ]),
+        )]);
+
+        assert_eq!(parsed, expected);
+    }
+
+    fn deref(expr: Expr) -> Expr {
+        Expr::new_deref(expr, Position::default())
+    }
+
+    fn addr(expr: Expr) -> Expr {
+        Expr::new_addr(expr, Position::default())
+    }
+
     fn func_def(name: &str, args: Vec<&str>, body: Stmt) -> ProgramKind {
         ProgramKind::Func(FuncDef::new(
             name.to_string(),

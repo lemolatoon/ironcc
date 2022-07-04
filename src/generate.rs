@@ -212,6 +212,15 @@ impl<'a> Generater<'a> {
                 }
                 self.push(f, format_args!("rax"))?;
             }
+            ConvExprKind::Deref(expr) => {
+                self.gen_expr(f, *expr)?;
+                self.pop(f, format_args!("rax"))?;
+                writeln!(f, "  mov rax, [rax]")?; // only 64bit var
+                self.push(f, format_args!("rax"))?;
+            }
+            ConvExprKind::Addr(expr) => {
+                self.gen_lvalue(f, *expr)?;
+            }
         }
         Ok(())
     }

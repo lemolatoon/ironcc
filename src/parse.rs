@@ -1,4 +1,5 @@
 use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream};
+use std::fmt::Debug;
 
 pub struct Parser<'a> {
     input: &'a str,
@@ -10,7 +11,7 @@ impl<'a> Parser<'a> {
     }
     pub fn parse_program<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Program
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
@@ -23,7 +24,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_func<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> ProgramKind
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let name = tokens.consume_ident();
         let mut args = Vec::new();
@@ -47,7 +48,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         if tokens.consume(TokenKind::Return) {
             // return stmt
@@ -110,14 +111,14 @@ impl<'a> Parser<'a> {
 
     pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         self.parse_assign(tokens)
     }
 
     pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let lhs = self.parse_equality(tokens);
         let (kind, pos) = match tokens.peek() {
@@ -135,7 +136,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_equality<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_relational(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -153,7 +154,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_relational<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_add(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -173,7 +174,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_add<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -191,7 +192,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_mul<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_unary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -210,7 +211,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_unary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let (kind, pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos.clone()),
@@ -225,13 +226,21 @@ impl<'a> Parser<'a> {
                 tokens.next();
                 Expr::new_unary(UnOp::Minus, self.parse_primary(tokens), pos)
             }
+            TokenKind::BinOp(BinOpToken::Star) => {
+                tokens.next();
+                Expr::new_deref(self.parse_unary(tokens), pos)
+            }
+            TokenKind::BinOp(BinOpToken::And) => {
+                tokens.next();
+                Expr::new_addr(self.parse_unary(tokens), pos)
+            }
             _ => self.parse_primary(tokens),
         }
     }
 
     pub fn parse_primary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
@@ -411,6 +420,8 @@ pub enum ExprKind {
     Assign(Box<Expr>, Box<Expr>),
     LVar(String),
     Func(String, Vec<Expr>),
+    Deref(Box<Expr>),
+    Addr(Box<Expr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -460,6 +471,20 @@ impl Expr {
     pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
         Self {
             kind: ExprKind::Func(name, args),
+            pos,
+        }
+    }
+
+    pub fn new_deref(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Deref(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_addr(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Addr(Box::new(expr)),
             pos,
         }
     }
