@@ -1,9 +1,11 @@
-<program>   := <stmt>*
+<program>   := <func>*
+<func>      := <ident> "(" (<expr> ("," <expr>)*)? ")" <blockstmt>
 <stmt>      := <expr> ";"
-                | "{" <stmt>* "}"
+                | <blockstmt>
                 | "return" <expr> ";"
                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
+<blockstmt> := "{" <stmt>* "}"
 <expr>      := <assign>
 <assign>    := <equality> ("=" assign)?
 <equality>  := <relational> ("==" <relational> | "!=" <relational>)*
@@ -12,6 +14,6 @@
 <mul>       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
 <unary>     := ("+" | "-")? <primary>
 <primary>   := <num> 
-                | <ident> ("(" ")")?
+                | <ident> "(" (<expr> ("," <expr>)*)? ")"
                 | <ident> 
                 | "(" <expr> ")"  

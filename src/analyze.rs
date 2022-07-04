@@ -1,7 +1,9 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
-    parse::{BinOpKind, Binary, Expr, ExprKind, Program, ProgramKind, Stmt, StmtKind, UnOp},
+    parse::{
+        BinOpKind, Binary, Expr, ExprKind, FuncDef, Program, ProgramKind, Stmt, StmtKind, UnOp,
+    },
     tokenize::Position,
 };
 
@@ -18,51 +20,75 @@ impl<'a> Analyzer<'a> {
 
     pub fn down_program(&mut self, program: Program) -> ConvProgram {
         let mut conv_program = ConvProgram::new();
-        let mut lvar_map = BTreeMap::new();
         for component in program.into_iter() {
             match component {
-                ProgramKind::Stmt(stmt) => {
-                    conv_program.push_stmt(self.down_stmt(stmt, &mut lvar_map))
+                ProgramKind::Func(func_def) => {
+                    let mut lvar_map = BTreeMap::new();
+                    conv_program.push(self.down_func(func_def, &mut lvar_map))
                 }
             }
         }
         conv_program
     }
 
-    pub fn down_stmt(&mut self, stmt: Stmt, lvar_map: &mut BTreeMap<String, usize>) -> ConvStmt {
+    pub fn down_func(
+        &mut self,
+        func_def: FuncDef,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> ConvProgramKind {
+        let mut lvars = Vec::new();
+        for arg in func_def.args {
+            // register func args as lvar
+            lvars.push(Lvar::new(arg, &mut self.offset, lvar_map));
+        }
+        ConvProgramKind::Func(ConvFuncDef::new(
+            func_def.name.clone(),
+            lvars,
+            self.down_stmt(func_def.body, lvar_map, func_def.name),
+            lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
+        ))
+    }
+
+    pub fn down_stmt(
+        &mut self,
+        stmt: Stmt,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+        fn_name: String,
+    ) -> ConvStmt {
         match stmt.kind {
             // do nothing
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
             // do nothing
-            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map)),
+            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map), fn_name),
             // do nothing
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
                 self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map),
-                els.map(|stmt| self.down_stmt(*stmt, lvar_map)),
+                self.down_stmt(*then, lvar_map, fn_name.clone()),
+                els.map(|stmt| self.down_stmt(*stmt, lvar_map, fn_name.clone())),
             ),
             // do nothing
             StmtKind::While(cond, then) => ConvStmt::new_while(
                 self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map),
+                self.down_stmt(*then, lvar_map, fn_name),
             ),
             // do nothing
             StmtKind::For(init, cond, inc, then) => ConvStmt::new_for(
                 init.map(|expr| self.down_expr(expr, lvar_map)),
                 cond.map(|expr| self.down_expr(expr, lvar_map)),
                 inc.map(|expr| self.down_expr(expr, lvar_map)),
-                self.down_stmt(*then, lvar_map),
+                self.down_stmt(*then, lvar_map, fn_name),
             ),
+            // do nothing
             StmtKind::Block(stmts) => ConvStmt::new_block(
                 stmts
                     .into_iter()
-                    .map(|stmt| self.down_stmt(stmt, lvar_map))
+                    .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
         }
     }
 
-    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, usize>) -> ConvExpr {
+    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, Lvar>) -> ConvExpr {
         let pos = expr.pos.clone();
         match expr.kind {
             // `a >= b` := `b <= a`
@@ -168,8 +194,8 @@ impl ConvProgram {
         Self { components: vec }
     }
 
-    pub fn push_stmt(&mut self, stmt: ConvStmt) {
-        self.components.push(ConvProgramKind::Stmt(stmt));
+    pub fn push(&mut self, kind: ConvProgramKind) {
+        self.components.push(kind);
     }
 }
 
@@ -185,7 +211,26 @@ impl IntoIterator for ConvProgram {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvProgramKind {
-    Stmt(ConvStmt),
+    Func(ConvFuncDef),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConvFuncDef {
+    pub name: String,
+    pub args: Vec<Lvar>,
+    pub body: ConvStmt,
+    pub lvars: BTreeSet<Lvar>,
+}
+
+impl ConvFuncDef {
+    pub fn new(name: String, args: Vec<Lvar>, body: ConvStmt, lvars: BTreeSet<Lvar>) -> Self {
+        Self {
+            name,
+            args,
+            body,
+            lvars,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -200,9 +245,9 @@ impl ConvStmt {
         }
     }
 
-    pub fn new_ret(expr: ConvExpr) -> Self {
+    pub fn new_ret(expr: ConvExpr, name: String) -> Self {
         Self {
-            kind: ConvStmtKind::Return(expr),
+            kind: ConvStmtKind::Return(expr, name),
         }
     }
 
@@ -239,7 +284,7 @@ impl ConvStmt {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvStmtKind {
     Expr(ConvExpr),
-    Return(ConvExpr),
+    Return(ConvExpr, String),
     Block(Vec<ConvStmt>),
     If(ConvExpr, Box<ConvStmt>, Option<Box<ConvStmt>>),
     While(ConvExpr, Box<ConvStmt>),
@@ -289,18 +334,10 @@ impl ConvExpr {
         name: String,
         pos: Position,
         new_offset: &mut usize,
-        lvar_map: &mut BTreeMap<String, usize>,
+        lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Self {
-        let offset = match lvar_map.get(&name) {
-            Some(offset) => *offset,
-            None => {
-                *new_offset += 8;
-                lvar_map.insert(name, *new_offset);
-                *new_offset
-            }
-        };
         ConvExpr {
-            kind: ConvExprKind::Lvar(Lvar { offset: offset }),
+            kind: ConvExprKind::Lvar(Lvar::new(name, new_offset, lvar_map)),
             pos,
         }
     }
@@ -315,10 +352,33 @@ pub enum ConvExprKind {
     Func(String, Vec<ConvExpr>),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Lvar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
+}
+
+impl Lvar {
+    pub fn new(
+        name: String,
+        new_offset: &mut usize,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Self {
+        let offset = match lvar_map.get(&name) {
+            Some(lvar) => lvar.offset,
+            None => {
+                *new_offset += 8;
+                lvar_map.insert(
+                    name,
+                    Self {
+                        offset: *new_offset,
+                    },
+                );
+                *new_offset
+            }
+        };
+        Self { offset: offset }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

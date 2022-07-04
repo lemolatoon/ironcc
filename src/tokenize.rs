@@ -348,6 +348,25 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
         }
     }
 
+    /// # Panics
+    /// when next token is not TokenKind::Ident
+    pub fn consume_ident(&mut self) -> String {
+        let token = self.next();
+        match token {
+            Some(Token { kind, pos }) => match *kind {
+                TokenKind::Ident(name) => return name,
+                _ => self.error_at(
+                    Some(pos),
+                    &format!("TokenKind::Ident expected, but got {:?}", kind),
+                ),
+            },
+            _ => self.error_at(
+                None,
+                &format!("TokenKind::Ident expected, but got {:?}", token),
+            ),
+        }
+    }
+
     /// if next token is expected kind, do nothing, otherwise `panic`
     pub fn expect(&mut self, kind: TokenKind) {
         let peeked_token = self.next();
