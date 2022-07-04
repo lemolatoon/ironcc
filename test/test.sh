@@ -52,6 +52,19 @@ clean() {
     rm ../tmp/*
 }
 
+check() {
+ echo -n "TEST STATUS: "
+    if [ ! -f $LOG ]; then
+        printf "\033[32mPASSED\033[0m\n"
+        return 0
+    else
+        N_FAILED=$(cat $LOG | wc -l)
+        printf "\033[31mFAILED\033[0m\n"
+        return 1
+    fi
+
+}
+
 
 assert 1 "main(){return 1;}"
 assert 0 "main(){return 0;}"
@@ -137,16 +150,9 @@ assert 27 "mul(a, b) {return a*b;} main() {return mul(3, 9);}"
 assert 1 "add6(a, b, c, d, e, f) {return a+b+c+d+e+f;} main() {val = 0; for (i = 0; i <= 6; i = i + 1) {val = val + i;}return add6(1, 2, 3, 4, 5, 6) == val;}"
 
 wait
+
+check
+status="$?"
+
 clean
-
-echo
-printf "\033[93mWARNING: THIS TEST STATUS NOW *ALWAYS* SAYS *PASSED*\033[0m\n"
- echo -n "TEST STATUS: "
-
-if [ "$result" = "0" ]; then
-    printf "\033[32mPASSED\033[0m\n"
-    exit 0
-else
-    printf "\033[31mFAILED\033[0m\n"
-    exit 1
-fi
+exit $status

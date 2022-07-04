@@ -1338,7 +1338,7 @@ mod tests {
                     clvar_strct("k", 24)
                 ]
             )])
-        )
+        );
     }
 
     fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
