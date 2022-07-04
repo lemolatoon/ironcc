@@ -14,9 +14,13 @@ mod tests {
             Analyzer, ConvBinOpKind, ConvExpr, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt,
             Lvar,
         },
-        parse::{BinOpKind, Expr, FuncDef, Parser, Program, ProgramKind, Stmt, UnOp},
+        parse::{
+            BinOpKind, Declaration, DirectDiclarator, Expr, FuncDef, Parser, Program, ProgramKind,
+            Stmt, TypeSpec, UnOp,
+        },
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
+            Tokenizer, TypeToken,
         },
     };
 
@@ -1207,6 +1211,48 @@ mod tests {
         assert_eq!(parsed, expected);
     }
 
+    #[test]
+    fn parse_declaration() {
+        let input = String::from("main() {int a;}");
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Ident("main".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Type(TypeToken::Int),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Semi, // int a;
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        let tokenized = tokenize_and_kinds(&input);
+        assert_eq!(
+            tokenized.clone(),
+            tokens
+                .clone()
+                .into_iter()
+                .map(|k| k.kind)
+                .collect::<Vec<_>>()
+        );
+        let tokenizer = Tokenizer::new(&input);
+        let parsed = parser.parse_program(&mut TokenStream::new(
+            tokenizer.tokenize().into_iter(),
+            &input,
+        ));
+        let expected = Program::with_vec(vec![func_def(
+            "main",
+            Vec::new(),
+            block(vec![declare_stmt(Declaration::new(
+                TypeSpec::Int,
+                0,
+                DirectDiclarator::Ident("a".to_string()),
+            ))]),
+        )]);
+
+        assert_eq!(parsed, expected);
+    }
+
     fn deref(expr: Expr) -> Expr {
         Expr::new_deref(expr, Position::default())
     }
@@ -1221,6 +1267,10 @@ mod tests {
             args.into_iter().map(|s| s.to_string()).collect(),
             body,
         ))
+    }
+
+    fn declare_stmt(declaration: Declaration) -> Stmt {
+        Stmt::new_declare(declaration)
     }
 
     fn expr_stmt(expr: Expr) -> Stmt {

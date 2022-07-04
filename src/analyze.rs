@@ -85,6 +85,7 @@ impl<'a> Analyzer<'a> {
                     .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
+            StmtKind::Declare(_) => todo!(),
         }
     }
 

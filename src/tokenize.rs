@@ -149,6 +149,7 @@ impl<'a> Tokenizer<'a> {
                         "else" => TokenKind::Else,
                         "while" => TokenKind::While,
                         "for" => TokenKind::For,
+                        "int" => TokenKind::Type(TypeToken::Int),
                         _ => TokenKind::Ident(ident),
                     },
                     pos.next_token(len_token),
@@ -205,6 +206,8 @@ pub enum TokenKind {
     Semi,
     /// An ident
     Ident(String),
+    /// type specifiers
+    Type(TypeToken),
     /// `return`, reserved word
     Return,
     /// `if`, reserved word
@@ -234,6 +237,11 @@ pub enum TokenKind {
     Eof,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum TypeToken {
+    /// `int`, type specifier
+    Int,
+}
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {
     /// A round parenthesis (i.e., `(` or `)`)
@@ -336,6 +344,13 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
                 self.next();
                 return true;
             }
+        }
+        false
+    }
+
+    pub fn is_type(&mut self) -> bool {
+        if let Some(token) = self.peek() {
+            return matches!(*token.kind, TokenKind::Type(_));
         }
         false
     }

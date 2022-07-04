@@ -1,4 +1,4 @@
-use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream};
+use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken};
 use std::fmt::Debug;
 
 pub struct Parser<'a> {
@@ -44,6 +44,24 @@ impl<'a> Parser<'a> {
         }
         let body = Stmt::new_block(stmts);
         ProgramKind::Func(FuncDef::new(name, args, body))
+    }
+
+    pub fn parse_declaration<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Declaration
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        // declaration-specifiers
+        let type_spec = match tokens.next() {
+            Some(Token { kind, pos }) => match *kind {
+                TokenKind::Type(TypeToken::Int) => TypeSpec::Int,
+                _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
+            },
+            None => self.error_at(None, "Next token is None in `parse_declaration`."),
+        };
+        // TODO: support ptr
+        let n_star = 0;
+        let direct_diclarator = DirectDiclarator::Ident(tokens.consume_ident());
+        Declaration::new(type_spec, n_star, direct_diclarator)
     }
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
@@ -102,6 +120,10 @@ impl<'a> Parser<'a> {
                 stmts.push(self.parse_stmt(tokens));
             }
             return Stmt::new_block(stmts);
+        } else if tokens.is_type() {
+            let stmt = Stmt::new_declare(self.parse_declaration(tokens));
+            tokens.expect(TokenKind::Semi);
+            return stmt;
         } else {
             let expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::Semi);
@@ -358,6 +380,34 @@ pub struct Stmt {
     pub kind: StmtKind,
 }
 
+#[derive(PartialEq, Eq, Clone, Debug)]
+/// Declaration
+pub struct Declaration {
+    ty_spec: TypeSpec,
+    n_star: usize,
+    declrtr: DirectDiclarator,
+}
+
+impl Declaration {
+    pub fn new(ty_spec: TypeSpec, n_star: usize, declrtr: DirectDiclarator) -> Self {
+        Self {
+            ty_spec,
+            n_star,
+            declrtr,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum DirectDiclarator {
+    Ident(String),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum TypeSpec {
+    Int,
+}
+
 impl Stmt {
     pub fn expr(expr: Expr) -> Self {
         Self {
@@ -394,6 +444,12 @@ impl Stmt {
             kind: StmtKind::For(init, cond, inc, Box::new(then)),
         }
     }
+
+    pub fn new_declare(declaration: Declaration) -> Self {
+        Self {
+            kind: StmtKind::Declare(declaration),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -404,6 +460,7 @@ pub enum StmtKind {
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
     For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),
+    Declare(Declaration),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
