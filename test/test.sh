@@ -67,8 +67,8 @@ check() {
 }
 
 
-assert 2 "main(){return 1;}"
-assert 1 "main(){return 0;}"
+assert 1 "main(){return 1;}"
+assert 0 "main(){return 0;}"
 assert 255 "main(){return 255;}"
 
 assert 2 "main(){return 1 + 1;}"
