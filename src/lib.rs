@@ -245,7 +245,7 @@ mod tests {
             tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Ident("q".to_string()),
-                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::BinOp(BinOpToken::Star),
                 TokenKind::Ident("z".to_string()),
                 TokenKind::Eof
             )
@@ -260,7 +260,7 @@ mod tests {
                 TokenKind::Ident("cdf".to_string()),
                 TokenKind::Eq,
                 TokenKind::Num(8),
-                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::BinOp(BinOpToken::Star),
                 TokenKind::Num(7),
                 TokenKind::Eof
             )
@@ -284,7 +284,7 @@ mod tests {
             tokenize_and_kinds(&input),
             token_kinds!(
                 TokenKind::Ident("q".to_string()),
-                TokenKind::BinOp(BinOpToken::Mul),
+                TokenKind::BinOp(BinOpToken::Star),
                 TokenKind::Ident("z".to_string()),
                 TokenKind::Semi,
                 TokenKind::Ident("c".to_string()),
@@ -521,7 +521,7 @@ mod tests {
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(2),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(3),
             TokenKind::Eof
         );
@@ -548,11 +548,11 @@ mod tests {
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(2),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(3),
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::Num(4),
-            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::BinOp(BinOpToken::Slash),
             TokenKind::Num(5),
             TokenKind::Eof
         );
@@ -575,7 +575,7 @@ mod tests {
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(2),
             TokenKind::CloseDelim(DelimToken::Paran),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(3),
             TokenKind::Eof
         );
@@ -593,10 +593,10 @@ mod tests {
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::Num(2),
             TokenKind::CloseDelim(DelimToken::Paran),
-            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::BinOp(BinOpToken::Slash),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Num(31),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(4),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -626,7 +626,7 @@ mod tests {
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::Num(2),
             TokenKind::CloseDelim(DelimToken::Paran),
-            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::BinOp(BinOpToken::Slash),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Num(31),
             TokenKind::BinOp(BinOpToken::Percent),
@@ -665,10 +665,10 @@ mod tests {
             TokenKind::Num(2),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
-            TokenKind::BinOp(BinOpToken::Div),
+            TokenKind::BinOp(BinOpToken::Slash),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Num(31),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(4),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -706,7 +706,7 @@ mod tests {
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Num(1),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(22),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::Eof
@@ -748,7 +748,7 @@ mod tests {
             TokenKind::Num(1),
             TokenKind::Ne,
             TokenKind::Num(2),
-            TokenKind::BinOp(BinOpToken::Mul),
+            TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(3),
             TokenKind::Ge,
             TokenKind::Num(4),

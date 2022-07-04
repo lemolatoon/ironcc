@@ -196,8 +196,8 @@ impl<'a> Parser<'a> {
         let mut lhs = self.parse_unary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
             let op = match &**kind {
-                TokenKind::BinOp(BinOpToken::Mul) => BinOpKind::Mul,
-                TokenKind::BinOp(BinOpToken::Div) => BinOpKind::Div,
+                TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
+                TokenKind::BinOp(BinOpToken::Slash) => BinOpKind::Div,
                 TokenKind::BinOp(BinOpToken::Percent) => BinOpKind::Rem,
                 _ => break,
             };

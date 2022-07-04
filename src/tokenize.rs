@@ -53,12 +53,12 @@ impl<'a> Tokenizer<'a> {
                 ));
             } else if input.starts_with('*') {
                 tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Mul),
+                    TokenKind::BinOp(BinOpToken::Star),
                     pos.next_char(),
                 ));
             } else if input.starts_with('/') {
                 tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Div),
+                    TokenKind::BinOp(BinOpToken::Slash),
                     pos.next_char(),
                 ));
             } else if input.starts_with('%') {
@@ -246,11 +246,13 @@ pub enum BinOpToken {
     /// `-`
     Minus,
     /// `*`
-    Mul,
+    Star,
     /// `/`
-    Div,
+    Slash,
     /// `%`
     Percent,
+    /// `&`
+    And,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
