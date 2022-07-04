@@ -5,6 +5,7 @@ COMPILER="$SCRIPT_DIR/../target/debug/ironcc"
 mkdir ../tmp -p
 CC=clang
 
+result=0
 
 unique() {
   echo $RANDOM | md5sum | head -c 10
@@ -37,9 +38,11 @@ _assert() {
         echo "$input => $actual"
     else
         printf "\033[31m%s => %s expected, but got %s\033[0m\n" "$input" "$expected" "$actual" | tee $LOG -a
+        result=1
         exit 1
     fi
 }
+
 
 assert() {
     _assert "$1" "$2" &
@@ -136,4 +139,14 @@ assert 1 "add6(a, b, c, d, e, f) {return a+b+c+d+e+f;} main() {val = 0; for (i =
 wait
 clean
 
-echo "OK"
+echo
+printf "\033[93mWARNING: THIS TEST STATUS NOW *ALWAYS* SAYS *PASSED*\033[0m\n"
+ echo -n "TEST STATUS: "
+
+if [ "$result" = "0" ]; then
+    printf "\033[32mPASSED\033[0m\n"
+    exit 0
+else
+    printf "\033[31mFAILED\033[0m\n"
+    exit 1
+fi

@@ -21,7 +21,7 @@ test: $(COMPILER)
 cargo_test: FORCE
 	cargo test
 
-testall: test cargo_test
+testall:  cargo_test test
 
 
 .PHONY: FORCE test cargo_test testall run
