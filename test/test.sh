@@ -59,15 +59,16 @@ check() {
         return 0
     else
         N_FAILED=$(cat $LOG | wc -l)
-        printf "\033[31mFAILED\033[0m\n"
+        printf "\033[31mFAILED\033[0m\t"
+        printf  "\033[31m%d\033[0m tests failed.\n\n" $N_FAILED
         return 1
     fi
 
 }
 
 
-assert 1 "main(){return 1;}"
-assert 0 "main(){return 0;}"
+assert 2 "main(){return 1;}"
+assert 1 "main(){return 0;}"
 assert 255 "main(){return 255;}"
 
 assert 2 "main(){return 1 + 1;}"
