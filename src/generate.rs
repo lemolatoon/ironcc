@@ -70,7 +70,7 @@ impl<'a> Generater<'a> {
 
                     // assign args
                     let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
-                    for (idx, Lvar { offset }) in args.into_iter().enumerate() {
+                    for (idx, Lvar { offset, ty: _ }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?;
                         writeln!(f, "  mov [rax], {}", arg_reg[idx])?;
@@ -233,7 +233,7 @@ impl<'a> Generater<'a> {
         expr: ConvExpr,
     ) -> Result<(), std::io::Error> {
         match expr.kind {
-            ConvExprKind::Lvar(Lvar { offset }) => {
+            ConvExprKind::Lvar(Lvar { offset, ty: _ }) => {
                 writeln!(f, "  mov rax, rbp")?;
                 writeln!(f, "  sub rax, {}", offset)?;
                 self.push(f, format_args!("rax"))?;

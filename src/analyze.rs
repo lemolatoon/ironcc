@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     parse::{
-        BinOpKind, Binary, Expr, ExprKind, FuncDef, Program, ProgramKind, Stmt, StmtKind, UnOp,
+        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, FuncDef, Program,
+        ProgramKind, Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
 };
@@ -37,9 +38,25 @@ impl<'a> Analyzer<'a> {
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> ConvProgramKind {
         let mut lvars = Vec::new();
-        for arg in func_def.args {
+        for arg in &func_def.args {
             // register func args as lvar
-            lvars.push(Lvar::new(arg, &mut self.offset, lvar_map));
+            lvars.push(
+                Lvar::new(
+                    arg.ident_name().to_owned(),
+                    &mut self.offset,
+                    arg.ty(),
+                    lvar_map,
+                )
+                .unwrap_or_else(|_| {
+                    self.error_at(
+                        None,
+                        &format!(
+                            "Redefined Local Variable {:?} at `down_func`: {:?}",
+                            arg, func_def
+                        ),
+                    )
+                }),
+            );
         }
         ConvProgramKind::Func(ConvFuncDef::new(
             func_def.name.clone(),
@@ -85,7 +102,24 @@ impl<'a> Analyzer<'a> {
                     .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
-            StmtKind::Declare(_) => todo!(),
+            StmtKind::Declare(Declaration {
+                ty_spec,
+                n_star,
+                declrtr,
+                pos,
+            }) => {
+                let base = match ty_spec {
+                    TypeSpec::Int => BaseType::Int,
+                };
+                let ty = Type::Base(base);
+                let name = match declrtr {
+                    DirectDeclarator::Ident(name) => name,
+                };
+                Lvar::new(name, &mut self.offset, ty, lvar_map)
+                    .unwrap_or_else(|_| self.error_at(pos, "Local Variable Redifined here."));
+                // empty block stmt
+                ConvStmt::new_block(vec![])
+            }
         }
     }
 
@@ -140,7 +174,8 @@ impl<'a> Analyzer<'a> {
                 pos,
             ),
             // currently all ident is local variable
-            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
+            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos.clone(), lvar_map)
+                .unwrap_or_else(|_| self.error_at(pos, "Undeclared Variable is used here.")),
             ExprKind::Func(name, args) => ConvExpr::new_func(
                 name,
                 args.into_iter()
@@ -336,13 +371,16 @@ impl ConvExpr {
     pub fn new_lvar(
         name: String,
         pos: Position,
-        new_offset: &mut usize,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Self {
-        ConvExpr {
-            kind: ConvExprKind::Lvar(Lvar::new(name, new_offset, lvar_map)),
+    ) -> Result<Self, ()> {
+        let lvar = match lvar_map.get(&name) {
+            Some(lvar) => lvar.clone(),
+            None => return Err(()),
+        };
+        Ok(ConvExpr {
+            kind: ConvExprKind::Lvar(lvar),
             pos,
-        }
+        })
     }
 
     pub fn new_deref(expr: ConvExpr, pos: Position) -> Self {
@@ -375,31 +413,51 @@ pub enum ConvExprKind {
 pub struct Lvar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
+    pub ty: Type,
 }
 
 impl Lvar {
     pub fn new(
         name: String,
         new_offset: &mut usize,
+        ty: Type,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Self {
+    ) -> Result<Self, ()> {
         let offset = match lvar_map.get(&name) {
-            Some(lvar) => lvar.offset,
+            Some(_) => return Err(()),
             None => {
-                *new_offset += 8;
+                *new_offset += ty.size_of();
                 lvar_map.insert(
                     name,
                     Self {
                         offset: *new_offset,
+                        ty: ty.clone(),
                     },
                 );
                 *new_offset
             }
         };
-        Self { offset: offset }
+        Ok(Self { offset: offset, ty })
     }
 }
 
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum Type {
+    Base(BaseType),
+}
+
+impl Type {
+    pub fn size_of(&self) -> usize {
+        match self {
+            Type::Base(BaseType::Int) => 8,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum BaseType {
+    Int,
+}
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvBinary {
     pub kind: ConvBinOpKind,

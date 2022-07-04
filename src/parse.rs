@@ -1,4 +1,7 @@
-use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken};
+use crate::{
+    analyze::{BaseType, Type},
+    tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+};
 use std::fmt::Debug;
 
 pub struct Parser<'a> {
@@ -30,9 +33,9 @@ impl<'a> Parser<'a> {
         let mut args = Vec::new();
         tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
         if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
-            args.push(tokens.consume_ident());
+            args.push(self.parse_declaration(tokens));
             while tokens.consume(TokenKind::Comma) {
-                args.push(tokens.consume_ident());
+                args.push(self.parse_declaration(tokens));
             }
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
         }
@@ -51,17 +54,17 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         // declaration-specifiers
-        let type_spec = match tokens.next() {
+        let (type_spec, pos) = match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
-                TokenKind::Type(TypeToken::Int) => TypeSpec::Int,
+                TokenKind::Type(TypeToken::Int) => (TypeSpec::Int, pos),
                 _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
             },
             None => self.error_at(None, "Next token is None in `parse_declaration`."),
         };
         // TODO: support ptr
         let n_star = 0;
-        let direct_diclarator = DirectDiclarator::Ident(tokens.consume_ident());
-        Declaration::new(type_spec, n_star, direct_diclarator)
+        let direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
+        Declaration::new(type_spec, n_star, direct_diclarator, pos)
     }
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
@@ -365,12 +368,12 @@ pub enum ProgramKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct FuncDef {
     pub name: String,
-    pub args: Vec<String>,
+    pub args: Vec<Declaration>,
     pub body: Stmt,
 }
 
 impl FuncDef {
-    pub fn new(name: String, args: Vec<String>, body: Stmt) -> Self {
+    pub fn new(name: String, args: Vec<Declaration>, body: Stmt) -> Self {
         Self { name, args, body }
     }
 }
@@ -383,23 +386,39 @@ pub struct Stmt {
 #[derive(PartialEq, Eq, Clone, Debug)]
 /// Declaration
 pub struct Declaration {
-    ty_spec: TypeSpec,
-    n_star: usize,
-    declrtr: DirectDiclarator,
+    pub ty_spec: TypeSpec,
+    pub n_star: usize,
+    pub declrtr: DirectDeclarator,
+    pub pos: Position,
 }
 
 impl Declaration {
-    pub fn new(ty_spec: TypeSpec, n_star: usize, declrtr: DirectDiclarator) -> Self {
+    pub fn new(ty_spec: TypeSpec, n_star: usize, declrtr: DirectDeclarator, pos: Position) -> Self {
         Self {
             ty_spec,
             n_star,
             declrtr,
+            pos,
         }
+    }
+
+    pub fn ident_name<'a>(&'a self) -> &'a str {
+        match &self.declrtr {
+            DirectDeclarator::Ident(name) => name,
+        }
+    }
+
+    pub fn ty(&self) -> Type {
+        let base = match self.ty_spec {
+            TypeSpec::Int => BaseType::Int,
+        };
+        let ty = Type::Base(base);
+        ty
     }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub enum DirectDiclarator {
+pub enum DirectDeclarator {
     Ident(String),
 }
 
