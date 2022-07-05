@@ -1632,7 +1632,7 @@ mod tests {
                     0,
                     DirectDeclarator::Ident("x".to_string()),
                 )), // int x;
-                expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
+                expr_stmt(bin(BinOpKind::Add, lvar("a"), lvar("k"))), // a + k
             ]),
         )]);
         let converted_program = analyzer.down_program(program);
@@ -1647,9 +1647,13 @@ mod tests {
                     cblock(vec![]),
                     cblock(vec![]),
                     cexpr_stmt(cbin(
-                        ConvBinOpKind::Div,
+                        ConvBinOpKind::Add,
                         clvar("a", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 0),
-                        clvar("k", Type::Base(BaseType::Int), 16)
+                        cbin(
+                            ConvBinOpKind::Mul,
+                            clvar("k", Type::Base(BaseType::Int), 16),
+                            cnum(4),
+                        ),
                     )),
                 ]),
                 vec![

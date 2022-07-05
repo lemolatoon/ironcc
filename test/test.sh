@@ -151,12 +151,14 @@ assert 27 "int mul(int  a, int  b) {return a*b;} int main() {return mul(3, 9);}"
 assert 1 "int add6(int a, int b, int c, int d, int e, int f) {return a+b+c+d+e+f;} int main() {int val; int i;val = 0; for (i = 0; i <= 6; i = i + 1) {val = val + i;}return add6(1, 2, 3, 4, 5, 6) == val;}"
 assert 21 "int add6(int a, int b, int c, int d, int e, int f) {return a+b+c+d+e+f;} int main() {int val; int i;val = 0; for (i = 0; i <= 6; i = i + 1) {val = val + i;}return add6(1, 2, 3, 4, 5, 6);}"
 
+assert 21 "int main() {int val; int i;val = 0; for (i = 0; i <= 6; i = i + 1) {val = val + i;}return val;}"
+
 assert 5 "int main() {int b; b = 3; int*pb;pb = &b; b = 5; return *pb;}"
 
-assert 3 "int main() {int x; int y; int z;x = 3; y = 5; z = &y + 1; return  *z;}"
+assert 3 "int main() {int x; int y; int *z;x = 3; y = 5; z = &y + 1; return  *z;}"
 assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; return **ppx;}"
 assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; return **ppx;}"
-assert 7 "int main() {int x; int *px;x = 3; int y; int z;y = 4; px = &x; int py;py = &y; z = *px + *py; return z;}"
+assert 7 "int main() {int x; int *px;x = 3; int y; int z;y = 4; px = &x; int *py;py = &y; z = *px + *py; return z;}"
 
 wait
 

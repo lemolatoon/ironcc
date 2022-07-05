@@ -25,6 +25,7 @@ impl<'a> Analyzer<'a> {
             match component {
                 ProgramKind::Func(func_declare, body) => {
                     let mut lvar_map = BTreeMap::new();
+                    self.offset = 0; // reset another func's offset
                     conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map))
                 }
             }
@@ -356,24 +357,27 @@ impl ConvExpr {
                     if *base != BaseType::Int {
                         panic!("ptr and {:?}'s binary expr is not allowed.", base);
                     }
-                    rhs = ConvExpr::new_binary(
+                    println!("Int + Ptr");
+                    lhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
                         ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
-                        rhs.clone(),
+                        lhs.clone(),
                         pos.clone(),
-                    ); // p + i -> p + sizeof(*p) * i
+                    ); // i + p -> sizeof(*p) * i + p
                     Type::Ptr(ptr_base.clone())
                 }
                 (Type::Ptr(ptr_base), Type::Base(base)) => {
                     if *base != BaseType::Int {
                         panic!("ptr and {:?}'s binary expr is not allowed.", base);
                     }
-                    lhs = ConvExpr::new_binary(
+                    println!("PTR + Int");
+
+                    rhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
-                        lhs.clone(),
+                        rhs.clone(),
                         ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
                         pos.clone(),
-                    ); // i + p -> i * sizeof(*p) + p
+                    ); // p + i ->  p + i * sizeof(*p)
                     Type::Ptr(ptr_base.clone())
                 }
                 (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
@@ -391,6 +395,7 @@ impl ConvExpr {
                 Type::Base(BaseType::Int)
             }
         };
+        println!("lhs: {:?}\nrhs: {:?}", lhs, rhs);
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
             ty: new_ty,
