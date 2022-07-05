@@ -4,6 +4,8 @@
 /tmp
 /test/tmp.c
 /test/tmp.s
+/test/test.s
+*.s
 /test/tmp
 /.vscode/
 /src.c
