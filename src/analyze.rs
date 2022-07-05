@@ -357,7 +357,6 @@ impl ConvExpr {
                     if *base != BaseType::Int {
                         panic!("ptr and {:?}'s binary expr is not allowed.", base);
                     }
-                    println!("Int + Ptr");
                     lhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
                         ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
@@ -370,7 +369,6 @@ impl ConvExpr {
                     if *base != BaseType::Int {
                         panic!("ptr and {:?}'s binary expr is not allowed.", base);
                     }
-                    println!("PTR + Int");
 
                     rhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
@@ -395,7 +393,6 @@ impl ConvExpr {
                 Type::Base(BaseType::Int)
             }
         };
-        println!("lhs: {:?}\nrhs: {:?}", lhs, rhs);
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
             ty: new_ty,
@@ -420,7 +417,9 @@ impl ConvExpr {
     }
 
     pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
-        assert_eq!(lhs.ty, rhs.ty);
+        if lhs.ty != rhs.ty {
+            // TODO: check this
+        }
         let ty = lhs.ty.clone();
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),

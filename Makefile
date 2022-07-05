@@ -8,8 +8,8 @@ $(COMPILER): FORCE
 tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
-a.out: tmp.s
-	$(CC) tmp.s -o a.out $(CFLAGS)
+a.out: tmp.s link.c
+	$(CC) tmp.s link.c -o a.out $(CFLAGS)
 
 run: a.out 
 	./a.out

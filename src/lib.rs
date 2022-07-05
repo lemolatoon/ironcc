@@ -12,8 +12,8 @@ mod tests {
 
     use crate::{
         analyze::{
-            Analyzer, BaseType, ConvBinOpKind, ConvExpr, ConvFuncDef, ConvProgram, ConvProgramKind,
-            ConvStmt, Lvar, Type,
+            Analyzer, BaseType, ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef,
+            ConvProgram, ConvProgramKind, ConvStmt, Lvar, Type,
         },
         parse::{
             BinOpKind, Declaration, DirectDeclarator, Expr, Parser, Program, ProgramKind, Stmt,
@@ -1375,7 +1375,13 @@ mod tests {
             cbin(
                 ConvBinOpKind::Sub,
                 cnum(0),
-                cbin(ConvBinOpKind::Mul, cnum(1), cnum(22))
+                cbin(
+                    ConvBinOpKind::Mul,
+                    cnum(1),
+                    cnum(22),
+                    Type::Base(BaseType::Int),
+                ),
+                Type::Base(BaseType::Int),
             )
             .kind
         );
@@ -1387,7 +1393,13 @@ mod tests {
         let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
-            cbin(ConvBinOpKind::Le, cnum(2), cnum(1),).kind
+            cbin(
+                ConvBinOpKind::Le,
+                cnum(2),
+                cnum(1),
+                Type::Base(BaseType::Int),
+            )
+            .kind
         );
 
         let input = String::new();
@@ -1397,7 +1409,13 @@ mod tests {
         let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
         assert_eq!(
             converted_expr.kind,
-            cbin(ConvBinOpKind::Lt, cnum(2), cnum(1),).kind
+            cbin(
+                ConvBinOpKind::Lt,
+                cnum(2),
+                cnum(1),
+                Type::Base(BaseType::Int),
+            )
+            .kind
         )
     }
 
@@ -1465,7 +1483,8 @@ mod tests {
                         cbin(
                             ConvBinOpKind::Le,
                             clvar("k", Type::Base(BaseType::Int), 8),
-                            cnum(1)
+                            cnum(1),
+                            Type::Base(BaseType::Int),
                         )
                     )),
                     cexpr_stmt(clvar("b", Type::Base(BaseType::Int), 4))
@@ -1524,7 +1543,8 @@ mod tests {
                     cexpr_stmt(cbin(
                         ConvBinOpKind::Div,
                         clvar("a", Type::Base(BaseType::Int), 0),
-                        clvar("k", Type::Base(BaseType::Int), 4)
+                        clvar("k", Type::Base(BaseType::Int), 4),
+                        Type::Base(BaseType::Int),
                     )),
                 ]),
                 vec![
@@ -1584,13 +1604,15 @@ mod tests {
                     cexpr_stmt(cbin(
                         ConvBinOpKind::Div,
                         clvar("a", Type::Base(BaseType::Int), 0),
-                        clvar("k", Type::Base(BaseType::Int), 12)
+                        clvar("k", Type::Base(BaseType::Int), 12),
+                        Type::Base(BaseType::Int),
                     )),
                     cret(
                         cbin(
                             ConvBinOpKind::Div,
                             clvar("b", Type::Base(BaseType::Int), 4),
-                            clvar("c", Type::Base(BaseType::Int), 8)
+                            clvar("c", Type::Base(BaseType::Int), 8),
+                            Type::Base(BaseType::Int),
                         ),
                         "main"
                     ),
@@ -1653,7 +1675,9 @@ mod tests {
                             ConvBinOpKind::Mul,
                             clvar("k", Type::Base(BaseType::Int), 16),
                             cnum(4),
+                            Type::Base(BaseType::Int),
                         ),
+                        Type::Ptr(Box::new(Type::Base(BaseType::Int))),
                     )),
                 ]),
                 vec![
@@ -1668,6 +1692,63 @@ mod tests {
                 ]
             )])
         )
+    }
+
+    #[test]
+    fn analysis_ptr_addition() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![func_def(
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+            block(vec![
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    1,
+                    DirectDeclarator::Ident("k".to_string()),
+                )), // int *k;
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    1,
+                    DirectDeclarator::Ident("p".to_string()),
+                )), // int *p;
+                expr_stmt(assign(lvar("p"), bin(BinOpKind::Add, lvar("k"), num(1)))), // p = k + 1;
+                ret(num(0)),
+            ]),
+        )]);
+        let converted_program = analyzer.down_program(program);
+        println!("===========================");
+        println!("{:?}", &converted_program);
+        println!("===========================");
+        assert_eq!(
+            converted_program,
+            cprog(vec![cfunc_def(
+                "main",
+                Vec::new(),
+                cblock(vec![
+                    cblock(vec![]),
+                    cblock(vec![]),
+                    cexpr_stmt(cassign(
+                        clvar("p", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 8),
+                        cbin(
+                            ConvBinOpKind::Add,
+                            clvar("k", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 0),
+                            cbin(
+                                ConvBinOpKind::Mul,
+                                cnum(1),
+                                cnum(4),
+                                Type::Base(BaseType::Int)
+                            ),
+                            Type::Ptr(Box::new(Type::Base(BaseType::Int))),
+                        )
+                    )),
+                    cret(cnum(0), "main"),
+                ]),
+                vec![
+                    clvar_strct("k", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 0),
+                    clvar_strct("p", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 8)
+                ]
+            )])
+        );
     }
 
     fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
@@ -1733,8 +1814,16 @@ mod tests {
         ConvExpr::new_assign(lhs, rhs, Position::default())
     }
 
-    fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
-        ConvExpr::new_binary(op, lhs, rhs, Position::default())
+    fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
+        ConvExpr {
+            kind: ConvExprKind::Binary(ConvBinary {
+                kind: op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            }),
+            ty,
+            pos: Position::default(),
+        }
     }
 
     fn cnum(n: isize) -> ConvExpr {

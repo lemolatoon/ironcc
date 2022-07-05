@@ -160,6 +160,12 @@ assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; retur
 assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; return **ppx;}"
 assert 7 "int main() {int x; int *px;x = 3; int y; int z;y = 4; px = &x; int *py;py = &y; z = *px + *py; return z;}"
 
+assert 1 "int main() {int *p; p = alloc4(1, 2, 3, 4);  return *p;}"
+
+assert 7 "int sub(int a, int b) {return a - b;} int main() {return sub(15, 8);}"
+
+assert 3 "int main() {int *p; p = alloc4(1, 2, 3, 4);  return *(p + 2);}"
+
 wait
 
 check

@@ -233,16 +233,17 @@ impl<'a> Generater<'a> {
                     .into_iter()
                     .map(|reg| reg.try_into().unwrap())
                     .collect();
-                let len = args.len();
-                if len > arg_reg.len() {
+                let arg_len = args.len();
+                if arg_len > arg_reg.len() {
                     panic!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
                 }
                 for arg in args {
                     self.gen_expr(f, arg)?;
                 } // push args
-                for i in 0..len {
+                for i in (0..arg_len).rev() {
                     self.pop(f, format_args!("{}", arg_reg[i].qword()))?;
                 } // pop args
+                  // e.g) if arg_len == 2, pop rsi, pop rdi
 
                 // 16bit align
                 if self.depth % 2 == 0 {
