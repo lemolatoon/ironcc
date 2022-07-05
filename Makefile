@@ -1,6 +1,7 @@
 CC=clang
 CFLAGS=-g3 -static
-COMPILER=target/debug/ironcc
+MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+COMPILER=$(MAKEFILE_DIR)/target/debug/ironcc
 
 $(COMPILER): FORCE
 	cargo build
@@ -18,10 +19,17 @@ run: a.out
 test: $(COMPILER)
 	./test/test.sh
 
+testc: $(COMPILER) test/test.c
+	cd test && \
+	$(COMPILER) test.c && \
+	$(CC) test.s test_utils.c $(CFLAGS) -o tmp && \
+	./tmp
+
+
 cargo_test: FORCE
 	cargo test
 
-testall:  cargo_test test
+testall:  cargo_test test testc
 
 
-.PHONY: FORCE test cargo_test testall run
+.PHONY: FORCE test cargo_test testall run testc

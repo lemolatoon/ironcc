@@ -282,6 +282,9 @@ impl<'a> Generater<'a> {
                 writeln!(f, "  sub rax, {}", offset)?;
                 self.push(f, format_args!("rax"))?;
             }
+            ConvExprKind::Deref(expr) => {
+                self.gen_expr(f, *expr)?;
+            }
             _ => self.error_at(
                 expr.pos,
                 &format!(

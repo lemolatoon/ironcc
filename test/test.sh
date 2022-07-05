@@ -166,6 +166,26 @@ assert 7 "int sub(int a, int b) {return a - b;} int main() {return sub(15, 8);}"
 
 assert 3 "int main() {int *p; p = alloc4(1, 2, 3, 4);  return *(p + 2);}"
 
+assert 3 "int main() {int x;x=5; int *p;  p = &x; *p = 3; return x;}"
+assert 10 "int main() {int x;x=5; int y; y = 10; int *px; px= &x; int *py; py = &y; int **ppx; ppx = &x; no(); *ppx = py;  return **ppx;} int no(){}"
+
+assert 10  "int main() {
+    int x;
+    x = 5;
+    int y;
+    y = 10;
+    int *px;
+    int *py;
+    px = &x;
+    py = &y;
+    int **z;
+    z = &px;
+    if (**z == 5)
+    {
+        *z = py;
+    }
+    return **z;}"
+
 wait
 
 check
