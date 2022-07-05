@@ -344,25 +344,47 @@ pub struct ConvExpr {
 }
 impl ConvExpr {
     pub fn new_binary(kind: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        let mut rhs = rhs;
+        let mut lhs = lhs;
         let new_ty = match kind {
-            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (lhs.ty, rhs.ty) {
-                (Type::Base(lht), Type::Base(rht)) => todo!(),
-                (Type::Base(base), Type::Ptr(ptr_base))
-                | (Type::Ptr(ptr_base), Type::Base(base)) => {
-                    if base != BaseType::Int {
+            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty.clone(), &rhs.ty.clone()) {
+                (Type::Base(lht), Type::Base(rht)) => {
+                    assert_eq!(lht, rht);
+                    Type::Base(*lht)
+                }
+                (Type::Base(base), Type::Ptr(ptr_base)) => {
+                    if *base != BaseType::Int {
                         panic!("ptr and {:?}'s binary expr is not allowed.", base);
                     }
-                    Type::Ptr(ptr_base)
+                    rhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        rhs.clone(),
+                        pos.clone(),
+                    ); // p + i -> p + sizeof(*p) * i
+                    Type::Ptr(ptr_base.clone())
+                }
+                (Type::Ptr(ptr_base), Type::Base(base)) => {
+                    if *base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+                    lhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        lhs.clone(),
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        pos.clone(),
+                    ); // i + p -> i * sizeof(*p) + p
+                    Type::Ptr(ptr_base.clone())
                 }
                 (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 assert_eq!(lhs.ty, rhs.ty);
-                lhs.ty
+                lhs.ty.clone()
             }
             ConvBinOpKind::Rem => {
                 assert_eq!(lhs.ty, rhs.ty);
-                lhs.ty
+                lhs.ty.clone()
             }
             ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
                 assert_eq!(lhs.ty, rhs.ty);
@@ -387,13 +409,17 @@ impl ConvExpr {
     pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Num(num),
+            ty: Type::Base(BaseType::Int),
             pos,
         }
     }
 
     pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        assert_eq!(lhs.ty, rhs.ty);
+        let ty = lhs.ty.clone();
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            ty,
             pos,
         }
     }
@@ -407,22 +433,31 @@ impl ConvExpr {
             Some(lvar) => lvar.clone(),
             None => return Err(()),
         };
+        let ty = lvar.ty.clone();
         Ok(ConvExpr {
             kind: ConvExprKind::Lvar(lvar),
+            ty,
             pos,
         })
     }
 
     pub fn new_deref(expr: ConvExpr, pos: Position) -> Self {
+        let base = match expr.ty.clone() {
+            Type::Base(base) => panic!("Expected ptr, but got {:?}", base),
+            Type::Ptr(ptr_base) => ptr_base,
+        };
         Self {
             kind: ConvExprKind::Deref(Box::new(expr)),
+            ty: *base,
             pos,
         }
     }
 
     pub fn new_addr(expr: ConvExpr, pos: Position) -> Self {
+        let ty = expr.ty.clone();
         Self {
             kind: ConvExprKind::Addr(Box::new(expr)),
+            ty: Type::Ptr(Box::new(ty)),
             pos,
         }
     }
@@ -467,14 +502,6 @@ impl Lvar {
                 *new_offset
             }
         };
-        println!(
-            "{}: {:?}",
-            name,
-            Self {
-                offset,
-                ty: ty.clone()
-            }
-        );
         Ok(Self { offset: offset, ty })
     }
 }

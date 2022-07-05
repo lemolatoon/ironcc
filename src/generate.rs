@@ -44,15 +44,16 @@ impl<'a> Generater<'a> {
         Ok(())
     }
 
+    /// *lhs = rhs
     pub fn assign<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
-        rhs: RegKind,
         lhs: RegKind,
+        rhs: RegKind,
         ty: Type,
     ) -> Result<(), std::io::Error> {
         let (prefix, lhs, rhs) = match ty.size_of() {
-            4 => ("DWORD PTR", lhs.dword(), rhs.dword()),
+            4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
         };
@@ -60,15 +61,16 @@ impl<'a> Generater<'a> {
         Ok(())
     }
 
+    /// lhs = *rhs
     pub fn deref<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
-        rhs: RegKind,
         lhs: RegKind,
+        rhs: RegKind,
         ty: Type,
     ) -> Result<(), std::io::Error> {
         let (prefix, lhs, rhs) = match ty.size_of() {
-            4 => ("DWORD PTR", lhs.dword(), rhs.dword()),
+            4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
         };
@@ -107,8 +109,8 @@ impl<'a> Generater<'a> {
                         .collect();
                     for (idx, Lvar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
-                        writeln!(f, "  sub rax, {}", offset)?;
-                        self.assign(f, RegKind::Rax, arg_reg[idx], ty)?;
+                        writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
+                        self.assign(f, RegKind::Rax, arg_reg[idx], ty)?; // *rax = value
                     }
                     // gen body stmt
                     self.gen_stmt(f, body)?;
@@ -211,17 +213,19 @@ impl<'a> Generater<'a> {
             ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
             ConvExprKind::Lvar(_) => {
+                let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr)?;
-                self.pop(f, format_args!("rax"))?;
-                writeln!(f, "  mov rax, [rax]")?; // curently only 64 bit
+                self.pop(f, format_args!("rax"))?; // rax = &expr
+                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
+                let ty = lhs.ty.clone();
                 self.gen_lvalue(f, *lhs)?;
                 self.gen_expr(f, *rhs)?;
-                self.pop(f, format_args!("rdi"))?; // rhs
-                self.pop(f, format_args!("rax"))?; // lhs's addr
-                writeln!(f, "  mov [rax], rdi")?; // curently only 64 bit
+                self.pop(f, format_args!("rdi"))?; // rhs; rdi = rhs
+                self.pop(f, format_args!("rax"))?; // lhs's addr; rax = &lhs
+                self.assign(f, RegKind::Rax, RegKind::Rdi, ty)?; // *rax = rdi
                 self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
             ConvExprKind::Func(name, args) => {
@@ -251,10 +255,10 @@ impl<'a> Generater<'a> {
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Deref(expr) => {
+                let ty = expr.ty.clone();
                 self.gen_expr(f, *expr)?;
-                self.pop(f, format_args!("rax"))?;
-                writeln!(f, "  mov rax, [rax]")?; // only 64bit var
-                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?;
+                self.pop(f, format_args!("rax"))?; // rax = expr
+                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Addr(expr) => {
@@ -449,8 +453,8 @@ impl RegKind {
             RegKind::Rcx => "ecx",
             RegKind::Rbp => todo!(),
             RegKind::Rsp => todo!(),
-            RegKind::R8 => "r8",
-            RegKind::R9 => "r9",
+            RegKind::R8 => "r8d",
+            RegKind::R9 => "r9d",
             RegKind::R10 => todo!(),
             RegKind::R11 => todo!(),
             RegKind::R12 => todo!(),
@@ -469,8 +473,8 @@ impl RegKind {
             RegKind::Rcx => "rcx",
             RegKind::Rbp => todo!(),
             RegKind::Rsp => todo!(),
-            RegKind::R8 => "r8d",
-            RegKind::R9 => "r9d",
+            RegKind::R8 => "r8",
+            RegKind::R9 => "r9",
             RegKind::R10 => todo!(),
             RegKind::R11 => todo!(),
             RegKind::R12 => todo!(),

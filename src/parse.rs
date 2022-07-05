@@ -29,18 +29,13 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        println!("func: {:?}", tokens);
         let declaration = self.parse_declaration(tokens);
-        println!("func: {:?}", tokens);
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace));
-        println!("func: {:?}", tokens);
         let mut stmts = Vec::new();
         while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
-            println!("func: {:?}", tokens);
             stmts.push(self.parse_stmt(tokens));
         }
-        println!("func: {:?}", tokens);
         let body = Stmt::new_block(stmts);
         ProgramKind::Func(declaration, body)
     }
@@ -49,7 +44,6 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        println!("declare: {:?}", tokens);
         // declaration-specifiers
         let (type_spec, pos) = match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
