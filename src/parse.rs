@@ -29,30 +29,27 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let name = tokens.consume_ident();
-        let mut args = Vec::new();
-        tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
-        if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
-            args.push(self.parse_declaration(tokens));
-            while tokens.consume(TokenKind::Comma) {
-                args.push(self.parse_declaration(tokens));
-            }
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
-        }
+        println!("func: {:?}", tokens);
+        let declaration = self.parse_declaration(tokens);
+        println!("func: {:?}", tokens);
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace));
+        println!("func: {:?}", tokens);
         let mut stmts = Vec::new();
         while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
+            println!("func: {:?}", tokens);
             stmts.push(self.parse_stmt(tokens));
         }
+        println!("func: {:?}", tokens);
         let body = Stmt::new_block(stmts);
-        ProgramKind::Func(FuncDef::new(name, args, body))
+        ProgramKind::Func(declaration, body)
     }
 
     pub fn parse_declaration<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Declaration
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
+        println!("declare: {:?}", tokens);
         // declaration-specifiers
         let (type_spec, pos) = match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
@@ -62,8 +59,24 @@ impl<'a> Parser<'a> {
             None => self.error_at(None, "Next token is None in `parse_declaration`."),
         };
         // TODO: support ptr
-        let n_star = 0;
-        let direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
+        let mut n_star = 0;
+        while tokens.consume(TokenKind::BinOp(BinOpToken::Star)) {
+            n_star += 1;
+        }
+        // first element of direct diclarator is Ident
+        let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
+        if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
+            let mut args = Vec::new();
+            // function declaration
+            if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                args.push(self.parse_declaration(tokens));
+                while tokens.consume(TokenKind::Comma) {
+                    args.push(self.parse_declaration(tokens));
+                }
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+            }
+            direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
+        }
         Declaration::new(type_spec, n_star, direct_diclarator, pos)
     }
 
@@ -362,20 +375,7 @@ impl IntoIterator for Program {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ProgramKind {
-    Func(FuncDef),
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct FuncDef {
-    pub name: String,
-    pub args: Vec<Declaration>,
-    pub body: Stmt,
-}
-
-impl FuncDef {
-    pub fn new(name: String, args: Vec<Declaration>, body: Stmt) -> Self {
-        Self { name, args, body }
-    }
+    Func(Declaration, Stmt),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -403,16 +403,17 @@ impl Declaration {
     }
 
     pub fn ident_name<'a>(&'a self) -> &'a str {
-        match &self.declrtr {
-            DirectDeclarator::Ident(name) => name,
-        }
+        self.declrtr.ident_name()
     }
 
     pub fn ty(&self) -> Type {
         let base = match self.ty_spec {
             TypeSpec::Int => BaseType::Int,
         };
-        let ty = Type::Base(base);
+        let mut ty = Type::Base(base);
+        for _ in 0..self.n_star {
+            ty = Type::Ptr(Box::new(ty));
+        }
         ty
     }
 }
@@ -420,6 +421,16 @@ impl Declaration {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum DirectDeclarator {
     Ident(String),
+    Func(Box<DirectDeclarator>, Vec<Declaration>),
+}
+
+impl DirectDeclarator {
+    pub fn ident_name<'a>(&'a self) -> &'a str {
+        match self {
+            DirectDeclarator::Ident(name) => name,
+            DirectDeclarator::Func(direct_declarator, _) => direct_declarator.ident_name(),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

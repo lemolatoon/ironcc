@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     parse::{
-        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, FuncDef, Program,
-        ProgramKind, Stmt, StmtKind, TypeSpec, UnOp,
+        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Program, ProgramKind,
+        Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
 };
@@ -23,22 +23,32 @@ impl<'a> Analyzer<'a> {
         let mut conv_program = ConvProgram::new();
         for component in program.into_iter() {
             match component {
-                ProgramKind::Func(func_def) => {
+                ProgramKind::Func(func_declare, body) => {
                     let mut lvar_map = BTreeMap::new();
-                    conv_program.push(self.down_func(func_def, &mut lvar_map))
+                    conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map))
                 }
             }
         }
         conv_program
     }
 
-    pub fn down_func(
+    pub fn down_func_declare(
         &mut self,
-        func_def: FuncDef,
+        declare: Declaration,
+        body: Stmt,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> ConvProgramKind {
         let mut lvars = Vec::new();
-        for arg in &func_def.args {
+        let ident = declare.ident_name();
+        let ty = declare.ty();
+        let args = match declare.declrtr.clone() {
+            DirectDeclarator::Ident(_) => self.error_at(
+                declare.pos,
+                &format!("Currently top-level declaration is not allowed."),
+            ),
+            DirectDeclarator::Func(_, args) => args,
+        };
+        for arg in args {
             // register func args as lvar
             lvars.push(
                 Lvar::new(
@@ -52,16 +62,16 @@ impl<'a> Analyzer<'a> {
                         None,
                         &format!(
                             "Redefined Local Variable {:?} at `down_func`: {:?}",
-                            arg, func_def
+                            arg, declare
                         ),
                     )
                 }),
             );
         }
         ConvProgramKind::Func(ConvFuncDef::new(
-            func_def.name.clone(),
+            ident.to_owned(),
             lvars,
-            self.down_stmt(func_def.body, lvar_map, func_def.name),
+            self.down_stmt(body, lvar_map, ident.to_owned()),
             lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
         ))
     }
@@ -102,21 +112,13 @@ impl<'a> Analyzer<'a> {
                     .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
-            StmtKind::Declare(Declaration {
-                ty_spec,
-                n_star,
-                declrtr,
-                pos,
-            }) => {
-                let base = match ty_spec {
-                    TypeSpec::Int => BaseType::Int,
-                };
-                let ty = Type::Base(base);
-                let name = match declrtr {
-                    DirectDeclarator::Ident(name) => name,
-                };
-                Lvar::new(name, &mut self.offset, ty, lvar_map)
-                    .unwrap_or_else(|_| self.error_at(pos, "Local Variable Redifined here."));
+            StmtKind::Declare(declare) => {
+                let ty = declare.ty();
+                // TODO: avoid func definition here
+                let name = declare.ident_name();
+                Lvar::new(name.to_owned(), &mut self.offset, ty, lvar_map).unwrap_or_else(|_| {
+                    self.error_at(declare.pos, "Local Variable Redifined here.")
+                });
                 // empty block stmt
                 ConvStmt::new_block(vec![])
             }
@@ -337,12 +339,39 @@ pub enum ConvStmtKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvExpr {
     pub kind: ConvExprKind,
+    pub ty: Type,
     pub pos: Position,
 }
 impl ConvExpr {
     pub fn new_binary(kind: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        let new_ty = match kind {
+            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (lhs.ty, rhs.ty) {
+                (Type::Base(lht), Type::Base(rht)) => todo!(),
+                (Type::Base(base), Type::Ptr(ptr_base))
+                | (Type::Ptr(ptr_base), Type::Base(base)) => {
+                    if base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+                    Type::Ptr(ptr_base)
+                }
+                (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
+            },
+            ConvBinOpKind::Mul | ConvBinOpKind::Div => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty
+            }
+            ConvBinOpKind::Rem => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty
+            }
+            ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
+                assert_eq!(lhs.ty, rhs.ty);
+                Type::Base(BaseType::Int)
+            }
+        };
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
+            ty: new_ty,
             pos,
         }
     }
@@ -350,6 +379,7 @@ impl ConvExpr {
     pub fn new_func(name: String, args: Vec<ConvExpr>, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Func(name, args),
+            ty: Type::Base(BaseType::Int), // TODO: change this by reading function definition
             pos,
         }
     }
@@ -428,7 +458,7 @@ impl Lvar {
             None => {
                 *new_offset += ty.size_of();
                 lvar_map.insert(
-                    name,
+                    name.clone(), // TODO: remove this clone
                     Self {
                         offset: *new_offset,
                         ty: ty.clone(),
@@ -437,6 +467,14 @@ impl Lvar {
                 *new_offset
             }
         };
+        println!(
+            "{}: {:?}",
+            name,
+            Self {
+                offset,
+                ty: ty.clone()
+            }
+        );
         Ok(Self { offset: offset, ty })
     }
 }
@@ -444,17 +482,19 @@ impl Lvar {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Base(BaseType),
+    Ptr(Box<Type>),
 }
 
 impl Type {
     pub fn size_of(&self) -> usize {
         match self {
-            Type::Base(BaseType::Int) => 8,
+            Type::Base(BaseType::Int) => 4,
+            Type::Ptr(_) => 8,
         }
     }
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum BaseType {
     Int,
 }

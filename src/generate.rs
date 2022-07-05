@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 use crate::{
     analyze::{
         ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram,
-        ConvProgramKind, ConvStmt, ConvStmtKind, Lvar,
+        ConvProgramKind, ConvStmt, ConvStmtKind, Lvar, Type,
     },
     tokenize::Position,
 };
@@ -44,6 +44,38 @@ impl<'a> Generater<'a> {
         Ok(())
     }
 
+    pub fn assign<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        rhs: RegKind,
+        lhs: RegKind,
+        ty: Type,
+    ) -> Result<(), std::io::Error> {
+        let (prefix, lhs, rhs) = match ty.size_of() {
+            4 => ("DWORD PTR", lhs.dword(), rhs.dword()),
+            8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
+            n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
+        };
+        writeln!(f, "  mov {} [{}], {}", prefix, lhs, rhs)?;
+        Ok(())
+    }
+
+    pub fn deref<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        rhs: RegKind,
+        lhs: RegKind,
+        ty: Type,
+    ) -> Result<(), std::io::Error> {
+        let (prefix, lhs, rhs) = match ty.size_of() {
+            4 => ("DWORD PTR", lhs.dword(), rhs.dword()),
+            8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
+            n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
+        };
+        writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
+        Ok(())
+    }
+
     /// # Errors
     /// return errors when file IO failed
     pub fn gen_head<W: Write>(
@@ -69,11 +101,14 @@ impl<'a> Generater<'a> {
                     writeln!(f, "  sub rsp, {}", lvars.len() * 8)?; // 64bit var * 8
 
                     // assign args
-                    let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
-                    for (idx, Lvar { offset, ty: _ }) in args.into_iter().enumerate() {
+                    let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+                        .into_iter()
+                        .map(|reg| reg.try_into().unwrap())
+                        .collect();
+                    for (idx, Lvar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?;
-                        writeln!(f, "  mov [rax], {}", arg_reg[idx])?;
+                        self.assign(f, RegKind::Rax, arg_reg[idx], ty)?;
                     }
                     // gen body stmt
                     self.gen_stmt(f, body)?;
@@ -190,7 +225,10 @@ impl<'a> Generater<'a> {
                 self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
             ConvExprKind::Func(name, args) => {
-                let arg_reg = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+                let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+                    .into_iter()
+                    .map(|reg| reg.try_into().unwrap())
+                    .collect();
                 let len = args.len();
                 if len > arg_reg.len() {
                     panic!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
@@ -199,7 +237,7 @@ impl<'a> Generater<'a> {
                     self.gen_expr(f, arg)?;
                 } // push args
                 for i in 0..len {
-                    self.pop(f, format_args!("{}", arg_reg[i]))?;
+                    self.pop(f, format_args!("{}", arg_reg[i].qword()))?;
                 } // pop args
 
                 // 16bit align
@@ -216,6 +254,7 @@ impl<'a> Generater<'a> {
                 self.gen_expr(f, *expr)?;
                 self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  mov rax, [rax]")?; // only 64bit var
+                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?;
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Addr(expr) => {
@@ -338,5 +377,106 @@ impl<'a> Generater<'a> {
     pub fn label(&mut self) -> usize {
         self.label += 1;
         self.label
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum RegKind {
+    Rax,
+    Rdi,
+    Rsi,
+    Rdx,
+    Rcx,
+    Rbp,
+    Rsp,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+}
+
+impl ToString for RegKind {
+    fn to_string(&self) -> String {
+        match self {
+            RegKind::Rax => "rax",
+            RegKind::Rdi => "rdi",
+            RegKind::Rsi => "rsi",
+            RegKind::Rdx => "rdx",
+            RegKind::Rcx => "rcx",
+            RegKind::Rbp => todo!(),
+            RegKind::Rsp => todo!(),
+            RegKind::R8 => "r8",
+            RegKind::R9 => "r9",
+            RegKind::R10 => todo!(),
+            RegKind::R11 => todo!(),
+            RegKind::R12 => todo!(),
+            RegKind::R13 => todo!(),
+            RegKind::R14 => todo!(),
+            RegKind::R15 => todo!(),
+        }
+        .to_string()
+    }
+}
+
+impl TryFrom<&str> for RegKind {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(match value {
+            "rax" => RegKind::Rax,
+            "rdi" => RegKind::Rdi,
+            "rsi" => RegKind::Rsi,
+            "rdx" => RegKind::Rdx,
+            "rcx" => RegKind::Rcx,
+            "r8" => RegKind::R8,
+            "r9" => RegKind::R9,
+            _ => return Err(()),
+        })
+    }
+}
+
+impl RegKind {
+    pub fn dword(&self) -> &str {
+        match self {
+            RegKind::Rax => "eax",
+            RegKind::Rdi => "edi",
+            RegKind::Rsi => "esi",
+            RegKind::Rdx => "edx",
+            RegKind::Rcx => "ecx",
+            RegKind::Rbp => todo!(),
+            RegKind::Rsp => todo!(),
+            RegKind::R8 => "r8",
+            RegKind::R9 => "r9",
+            RegKind::R10 => todo!(),
+            RegKind::R11 => todo!(),
+            RegKind::R12 => todo!(),
+            RegKind::R13 => todo!(),
+            RegKind::R14 => todo!(),
+            RegKind::R15 => todo!(),
+        }
+    }
+
+    pub fn qword(&self) -> &str {
+        match self {
+            RegKind::Rax => "rax",
+            RegKind::Rdi => "rdi",
+            RegKind::Rsi => "rsi",
+            RegKind::Rdx => "rdx",
+            RegKind::Rcx => "rcx",
+            RegKind::Rbp => todo!(),
+            RegKind::Rsp => todo!(),
+            RegKind::R8 => "r8d",
+            RegKind::R9 => "r9d",
+            RegKind::R10 => todo!(),
+            RegKind::R11 => todo!(),
+            RegKind::R12 => todo!(),
+            RegKind::R13 => todo!(),
+            RegKind::R14 => todo!(),
+            RegKind::R15 => todo!(),
+        }
     }
 }

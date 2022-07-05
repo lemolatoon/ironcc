@@ -1,5 +1,7 @@
-<program>                   := <func>*
-<func>                      := <ident> "(" (<declaration> ("," <declaration>)*)? ")" <blockstmt>
+<program>                   := <program-item>*
+<program-item>              := <declaration>
+                                | <func-def>
+<func-def>                      := <declaration> <blockstmt>
 
 <declaration>               := <declaration-specifiers> <init-declarator>*
 <declaration-specifiers>    := <type-specifiers>
@@ -8,7 +10,8 @@
 <init-declarator>           := <declarator>
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
-                                | <direct-declarator> "[" <assign> "]"
+                                | <direct-declarator> "[" <assign> "]"                                  # array
+                                | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 
 
 <stmt>                      := <expr> ";"

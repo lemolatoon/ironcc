@@ -16,8 +16,8 @@ mod tests {
             ConvStmt, Lvar, Type,
         },
         parse::{
-            BinOpKind, Declaration, DirectDeclarator, Expr, FuncDef, Parser, Program, ProgramKind,
-            Stmt, TypeSpec, UnOp,
+            BinOpKind, Declaration, DirectDeclarator, Expr, Parser, Program, ProgramKind, Stmt,
+            TypeSpec, UnOp,
         },
         tokenize::{
             tokenize_and_kinds, BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream,
@@ -782,6 +782,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -795,8 +796,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            vec![],
+            declare(TypeSpec::Int, 0, func_dd("main", vec![])),
             block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
         )]);
 
@@ -805,6 +805,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -821,8 +822,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
         )]);
 
@@ -834,6 +834,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -847,8 +848,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
         )]);
 
@@ -857,6 +857,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -872,8 +873,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![expr_stmt(assign(
                 lvar("a"),
                 assign(lvar("b"), num(2)),
@@ -885,6 +885,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -900,8 +901,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![expr_stmt(assign(
                 bin(BinOpKind::Add, lvar("a"), num(1)),
                 num(2),
@@ -916,6 +916,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -942,8 +943,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![
                 expr_stmt(assign(lvar("a"), num(22))),
                 if_(
@@ -959,6 +959,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -987,8 +988,7 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![
                 expr_stmt(assign(lvar("a"), num(22))),
                 while_(
@@ -1004,6 +1004,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1044,8 +1045,7 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![
                 expr_stmt(assign(lvar("x"), num(1))),
                 for_(
@@ -1066,6 +1066,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1088,8 +1089,7 @@ mod tests {
         ); // -> 1
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![
                 expr_stmt(assign(lvar("a"), num(13))),
                 ret(bin(
@@ -1108,6 +1108,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1124,8 +1125,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
         )]);
 
@@ -1137,6 +1137,7 @@ mod tests {
         let input = String::new();
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1150,15 +1151,15 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![ret(deref(lvar("a")))]),
         )]);
 
         assert_eq!(parsed, expected);
-        let input = String::from("main() {a = foo(3, 1); ap = &a; *a = a + 1;}");
+        let input = String::from("int main() {a = foo(3, 1); ap = &a; *a = a + 1;}");
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1197,8 +1198,7 @@ mod tests {
         );
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![
                 expr_stmt(assign(lvar("a"), func("foo", vec![num(3), num(1)]))),
                 expr_stmt(assign(lvar("ap"), addr(lvar("a")))),
@@ -1214,9 +1214,10 @@ mod tests {
 
     #[test]
     fn parse_declaration() {
-        let input = String::from("main() {int a;}");
+        let input = String::from("int main() {int a;}");
         let parser = Parser::new(&input);
         let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
             TokenKind::Ident("main".to_string()),
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::CloseDelim(DelimToken::Paran),
@@ -1239,11 +1240,46 @@ mod tests {
         let tokenizer = Tokenizer::new(&input);
         let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
         let expected = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
             block(vec![declare_stmt(declare(
                 TypeSpec::Int,
                 0,
+                DirectDeclarator::Ident("a".to_string()),
+            ))]),
+        )]);
+
+        assert_eq!(parsed, expected);
+        let input = String::from("int main() {int *a;}");
+        let parser = Parser::new(&input);
+        let tokens = tokens!(
+            TokenKind::Type(TypeToken::Int),
+            TokenKind::Ident("main".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paran),
+            TokenKind::CloseDelim(DelimToken::Paran),
+            TokenKind::OpenDelim(DelimToken::Brace),
+            TokenKind::Type(TypeToken::Int),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("a".to_string()),
+            TokenKind::Semi, // int *a;
+            TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        );
+        let tokenized = tokenize_and_kinds(&input);
+        assert_eq!(
+            tokenized.clone(),
+            tokens
+                .clone()
+                .into_iter()
+                .map(|k| k.kind)
+                .collect::<Vec<_>>()
+        );
+        let tokenizer = Tokenizer::new(&input);
+        let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+        let expected = Program::with_vec(vec![func_def(
+            declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+            block(vec![declare_stmt(declare(
+                TypeSpec::Int,
+                1,
                 DirectDeclarator::Ident("a".to_string()),
             ))]),
         )]);
@@ -1259,8 +1295,8 @@ mod tests {
         Expr::new_addr(expr, Position::default())
     }
 
-    fn func_def(name: &str, args: Vec<Declaration>, body: Stmt) -> ProgramKind {
-        ProgramKind::Func(FuncDef::new(name.to_string(), args, body))
+    fn func_def(declare: Declaration, body: Stmt) -> ProgramKind {
+        ProgramKind::Func(declare, body)
     }
 
     fn declare_stmt(declaration: Declaration) -> Stmt {
@@ -1273,6 +1309,10 @@ mod tests {
         direct_declarator: DirectDeclarator,
     ) -> Declaration {
         Declaration::new(ty_spec, n_star, direct_declarator, Position::default())
+    }
+
+    fn func_dd(name: &str, args: Vec<Declaration>) -> DirectDeclarator {
+        DirectDeclarator::Func(Box::new(DirectDeclarator::Ident(name.to_string())), args)
     }
 
     fn expr_stmt(expr: Expr) -> Stmt {
@@ -1389,8 +1429,7 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", vec![])),
             block(vec![
                 declare_stmt(declare(
                     TypeSpec::Int,
@@ -1445,8 +1484,7 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![func_def(
-            "main",
-            Vec::new(),
+            declare(TypeSpec::Int, 0, func_dd("main", vec![])),
             block(vec![
                 declare_stmt(declare(
                     TypeSpec::Int,
@@ -1503,11 +1541,17 @@ mod tests {
         let input = String::new();
         let mut analyzer = Analyzer::new(&input);
         let program = Program::with_vec(vec![func_def(
-            "main",
-            vec!["a", "b", "c"]
-                .into_iter()
-                .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
-                .collect(),
+            declare(
+                TypeSpec::Int,
+                0,
+                func_dd(
+                    "main",
+                    vec!["a", "b", "c"]
+                        .into_iter()
+                        .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
+                        .collect(),
+                ),
+            ),
             block(vec![
                 declare_stmt(declare(
                     TypeSpec::Int,
@@ -1559,6 +1603,67 @@ mod tests {
                 ]
             )])
         );
+    }
+
+    #[test]
+    fn analysis_declaration() {
+        let input = String::new();
+        let mut analyzer = Analyzer::new(&input);
+        let program = Program::with_vec(vec![func_def(
+            declare(TypeSpec::Int, 0, func_dd("main", vec![])),
+            block(vec![
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    1,
+                    DirectDeclarator::Ident("a".to_string()),
+                )), // int *a;
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    2,
+                    DirectDeclarator::Ident("c".to_string()),
+                )), // int **c;
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    0,
+                    DirectDeclarator::Ident("k".to_string()),
+                )), // int k;
+                declare_stmt(declare(
+                    TypeSpec::Int,
+                    0,
+                    DirectDeclarator::Ident("x".to_string()),
+                )), // int x;
+                expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
+            ]),
+        )]);
+        let converted_program = analyzer.down_program(program);
+        assert_eq!(
+            converted_program,
+            cprog(vec![cfunc_def(
+                "main",
+                Vec::new(),
+                cblock(vec![
+                    cblock(vec![]),
+                    cblock(vec![]),
+                    cblock(vec![]),
+                    cblock(vec![]),
+                    cexpr_stmt(cbin(
+                        ConvBinOpKind::Div,
+                        clvar("a", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 0),
+                        clvar("k", Type::Base(BaseType::Int), 16)
+                    )),
+                ]),
+                vec![
+                    clvar_strct("a", Type::Ptr(Box::new(Type::Base(BaseType::Int))), 0),
+                    clvar_strct("k", Type::Base(BaseType::Int), 16),
+                    clvar_strct(
+                        "c",
+                        Type::Ptr(Box::new(Type::Ptr(Box::new(Type::Base(BaseType::Int))))),
+                        8
+                    ),
+                    clvar_strct("x", Type::Base(BaseType::Int), 20)
+                ]
+            )])
+        )
     }
 
     fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {

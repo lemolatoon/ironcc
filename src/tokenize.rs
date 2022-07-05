@@ -323,13 +323,31 @@ impl Position {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TokenStream<'a, I: Iterator<Item = Token> + Clone> {
+#[derive(Clone)]
+pub struct TokenStream<'a, I>
+where
+    I: Iterator<Item = Token> + Clone + Debug,
+{
     iter: Peekable<I>,
     input: &'a str,
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
+use std::fmt::Debug;
+impl<'a, I> Debug for TokenStream<'a, I>
+where
+    I: Iterator<Item = Token> + Clone + Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let stream = self.clone();
+        write!(
+            f,
+            "{:?}",
+            stream.map(|token| token.kind).collect::<Vec<_>>()
+        )
+    }
+}
+
+impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     pub fn new(iter: I, input: &'a str) -> Self {
         Self {
             iter: iter.peekable(),
@@ -451,7 +469,7 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
     }
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone> Iterator for TokenStream<'a, I> {
+impl<'a, I: Iterator<Item = Token> + Clone + Debug> Iterator for TokenStream<'a, I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
