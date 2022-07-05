@@ -25,5 +25,5 @@ jobs:
     - name: make test
       run: make test
 
-    - name: make test by written in C
+    - name: make test written in C
       run: make testc
