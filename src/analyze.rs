@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     parse::{
-        BinOpKind, Binary, Expr, ExprKind, FuncDef, Program, ProgramKind, Stmt, StmtKind, UnOp,
+        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Program, ProgramKind,
+        Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
 };
@@ -22,29 +23,56 @@ impl<'a> Analyzer<'a> {
         let mut conv_program = ConvProgram::new();
         for component in program.into_iter() {
             match component {
-                ProgramKind::Func(func_def) => {
+                ProgramKind::Func(func_declare, body) => {
                     let mut lvar_map = BTreeMap::new();
-                    conv_program.push(self.down_func(func_def, &mut lvar_map))
+                    self.offset = 0; // reset another func's offset
+                    conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map))
                 }
             }
         }
         conv_program
     }
 
-    pub fn down_func(
+    pub fn down_func_declare(
         &mut self,
-        func_def: FuncDef,
+        declare: Declaration,
+        body: Stmt,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> ConvProgramKind {
         let mut lvars = Vec::new();
-        for arg in func_def.args {
+        let ident = declare.ident_name();
+        let ty = declare.ty();
+        let args = match declare.declrtr.clone() {
+            DirectDeclarator::Ident(_) => self.error_at(
+                declare.pos,
+                &format!("Currently top-level declaration is not allowed."),
+            ),
+            DirectDeclarator::Func(_, args) => args,
+        };
+        for arg in args {
             // register func args as lvar
-            lvars.push(Lvar::new(arg, &mut self.offset, lvar_map));
+            lvars.push(
+                Lvar::new(
+                    arg.ident_name().to_owned(),
+                    &mut self.offset,
+                    arg.ty(),
+                    lvar_map,
+                )
+                .unwrap_or_else(|_| {
+                    self.error_at(
+                        None,
+                        &format!(
+                            "Redefined Local Variable {:?} at `down_func`: {:?}",
+                            arg, declare
+                        ),
+                    )
+                }),
+            );
         }
         ConvProgramKind::Func(ConvFuncDef::new(
-            func_def.name.clone(),
+            ident.to_owned(),
             lvars,
-            self.down_stmt(func_def.body, lvar_map, func_def.name),
+            self.down_stmt(body, lvar_map, ident.to_owned()),
             lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
         ))
     }
@@ -85,6 +113,16 @@ impl<'a> Analyzer<'a> {
                     .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
                     .collect::<Vec<_>>(),
             ),
+            StmtKind::Declare(declare) => {
+                let ty = declare.ty();
+                // TODO: avoid func definition here
+                let name = declare.ident_name();
+                Lvar::new(name.to_owned(), &mut self.offset, ty, lvar_map).unwrap_or_else(|_| {
+                    self.error_at(declare.pos, "Local Variable Redifined here.")
+                });
+                // empty block stmt
+                ConvStmt::new_block(vec![])
+            }
         }
     }
 
@@ -139,7 +177,8 @@ impl<'a> Analyzer<'a> {
                 pos,
             ),
             // currently all ident is local variable
-            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, &mut self.offset, lvar_map),
+            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos.clone(), lvar_map)
+                .unwrap_or_else(|_| self.error_at(pos, "Undeclared Variable is used here.")),
             ExprKind::Func(name, args) => ConvExpr::new_func(
                 name,
                 args.into_iter()
@@ -147,6 +186,8 @@ impl<'a> Analyzer<'a> {
                     .collect::<Vec<_>>(),
                 pos,
             ),
+            ExprKind::Deref(expr) => ConvExpr::new_deref(self.down_expr(*expr, lvar_map), pos),
+            ExprKind::Addr(expr) => ConvExpr::new_addr(self.down_expr(*expr, lvar_map), pos),
         }
     }
 
@@ -299,12 +340,62 @@ pub enum ConvStmtKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvExpr {
     pub kind: ConvExprKind,
+    pub ty: Type,
     pub pos: Position,
 }
 impl ConvExpr {
     pub fn new_binary(kind: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        let mut rhs = rhs;
+        let mut lhs = lhs;
+        let new_ty = match kind {
+            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty.clone(), &rhs.ty.clone()) {
+                (Type::Base(lht), Type::Base(rht)) => {
+                    assert_eq!(lht, rht);
+                    Type::Base(*lht)
+                }
+                (Type::Base(base), Type::Ptr(ptr_base)) => {
+                    if *base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+                    lhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        lhs.clone(),
+                        pos.clone(),
+                    ); // i + p -> sizeof(*p) * i + p
+                    Type::Ptr(ptr_base.clone())
+                }
+                (Type::Ptr(ptr_base), Type::Base(base)) => {
+                    if *base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+
+                    rhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        rhs.clone(),
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        pos.clone(),
+                    ); // p + i ->  p + i * sizeof(*p)
+                    Type::Ptr(ptr_base.clone())
+                }
+                (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
+            },
+            ConvBinOpKind::Mul | ConvBinOpKind::Div => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty.clone()
+            }
+            ConvBinOpKind::Rem => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty.clone()
+            }
+            ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
+                assert_eq!(lhs.ty, rhs.ty);
+                Type::Base(BaseType::Int)
+            }
+        };
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
+            ty: new_ty,
             pos,
         }
     }
@@ -312,6 +403,7 @@ impl ConvExpr {
     pub fn new_func(name: String, args: Vec<ConvExpr>, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Func(name, args),
+            ty: Type::Base(BaseType::Int), // TODO: change this by reading function definition
             pos,
         }
     }
@@ -319,13 +411,19 @@ impl ConvExpr {
     pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Num(num),
+            ty: Type::Base(BaseType::Int),
             pos,
         }
     }
 
     pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+        if lhs.ty != rhs.ty {
+            // TODO: check this
+        }
+        let ty = lhs.ty.clone();
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            ty,
             pos,
         }
     }
@@ -333,11 +431,37 @@ impl ConvExpr {
     pub fn new_lvar(
         name: String,
         pos: Position,
-        new_offset: &mut usize,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Self {
-        ConvExpr {
-            kind: ConvExprKind::Lvar(Lvar::new(name, new_offset, lvar_map)),
+    ) -> Result<Self, ()> {
+        let lvar = match lvar_map.get(&name) {
+            Some(lvar) => lvar.clone(),
+            None => return Err(()),
+        };
+        let ty = lvar.ty.clone();
+        Ok(ConvExpr {
+            kind: ConvExprKind::Lvar(lvar),
+            ty,
+            pos,
+        })
+    }
+
+    pub fn new_deref(expr: ConvExpr, pos: Position) -> Self {
+        let base = match expr.ty.clone() {
+            Type::Base(base) => panic!("Expected ptr, but got {:?}", base),
+            Type::Ptr(ptr_base) => ptr_base,
+        };
+        Self {
+            kind: ConvExprKind::Deref(Box::new(expr)),
+            ty: *base,
+            pos,
+        }
+    }
+
+    pub fn new_addr(expr: ConvExpr, pos: Position) -> Self {
+        let ty = expr.ty.clone();
+        Self {
+            kind: ConvExprKind::Addr(Box::new(expr)),
+            ty: Type::Ptr(Box::new(ty)),
             pos,
         }
     }
@@ -350,37 +474,61 @@ pub enum ConvExprKind {
     Lvar(Lvar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
     Func(String, Vec<ConvExpr>),
+    Deref(Box<ConvExpr>),
+    Addr(Box<ConvExpr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Lvar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
+    pub ty: Type,
 }
 
 impl Lvar {
     pub fn new(
         name: String,
         new_offset: &mut usize,
+        ty: Type,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Self {
+    ) -> Result<Self, ()> {
         let offset = match lvar_map.get(&name) {
-            Some(lvar) => lvar.offset,
+            Some(_) => return Err(()),
             None => {
-                *new_offset += 8;
+                *new_offset += ty.size_of();
                 lvar_map.insert(
-                    name,
+                    name.clone(), // TODO: remove this clone
                     Self {
                         offset: *new_offset,
+                        ty: ty.clone(),
                     },
                 );
                 *new_offset
             }
         };
-        Self { offset: offset }
+        Ok(Self { offset: offset, ty })
     }
 }
 
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum Type {
+    Base(BaseType),
+    Ptr(Box<Type>),
+}
+
+impl Type {
+    pub fn size_of(&self) -> usize {
+        match self {
+            Type::Base(BaseType::Int) => 4,
+            Type::Ptr(_) => 8,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum BaseType {
+    Int,
+}
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvBinary {
     pub kind: ConvBinOpKind,

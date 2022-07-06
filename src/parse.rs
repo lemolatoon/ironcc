@@ -1,4 +1,8 @@
-use crate::tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream};
+use crate::{
+    analyze::{BaseType, Type},
+    tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+};
+use std::fmt::Debug;
 
 pub struct Parser<'a> {
     input: &'a str,
@@ -10,7 +14,7 @@ impl<'a> Parser<'a> {
     }
     pub fn parse_program<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Program
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
@@ -23,18 +27,9 @@ impl<'a> Parser<'a> {
 
     pub fn parse_func<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> ProgramKind
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
-        let name = tokens.consume_ident();
-        let mut args = Vec::new();
-        tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
-        if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
-            args.push(tokens.consume_ident());
-            while tokens.consume(TokenKind::Comma) {
-                args.push(tokens.consume_ident());
-            }
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
-        }
+        let declaration = self.parse_declaration(tokens);
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace));
         let mut stmts = Vec::new();
@@ -42,12 +37,46 @@ impl<'a> Parser<'a> {
             stmts.push(self.parse_stmt(tokens));
         }
         let body = Stmt::new_block(stmts);
-        ProgramKind::Func(FuncDef::new(name, args, body))
+        ProgramKind::Func(declaration, body)
+    }
+
+    pub fn parse_declaration<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Declaration
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        // declaration-specifiers
+        let (type_spec, pos) = match tokens.next() {
+            Some(Token { kind, pos }) => match *kind {
+                TokenKind::Type(TypeToken::Int) => (TypeSpec::Int, pos),
+                _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
+            },
+            None => self.error_at(None, "Next token is None in `parse_declaration`."),
+        };
+        // TODO: support ptr
+        let mut n_star = 0;
+        while tokens.consume(TokenKind::BinOp(BinOpToken::Star)) {
+            n_star += 1;
+        }
+        // first element of direct diclarator is Ident
+        let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
+        if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
+            let mut args = Vec::new();
+            // function declaration
+            if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                args.push(self.parse_declaration(tokens));
+                while tokens.consume(TokenKind::Comma) {
+                    args.push(self.parse_declaration(tokens));
+                }
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+            }
+            direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
+        }
+        Declaration::new(type_spec, n_star, direct_diclarator, pos)
     }
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         if tokens.consume(TokenKind::Return) {
             // return stmt
@@ -101,6 +130,10 @@ impl<'a> Parser<'a> {
                 stmts.push(self.parse_stmt(tokens));
             }
             return Stmt::new_block(stmts);
+        } else if tokens.is_type() {
+            let stmt = Stmt::new_declare(self.parse_declaration(tokens));
+            tokens.expect(TokenKind::Semi);
+            return stmt;
         } else {
             let expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::Semi);
@@ -110,14 +143,14 @@ impl<'a> Parser<'a> {
 
     pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         self.parse_assign(tokens)
     }
 
     pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let lhs = self.parse_equality(tokens);
         let (kind, pos) = match tokens.peek() {
@@ -135,7 +168,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_equality<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_relational(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -153,7 +186,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_relational<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_add(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -173,7 +206,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_add<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
@@ -191,13 +224,13 @@ impl<'a> Parser<'a> {
 
     pub fn parse_mul<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_unary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
             let op = match &**kind {
-                TokenKind::BinOp(BinOpToken::Mul) => BinOpKind::Mul,
-                TokenKind::BinOp(BinOpToken::Div) => BinOpKind::Div,
+                TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
+                TokenKind::BinOp(BinOpToken::Slash) => BinOpKind::Div,
                 TokenKind::BinOp(BinOpToken::Percent) => BinOpKind::Rem,
                 _ => break,
             };
@@ -210,7 +243,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse_unary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         let (kind, pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos.clone()),
@@ -225,13 +258,21 @@ impl<'a> Parser<'a> {
                 tokens.next();
                 Expr::new_unary(UnOp::Minus, self.parse_primary(tokens), pos)
             }
+            TokenKind::BinOp(BinOpToken::Star) => {
+                tokens.next();
+                Expr::new_deref(self.parse_unary(tokens), pos)
+            }
+            TokenKind::BinOp(BinOpToken::And) => {
+                tokens.next();
+                Expr::new_addr(self.parse_unary(tokens), pos)
+            }
             _ => self.parse_primary(tokens),
         }
     }
 
     pub fn parse_primary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Expr
     where
-        I: Clone + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token>,
     {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
@@ -328,25 +369,67 @@ impl IntoIterator for Program {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ProgramKind {
-    Func(FuncDef),
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct FuncDef {
-    pub name: String,
-    pub args: Vec<String>,
-    pub body: Stmt,
-}
-
-impl FuncDef {
-    pub fn new(name: String, args: Vec<String>, body: Stmt) -> Self {
-        Self { name, args, body }
-    }
+    Func(Declaration, Stmt),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Stmt {
     pub kind: StmtKind,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+/// Declaration
+pub struct Declaration {
+    pub ty_spec: TypeSpec,
+    pub n_star: usize,
+    pub declrtr: DirectDeclarator,
+    pub pos: Position,
+}
+
+impl Declaration {
+    pub fn new(ty_spec: TypeSpec, n_star: usize, declrtr: DirectDeclarator, pos: Position) -> Self {
+        Self {
+            ty_spec,
+            n_star,
+            declrtr,
+            pos,
+        }
+    }
+
+    pub fn ident_name<'a>(&'a self) -> &'a str {
+        self.declrtr.ident_name()
+    }
+
+    pub fn ty(&self) -> Type {
+        let base = match self.ty_spec {
+            TypeSpec::Int => BaseType::Int,
+        };
+        let mut ty = Type::Base(base);
+        for _ in 0..self.n_star {
+            ty = Type::Ptr(Box::new(ty));
+        }
+        ty
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum DirectDeclarator {
+    Ident(String),
+    Func(Box<DirectDeclarator>, Vec<Declaration>),
+}
+
+impl DirectDeclarator {
+    pub fn ident_name<'a>(&'a self) -> &'a str {
+        match self {
+            DirectDeclarator::Ident(name) => name,
+            DirectDeclarator::Func(direct_declarator, _) => direct_declarator.ident_name(),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum TypeSpec {
+    Int,
 }
 
 impl Stmt {
@@ -385,6 +468,12 @@ impl Stmt {
             kind: StmtKind::For(init, cond, inc, Box::new(then)),
         }
     }
+
+    pub fn new_declare(declaration: Declaration) -> Self {
+        Self {
+            kind: StmtKind::Declare(declaration),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -395,6 +484,7 @@ pub enum StmtKind {
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
     For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),
+    Declare(Declaration),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -411,6 +501,8 @@ pub enum ExprKind {
     Assign(Box<Expr>, Box<Expr>),
     LVar(String),
     Func(String, Vec<Expr>),
+    Deref(Box<Expr>),
+    Addr(Box<Expr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -460,6 +552,20 @@ impl Expr {
     pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
         Self {
             kind: ExprKind::Func(name, args),
+            pos,
+        }
+    }
+
+    pub fn new_deref(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Deref(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_addr(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Addr(Box::new(expr)),
             pos,
         }
     }

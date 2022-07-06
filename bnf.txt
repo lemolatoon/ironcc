@@ -1,19 +1,39 @@
-<program>   := <func>*
-<func>      := <ident> "(" (<expr> ("," <expr>)*)? ")" <blockstmt>
-<stmt>      := <expr> ";"
-                | <blockstmt>
-                | "return" <expr> ";"
-                | "if" "(" <expr> ")" <stmt> ("else" stmt)?
-                | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
-<blockstmt> := "{" <stmt>* "}"
-<expr>      := <assign>
-<assign>    := <equality> ("=" assign)?
-<equality>  := <relational> ("==" <relational> | "!=" <relational>)*
-<relational>:= <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
-<add>       := <mul> ("+" <mul> | "-" <mul>)*
-<mul>       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
-<unary>     := ("+" | "-")? <primary>
-<primary>   := <num> 
-                | <ident> "(" (<expr> ("," <expr>)*)? ")"
-                | <ident> 
-                | "(" <expr> ")"  
+<program>                   := <program-item>*
+<program-item>              := <declaration>
+                                | <func-def>
+<func-def>                      := <declaration> <blockstmt>
+
+<declaration>               := <declaration-specifiers> <init-declarator>*
+<declaration-specifiers>    := <type-specifiers>
+<type-specifiers>           := "int"
+
+<init-declarator>           := <declarator>
+<declarator>                := "*"* <direct-declarator>
+<direct-declarator>         := <ident>
+                                | <direct-declarator> "[" <assign> "]"                                  # array
+                                | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
+
+
+<stmt>                      := <expr> ";"
+                                | <blockstmt>
+                                | "return" <expr> ";"
+                                | "if" "(" <expr> ")" <stmt> ("else" stmt)?
+                                | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
+                                | <declaration> ";"
+<blockstmt>                 := "{" <stmt>* "}"
+
+
+<expr>                      := <assign>
+<assign>                    := <equality> ("=" assign)?
+<equality>                  := <relational> ("==" <relational> | "!=" <relational>)*
+<relational>                := <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
+<add>                       := <mul> ("+" <mul> | "-" <mul>)*
+<mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
+<unary>                     := "+"? 
+                                | "-"? <primary>
+                                | "*" <unary>
+                                | "&" <unary>
+<primary>                   := <num> 
+                                | <ident> "(" (<expr> ("," <expr>)*)? ")"
+                                | <ident> 
+                                | "(" <expr> ")"  

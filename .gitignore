@@ -4,8 +4,11 @@
 /tmp
 /test/tmp.c
 /test/tmp.s
+/test/test.s
+*.s
 /test/tmp
 /.vscode/
 /src.c
 /src.s
 a.out
+link.c

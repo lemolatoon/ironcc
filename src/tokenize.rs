@@ -53,12 +53,17 @@ impl<'a> Tokenizer<'a> {
                 ));
             } else if input.starts_with('*') {
                 tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Mul),
+                    TokenKind::BinOp(BinOpToken::Star),
+                    pos.next_char(),
+                ));
+            } else if input.starts_with('&') {
+                tokens.push(Token::new(
+                    TokenKind::BinOp(BinOpToken::And),
                     pos.next_char(),
                 ));
             } else if input.starts_with('/') {
                 tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Div),
+                    TokenKind::BinOp(BinOpToken::Slash),
                     pos.next_char(),
                 ));
             } else if input.starts_with('%') {
@@ -144,6 +149,7 @@ impl<'a> Tokenizer<'a> {
                         "else" => TokenKind::Else,
                         "while" => TokenKind::While,
                         "for" => TokenKind::For,
+                        "int" => TokenKind::Type(TypeToken::Int),
                         _ => TokenKind::Ident(ident),
                     },
                     pos.next_token(len_token),
@@ -200,6 +206,8 @@ pub enum TokenKind {
     Semi,
     /// An ident
     Ident(String),
+    /// type specifiers
+    Type(TypeToken),
     /// `return`, reserved word
     Return,
     /// `if`, reserved word
@@ -230,6 +238,11 @@ pub enum TokenKind {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+pub enum TypeToken {
+    /// `int`, type specifier
+    Int,
+}
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {
     /// A round parenthesis (i.e., `(` or `)`)
     Paran,
@@ -246,11 +259,13 @@ pub enum BinOpToken {
     /// `-`
     Minus,
     /// `*`
-    Mul,
+    Star,
     /// `/`
-    Div,
+    Slash,
     /// `%`
     Percent,
+    /// `&`
+    And,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -288,7 +303,6 @@ impl Position {
     }
 
     pub fn next_line(&mut self) -> Self {
-        // eprintln!("next_line: {:?}", self);
         let return_struct = self.clone();
         self.n_char = 0;
         self.n_line += 1;
@@ -297,27 +311,43 @@ impl Position {
 
     // increment self.n_char and return not incremented, cloned Position struct
     pub fn next_char(&mut self) -> Self {
-        // eprintln!("next_char: {:?}", self);
         let return_struct = self.clone();
         self.n_char += 1;
         return_struct
     }
 
     pub fn next_token(&mut self, len_token: usize) -> Self {
-        // eprintln!("next_token: {}, {:?}", len_token, self);
         let return_struct = self.clone();
         self.n_char += len_token;
         return_struct
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TokenStream<'a, I: Iterator<Item = Token> + Clone> {
+#[derive(Clone)]
+pub struct TokenStream<'a, I>
+where
+    I: Iterator<Item = Token> + Clone + Debug,
+{
     iter: Peekable<I>,
     input: &'a str,
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
+use std::fmt::Debug;
+impl<'a, I> Debug for TokenStream<'a, I>
+where
+    I: Iterator<Item = Token> + Clone + Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let stream = self.clone();
+        write!(
+            f,
+            "{:?}",
+            stream.map(|token| token.kind).collect::<Vec<_>>()
+        )
+    }
+}
+
+impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     pub fn new(iter: I, input: &'a str) -> Self {
         Self {
             iter: iter.peekable(),
@@ -332,6 +362,13 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
                 self.next();
                 return true;
             }
+        }
+        false
+    }
+
+    pub fn is_type(&mut self) -> bool {
+        if let Some(token) = self.peek() {
+            return matches!(*token.kind, TokenKind::Type(_));
         }
         false
     }
@@ -432,7 +469,7 @@ impl<'a, I: Iterator<Item = Token> + Clone> TokenStream<'a, I> {
     }
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone> Iterator for TokenStream<'a, I> {
+impl<'a, I: Iterator<Item = Token> + Clone + Debug> Iterator for TokenStream<'a, I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
