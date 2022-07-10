@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BinOpToken",""],["DelimToken",""],["TokenKind",""],["TypeToken",""]],"fn":[["tokenize_and_kinds",""]],"struct":[["Position",""],["Token",""],["TokenStream",""],["Tokenizer",""]]});

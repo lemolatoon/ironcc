@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BinOpKind",""],["DirectDeclarator",""],["ExprKind",""],["ProgramKind",""],["StmtKind",""],["TypeSpec",""],["UnOp",""]],"struct":[["Binary",""],["Declaration","Declaration"],["Expr",""],["Parser",""],["Program",""],["Stmt",""]]});
