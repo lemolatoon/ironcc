@@ -1,0 +1,27 @@
+name: cargo doc
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    needs: test
+    if:  github.event_name == 'push' || github.event.pull_request.merged == true
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run doc
+      run: cargo doc --no-deps
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./target/doc/
