@@ -9,3 +9,4 @@ edition = "2021"
 
 [dev-dependencies]
 pretty_assertions = "1.2"
+insta = "1.15.0"
