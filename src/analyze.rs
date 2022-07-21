@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::{
     parse::{
         BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Program, ProgramKind,
-        Stmt, StmtKind, TypeSpec, UnOp,
+        Stmt, StmtKind, UnOp,
     },
     tokenize::Position,
 };
@@ -41,7 +41,8 @@ impl<'a> Analyzer<'a> {
     ) -> ConvProgramKind {
         let mut lvars = Vec::new();
         let ident = declare.ident_name();
-        let ty = declare.ty();
+        // TODO: manage fucn's return type
+        let _ty = declare.ty();
         let args = match declare.declrtr.clone() {
             DirectDeclarator::Ident(_) => self.error_at(
                 declare.pos,
@@ -134,40 +135,26 @@ impl<'a> Analyzer<'a> {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => ConvExpr::new_binary(
-                ConvBinOpKind::Le,
-                self.down_expr(*rhs, lvar_map),
-                self.down_expr(*lhs, lvar_map),
-                pos,
-            ),
+            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos, lvar_map),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => ConvExpr::new_binary(
-                ConvBinOpKind::Lt,
-                self.down_expr(*rhs, lvar_map),
-                self.down_expr(*lhs, lvar_map),
-                pos,
-            ),
+            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, lvar_map),
             // do nothing
-            ExprKind::Binary(Binary { kind, lhs, rhs }) => ConvExpr::new_binary(
-                ConvBinOpKind::new(kind).unwrap(),
-                self.down_expr(*lhs, lvar_map),
-                self.down_expr(*rhs, lvar_map),
-                pos,
-            ),
-            // do nothing
+            ExprKind::Binary(binary) => self.down_binary(binary, pos, lvar_map), // do nothing
             ExprKind::Num(n) => ConvExpr::new_num(n, pos),
             // substitute `-x` into `0-x`
-            ExprKind::Unary(UnOp::Minus, operand) => ConvExpr::new_binary(
-                ConvBinOpKind::Sub,
-                ConvExpr::new_num(0, pos.clone()),
-                self.down_expr(*operand, lvar_map),
+            ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
+                Binary::new(
+                    BinOpKind::Sub,
+                    Box::new(Expr::new_num(0, pos.clone())),
+                    operand,
+                ),
                 pos,
+                lvar_map,
             ),
-
             // do nothing
             ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, lvar_map),
             // do nothing
@@ -189,6 +176,67 @@ impl<'a> Analyzer<'a> {
             ExprKind::Deref(expr) => ConvExpr::new_deref(self.down_expr(*expr, lvar_map), pos),
             ExprKind::Addr(expr) => ConvExpr::new_addr(self.down_expr(*expr, lvar_map), pos),
         }
+    }
+
+    pub fn down_binary(
+        &mut self,
+        Binary { kind, lhs, rhs }: Binary,
+        pos: Position,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> ConvExpr {
+        let mut rhs = self.down_expr(*rhs, lvar_map);
+        let mut lhs = self.down_expr(*lhs, lvar_map);
+        let kind = ConvBinOpKind::new(kind).unwrap();
+        let new_ty = match kind {
+            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty.clone(), &rhs.ty.clone()) {
+                (Type::Base(lht), Type::Base(rht)) => {
+                    assert_eq!(lht, rht);
+                    Type::Base(*lht)
+                }
+                (Type::Base(base), Type::Ptr(ptr_base)) => {
+                    if *base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+                    lhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        lhs.clone(),
+                        Type::Base(BaseType::Int),
+                        pos.clone(),
+                    ); // i + p -> sizeof(*p) * i + p
+                    Type::Ptr(ptr_base.clone())
+                }
+                (Type::Ptr(ptr_base), Type::Base(base)) => {
+                    if *base != BaseType::Int {
+                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                    }
+
+                    rhs = ConvExpr::new_binary(
+                        ConvBinOpKind::Mul,
+                        rhs.clone(),
+                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
+                        // Type::Ptr(ptr_base.clone()),
+                        Type::Base(BaseType::Int),
+                        pos.clone(),
+                    ); // p + i ->  p + i * sizeof(*p)
+                    Type::Ptr(ptr_base.clone())
+                }
+                (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
+            },
+            ConvBinOpKind::Mul | ConvBinOpKind::Div => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty.clone()
+            }
+            ConvBinOpKind::Rem => {
+                assert_eq!(lhs.ty, rhs.ty);
+                lhs.ty.clone()
+            }
+            ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
+                assert_eq!(lhs.ty, rhs.ty);
+                Type::Base(BaseType::Int)
+            }
+        };
+        ConvExpr::new_binary(kind, lhs, rhs, new_ty, pos)
     }
 
     /// # Panics
@@ -344,58 +392,16 @@ pub struct ConvExpr {
     pub pos: Position,
 }
 impl ConvExpr {
-    pub fn new_binary(kind: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
-        let mut rhs = rhs;
-        let mut lhs = lhs;
-        let new_ty = match kind {
-            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty.clone(), &rhs.ty.clone()) {
-                (Type::Base(lht), Type::Base(rht)) => {
-                    assert_eq!(lht, rht);
-                    Type::Base(*lht)
-                }
-                (Type::Base(base), Type::Ptr(ptr_base)) => {
-                    if *base != BaseType::Int {
-                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
-                    }
-                    lhs = ConvExpr::new_binary(
-                        ConvBinOpKind::Mul,
-                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
-                        lhs.clone(),
-                        pos.clone(),
-                    ); // i + p -> sizeof(*p) * i + p
-                    Type::Ptr(ptr_base.clone())
-                }
-                (Type::Ptr(ptr_base), Type::Base(base)) => {
-                    if *base != BaseType::Int {
-                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
-                    }
-
-                    rhs = ConvExpr::new_binary(
-                        ConvBinOpKind::Mul,
-                        rhs.clone(),
-                        ConvExpr::new_num(ptr_base.size_of() as isize, pos.clone()),
-                        pos.clone(),
-                    ); // p + i ->  p + i * sizeof(*p)
-                    Type::Ptr(ptr_base.clone())
-                }
-                (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
-            },
-            ConvBinOpKind::Mul | ConvBinOpKind::Div => {
-                assert_eq!(lhs.ty, rhs.ty);
-                lhs.ty.clone()
-            }
-            ConvBinOpKind::Rem => {
-                assert_eq!(lhs.ty, rhs.ty);
-                lhs.ty.clone()
-            }
-            ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
-                assert_eq!(lhs.ty, rhs.ty);
-                Type::Base(BaseType::Int)
-            }
-        };
+    pub fn new_binary(
+        kind: ConvBinOpKind,
+        lhs: ConvExpr,
+        rhs: ConvExpr,
+        ty: Type,
+        pos: Position,
+    ) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
-            ty: new_ty,
+            ty,
             pos,
         }
     }
