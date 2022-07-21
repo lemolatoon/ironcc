@@ -82,7 +82,7 @@ impl<'a> Parser<'a> {
             // return stmt
             let returning_expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::Semi);
-            return Stmt::ret(returning_expr);
+            Stmt::ret(returning_expr)
         } else if tokens.consume(TokenKind::If) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
             let conditional_expr = self.parse_expr(tokens);
@@ -92,13 +92,13 @@ impl<'a> Parser<'a> {
             if tokens.consume(TokenKind::Else) {
                 else_stmt = Some(self.parse_stmt(tokens));
             }
-            return Stmt::new_if(conditional_expr, then_stmt, else_stmt);
+            Stmt::new_if(conditional_expr, then_stmt, else_stmt)
         } else if tokens.consume(TokenKind::While) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
             let conditional_expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
             let then_stmt = self.parse_stmt(tokens);
-            return Stmt::new_while(conditional_expr, then_stmt);
+            Stmt::new_while(conditional_expr, then_stmt)
         } else if tokens.consume(TokenKind::For) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran));
             let init_expr = if tokens.consume(TokenKind::Semi) {
@@ -123,21 +123,21 @@ impl<'a> Parser<'a> {
             };
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
             let then_stmt = self.parse_stmt(tokens);
-            return Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt);
+            Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt)
         } else if tokens.consume(TokenKind::OpenDelim(DelimToken::Brace)) {
             let mut stmts = Vec::new();
             while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
                 stmts.push(self.parse_stmt(tokens));
             }
-            return Stmt::new_block(stmts);
+            Stmt::new_block(stmts)
         } else if tokens.is_type() {
             let stmt = Stmt::new_declare(self.parse_declaration(tokens));
             tokens.expect(TokenKind::Semi);
-            return stmt;
+            stmt
         } else {
             let expr = self.parse_expr(tokens);
             tokens.expect(TokenKind::Semi);
-            return Stmt::expr(expr);
+            Stmt::expr(expr)
         }
     }
 
@@ -396,7 +396,7 @@ impl Declaration {
         }
     }
 
-    pub fn ident_name<'a>(&'a self) -> &'a str {
+    pub fn ident_name(&self) -> &str {
         self.declrtr.ident_name()
     }
 
@@ -419,7 +419,7 @@ pub enum DirectDeclarator {
 }
 
 impl DirectDeclarator {
-    pub fn ident_name<'a>(&'a self) -> &'a str {
+    pub fn ident_name(&self) -> &str {
         match self {
             DirectDeclarator::Ident(name) => name,
             DirectDeclarator::Func(direct_declarator, _) => direct_declarator.ident_name(),
@@ -453,7 +453,7 @@ impl Stmt {
 
     pub fn new_if(cond: Expr, then: Stmt, els: Option<Stmt>) -> Self {
         Self {
-            kind: StmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
+            kind: StmtKind::If(cond, Box::new(then), els.map(Box::new)),
         }
     }
 

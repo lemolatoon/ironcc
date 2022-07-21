@@ -51,4 +51,5 @@ int assert(int index, int expected, int got)
     {
         passed(index);
     }
+    return 0;
 }

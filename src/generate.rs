@@ -74,7 +74,6 @@ impl<'a> Generater<'a> {
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
         };
-        println!("PREFIX: {}", prefix);
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
     }
@@ -257,7 +256,6 @@ impl<'a> Generater<'a> {
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Deref(expr) => {
-                println!("Deref: {:?}", expr);
                 let ty = match Clone::clone(&expr.ty) {
                     Type::Base(_) => self.error_at(
                         expr.pos.clone(),
