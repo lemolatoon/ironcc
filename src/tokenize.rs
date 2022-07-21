@@ -391,7 +391,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         let token = self.next();
         match token {
             Some(Token { kind, pos }) => match *kind {
-                TokenKind::Ident(name) => return name,
+                TokenKind::Ident(name) => name,
                 _ => self.error_at(
                     Some(pos),
                     &format!("TokenKind::Ident expected, but got {:?}", kind),

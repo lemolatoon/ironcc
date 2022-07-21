@@ -46,7 +46,7 @@ impl<'a> Analyzer<'a> {
         let args = match declare.declrtr.clone() {
             DirectDeclarator::Ident(_) => self.error_at(
                 declare.pos,
-                &format!("Currently top-level declaration is not allowed."),
+                "Currently top-level declaration is not allowed.",
             ),
             DirectDeclarator::Func(_, args) => args,
         };
@@ -188,7 +188,7 @@ impl<'a> Analyzer<'a> {
         let mut lhs = self.down_expr(*lhs, lvar_map);
         let kind = ConvBinOpKind::new(kind).unwrap();
         let new_ty = match kind {
-            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty.clone(), &rhs.ty.clone()) {
+            ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lht), Type::Base(rht)) => {
                     assert_eq!(lht, rht);
                     Type::Base(*lht)
@@ -348,7 +348,7 @@ impl ConvStmt {
 
     pub fn new_if(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> Self {
         Self {
-            kind: ConvStmtKind::If(cond, Box::new(then), els.map(|stmt| Box::new(stmt))),
+            kind: ConvStmtKind::If(cond, Box::new(then), els.map(Box::new)),
         }
     }
 
@@ -512,7 +512,7 @@ impl Lvar {
                 *new_offset
             }
         };
-        Ok(Self { offset: offset, ty })
+        Ok(Self { offset, ty })
     }
 }
 
