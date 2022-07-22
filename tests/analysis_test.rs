@@ -117,6 +117,7 @@ fn analysis_program_test() {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
+            Type::Base(BaseType::Int),
             "main",
             Vec::new(),
             cblock(vec![
@@ -174,6 +175,7 @@ fn analysis_local_variable_test() {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
+            Type::Base(BaseType::Int),
             "main",
             Vec::new(),
             cblock(vec![
@@ -233,6 +235,7 @@ fn analysis_func_def_test() {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
+            Type::Base(BaseType::Int),
             "main",
             vec![
                 clvar_strct("a", Type::Base(BaseType::Int), 0),
@@ -306,6 +309,7 @@ fn analysis_declaration() {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
+            Type::Base(BaseType::Int),
             "main",
             Vec::new(),
             cblock(vec![
@@ -367,6 +371,7 @@ fn analysis_ptr_addition() {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
+            Type::Base(BaseType::Int),
             "main",
             Vec::new(),
             cblock(vec![
@@ -400,8 +405,15 @@ fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
     ConvProgram::with_vec(components)
 }
 
-fn cfunc_def(name: &str, args: Vec<Lvar>, body: ConvStmt, lvars: Vec<Lvar>) -> ConvProgramKind {
+fn cfunc_def(
+    ty: Type,
+    name: &str,
+    args: Vec<Lvar>,
+    body: ConvStmt,
+    lvars: Vec<Lvar>,
+) -> ConvProgramKind {
     ConvProgramKind::Func(ConvFuncDef::new(
+        ty,
         name.to_string(),
         args,
         body,

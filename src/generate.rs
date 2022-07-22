@@ -91,6 +91,7 @@ impl<'a> Generater<'a> {
         for component in program.into_iter() {
             match component {
                 ConvProgramKind::Func(ConvFuncDef {
+                    ty: _, // TODO: determine how to use this
                     name,
                     args,
                     body,

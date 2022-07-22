@@ -42,7 +42,7 @@ impl<'a> Analyzer<'a> {
         let mut lvars = Vec::new();
         let ident = declare.ident_name();
         // TODO: manage fucn's return type
-        let _ty = declare.ty();
+        let ty = declare.ty();
         let args = match declare.declrtr.clone() {
             DirectDeclarator::Ident(_) => self.error_at(
                 declare.pos,
@@ -71,6 +71,7 @@ impl<'a> Analyzer<'a> {
             );
         }
         ConvProgramKind::Func(ConvFuncDef::new(
+            ty,
             ident.to_owned(),
             lvars,
             self.down_stmt(body, lvar_map, ident.to_owned()),
@@ -305,6 +306,7 @@ pub enum ConvProgramKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvFuncDef {
+    pub ty: Type,
     pub name: String,
     pub args: Vec<Lvar>,
     pub body: ConvStmt,
@@ -312,8 +314,15 @@ pub struct ConvFuncDef {
 }
 
 impl ConvFuncDef {
-    pub fn new(name: String, args: Vec<Lvar>, body: ConvStmt, lvars: BTreeSet<Lvar>) -> Self {
+    pub fn new(
+        ty: Type,
+        name: String,
+        args: Vec<Lvar>,
+        body: ConvStmt,
+        lvars: BTreeSet<Lvar>,
+    ) -> Self {
         Self {
+            ty,
             name,
             args,
             body,

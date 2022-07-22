@@ -13,16 +13,7 @@ use std::fmt::Debug;
 fn insta_tests() {
     let src = "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}";
     let mut tester = CachedProcesser::new(src);
-    assert_debug_snapshot!(src, tester.program());
-    // assert_debug_snapshot!(src, tester.conv_program());
-}
-
-fn parse_program(src: &str) -> Program {
-    let tokenizer = Tokenizer::new(src);
-    let tokens = tokenizer.tokenize();
-    let parser = Parser::new(src);
-    let mut tokens = TokenStream::new(tokens.into_iter(), src);
-    parser.parse_program(&mut tokens)
+    tester.test_all();
 }
 
 struct CachedProcesser<'a, I>
@@ -30,7 +21,7 @@ where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,
 {
     src: &'a str,
-    tokens: Option<Vec<Token>>,
+    tokens: Vec<Token>,
     token_stream: TokenStream<'a, I>,
     parser: CachedParser<'a>,
     analyzer: CachedAnalyzer<'a>,
@@ -42,7 +33,7 @@ impl<'a> CachedProcesser<'a, std::vec::IntoIter<Token>> {
         let stream = TokenStream::new(tokens.clone().into_iter(), src);
         Self {
             src,
-            tokens: Some(tokens),
+            tokens: tokens,
             token_stream: stream,
             parser: CachedParser::new(src),
             analyzer: CachedAnalyzer::new(src),
@@ -54,8 +45,28 @@ impl<'a, I> CachedProcesser<'a, I>
 where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,
 {
-    fn program(&mut self) -> Program {
+    fn test_all(&mut self) {
+        assert_debug_snapshot!(format!("[tokens]{}", self.src), self.tokens());
+        assert_debug_snapshot!(format!("[ast]{}", self.src), self.program());
+        assert_debug_snapshot!(format!("[conv_ast]{}", self.src), self.conv_program());
+    }
+
+    fn program(&mut self) -> &Program {
         self.parser.program(&mut self.token_stream)
+    }
+
+    fn tokens(&mut self) -> Vec<Token> {
+        self.tokens.clone()
+    }
+
+    fn conv_program(&mut self) -> &ConvProgram {
+        let program = {
+            match &self.analyzer.program {
+                Some(_) => None,
+                None => Some(self.program().clone()),
+            }
+        };
+        self.analyzer.conv_program(program)
     }
 }
 
@@ -72,18 +83,12 @@ impl<'a> CachedParser<'a> {
         }
     }
 
-    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> Program
+    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> &Program
     where
         I: Iterator<Item = Token> + Clone + Debug,
     {
-        match &self.program {
-            Some(program) => program.clone(),
-            None => {
-                let program = self.parser.parse_program(stream);
-                self.program = Some(program);
-                self.program.as_ref().unwrap().clone()
-            }
-        }
+        self.program
+            .get_or_insert_with(|| self.parser.parse_program(stream))
     }
 }
 
@@ -98,5 +103,13 @@ impl<'a> CachedAnalyzer<'a> {
             analyzer: Analyzer::new(input),
             program: None,
         }
+    }
+
+    pub fn conv_program(&mut self, program: Option<Program>) -> &ConvProgram {
+        self.program.get_or_insert_with(|| {
+            self.analyzer.down_program(
+                program.expect("program should not be None if analyzer.program is None"),
+            )
+        })
     }
 }
