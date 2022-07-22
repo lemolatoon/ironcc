@@ -590,6 +590,15 @@
 <span id="585">585</span>
 <span id="586">586</span>
 <span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">BTreeSet</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -634,7 +643,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lvars</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">declare</span>.<span class="ident">ident_name</span>();
         <span class="comment">// TODO: manage fucn&#39;s return type</span>
-        <span class="kw">let</span> <span class="ident">_ty</span> <span class="op">=</span> <span class="ident">declare</span>.<span class="ident">ty</span>();
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">declare</span>.<span class="ident">ty</span>();
         <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">declare</span>.<span class="ident">declrtr</span>.<span class="ident">clone</span>() {
             <span class="ident">DirectDeclarator::Ident</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">error_at</span>(
                 <span class="ident">declare</span>.<span class="ident">pos</span>,
@@ -663,6 +672,7 @@
             );
         }
         <span class="ident">ConvProgramKind::Func</span>(<span class="ident">ConvFuncDef::new</span>(
+            <span class="ident">ty</span>,
             <span class="ident">ident</span>.<span class="ident">to_owned</span>(),
             <span class="ident">lvars</span>,
             <span class="self">self</span>.<span class="ident">down_stmt</span>(<span class="ident">body</span>, <span class="ident">lvar_map</span>, <span class="ident">ident</span>.<span class="ident">to_owned</span>()),
@@ -897,6 +907,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConvFuncDef</span> {
+    <span class="kw">pub</span> <span class="ident">ty</span>: <span class="ident">Type</span>,
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Lvar</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">ConvStmt</span>,
@@ -904,8 +915,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ConvFuncDef</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Lvar</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="ident">ConvStmt</span>, <span class="ident">lvars</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="ident">Lvar</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">ty</span>: <span class="ident">Type</span>,
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Lvar</span><span class="op">&gt;</span>,
+        <span class="ident">body</span>: <span class="ident">ConvStmt</span>,
+        <span class="ident">lvars</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="ident">Lvar</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
+            <span class="ident">ty</span>,
             <span class="ident">name</span>,
             <span class="ident">args</span>,
             <span class="ident">body</span>,

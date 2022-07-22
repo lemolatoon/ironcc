@@ -499,6 +499,7 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
+<span id="497">497</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -592,6 +593,7 @@
         <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">program</span>.<span class="ident">into_iter</span>() {
             <span class="kw">match</span> <span class="ident">component</span> {
                 <span class="ident">ConvProgramKind::Func</span>(<span class="ident">ConvFuncDef</span> {
+                    <span class="ident">ty</span>: <span class="kw">_</span>, <span class="comment">// TODO: determine how to use this</span>
                     <span class="ident">name</span>,
                     <span class="ident">args</span>,
                     <span class="ident">body</span>,
