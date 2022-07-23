@@ -9,18 +9,46 @@ use ironcc::{
 use std::clone::Clone;
 use std::fmt::Debug;
 
+macro_rules! all {
+    ($self: ident) => {
+        assert_debug_snapshot!($self.tokens());
+        assert_debug_snapshot!($self.program());
+        assert_debug_snapshot!($self.conv_program());
+    };
+}
+
 #[test]
 fn insta_tests() {
     let src = "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}";
     let mut tester = CachedProcesser::new(src);
-    tester.test_all();
+    all!(tester);
+}
+
+#[test]
+fn initializer() {
+    let src = "int main() {int a = 5; int *p = &a; return 0;}";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
+}
+
+#[test]
+fn array_syntax_sugar() {
+    let src = "\n\
+    int main() {\n \
+        int a = 5;\n \
+        int b = sizeof (a);\n \
+        int c = sizeof (int);\n \
+        int d = sizeof (int*);\n \
+    }\n\
+    ";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
 }
 
 struct CachedProcesser<'a, I>
 where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,
 {
-    src: &'a str,
     tokens: Vec<Token>,
     token_stream: TokenStream<'a, I>,
     parser: CachedParser<'a>,
@@ -32,7 +60,6 @@ impl<'a> CachedProcesser<'a, std::vec::IntoIter<Token>> {
         let tokens = Tokenizer::new(src).tokenize();
         let stream = TokenStream::new(tokens.clone().into_iter(), src);
         Self {
-            src,
             tokens: tokens,
             token_stream: stream,
             parser: CachedParser::new(src),
@@ -45,12 +72,6 @@ impl<'a, I> CachedProcesser<'a, I>
 where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,
 {
-    fn test_all(&mut self) {
-        assert_debug_snapshot!(format!("[tokens]{}", self.src), self.tokens());
-        assert_debug_snapshot!(format!("[ast]{}", self.src), self.program());
-        assert_debug_snapshot!(format!("[conv_ast]{}", self.src), self.conv_program());
-    }
-
     fn program(&mut self) -> &Program {
         self.parser.program(&mut self.token_stream)
     }

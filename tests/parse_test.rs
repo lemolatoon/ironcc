@@ -3,6 +3,7 @@ pub mod test_utils;
 
 use ironcc::parse::*;
 use ironcc::tokenize::*;
+use test_utils::ast::*;
 
 #[test]
 fn parse_test() {
@@ -743,7 +744,6 @@ fn parse_declaration() {
             .map(|k| k.kind)
             .collect::<Vec<_>>()
     );
-    let tokenizer = Tokenizer::new(&input);
     let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
@@ -779,7 +779,6 @@ fn parse_declaration() {
             .map(|k| k.kind)
             .collect::<Vec<_>>()
     );
-    let tokenizer = Tokenizer::new(&input);
     let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
@@ -791,76 +790,4 @@ fn parse_declaration() {
     )]);
 
     assert_eq!(parsed, expected);
-}
-
-fn deref(expr: Expr) -> Expr {
-    Expr::new_deref(expr, Position::default())
-}
-
-fn addr(expr: Expr) -> Expr {
-    Expr::new_addr(expr, Position::default())
-}
-
-fn func_def(declare: Declaration, body: Stmt) -> ProgramKind {
-    ProgramKind::Func(declare, body)
-}
-
-fn declare_stmt(declaration: Declaration) -> Stmt {
-    Stmt::new_declare(declaration)
-}
-
-fn declare(ty_spec: TypeSpec, n_star: usize, direct_declarator: DirectDeclarator) -> Declaration {
-    Declaration::new(ty_spec, n_star, direct_declarator, Position::default())
-}
-
-fn func_dd(name: &str, args: Vec<Declaration>) -> DirectDeclarator {
-    DirectDeclarator::Func(Box::new(DirectDeclarator::Ident(name.to_string())), args)
-}
-
-fn expr_stmt(expr: Expr) -> Stmt {
-    Stmt::expr(expr)
-}
-
-fn ret(expr: Expr) -> Stmt {
-    Stmt::ret(expr)
-}
-
-fn block(stmts: Vec<Stmt>) -> Stmt {
-    Stmt::new_block(stmts)
-}
-
-fn if_(cond: Expr, then: Stmt, els: Option<Stmt>) -> Stmt {
-    Stmt::new_if(cond, then, els)
-}
-
-fn while_(cond: Expr, then: Stmt) -> Stmt {
-    Stmt::new_while(cond, then)
-}
-
-fn for_(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Stmt {
-    Stmt::new_for(init, cond, inc, then)
-}
-
-fn func(name: &str, args: Vec<Expr>) -> Expr {
-    Expr::new_func(name.to_string(), args, Position::default())
-}
-
-fn lvar(name: &str) -> Expr {
-    Expr::new_lvar(name.to_string(), Position::default())
-}
-
-fn assign(lhs: Expr, rhs: Expr) -> Expr {
-    Expr::new_assign(lhs, rhs, Position::default())
-}
-
-fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
-    Expr::new_binary(op, lhs, rhs, Position::default())
-}
-
-fn num(n: isize) -> Expr {
-    Expr::new_num(n, Position::default())
-}
-
-fn unary(op: UnOp, operand: Expr) -> Expr {
-    Expr::new_unary(op, operand, Position::default())
 }

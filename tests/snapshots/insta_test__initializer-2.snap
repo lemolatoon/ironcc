@@ -1,0 +1,108 @@
+---
+source: tests/insta_test.rs
+expression: tester.program()
+---
+Program {
+    components: [
+        Func(
+            Declaration {
+                ty_spec: Int,
+                n_star: 0,
+                declrtr: Func(
+                    Ident(
+                        "main",
+                    ),
+                    [],
+                ),
+                initializer: None,
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
+            },
+            Stmt {
+                kind: Block(
+                    [
+                        Stmt {
+                            kind: Declare(
+                                Declaration {
+                                    ty_spec: Int,
+                                    n_star: 0,
+                                    declrtr: Ident(
+                                        "a",
+                                    ),
+                                    initializer: Some(
+                                        Expr(
+                                            Expr {
+                                                kind: Num(
+                                                    5,
+                                                ),
+                                                pos: Position {
+                                                    n_char: 20,
+                                                    n_line: 0,
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                    pos: Position {
+                                        n_char: 12,
+                                        n_line: 0,
+                                    },
+                                },
+                            ),
+                        },
+                        Stmt {
+                            kind: Declare(
+                                Declaration {
+                                    ty_spec: Int,
+                                    n_star: 1,
+                                    declrtr: Ident(
+                                        "p",
+                                    ),
+                                    initializer: Some(
+                                        Expr(
+                                            Expr {
+                                                kind: Addr(
+                                                    Expr {
+                                                        kind: LVar(
+                                                            "a",
+                                                        ),
+                                                        pos: Position {
+                                                            n_char: 33,
+                                                            n_line: 0,
+                                                        },
+                                                    },
+                                                ),
+                                                pos: Position {
+                                                    n_char: 32,
+                                                    n_line: 0,
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                    pos: Position {
+                                        n_char: 23,
+                                        n_line: 0,
+                                    },
+                                },
+                            ),
+                        },
+                        Stmt {
+                            kind: Return(
+                                Expr {
+                                    kind: Num(
+                                        0,
+                                    ),
+                                    pos: Position {
+                                        n_char: 43,
+                                        n_line: 0,
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                ),
+            },
+        ),
+    ],
+}

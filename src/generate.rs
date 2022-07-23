@@ -259,7 +259,7 @@ impl<'a> Generater<'a> {
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
                     Type::Base(_) => self.error_at(
-                        expr.pos.clone(),
+                        expr.pos,
                         &format!("Deref has to be Ptr type expr, but got {:?}", expr),
                     ),
                     Type::Ptr(base) => *base,

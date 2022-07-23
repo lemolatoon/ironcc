@@ -15,7 +15,6 @@ macro_rules! tokens {
 }
 
 #[cfg(test)]
-#[macro_export]
 pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
     lhs.into_iter()
         .zip(rhs.into_iter())
@@ -75,7 +74,28 @@ pub mod ast {
         n_star: usize,
         direct_declarator: DirectDeclarator,
     ) -> Declaration {
-        Declaration::new(ty_spec, n_star, direct_declarator, Position::default())
+        Declaration::new(
+            ty_spec,
+            n_star,
+            direct_declarator,
+            None,
+            Position::default(),
+        )
+    }
+
+    pub fn declare_with_init(
+        ty_spec: TypeSpec,
+        n_star: usize,
+        direct_declarator: DirectDeclarator,
+        init: Initializer,
+    ) -> Declaration {
+        Declaration::new(
+            ty_spec,
+            n_star,
+            direct_declarator,
+            Some(init),
+            Position::default(),
+        )
     }
 
     pub fn func_dd(name: &str, args: Vec<Declaration>) -> DirectDeclarator {
