@@ -1,6 +1,6 @@
 ---
 source: tests/insta_test.rs
-expression: self.tokens()
+expression: tester.tokens()
 ---
 [
     Token {
@@ -9,7 +9,7 @@ expression: self.tokens()
         ),
         pos: Position {
             n_char: 0,
-            n_line: 1,
+            n_line: 0,
         },
     },
     Token {
@@ -18,7 +18,7 @@ expression: self.tokens()
         ),
         pos: Position {
             n_char: 4,
-            n_line: 1,
+            n_line: 0,
         },
     },
     Token {
@@ -27,7 +27,7 @@ expression: self.tokens()
         ),
         pos: Position {
             n_char: 8,
-            n_line: 1,
+            n_line: 0,
         },
     },
     Token {
@@ -36,7 +36,7 @@ expression: self.tokens()
         ),
         pos: Position {
             n_char: 9,
-            n_line: 1,
+            n_line: 0,
         },
     },
     Token {
@@ -45,7 +45,7 @@ expression: self.tokens()
         ),
         pos: Position {
             n_char: 11,
-            n_line: 1,
+            n_line: 0,
         },
     },
     Token {
@@ -53,8 +53,8 @@ expression: self.tokens()
             Int,
         ),
         pos: Position {
-            n_char: 1,
-            n_line: 2,
+            n_char: 12,
+            n_line: 0,
         },
     },
     Token {
@@ -62,15 +62,15 @@ expression: self.tokens()
             "a",
         ),
         pos: Position {
-            n_char: 5,
-            n_line: 2,
+            n_char: 16,
+            n_line: 0,
         },
     },
     Token {
         kind: Eq,
         pos: Position {
-            n_char: 7,
-            n_line: 2,
+            n_char: 18,
+            n_line: 0,
         },
     },
     Token {
@@ -78,15 +78,15 @@ expression: self.tokens()
             5,
         ),
         pos: Position {
-            n_char: 9,
-            n_line: 2,
+            n_char: 20,
+            n_line: 0,
         },
     },
     Token {
         kind: Semi,
         pos: Position {
-            n_char: 10,
-            n_line: 2,
+            n_char: 21,
+            n_line: 0,
         },
     },
     Token {
@@ -94,40 +94,42 @@ expression: self.tokens()
             Int,
         ),
         pos: Position {
-            n_char: 1,
-            n_line: 3,
+            n_char: 23,
+            n_line: 0,
+        },
+    },
+    Token {
+        kind: BinOp(
+            Star,
+        ),
+        pos: Position {
+            n_char: 27,
+            n_line: 0,
         },
     },
     Token {
         kind: Ident(
-            "b",
+            "p",
         ),
         pos: Position {
-            n_char: 5,
-            n_line: 3,
+            n_char: 28,
+            n_line: 0,
         },
     },
     Token {
         kind: Eq,
         pos: Position {
-            n_char: 7,
-            n_line: 3,
+            n_char: 30,
+            n_line: 0,
         },
     },
     Token {
-        kind: SizeOf,
-        pos: Position {
-            n_char: 9,
-            n_line: 3,
-        },
-    },
-    Token {
-        kind: OpenDelim(
-            Paran,
+        kind: BinOp(
+            And,
         ),
         pos: Position {
-            n_char: 16,
-            n_line: 3,
+            n_char: 32,
+            n_line: 0,
         },
     },
     Token {
@@ -135,90 +137,38 @@ expression: self.tokens()
             "a",
         ),
         pos: Position {
-            n_char: 17,
-            n_line: 3,
-        },
-    },
-    Token {
-        kind: CloseDelim(
-            Paran,
-        ),
-        pos: Position {
-            n_char: 18,
-            n_line: 3,
+            n_char: 33,
+            n_line: 0,
         },
     },
     Token {
         kind: Semi,
         pos: Position {
-            n_char: 19,
-            n_line: 3,
+            n_char: 34,
+            n_line: 0,
         },
     },
     Token {
-        kind: Type(
-            Int,
+        kind: Return,
+        pos: Position {
+            n_char: 36,
+            n_line: 0,
+        },
+    },
+    Token {
+        kind: Num(
+            0,
         ),
         pos: Position {
-            n_char: 1,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: Ident(
-            "c",
-        ),
-        pos: Position {
-            n_char: 5,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: Eq,
-        pos: Position {
-            n_char: 7,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: SizeOf,
-        pos: Position {
-            n_char: 9,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: OpenDelim(
-            Paran,
-        ),
-        pos: Position {
-            n_char: 16,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: Type(
-            Int,
-        ),
-        pos: Position {
-            n_char: 17,
-            n_line: 4,
-        },
-    },
-    Token {
-        kind: CloseDelim(
-            Paran,
-        ),
-        pos: Position {
-            n_char: 20,
-            n_line: 4,
+            n_char: 43,
+            n_line: 0,
         },
     },
     Token {
         kind: Semi,
         pos: Position {
-            n_char: 21,
-            n_line: 4,
+            n_char: 44,
+            n_line: 0,
         },
     },
     Token {
@@ -226,15 +176,15 @@ expression: self.tokens()
             Brace,
         ),
         pos: Position {
-            n_char: 1,
-            n_line: 5,
+            n_char: 45,
+            n_line: 0,
         },
     },
     Token {
         kind: Eof,
         pos: Position {
-            n_char: 0,
-            n_line: 6,
+            n_char: 46,
+            n_line: 0,
         },
     },
 ]

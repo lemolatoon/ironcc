@@ -21,6 +21,8 @@ int main()
     assert(10, 3, test10());
     assert(11, 0, test11());
     assert(12, 0, test12());
+    assert(13, 0, test13());
+    assert(14, 0, test14());
 
     print_ok();
     return 0;
@@ -252,6 +254,25 @@ int test12()
     q = &e;
     *q = **p + **(p + 1) + **(p + 2) - **(p + 3);
     assert(12, -3, *q);
+    return 0;
+}
+
+int test13()
+{
+    assert(13, 4, sizeof(int));
+    assert(13, 8, sizeof(int *));
+    assert(13, 8, sizeof(int ***));
+    int a;
+    assert(13, 4, sizeof(a));
+    assert(13, 4, sizeof a);
+    assert(13, 8, sizeof &a);
+    return 0;
+}
+
+int test14()
+{
+    int a = 5;
+    assert(14, 5, a);
     return 0;
 }
 

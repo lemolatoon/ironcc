@@ -1,17 +1,25 @@
 <program>                   := <program-item>*
 <program-item>              := <declaration>
                                 | <func-def>
-<func-def>                      := <declaration> <blockstmt>
+<func-def>                  := <declaration> <blockstmt>
 
 <declaration>               := <declaration-specifiers> <init-declarator>*
 <declaration-specifiers>    := <type-specifiers>
 <type-specifiers>           := "int"
 
-<init-declarator>           := <declarator>
+<init-declarator>           := <declarator> ("=" <initializer>)?
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
                                 | <direct-declarator> "[" <assign> "]"                                  # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
+<initializer>               := <assign>
+                                | { <assign> ("," <assign>)* }
+                                | { <assign> ("," <assign>)* "," }
+
+<type-name>                 := <specifier-qualifier-list> <abstract-declarator>?
+<specifier-qualifier-list>  := <type-specifiers>
+<abstract-declarator>       := "*"* <direct-abstract-declarator>?
+<direct-abstract-declarator>:= <direct-abstract-declarator>? []
 
 
 <stmt>                      := <expr> ";"
@@ -29,10 +37,13 @@
 <relational>                := <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
-<unary>                     := "+"? 
-                                | "-"? <primary>
+<unary>                     := <primary>
+                                | "+" <primary>
+                                | "-" <primary>
                                 | "*" <unary>
                                 | "&" <unary>
+                                | "sizeof" <unary>
+                                | "sizeof" <type-name>
 <primary>                   := <num> 
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"
                                 | <ident> 

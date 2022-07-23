@@ -242,7 +242,7 @@ impl Token {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, Copy)]
 pub struct Position {
     pub n_char: usize,
     pub n_line: usize,
@@ -254,7 +254,7 @@ impl Position {
     }
 
     pub fn next_line(&mut self) -> Self {
-        let return_struct = self.clone();
+        let return_struct = *self;
         self.n_char = 0;
         self.n_line += 1;
         return_struct
@@ -262,13 +262,13 @@ impl Position {
 
     // increment self.n_char and return not incremented, cloned Position struct
     pub fn next_char(&mut self) -> Self {
-        let return_struct = self.clone();
+        let return_struct = *self;
         self.n_char += 1;
         return_struct
     }
 
     pub fn next_token(&mut self, len_token: usize) -> Self {
-        let return_struct = self.clone();
+        let return_struct = *self;
         self.n_char += len_token;
         return_struct
     }
@@ -317,6 +317,17 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         false
     }
 
+    /// if next token is passed kind, then return true, otherwise return false (Not consume)
+    pub fn peek_expect(&mut self, kind: TokenKind) -> bool {
+        if let Some(token) = self.peek() {
+            if *token.kind == kind {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Return next token is `TokenKind::Type` or not.(Not consume)
     pub fn is_type(&mut self) -> bool {
         if let Some(token) = self.peek() {
             return matches!(*token.kind, TokenKind::Type(_));

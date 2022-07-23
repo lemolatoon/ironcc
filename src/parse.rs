@@ -44,19 +44,10 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        // declaration-specifiers
-        let (type_spec, pos) = match tokens.next() {
-            Some(Token { kind, pos }) => match *kind {
-                TokenKind::Type(TypeToken::Int) => (TypeSpec::Int, pos),
-                _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
-            },
-            None => self.error_at(None, "Next token is None in `parse_declaration`."),
-        };
-        // TODO: support ptr
-        let mut n_star = 0;
-        while tokens.consume(TokenKind::BinOp(BinOpToken::Star)) {
-            n_star += 1;
-        }
+        // <declaration-specifiers> := <type-specifiers>
+        let (type_spec, pos) = self.parse_type_specifier(tokens);
+        // <pointer>*
+        let n_star = self.parse_pointer(tokens);
         // first element of direct diclarator is Ident
         let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
         if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
@@ -71,7 +62,59 @@ impl<'a> Parser<'a> {
             }
             direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
         }
-        Declaration::new(type_spec, n_star, direct_diclarator, pos)
+        // TODO: support Initializer
+        let init = if tokens.consume(TokenKind::Eq) {
+            Some(self.parse_initializer(tokens))
+        } else {
+            None
+        };
+        Declaration::new(type_spec, n_star, direct_diclarator, init, pos)
+    }
+    pub fn parse_initializer<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Initializer
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        if tokens.consume(TokenKind::OpenDelim(DelimToken::Brace)) {
+            let mut exprs = vec![self.parse_assign(tokens)];
+            while tokens.consume(TokenKind::Comma) {
+                if tokens.peek_expect(TokenKind::CloseDelim(DelimToken::Brace)) {
+                    break;
+                };
+
+                exprs.push(self.parse_assign(tokens));
+            }
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Brace));
+            Initializer::Array(exprs)
+        } else {
+            Initializer::Expr(self.parse_assign(tokens))
+        }
+    }
+
+    pub fn parse_type_specifier<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> (TypeSpec, Position)
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        match tokens.next() {
+            Some(Token { kind, pos }) => match *kind {
+                TokenKind::Type(TypeToken::Int) => (TypeSpec::Int, pos),
+                _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
+            },
+            None => self.error_at(None, "Next token is None in `parse_declaration`."),
+        }
+    }
+
+    pub fn parse_pointer<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> usize
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut n_star = 0;
+        while tokens.consume(TokenKind::BinOp(BinOpToken::Star)) {
+            n_star += 1;
+        }
+        n_star
     }
 
     pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Stmt
@@ -153,8 +196,8 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let lhs = self.parse_equality(tokens);
-        let (kind, pos) = match tokens.peek() {
-            Some(Token { kind, pos }) => (kind, pos.clone()),
+        let (kind, &pos) = match tokens.peek() {
+            Some(Token { kind, pos }) => (kind, pos),
             None => self.error_at(None, "Expected token, but got None"),
         };
         match **kind {
@@ -172,12 +215,12 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_relational(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
             let op = match &**kind {
                 TokenKind::EqEq => BinOpKind::Eq,
                 TokenKind::Ne => BinOpKind::Ne,
                 _ => break,
             };
-            let pos = pos.clone();
             tokens.next();
             lhs = Expr::new_binary(op, lhs, self.parse_relational(tokens), pos);
         }
@@ -190,6 +233,7 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_add(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
             let op = match &**kind {
                 TokenKind::Lt => BinOpKind::Lt,
                 TokenKind::Le => BinOpKind::Le,
@@ -197,7 +241,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Ge => BinOpKind::Ge,
                 _ => break,
             };
-            let pos = pos.clone();
+            let pos = pos;
             tokens.next();
             lhs = Expr::new_binary(op, lhs, self.parse_add(tokens), pos);
         }
@@ -210,12 +254,12 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_mul(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Plus) => BinOpKind::Add,
                 TokenKind::BinOp(BinOpToken::Minus) => BinOpKind::Sub,
                 _ => break,
             };
-            let pos = pos.clone();
             tokens.next();
             lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens), pos);
         }
@@ -228,13 +272,14 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_unary(tokens);
         while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
                 TokenKind::BinOp(BinOpToken::Slash) => BinOpKind::Div,
                 TokenKind::BinOp(BinOpToken::Percent) => BinOpKind::Rem,
                 _ => break,
             };
-            let pos = pos.clone();
+            let pos = pos;
             tokens.next();
             lhs = Expr::new_binary(op, lhs, self.parse_unary(tokens), pos);
         }
@@ -246,9 +291,10 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let (kind, pos) = match tokens.peek() {
-            Some(Token { kind, pos }) => (kind, pos.clone()),
+            Some(Token { kind, pos }) => (kind, pos),
             None => self.error_at(None, "Expected token, but got None"),
         };
+        let pos = *pos;
         match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
@@ -265,6 +311,23 @@ impl<'a> Parser<'a> {
             TokenKind::BinOp(BinOpToken::And) => {
                 tokens.next();
                 Expr::new_addr(self.parse_unary(tokens), pos)
+            }
+            TokenKind::SizeOf => {
+                tokens.next();
+                let mut tmp_tokens = tokens.clone();
+                if let (Some(TokenKind::OpenDelim(DelimToken::Paran)), Some(TokenKind::Type(_))) = (
+                    tmp_tokens.next().map(|token| *token.kind()),
+                    tmp_tokens.next().map(|token| *token.kind()),
+                ) {
+                    // e.g) sizeof(int)
+                    tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
+                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens), pos);
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran));
+                    expr
+                } else {
+                    // e.g) sizeof (5)
+                    Expr::new_expr_sizeof(self.parse_unary(tokens), pos)
+                }
             }
             _ => self.parse_primary(tokens),
         }
@@ -306,6 +369,21 @@ impl<'a> Parser<'a> {
             },
             None => self.error_at(None, "Next token is None. in `parse_primary`"),
         }
+    }
+
+    pub fn parse_type_name<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> TypeName
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let (ty_spec, pos) = self.parse_type_specifier(tokens);
+        let n_star = self.parse_pointer(tokens);
+        // TODO: support DirectAbstractDeclarator
+        let abs_declrtr = if n_star == 0 {
+            None
+        } else {
+            Some(AbstractDeclarator::new(n_star, None))
+        };
+        TypeName::new(SpecQual(ty_spec), abs_declrtr, pos)
     }
 
     /// # Panics
@@ -380,18 +458,30 @@ pub struct Stmt {
 #[derive(PartialEq, Eq, Clone, Debug)]
 /// Declaration
 pub struct Declaration {
+    // type-specifier
     pub ty_spec: TypeSpec,
+    // init-declarator
+    // declarator
     pub n_star: usize,
     pub declrtr: DirectDeclarator,
+    // initializer
+    pub initializer: Option<Initializer>,
     pub pos: Position,
 }
 
 impl Declaration {
-    pub fn new(ty_spec: TypeSpec, n_star: usize, declrtr: DirectDeclarator, pos: Position) -> Self {
+    pub fn new(
+        ty_spec: TypeSpec,
+        n_star: usize,
+        declrtr: DirectDeclarator,
+        initializer: Option<Initializer>,
+        pos: Position,
+    ) -> Self {
         Self {
             ty_spec,
             n_star,
             declrtr,
+            initializer,
             pos,
         }
     }
@@ -425,6 +515,12 @@ impl DirectDeclarator {
             DirectDeclarator::Func(direct_declarator, _) => direct_declarator.ident_name(),
         }
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Initializer {
+    Expr(Expr),
+    Array(Vec<Expr>),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -476,6 +572,71 @@ impl Stmt {
     }
 }
 
+/// \<type-name\> := \<specifier-qualifier-list\> \<abstract-declarator\>?
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct TypeName {
+    // TODO: actually Vec
+    spec_quals: SpecQual,
+    abstract_declarator: Option<AbstractDeclarator>,
+    pos: Position,
+}
+
+impl TypeName {
+    pub fn new(
+        spec_quals: SpecQual,
+        abs_declrtr: Option<AbstractDeclarator>,
+        pos: Position,
+    ) -> Self {
+        Self {
+            spec_quals,
+            abstract_declarator: abs_declrtr,
+            pos,
+        }
+    }
+
+    pub fn ty(&self) -> Type {
+        // TODO: also consider array
+        let base = match self.spec_quals.0 {
+            TypeSpec::Int => BaseType::Int,
+        };
+        let mut ty = Type::Base(base);
+        if let Some(ref abs_declrtr) = self.abstract_declarator {
+            for _ in 0..abs_declrtr.n_star {
+                ty = Type::Ptr(Box::new(ty));
+            }
+        }
+        ty
+    }
+}
+
+/// \<specifier-sualifier-list\> := \<type-specifiers\>
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct SpecQual(TypeSpec);
+
+/// \<abstract-declarator\> := "\*"\* \<direct-abstract-declarator\>?
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct AbstractDeclarator {
+    /// "\*"\*
+    n_star: usize,
+    /// \<direct-abstruct-declarator\>?
+    direct_abstruct_declarator: Option<DirectAbstructDeclarator>,
+}
+
+impl AbstractDeclarator {
+    pub fn new(n_star: usize, d_abs_declrtr: Option<DirectAbstructDeclarator>) -> Self {
+        Self {
+            n_star,
+            direct_abstruct_declarator: d_abs_declrtr,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum DirectAbstructDeclarator {
+    /// <direct-abstruct-declarator>? "[]"
+    Array(Option<Box<DirectAbstructDeclarator>>),
+}
+
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum StmtKind {
     Expr(Expr),
@@ -503,6 +664,13 @@ pub enum ExprKind {
     Func(String, Vec<Expr>),
     Deref(Box<Expr>),
     Addr(Box<Expr>),
+    SizeOf(SizeOfOperandKind),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum SizeOfOperandKind {
+    Expr(Box<Expr>),
+    Type(TypeName),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -566,6 +734,20 @@ impl Expr {
     pub fn new_addr(expr: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Addr(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_expr_sizeof(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::SizeOf(SizeOfOperandKind::Expr(Box::new(expr))),
+            pos,
+        }
+    }
+
+    pub fn new_type_sizeof(type_name: TypeName, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)),
             pos,
         }
     }
