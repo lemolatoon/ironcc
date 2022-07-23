@@ -16,6 +16,19 @@ fn insta_tests() {
     tester.test_all();
 }
 
+#[test]
+fn array_syntax_sugar() {
+    let src = "\n\
+    int main() {\n \
+        int a = 5;\n \
+        int b = sizeof (a);\n \
+        int c = sizeof (int);\n \
+    }\n\
+    ";
+    let mut tester = CachedProcesser::new(src);
+    tester.test_all();
+}
+
 struct CachedProcesser<'a, I>
 where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,

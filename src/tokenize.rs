@@ -14,104 +14,53 @@ impl<'a> Tokenizer<'a> {
         let mut pos = Position::default(); // 0, 0
         let mut input = <&str>::clone(&self.input);
 
-        while !input.is_empty() {
-            // reserved token
-
-            // <, <=, >, >=, ==, !=
-            if input.starts_with("<=") {
-                tokens.push(Token::new(TokenKind::Le, pos.next_token(2)));
-                input = &input[2..];
-                continue;
-            } else if input.starts_with(">=") {
-                tokens.push(Token::new(TokenKind::Ge, pos.next_token(2)));
-                input = &input[2..];
-                continue;
-            } else if input.starts_with("==") {
-                tokens.push(Token::new(TokenKind::EqEq, pos.next_token(2)));
-                input = &input[2..];
-                continue;
-            } else if input.starts_with("!=") {
-                tokens.push(Token::new(TokenKind::Ne, pos.next_token(2)));
-                input = &input[2..];
-                continue;
-            }
-
+        'tokenize_loop: while !input.is_empty() {
             // skip white spaces
             if input.starts_with(' ') || input.starts_with('\t') {
                 pos.next_char();
+                input = &input[1..];
+                continue;
             } else if input.starts_with('\n') {
                 pos.next_line();
-            } else if input.starts_with('+') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Plus),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('-') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Minus),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('*') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Star),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('&') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::And),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('/') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Slash),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('%') {
-                tokens.push(Token::new(
-                    TokenKind::BinOp(BinOpToken::Percent),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('(') {
-                tokens.push(Token::new(
-                    TokenKind::OpenDelim(DelimToken::Paran),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with(')') {
-                tokens.push(Token::new(
-                    TokenKind::CloseDelim(DelimToken::Paran),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('{') {
-                tokens.push(Token::new(
-                    TokenKind::OpenDelim(DelimToken::Brace),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('}') {
-                tokens.push(Token::new(
-                    TokenKind::CloseDelim(DelimToken::Brace),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with('[') {
-                tokens.push(Token::new(
-                    TokenKind::OpenDelim(DelimToken::Bracket),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with(']') {
-                tokens.push(Token::new(
-                    TokenKind::CloseDelim(DelimToken::Bracket),
-                    pos.next_char(),
-                ));
-            } else if input.starts_with(',') {
-                tokens.push(Token::new(TokenKind::Comma, pos.next_char()));
-            } else if input.starts_with('<') {
-                tokens.push(Token::new(TokenKind::Lt, pos.next_char()));
-            } else if input.starts_with('>') {
-                tokens.push(Token::new(TokenKind::Gt, pos.next_char()));
-            } else if input.starts_with(';') {
-                tokens.push(Token::new(TokenKind::Semi, pos.next_char()));
-            } else if input.starts_with('=') {
-                tokens.push(Token::new(TokenKind::Eq, pos.next_char()));
-            } else if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+                input = &input[1..];
+                continue;
+            }
+
+            // reserved token
+            let two_word_tokens = vec![
+                ("<=", TokenKind::Le),
+                (">=", TokenKind::Ge),
+                ("==", TokenKind::EqEq),
+                ("!=", TokenKind::Ne),
+                ("+", TokenKind::BinOp(BinOpToken::Plus)),
+                ("-", TokenKind::BinOp(BinOpToken::Minus)),
+                ("*", TokenKind::BinOp(BinOpToken::Star)),
+                ("/", TokenKind::BinOp(BinOpToken::Slash)),
+                ("&", TokenKind::BinOp(BinOpToken::And)),
+                ("%", TokenKind::BinOp(BinOpToken::Percent)),
+                ("(", TokenKind::OpenDelim(DelimToken::Paran)),
+                ("{", TokenKind::OpenDelim(DelimToken::Brace)),
+                ("[", TokenKind::OpenDelim(DelimToken::Bracket)),
+                (")", TokenKind::CloseDelim(DelimToken::Paran)),
+                ("}", TokenKind::CloseDelim(DelimToken::Brace)),
+                ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
+                (",", TokenKind::Comma),
+                ("<", TokenKind::Lt),
+                (">", TokenKind::Gt),
+                (";", TokenKind::Semi),
+                ("=", TokenKind::Eq),
+            ];
+
+            // <, <=, >, >=, ==, !=
+            for (literal, kind) in two_word_tokens {
+                if input.starts_with(literal) {
+                    tokens.push(Token::new(kind, pos.next_token(literal.len())));
+                    input = &input[literal.len()..];
+                    continue 'tokenize_loop;
+                }
+            }
+
+            if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());
                 while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
@@ -150,6 +99,7 @@ impl<'a> Tokenizer<'a> {
                         "while" => TokenKind::While,
                         "for" => TokenKind::For,
                         "int" => TokenKind::Type(TypeToken::Int),
+                        "sizeof" => TokenKind::SizeOf,
                         _ => TokenKind::Ident(ident),
                     },
                     pos.next_token(len_token),
@@ -164,8 +114,7 @@ impl<'a> Tokenizer<'a> {
                         &pos, input
                     ),
                 )
-            } // one character tokenize
-            input = &input[1..];
+            }
         }
         tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
 
@@ -218,6 +167,8 @@ pub enum TokenKind {
     While,
     /// `for`, reserved word
     For,
+    /// `SizeOf`, reserved word
+    SizeOf,
     /// `<` Less than
     Lt,
     /// `<=` Less equal
