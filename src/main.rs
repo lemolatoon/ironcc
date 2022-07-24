@@ -7,11 +7,20 @@ use std::io::Write;
 use std::path::Path;
 
 use ironcc::analyze::Analyzer;
+use ironcc::error::CompileError;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
 use ironcc::{generate::Generater, parse::Parser};
 
-fn main() -> Result<(), std::io::Error> {
+fn main() {
+    let result = compile();
+    match result {
+        Ok(_) => {}
+        Err(err) => eprintln!("{}", err),
+    }
+}
+
+fn compile() -> Result<(), CompileError> {
     let args: Vec<String> = env::args().collect();
     let (mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
@@ -23,7 +32,7 @@ fn main() -> Result<(), std::io::Error> {
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);
-    let program = parser.parse_program(&mut token_stream);
+    let program = parser.parse_program(&mut token_stream)?;
     // println!("{:#?}", program.clone().into_iter().collect::<Vec<_>>());
 
     let mut analyzer = Analyzer::new(&input);

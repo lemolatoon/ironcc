@@ -2,6 +2,7 @@ use insta::assert_debug_snapshot;
 
 use ironcc::{
     analyze::{Analyzer, ConvProgram},
+    error::CompileError,
     parse::{Parser, Program},
     tokenize::{Token, TokenStream, Tokenizer},
 };
@@ -12,27 +13,29 @@ use std::fmt::Debug;
 macro_rules! all {
     ($self: ident) => {
         assert_debug_snapshot!($self.tokens());
-        assert_debug_snapshot!($self.program());
+        assert_debug_snapshot!($self.program().as_ref().unwrap());
         assert_debug_snapshot!($self.conv_program());
     };
 }
 
 #[test]
-fn insta_tests() {
+fn insta_tests() -> Result<(), CompileError> {
     let src = "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}";
     let mut tester = CachedProcesser::new(src);
     all!(tester);
+    Ok(())
 }
 
 #[test]
-fn initializer() {
+fn initializer() -> Result<(), CompileError> {
     let src = "int main() {int a = 5; int *p = &a; return 0;}";
     let mut tester = CachedProcesser::new(src);
     all!(tester);
+    Ok(())
 }
 
 #[test]
-fn array_syntax_sugar() {
+fn array_syntax_sugar() -> Result<(), CompileError> {
     let src = "\n\
     int main() {\n \
         int a = 5;\n \
@@ -43,6 +46,7 @@ fn array_syntax_sugar() {
     ";
     let mut tester = CachedProcesser::new(src);
     all!(tester);
+    Ok(())
 }
 
 struct CachedProcesser<'a, I>
@@ -72,7 +76,7 @@ impl<'a, I> CachedProcesser<'a, I>
 where
     I: Iterator<Item = Token> + std::fmt::Debug + std::clone::Clone,
 {
-    fn program(&mut self) -> &Program {
+    fn program(&mut self) -> &Result<Program, CompileError> {
         self.parser.program(&mut self.token_stream)
     }
 
@@ -84,16 +88,17 @@ where
         let program = {
             match &self.analyzer.program {
                 Some(_) => None,
-                None => Some(self.program().clone()),
+                None => Some(self.program().as_ref().unwrap().clone()),
             }
         };
+        // TODO: Result
         self.analyzer.conv_program(program)
     }
 }
 
 struct CachedParser<'a> {
     parser: Parser<'a>,
-    program: Option<Program>,
+    program: Option<Result<Program, CompileError>>,
 }
 
 impl<'a> CachedParser<'a> {
@@ -104,7 +109,7 @@ impl<'a> CachedParser<'a> {
         }
     }
 
-    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> &Program
+    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> &Result<Program, CompileError>
     where
         I: Iterator<Item = Token> + Clone + Debug,
     {

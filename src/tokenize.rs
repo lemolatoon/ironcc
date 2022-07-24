@@ -1,3 +1,4 @@
+use crate::error::{CompileError, CompileErrorKind, ParseErrorKind};
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -367,9 +368,15 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     }
 
     /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: TokenKind) {
+    pub fn expect(&mut self, kind: TokenKind) -> Result<(), CompileError> {
         let peeked_token = self.next();
         match peeked_token {
+            Some(Token { kind: got, pos: _ })
+                if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof =>
+            {
+                Err(self.new_unexpected_eof(Box::new(kind)))
+            }
+            None => Err(self.new_unexpected_eof(Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
                     self.error_at(
@@ -377,8 +384,8 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
                         &format!("Expected {:?}, but got {:?}", kind, token.kind),
                     )
                 }
+                Ok(())
             }
-            None => self.error_at(None, &format!("Expected {:?}, but got None", kind)),
         }
     }
 
@@ -397,6 +404,13 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(token) => matches!(token, TokenKind::Eof),
             None => panic!("This stream is already used."),
         }
+    }
+
+    pub fn new_unexpected_eof(&self, kind: Box<dyn Debug>) -> CompileError {
+        CompileError::new(
+            self.input,
+            CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
+        )
     }
 
     /// # Panics
