@@ -707,7 +707,7 @@ fn parse_ptr() -> Result<(), CompileError> {
         TokenKind::Eof
     );
     assert_eq!(
-        tokenize_and_kinds(&input),
+        tokenize_and_kinds(&input)?,
         tokens
             .clone()
             .into_iter()
@@ -747,7 +747,7 @@ fn parse_declaration() -> Result<(), CompileError> {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let tokenized = tokenize_and_kinds(&input);
+    let tokenized = tokenize_and_kinds(&input)?;
     assert_eq!(
         tokenized.clone(),
         tokens
@@ -782,7 +782,7 @@ fn parse_declaration() -> Result<(), CompileError> {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let tokenized = tokenize_and_kinds(&input);
+    let tokenized = tokenize_and_kinds(&input)?;
     assert_eq!(
         tokenized.clone(),
         tokens

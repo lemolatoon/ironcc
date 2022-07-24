@@ -1,5 +1,11 @@
 extern crate ironcc;
-use ironcc::tokenize::Token;
+use ironcc::{
+    analyze::{Analyzer, ConvProgram},
+    error::CompileError,
+    parse::{Parser, Program},
+    tokenize::{Token, TokenStream, Tokenizer},
+};
+use std::fmt::Debug;
 
 #[cfg(test)]
 #[macro_export]
@@ -49,6 +55,115 @@ macro_rules! token_kinds {
             .map(|token| token.kind())
             .collect::<Vec<_>>()
     }};
+}
+
+pub struct CachedProcesser<'a> {
+    tokenizer: CachedTokenizer<'a>,
+    parser: CachedParser<'a>,
+    analyzer: CachedAnalyzer<'a>,
+}
+
+impl<'a> CachedProcesser<'a> {
+    pub fn new(src: &'a str) -> Self {
+        Self {
+            tokenizer: CachedTokenizer::new(src),
+            parser: CachedParser::new(src),
+            analyzer: CachedAnalyzer::new(src),
+        }
+    }
+}
+
+impl<'a> CachedProcesser<'a> {
+    pub fn program(&mut self) -> Result<&Program, CompileError> {
+        let stream = self.tokenizer.stream()?;
+        self.parser.program(stream)
+    }
+
+    pub fn tokens(&mut self) -> Result<&Vec<Token>, CompileError> {
+        self.tokenizer.tokens()
+    }
+
+    pub fn conv_program(&mut self) -> Result<&ConvProgram, CompileError> {
+        let program = self.program()?.clone();
+        // TODO: Result
+        Ok(self.analyzer.conv_program(program))
+    }
+}
+
+struct CachedTokenizer<'a> {
+    src: &'a str,
+    tokenizer: Tokenizer<'a>,
+    tokens: Option<Result<Vec<Token>, CompileError>>,
+    token_stream: Option<Result<TokenStream<'a, std::vec::IntoIter<Token>>, CompileError>>,
+}
+
+impl<'a> CachedTokenizer<'a> {
+    fn new(src: &'a str) -> Self {
+        Self {
+            src,
+            tokenizer: Tokenizer::new(src),
+            tokens: None,
+            token_stream: None,
+        }
+    }
+
+    fn tokens(&mut self) -> Result<&Vec<Token>, CompileError> {
+        self.tokens
+            .get_or_insert_with(|| self.tokenizer.tokenize())
+            .as_ref()
+            .map_err(|err| err.clone())
+    }
+
+    fn stream(&mut self) -> Result<&mut TokenStream<'a, std::vec::IntoIter<Token>>, CompileError> {
+        let iter = self.tokens().map(|vec| vec.clone().into_iter())?;
+        self.token_stream
+            .get_or_insert_with(|| Ok(TokenStream::new(iter, self.src)))
+            .as_mut()
+            .map_err(|err| err.clone())
+    }
+}
+
+struct CachedParser<'a> {
+    parser: Parser<'a>,
+    program: Option<Result<Program, CompileError>>,
+}
+
+impl<'a> CachedParser<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Self {
+            parser: Parser::new(input),
+            program: None,
+        }
+    }
+
+    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> Result<&Program, CompileError>
+    where
+        I: Iterator<Item = Token> + Clone + Debug,
+    {
+        self.program
+            .get_or_insert_with(|| self.parser.parse_program(stream))
+            .as_ref()
+            .map_err(|err| err.clone())
+    }
+}
+
+struct CachedAnalyzer<'a> {
+    analyzer: Analyzer<'a>,
+    program: Option<ConvProgram>,
+}
+
+impl<'a> CachedAnalyzer<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Self {
+            analyzer: Analyzer::new(input),
+            program: None,
+        }
+    }
+
+    pub fn conv_program(&mut self, program: Program) -> &ConvProgram {
+        self.program
+            .get_or_insert_with(|| self.analyzer.down_program(program))
+    }
 }
 
 pub mod ast {

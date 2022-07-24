@@ -28,7 +28,7 @@ fn compile() -> Result<(), CompileError> {
         .expect("This source is not valid UTF8");
 
     let tokenizer = Tokenizer::new(&input);
-    let tokens = tokenizer.tokenize();
+    let tokens = tokenizer.tokenize()?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);

@@ -59,7 +59,7 @@ impl<'a> Parser<'a> {
         // <pointer>*
         let n_star = self.parse_pointer(tokens)?;
         // first element of direct diclarator is Ident
-        let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident());
+        let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident()?);
         if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
             let mut args = Vec::new();
             // function declaration
@@ -119,7 +119,8 @@ impl<'a> Parser<'a> {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
                 TokenKind::Type(TypeToken::Int) => Ok((TypeSpec::Int, pos)),
-                _ => self.error_at(pos, &format!("Expected Type, but got {:?}", kind)),
+                _ => Err(tokens
+                    .new_expected_failed(Box::new("TokenKind::Type(_)"), Token::new(*kind, pos))),
             },
             None => Err(tokens.new_unexpected_eof(Box::new("ToKenKind::Type(_)"))),
         }
@@ -394,10 +395,7 @@ impl<'a> Parser<'a> {
                     Expr::new_lvar(name, pos)
                 }
                 TokenKind::Eof => return Err(tokens.new_unexpected_eof(Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
-                _ => self.error_at(
-                    Some(pos),
-                    &format!("In `parse_primary`, got unexpected token: {:?}", kind),
-                ),
+                _ => return Err(tokens.new_expected_failed(Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, pos))),
             }),
             None => Err(tokens.new_unexpected_eof(Box::new(
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",

@@ -2,15 +2,15 @@ use crate::analyze::ConvExpr;
 use crate::parse::Expr;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
-use crate::tokenize::TokenKind;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::io;
 
+#[derive(Clone)]
 pub struct CompileError {
-    kind: CompileErrorKind,
-    src: String,
+    pub kind: CompileErrorKind,
+    pub src: String,
 }
 
 impl CompileError {
@@ -24,11 +24,25 @@ impl CompileError {
 
 #[derive(Debug)]
 pub enum CompileErrorKind {
+    TokenizeError(TokenizeErrorKind),
     ParseError(ParseErrorKind),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
     Unimplemented(String),
-    IOError(io::Error),
+    IOError(Box<dyn Debug>),
+}
+
+impl Clone for CompileErrorKind {
+    fn clone(&self) -> Self {
+        match self {
+            Self::TokenizeError(arg0) => Self::TokenizeError(arg0.clone()),
+            Self::ParseError(arg0) => Self::ParseError(arg0.clone()),
+            Self::AnalyzeError(arg0) => Self::AnalyzeError(arg0.clone()),
+            Self::GenerateError(arg0) => Self::GenerateError(arg0.clone()),
+            Self::Unimplemented(arg0) => Self::Unimplemented(arg0.clone()),
+            Self::IOError(arg0) => Self::IOError(Box::new(format!("{:?}", arg0))),
+        }
+    }
 }
 
 impl Error for CompileError {}
@@ -36,10 +50,15 @@ impl Error for CompileError {}
 impl From<io::Error> for CompileError {
     fn from(err: io::Error) -> Self {
         Self {
-            kind: CompileErrorKind::IOError(err),
+            kind: CompileErrorKind::IOError(Box::new(err)),
             src: String::new(), // no source
         }
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum TokenizeErrorKind {
+    UnexpectedChar(Position, char),
 }
 
 #[derive(Debug)]
@@ -47,9 +66,21 @@ pub enum ParseErrorKind {
     /// An error returned when an operation could not be completed because an "end of file" was reached prematurely.
     UnexpectedEof(Box<dyn Debug>),
     ExpectFailed {
-        expect: TokenKind,
+        expect: Box<dyn Debug>,
         got: Token,
     },
+}
+
+impl Clone for ParseErrorKind {
+    fn clone(&self) -> Self {
+        match self {
+            Self::UnexpectedEof(arg0) => Self::UnexpectedEof(Box::new(format!("{:?}", arg0))),
+            Self::ExpectFailed { expect, got } => Self::ExpectFailed {
+                expect: Box::new(format!("{:?}", expect)),
+                got: got.clone(),
+            },
+        }
+    }
 }
 
 impl Display for CompileError {
@@ -62,6 +93,10 @@ impl Debug for CompileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use CompileErrorKind::*;
         match &self.kind {
+            TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "Got Unexpected char while tokenizing: `{}`", c)?;
+            }
             ParseError(ParseErrorKind::UnexpectedEof(expect)) => {
                 error_at_eof(&self.src, f)?;
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
@@ -73,7 +108,7 @@ impl Debug for CompileError {
             AnalyzeError(_) => todo!(),
             GenerateError(_) => todo!(),
             Unimplemented(_) => todo!(),
-            IOError(err) => Display::fmt(err, f)?,
+            IOError(err) => Debug::fmt(err, f)?,
         };
         Ok(())
     }
@@ -121,6 +156,7 @@ fn error_at(
             tmp_vec = Vec::new();
         }
     }
+    same_line_positions.push(tmp_vec);
     let max_prefix_len = same_line_positions
         .last()
         .unwrap()
@@ -134,7 +170,7 @@ fn error_at(
         let mut splited = src.split('\n');
         let n_line = same_line_pos.first().unwrap().n_line;
         let mut num_prefix = String::with_capacity(max_prefix_len);
-        num_prefix.push_str(&n_line.to_string());
+        num_prefix.push_str(&(n_line + 1).to_string());
         while num_prefix.len() < max_prefix_len {
             if num_prefix.len() == max_prefix_len - 2 {
                 num_prefix.push(':');
@@ -152,8 +188,11 @@ fn error_at(
         }?;
         let n_iter = same_line_pos.last().unwrap().n_char + max_prefix_len;
         let mut buffer = String::with_capacity(n_iter + 1);
-        let mut point = same_line_pos.into_iter().map(|pos| pos.n_char).peekable();
-        for idx in 0..n_iter {
+        let mut point = same_line_pos
+            .into_iter()
+            .map(|pos| pos.n_char + max_prefix_len)
+            .peekable();
+        for idx in 0..=n_iter {
             match point.peek() {
                 Some(&next) if next == idx => buffer.push('^'),
                 _ => buffer.push(' '),

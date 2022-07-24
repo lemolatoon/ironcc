@@ -1,4 +1,4 @@
-use crate::error::{CompileError, CompileErrorKind, ParseErrorKind};
+use crate::error::{CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind};
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -10,7 +10,7 @@ impl<'a> Tokenizer<'a> {
         Self { input }
     }
 
-    pub fn tokenize(&self) -> Vec<Token> {
+    pub fn tokenize(&self) -> Result<Vec<Token>, CompileError> {
         let mut tokens = Vec::new();
         let mut pos = Position::default(); // 0, 0
         let mut input = <&str>::clone(&self.input);
@@ -108,18 +108,19 @@ impl<'a> Tokenizer<'a> {
                 input = &input[len_token..];
                 continue;
             } else {
-                self.error_at(
-                    &pos,
-                    &format!(
-                        "Unexpected char while tokenize : {:?}\nrest input: {:?}\n",
-                        &pos, input
-                    ),
-                )
+                return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
             }
         }
         tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
 
-        tokens
+        Ok(tokens)
+    }
+
+    pub fn new_unexpected_char(&self, pos: Position, c: char) -> CompileError {
+        CompileError::new(
+            self.input,
+            CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)),
+        )
     }
 
     /// # Panics
@@ -336,34 +337,31 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         false
     }
 
-    pub fn expect_number(&mut self) -> isize {
+    pub fn expect_number(&mut self) -> Result<isize, CompileError> {
         let token = self.next();
         // let next = token.map(|token| *token.kind);
         match token {
             Some(Token { kind, pos }) => match *kind {
-                TokenKind::Num(num) => num,
-                _ => self.error_at(Some(pos), &format!("number expected, but got {:?}", kind)),
+                TokenKind::Num(num) => Ok(num),
+                _ => {
+                    Err(self
+                        .new_expected_failed(Box::new("TokenKind::Num(_)"), Token::new(*kind, pos)))
+                }
             },
-            _ => self.error_at(None, &format!("number expected, but got {:?}", token)),
+            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Num(_)"))),
         }
     }
 
     /// # Panics
     /// when next token is not TokenKind::Ident
-    pub fn consume_ident(&mut self) -> String {
+    pub fn consume_ident(&mut self) -> Result<String, CompileError> {
         let token = self.next();
         match token {
-            Some(Token { kind, pos }) => match *kind {
-                TokenKind::Ident(name) => name,
-                _ => self.error_at(
-                    Some(pos),
-                    &format!("TokenKind::Ident expected, but got {:?}", kind),
-                ),
+            Some(token) => match *token.kind {
+                TokenKind::Ident(name) => Ok(name),
+                _ => Err(self.new_expected_failed(Box::new("TokenKind::Ident(_)"), token)),
             },
-            _ => self.error_at(
-                None,
-                &format!("TokenKind::Ident expected, but got {:?}", token),
-            ),
+            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Ident(_)"))),
         }
     }
 
@@ -379,10 +377,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             None => Err(self.new_unexpected_eof(Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
-                    self.error_at(
-                        token.pos,
-                        &format!("Expected {:?}, but got {:?}", kind, token.kind),
-                    )
+                    return Err(self.new_expected_failed(Box::new(kind), token));
                 }
                 Ok(())
             }
@@ -410,6 +405,13 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         CompileError::new(
             self.input,
             CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
+        )
+    }
+
+    pub fn new_expected_failed(&self, expect: Box<dyn Debug>, got: Token) -> CompileError {
+        CompileError::new(
+            self.input,
+            CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
         )
     }
 
@@ -502,7 +504,7 @@ pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
         })
 }
 
-pub fn tokenize_and_kinds(input: &str) -> Vec<Box<TokenKind>> {
+pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError> {
     let tokenizer = Tokenizer::new(input);
-    tokenizer.tokenize().into_iter().map(Token::kind).collect()
+    Ok(tokenizer.tokenize()?.into_iter().map(Token::kind).collect())
 }
