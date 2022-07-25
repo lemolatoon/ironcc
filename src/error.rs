@@ -69,15 +69,19 @@ impl CompileError {
         )
     }
 
-    pub fn new_type_error(
+    pub fn new_type_error<T: Into<String>>(
         src: &str,
         expr0: ConvExpr,
         expr1: ConvExpr,
-        msg: Option<String>,
+        msg: Option<T>,
     ) -> Self {
         CompileError::new(
             src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, msg)),
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+                expr0,
+                expr1,
+                msg.map(std::convert::Into::into),
+            )),
         )
     }
 
@@ -201,7 +205,6 @@ fn error_at(
     mut positions: Vec<Position>,
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
-    // TODO: fix bug when positions.len() >= 2.
     writeln!(f, "====================")?;
     writeln!(f, "{}", src)?;
     writeln!(f, "====================")?;
@@ -258,7 +261,10 @@ fn error_at(
             .peekable();
         for idx in 0..=n_iter {
             match point.peek() {
-                Some(&next) if next == idx => buffer.push('^'),
+                Some(&next) if next == idx => {
+                    point.next();
+                    buffer.push('^');
+                }
                 _ => buffer.push(' '),
             }
         }

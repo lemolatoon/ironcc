@@ -5,18 +5,22 @@ use std::io::BufWriter;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use std::process::exit;
 
 use ironcc::analyze::Analyzer;
 use ironcc::error::CompileError;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
-use ironcc::{generate::Generater, parse::Parser};
+use ironcc::{generate::Generator, parse::Parser};
 
 fn main() {
     let result = compile();
     match result {
         Ok(_) => {}
-        Err(err) => eprintln!("{}", err),
+        Err(err) => {
+            eprintln!("{}", err);
+            exit(1);
+        }
     }
 }
 
@@ -39,7 +43,7 @@ fn compile() -> Result<(), CompileError> {
     let converted_program = analyzer.down_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);
-    let mut generater = Generater::new(&input);
+    let mut generater = Generator::new(&input);
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 

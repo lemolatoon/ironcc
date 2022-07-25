@@ -9,13 +9,13 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Generater<'a> {
+pub struct Generator<'a> {
     input: &'a str,
     label: usize,
     depth: usize,
 }
 
-impl<'a> Generater<'a> {
+impl<'a> Generator<'a> {
     pub const fn new(input: &'a str) -> Self {
         Self {
             input,
@@ -100,7 +100,6 @@ impl<'a> Generater<'a> {
                     writeln!(f, "{}:", name)?;
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
-                    // TODO: determine this dynamically by counting the number of local variables
                     writeln!(f, "  sub rsp, {}", lvars.len() * 8)?; // 64bit var * 8
 
                     // assign args
@@ -115,7 +114,6 @@ impl<'a> Generater<'a> {
                     }
                     // gen body stmt
                     self.gen_stmt(f, body)?;
-                    // TODO: change this label dynamically base on func name
                     writeln!(f, ".L{}_ret:", name)?;
                     writeln!(f, "  mov rsp, rbp")?;
                     self.pop(f, format_args!("rbp"))?;

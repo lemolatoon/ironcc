@@ -6,7 +6,7 @@ use crate::{
 use std::fmt::Debug;
 
 pub struct Parser<'a> {
-    /// input sorce code
+    /// input source code
     /// this member is only used when macro `unimplemented_err` is called
     #[allow(dead_code)]
     input: &'a str,
@@ -75,7 +75,6 @@ impl<'a> Parser<'a> {
             }
             direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
         }
-        // TODO: support Initializer
         let init = if tokens.consume(&TokenKind::Eq) {
             Some(self.parse_initializer(tokens)?)
         } else {
