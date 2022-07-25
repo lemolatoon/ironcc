@@ -85,8 +85,7 @@ impl<'a> CachedProcesser<'a> {
 
     pub fn conv_program(&mut self) -> Result<&ConvProgram, CompileError> {
         let program = self.program()?.clone();
-        // TODO: Result
-        Ok(self.analyzer.conv_program(program))
+        self.analyzer.conv_program(program)
     }
 }
 
@@ -149,7 +148,7 @@ impl<'a> CachedParser<'a> {
 
 struct CachedAnalyzer<'a> {
     analyzer: Analyzer<'a>,
-    program: Option<ConvProgram>,
+    program: Option<Result<ConvProgram, CompileError>>,
 }
 
 impl<'a> CachedAnalyzer<'a> {
@@ -160,9 +159,11 @@ impl<'a> CachedAnalyzer<'a> {
         }
     }
 
-    pub fn conv_program(&mut self, program: Program) -> &ConvProgram {
+    pub fn conv_program(&mut self, program: Program) -> Result<&ConvProgram, CompileError> {
         self.program
             .get_or_insert_with(|| self.analyzer.down_program(program))
+            .as_ref()
+            .map_err(|err| err.clone())
     }
 }
 

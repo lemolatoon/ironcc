@@ -36,7 +36,7 @@ fn compile() -> Result<(), CompileError> {
     // println!("{:#?}", program.clone().into_iter().collect::<Vec<_>>());
 
     let mut analyzer = Analyzer::new(&input);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);
     let mut generater = Generater::new(&input);

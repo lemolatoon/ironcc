@@ -1,11 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
+    error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     parse::{
         BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Initializer, Program,
         ProgramKind, SizeOfOperandKind, Stmt, StmtKind, UnOp,
     },
     tokenize::Position,
+    unimplemented_err,
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -19,18 +21,18 @@ impl<'a> Analyzer<'a> {
         Self { input, offset: 0 }
     }
 
-    pub fn down_program(&mut self, program: Program) -> ConvProgram {
+    pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
         let mut conv_program = ConvProgram::new();
         for component in program.into_iter() {
             match component {
                 ProgramKind::Func(func_declare, body) => {
                     let mut lvar_map = BTreeMap::new();
                     self.offset = 0; // reset another func's offset
-                    conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map))
+                    conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map)?)
                 }
             }
         }
-        conv_program
+        Ok(conv_program)
     }
 
     pub fn down_func_declare(
@@ -38,16 +40,17 @@ impl<'a> Analyzer<'a> {
         declare: Declaration,
         body: Stmt,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> ConvProgramKind {
+    ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
         let ident = declare.ident_name();
         // TODO: manage fucn's return type
         let ty = declare.ty();
         let args = match declare.declrtr.clone() {
-            DirectDeclarator::Ident(_) => self.error_at(
+            DirectDeclarator::Ident(_) => Err(unimplemented_err!(
+                self,
                 declare.pos,
-                "Currently top-level declaration is not allowed.",
-            ),
+                "Currently top-level declaration is not allowed."
+            ))?,
             DirectDeclarator::Func(_, args) => args,
         };
         for arg in args {
@@ -70,13 +73,13 @@ impl<'a> Analyzer<'a> {
                 }),
             );
         }
-        ConvProgramKind::Func(ConvFuncDef::new(
+        Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
             ident.to_owned(),
             lvars,
-            self.down_stmt(body, lvar_map, ident.to_owned()),
+            self.down_stmt(body, lvar_map, ident.to_owned())?,
             lvar_map.clone().into_values().collect::<BTreeSet<_>>(),
-        ))
+        )))
     }
 
     pub fn down_stmt(
@@ -84,36 +87,39 @@ impl<'a> Analyzer<'a> {
         stmt: Stmt,
         lvar_map: &mut BTreeMap<String, Lvar>,
         fn_name: String,
-    ) -> ConvStmt {
-        match stmt.kind {
+    ) -> Result<ConvStmt, CompileError> {
+        Ok(match stmt.kind {
             // do nothing
-            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)),
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, lvar_map)?),
             // do nothing
-            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map), fn_name),
+            StmtKind::Return(expr) => ConvStmt::new_ret(self.down_expr(expr, lvar_map)?, fn_name),
             // do nothing
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
-                self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map, fn_name.clone()),
-                els.map(|stmt| self.down_stmt(*stmt, lvar_map, fn_name.clone())),
+                self.down_expr(cond, lvar_map)?,
+                self.down_stmt(*then, lvar_map, fn_name.clone())?,
+                els.map(|stmt| self.down_stmt(*stmt, lvar_map, fn_name.clone()))
+                    .transpose()?,
             ),
             // do nothing
             StmtKind::While(cond, then) => ConvStmt::new_while(
-                self.down_expr(cond, lvar_map),
-                self.down_stmt(*then, lvar_map, fn_name),
+                self.down_expr(cond, lvar_map)?,
+                self.down_stmt(*then, lvar_map, fn_name)?,
             ),
             // do nothing
             StmtKind::For(init, cond, inc, then) => ConvStmt::new_for(
-                init.map(|expr| self.down_expr(expr, lvar_map)),
-                cond.map(|expr| self.down_expr(expr, lvar_map)),
-                inc.map(|expr| self.down_expr(expr, lvar_map)),
-                self.down_stmt(*then, lvar_map, fn_name),
+                init.map(|expr| self.down_expr(expr, lvar_map))
+                    .transpose()?,
+                cond.map(|expr| self.down_expr(expr, lvar_map))
+                    .transpose()?,
+                inc.map(|expr| self.down_expr(expr, lvar_map)).transpose()?,
+                self.down_stmt(*then, lvar_map, fn_name)?,
             ),
             // do nothing
             StmtKind::Block(stmts) => ConvStmt::new_block(
                 stmts
                     .into_iter()
                     .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
-                    .collect::<Vec<_>>(),
+                    .collect::<Result<Vec<_>, CompileError>>()?,
             ),
             StmtKind::Declare(declare) => {
                 let ty = declare.ty();
@@ -129,16 +135,20 @@ impl<'a> Analyzer<'a> {
                         // Safety:
                         // the lvar is generated by `Lvar::new` which initializes lvar_map
                         ConvExpr::new_lvar_raw(lvar, ty, declare.pos),
-                        self.down_expr(init, lvar_map),
+                        self.down_expr(init, lvar_map)?,
                         declare.pos,
                     )),
                     _ => ConvStmt::new_block(vec![]),
                 }
             }
-        }
+        })
     }
 
-    pub fn down_expr(&mut self, expr: Expr, lvar_map: &mut BTreeMap<String, Lvar>) -> ConvExpr {
+    pub fn down_expr(
+        &mut self,
+        expr: Expr,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Result<ConvExpr, CompileError> {
         let pos = expr.pos;
         match expr.kind {
             // `a >= b` := `b <= a`
@@ -155,7 +165,7 @@ impl<'a> Analyzer<'a> {
             }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, lvar_map),
             // do nothing
             ExprKind::Binary(binary) => self.down_binary(binary, pos, lvar_map), // do nothing
-            ExprKind::Num(n) => ConvExpr::new_num(n, pos),
+            ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
                 Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
@@ -165,30 +175,29 @@ impl<'a> Analyzer<'a> {
             // do nothing
             ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, lvar_map),
             // do nothing
-            ExprKind::Assign(lhs, rhs) => ConvExpr::new_assign(
-                self.down_expr(*lhs, lvar_map),
-                self.down_expr(*rhs, lvar_map),
+            ExprKind::Assign(lhs, rhs) => Ok(ConvExpr::new_assign(
+                self.down_expr(*lhs, lvar_map)?,
+                self.down_expr(*rhs, lvar_map)?,
                 pos,
-            ),
+            )),
             // currently all ident is local variable
-            ExprKind::LVar(name) => ConvExpr::new_lvar(name, pos, lvar_map)
-                .unwrap_or_else(|_| self.error_at(pos, "Undeclared Variable is used here.")),
-            ExprKind::Func(name, args) => ConvExpr::new_func(
+            ExprKind::LVar(name) => self.new_lvar(name, pos, lvar_map),
+            ExprKind::Func(name, args) => Ok(ConvExpr::new_func(
                 name,
                 args.into_iter()
                     .map(|expr| self.down_expr(expr, lvar_map))
-                    .collect::<Vec<_>>(),
+                    .collect::<Result<Vec<_>, CompileError>>()?,
                 pos,
-            ),
-            ExprKind::Deref(expr) => ConvExpr::new_deref(self.down_expr(*expr, lvar_map), pos),
-            ExprKind::Addr(expr) => ConvExpr::new_addr(self.down_expr(*expr, lvar_map), pos),
+            )),
+            ExprKind::Deref(expr) => Ok(ConvExpr::new_deref(self.down_expr(*expr, lvar_map)?, pos)),
+            ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(self.down_expr(*expr, lvar_map)?, pos)),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
-                let size = self.down_expr(*expr, lvar_map).ty.size_of() as isize;
-                ConvExpr::new_num(size, pos)
+                let size = self.down_expr(*expr, lvar_map)?.ty.size_of() as isize;
+                Ok(ConvExpr::new_num(size, pos))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
                 let size = type_name.ty().size_of() as isize;
-                ConvExpr::new_num(size, pos)
+                Ok(ConvExpr::new_num(size, pos))
             }
         }
     }
@@ -198,9 +207,9 @@ impl<'a> Analyzer<'a> {
         Binary { kind, lhs, rhs }: Binary,
         pos: Position,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> ConvExpr {
-        let mut rhs = self.down_expr(*rhs, lvar_map);
-        let mut lhs = self.down_expr(*lhs, lvar_map);
+    ) -> Result<ConvExpr, CompileError> {
+        let mut rhs = self.down_expr(*rhs, lvar_map)?;
+        let mut lhs = self.down_expr(*lhs, lvar_map)?;
         let kind = ConvBinOpKind::new(kind).unwrap();
         let new_ty = match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -251,7 +260,7 @@ impl<'a> Analyzer<'a> {
                 Type::Base(BaseType::Int)
             }
         };
-        ConvExpr::new_binary(kind, lhs, rhs, new_ty, pos)
+        Ok(ConvExpr::new_binary(kind, lhs, rhs, new_ty, pos))
     }
 
     /// # Panics
@@ -279,6 +288,29 @@ impl<'a> Analyzer<'a> {
                 panic!();
             }
         }
+    }
+
+    pub fn new_lvar(
+        &self,
+        name: String,
+        pos: Position,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Result<ConvExpr, CompileError> {
+        let lvar = match lvar_map.get(&name) {
+            Some(lvar) => lvar.clone(),
+            None => {
+                return Err(CompileError::new(
+                    self.input,
+                    CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                        name.to_string(),
+                        pos,
+                        VariableKind::Local,
+                    )),
+                ))
+            } // TODO: use appropriate Error
+        };
+        let ty = lvar.ty.clone();
+        Ok(ConvExpr::new_lvar_raw(lvar, ty, pos))
     }
 }
 
@@ -455,23 +487,6 @@ impl ConvExpr {
             ty,
             pos,
         }
-    }
-
-    pub fn new_lvar(
-        name: String,
-        pos: Position,
-        lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Result<Self, ()> {
-        let lvar = match lvar_map.get(&name) {
-            Some(lvar) => lvar.clone(),
-            None => return Err(()),
-        };
-        let ty = lvar.ty.clone();
-        Ok(ConvExpr {
-            kind: ConvExprKind::Lvar(lvar),
-            ty,
-            pos,
-        })
     }
 
     pub fn new_lvar_raw(lvar: Lvar, ty: Type, pos: Position) -> Self {

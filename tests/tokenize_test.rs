@@ -10,7 +10,8 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let tokenizer = Tokenizer::new(&input);
     assert_eq!(
         tokenizer
-            .tokenize()?
+            .tokenize()
+            .unwrap()
             .into_iter()
             .map(|token| token.kind())
             .collect::<Vec<_>>(),
@@ -31,7 +32,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
 
     let input = String::from("10101010101 + 0 + 11  -4");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(10101010101),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -45,7 +46,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     );
     let input = String::from("(1 +1) -2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Num(1),
@@ -60,7 +61,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let input = String::from("1 + 4 -       909");
     let tokenizer = Tokenizer::new(&input);
     assert!(kind_eq(
-        &tokenizer.tokenize()?,
+        &tokenizer.tokenize().unwrap(),
         &tokens!(
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -73,7 +74,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
     let tokenizer = Tokenizer::new(&input);
     assert!(kind_eq(
-        &tokenizer.tokenize()?,
+        &tokenizer.tokenize().unwrap(),
         &tokens!(
             TokenKind::Num(0),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -97,7 +98,7 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
     let input = String::from("1 +1");
     let tokenizer = Tokenizer::new(&input);
     assert_eq!(
-        tokenizer.tokenize()?,
+        tokenizer.tokenize().unwrap(),
         token_poses!(
             (TokenKind::Num(1), Position::new(0, 0)),
             (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
@@ -109,7 +110,7 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
     let input = String::from("1 +1\n\t+5");
     let tokenizer = Tokenizer::new(&input);
     assert_eq!(
-        tokenizer.tokenize()?,
+        tokenizer.tokenize().unwrap(),
         token_poses!(
             (TokenKind::Num(1), Position::new(0, 0)),
             (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
@@ -126,7 +127,7 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
 fn tokenize_compare_op_test() -> Result<(), CompileError> {
     let input = String::from("1 == 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::EqEq,
@@ -136,7 +137,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 < 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::Lt,
@@ -146,7 +147,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 > 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::Gt,
@@ -156,7 +157,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 <= 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::Le,
@@ -166,7 +167,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 >= 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::Ge,
@@ -176,7 +177,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 != 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
             TokenKind::Ne,
@@ -191,7 +192,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
 fn tokenize_tokens_test() -> Result<(), CompileError> {
     let input = String::from("a = 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("a".to_string()),
             TokenKind::Eq,
@@ -202,7 +203,7 @@ fn tokenize_tokens_test() -> Result<(), CompileError> {
 
     let input = String::from("a % 2");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("a".to_string()),
             TokenKind::BinOp(BinOpToken::Percent),
@@ -217,13 +218,13 @@ fn tokenize_tokens_test() -> Result<(), CompileError> {
 fn tokenize_ident_test() -> Result<(), CompileError> {
     let input = String::from("a");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(TokenKind::Ident("a".to_string()), TokenKind::Eof)
     );
 
     let input = String::from("q * z");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("q".to_string()),
             TokenKind::BinOp(BinOpToken::Star),
@@ -234,7 +235,7 @@ fn tokenize_ident_test() -> Result<(), CompileError> {
 
     let input = String::from("abc = cdf = 8*7");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("abc".to_string()),
             TokenKind::Eq,
@@ -253,7 +254,7 @@ fn tokenize_ident_test() -> Result<(), CompileError> {
 fn tokenize_stmt_test() -> Result<(), CompileError> {
     let input = String::from("a;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("a".to_string()),
             TokenKind::Semi,
@@ -263,7 +264,7 @@ fn tokenize_stmt_test() -> Result<(), CompileError> {
 
     let input = String::from("q * z;\nc +c;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("q".to_string()),
             TokenKind::BinOp(BinOpToken::Star),
@@ -283,7 +284,7 @@ fn tokenize_stmt_test() -> Result<(), CompileError> {
 fn tokenize_reserved_test() -> Result<(), CompileError> {
     let input = String::from("returnx = 1;\nreturn returnx;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("returnx".to_string()),
             TokenKind::Eq,
@@ -298,7 +299,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
 
     let input = String::from("x = 2;ifx = 1; if (x == 1) ifx = 3;\nreturn ifx;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
             TokenKind::Eq,
@@ -327,7 +328,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
 
     let input = String::from("x = 2; while(x>0) x = x -1; return x;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
             TokenKind::Eq,
@@ -354,7 +355,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
 
     let input = String::from("x = 2; if(x>0) x = x -1; else x = 5; return x;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
             TokenKind::Eq,
@@ -386,7 +387,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
 
     let input = String::from("for (x = 1; x <= 11; x = x + 1) x = x + 2; return x;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::For,
             TokenKind::OpenDelim(DelimToken::Paran),
@@ -418,7 +419,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
     );
     let input = String::from("for (x = 1; x <= 11; x = x + 1) {x = x + 2;} return x;");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::For,
             TokenKind::OpenDelim(DelimToken::Paran),
@@ -457,7 +458,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
 fn tokenize_call_func_test() -> Result<(), CompileError> {
     let input = String::from("{return foo(1, 2);}");
     assert_eq!(
-        tokenize_and_kinds(&input)?,
+        tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::OpenDelim(DelimToken::Brace),
             TokenKind::Return,

@@ -28,7 +28,7 @@ pub enum CompileErrorKind {
     ParseError(ParseErrorKind),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
-    Unimplemented(String),
+    Unimplemented(Option<Position>, String),
     IOError(Box<dyn Debug>),
 }
 
@@ -39,7 +39,7 @@ impl Clone for CompileErrorKind {
             Self::ParseError(arg0) => Self::ParseError(arg0.clone()),
             Self::AnalyzeError(arg0) => Self::AnalyzeError(arg0.clone()),
             Self::GenerateError(arg0) => Self::GenerateError(arg0.clone()),
-            Self::Unimplemented(arg0) => Self::Unimplemented(arg0.clone()),
+            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(arg0.clone(), arg1.clone()),
             Self::IOError(arg0) => Self::IOError(Box::new(format!("{:?}", arg0))),
         }
     }
@@ -105,9 +105,19 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![got.pos], f)?;
                 writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
             }
+            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
+            }
             AnalyzeError(_) => todo!(),
             GenerateError(_) => todo!(),
-            Unimplemented(_) => todo!(),
+            Unimplemented(Some(pos), msg) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{}", msg)?;
+            }
+            Unimplemented(None, msg) => {
+                writeln!(f, "{}", msg)?;
+            }
             IOError(err) => Debug::fmt(err, f)?,
         };
         Ok(())
@@ -116,13 +126,13 @@ impl Debug for CompileError {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum AnalyzeErrorKind {
-    RedefinedError(VariabelKind),
-    UndeclaredError(VariabelKind),
+    RedefinedError(VariableKind),
+    UndeclaredError(String, Position, VariableKind),
     TypeError(Expr, Expr),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub enum VariabelKind {
+pub enum VariableKind {
     Local,
 }
 

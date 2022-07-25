@@ -4,17 +4,18 @@ pub mod test_utils;
 use std::collections::BTreeMap;
 
 use ironcc::analyze::*;
+use ironcc::error::CompileError;
 use ironcc::parse::*;
 use ironcc::tokenize::Position;
 use test_utils::ast::*;
 
 #[test]
-fn analysis_test() {
+fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -35,7 +36,7 @@ fn analysis_test() {
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Ge, num(1), num(2));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -51,7 +52,7 @@ fn analysis_test() {
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Gt, num(1), num(2));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -61,11 +62,12 @@ fn analysis_test() {
             Type::Base(BaseType::Int),
         )
         .kind
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn analysis_ident_test() {
+fn analysis_ident_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = assign(lvar("a"), num(1));
@@ -80,15 +82,16 @@ fn analysis_ident_test() {
     )
     .unwrap();
     // dummy fucn defining end
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map);
+    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
     assert_eq!(
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn analysis_program_test() {
+fn analysis_program_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
@@ -113,7 +116,7 @@ fn analysis_program_test() {
             expr_stmt(lvar("b")),
         ]),
     )]);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -141,11 +144,12 @@ fn analysis_program_test() {
                 clvar_strct("k", Type::Base(BaseType::Int), 8),
             ]
         )])
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn analysis_local_variable_test() {
+fn analysis_local_variable_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
@@ -171,7 +175,7 @@ fn analysis_local_variable_test() {
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
         ]),
     )]);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -200,11 +204,12 @@ fn analysis_local_variable_test() {
                 clvar_strct("c", Type::Base(BaseType::Int), 8)
             ]
         )])
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn analysis_func_def_test() {
+fn analysis_func_def_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
@@ -231,7 +236,7 @@ fn analysis_func_def_test() {
             ret(bin(BinOpKind::Div, lvar("b"), lvar("c"))),
         ]),
     )]);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -273,10 +278,11 @@ fn analysis_func_def_test() {
             ]
         )])
     );
+    Ok(())
 }
 
 #[test]
-fn analysis_declaration() {
+fn analysis_declaration() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
@@ -305,7 +311,7 @@ fn analysis_declaration() {
             expr_stmt(bin(BinOpKind::Add, lvar("a"), lvar("k"))), // a + k
         ]),
     )]);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -340,11 +346,12 @@ fn analysis_declaration() {
                 clvar_strct("x", Type::Base(BaseType::Int), 20)
             ]
         )])
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn analysis_ptr_addition() {
+fn analysis_ptr_addition() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
@@ -364,10 +371,7 @@ fn analysis_ptr_addition() {
             ret(num(0)),
         ]),
     )]);
-    let converted_program = analyzer.down_program(program);
-    println!("===========================");
-    println!("{:?}", &converted_program);
-    println!("===========================");
+    let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -399,6 +403,7 @@ fn analysis_ptr_addition() {
             ]
         )])
     );
+    Ok(())
 }
 
 fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
@@ -429,7 +434,13 @@ fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
     let mut lvar_map = BTreeMap::new();
     let offset = &mut offset;
     Lvar::new(name.to_string(), offset, ty, &mut lvar_map).unwrap();
-    ConvExpr::new_lvar(name.to_string(), Position::default(), &mut lvar_map).unwrap()
+
+    let lvar = match &mut lvar_map.get(name) {
+        Some(lvar) => lvar.clone(),
+        None => panic!("Illegal func args"),
+    };
+    let ty = lvar.ty.clone();
+    ConvExpr::new_lvar_raw(lvar, ty, Position::default())
 }
 
 fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> Lvar {

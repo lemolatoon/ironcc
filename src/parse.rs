@@ -2,6 +2,7 @@ use crate::{
     analyze::{BaseType, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+    unimplemented_err,
 };
 use std::fmt::Debug;
 
@@ -419,33 +420,6 @@ impl<'a> Parser<'a> {
             Some(AbstractDeclarator::new(n_star, None))
         };
         Ok(TypeName::new(SpecQual(ty_spec), abs_declrtr, pos))
-    }
-
-    /// # Panics
-    /// always
-    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
-        let pos: Option<Position> = pos.into();
-        match pos {
-            None => panic!("Passed pos info was None.\n{}", msg),
-            Some(pos) => {
-                let mut splited = self.input.split('\n');
-                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-                    panic!(
-                        "Position is illegal, pos: {:?},\n input: {}",
-                        pos, self.input
-                    )
-                });
-                eprintln!("{}", line);
-                let mut buffer = String::with_capacity(pos.n_char + 1);
-                for _ in 0..pos.n_char {
-                    buffer.push(' ');
-                }
-                buffer.push('^');
-                eprintln!("{}", buffer);
-                eprintln!("{}", msg);
-                panic!();
-            }
-        }
     }
 }
 
