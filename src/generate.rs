@@ -5,17 +5,17 @@ use crate::{
         ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram,
         ConvProgramKind, ConvStmt, ConvStmtKind, Lvar, Type,
     },
-    tokenize::Position,
+    error::{CompileError, UnexpectedTypeSizeStatus},
 };
 
 #[derive(Debug, Clone)]
-pub struct Generater<'a> {
+pub struct Generator<'a> {
     input: &'a str,
     label: usize,
     depth: usize,
 }
 
-impl<'a> Generater<'a> {
+impl<'a> Generator<'a> {
     pub const fn new(input: &'a str) -> Self {
         Self {
             input,
@@ -28,7 +28,7 @@ impl<'a> Generater<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         arg: std::fmt::Arguments,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         writeln!(f, "  push {}", arg)?;
         self.depth += 1;
         Ok(())
@@ -38,7 +38,7 @@ impl<'a> Generater<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         arg: std::fmt::Arguments,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         writeln!(f, "  pop {}", arg)?;
         self.depth -= 1;
         Ok(())
@@ -50,12 +50,13 @@ impl<'a> Generater<'a> {
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
-        ty: Type,
-    ) -> Result<(), std::io::Error> {
+        ty: &Type,
+        status: UnexpectedTypeSizeStatus,
+    ) -> Result<(), CompileError> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
+            _ => return Err(CompileError::new_type_size_error(self.input, status)),
         };
         writeln!(f, "  mov {} [{}], {}", prefix, lhs, rhs)?;
         Ok(())
@@ -67,12 +68,13 @@ impl<'a> Generater<'a> {
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
-        ty: Type,
-    ) -> Result<(), std::io::Error> {
+        ty: &Type,
+        status: UnexpectedTypeSizeStatus,
+    ) -> Result<(), CompileError> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            n => self.error_at(None, &format!("Unexpected Type size: {} by {:?}", n, ty)),
+            _ => return Err(CompileError::new_type_size_error(self.input, status)),
         };
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
@@ -84,11 +86,11 @@ impl<'a> Generater<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         program: ConvProgram,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         writeln!(f, ".intel_syntax noprefix\n")?;
         writeln!(f, ".global main")?;
 
-        for component in program.into_iter() {
+        for component in program {
             match component {
                 ConvProgramKind::Func(ConvFuncDef {
                     ty: _, // TODO: determine how to use this
@@ -100,7 +102,6 @@ impl<'a> Generater<'a> {
                     writeln!(f, "{}:", name)?;
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
-                    // TODO: determine this dynamically by counting the number of local variables
                     writeln!(f, "  sub rsp, {}", lvars.len() * 8)?; // 64bit var * 8
 
                     // assign args
@@ -111,11 +112,16 @@ impl<'a> Generater<'a> {
                     for (idx, Lvar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
-                        self.assign(f, RegKind::Rax, arg_reg[idx], ty)?; // *rax = value
+                        self.assign(
+                            f,
+                            RegKind::Rax,
+                            arg_reg[idx],
+                            &ty,
+                            UnexpectedTypeSizeStatus::FuncArgs(name.clone(), ty.clone()),
+                        )?; // *rax = value
                     }
                     // gen body stmt
                     self.gen_stmt(f, body)?;
-                    // TODO: change this label dynamically base on func name
                     writeln!(f, ".L{}_ret:", name)?;
                     writeln!(f, "  mov rsp, rbp")?;
                     self.pop(f, format_args!("rbp"))?;
@@ -131,7 +137,7 @@ impl<'a> Generater<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         match stmt.kind {
             ConvStmtKind::Expr(expr) => {
                 self.gen_expr(f, expr)?;
@@ -204,29 +210,41 @@ impl<'a> Generater<'a> {
     }
 
     /// # Errors
-    /// return errors when file IO failed
+    /// return errors when file IO failed or compilation falied
     pub fn gen_expr<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         match expr.kind {
             ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
             ConvExprKind::Lvar(_) => {
                 let ty = expr.ty.clone();
-                self.gen_lvalue(f, expr)?;
+                self.gen_lvalue(f, expr.clone())?;
                 self.pop(f, format_args!("rax"))?; // rax = &expr
-                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
+                self.deref(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(expr),
+                )?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
                 let ty = lhs.ty.clone();
-                self.gen_lvalue(f, *lhs)?;
+                self.gen_lvalue(f, *lhs.clone())?;
                 self.gen_expr(f, *rhs)?;
                 self.pop(f, format_args!("rdi"))?; // rhs; rdi = rhs
                 self.pop(f, format_args!("rax"))?; // lhs's addr; rax = &lhs
-                self.assign(f, RegKind::Rax, RegKind::Rdi, ty)?; // *rax = rdi
+                self.assign(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rdi,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*lhs),
+                )?; // *rax = rdi
                 self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
             ConvExprKind::Func(name, args) => {
@@ -236,7 +254,7 @@ impl<'a> Generater<'a> {
                     .collect();
                 let arg_len = args.len();
                 if arg_len > arg_reg.len() {
-                    panic!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
+                    todo!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
                 }
                 for arg in args {
                     self.gen_expr(f, arg)?;
@@ -258,15 +276,18 @@ impl<'a> Generater<'a> {
             }
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
-                    Type::Base(_) => self.error_at(
-                        expr.pos,
-                        &format!("Deref has to be Ptr type expr, but got {:?}", expr),
-                    ),
+                    Type::Base(_) => return Err(CompileError::new_deref_error(self.input, *expr)),
                     Type::Ptr(base) => *base,
                 };
-                self.gen_expr(f, *expr)?;
+                self.gen_expr(f, *expr.clone())?;
                 self.pop(f, format_args!("rax"))?; // rax = expr
-                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
+                self.deref(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*expr),
+                )?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Addr(expr) => {
@@ -277,12 +298,12 @@ impl<'a> Generater<'a> {
     }
 
     /// # Errors
-    /// return errors when file IO failed
+    /// return errors when file IO failed or compilation failed
     pub fn gen_lvalue<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         match expr.kind {
             ConvExprKind::Lvar(Lvar { offset, ty: _ }) => {
                 writeln!(f, "  mov rax, rbp")?;
@@ -292,13 +313,7 @@ impl<'a> Generater<'a> {
             ConvExprKind::Deref(expr) => {
                 self.gen_expr(f, *expr)?;
             }
-            _ => self.error_at(
-                expr.pos,
-                &format!(
-                    "This {:?} Expr cannnot be used for generating left value",
-                    expr.kind
-                ),
-            ),
+            _ => return Err(CompileError::new_lvalue_error(self.input, expr)),
         }
         Ok(())
     }
@@ -307,7 +322,7 @@ impl<'a> Generater<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         c_binary: ConvBinary,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), CompileError> {
         let ConvBinary { kind: op, lhs, rhs } = c_binary;
         self.gen_expr(f, *lhs)?;
         self.gen_expr(f, *rhs)?;
@@ -362,33 +377,6 @@ impl<'a> Generater<'a> {
         Ok(())
     }
 
-    /// # Panics
-    /// always
-    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
-        let pos: Option<Position> = pos.into();
-        match pos {
-            None => panic!("Passed pos info was None.\n{}", msg),
-            Some(pos) => {
-                let mut splited = self.input.split('\n');
-                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-                    panic!(
-                        "Position is illegal, pos: {:?},\n input: {}",
-                        pos, self.input
-                    )
-                });
-                eprintln!("{}", line);
-                let mut buffer = String::with_capacity(pos.n_char + 1);
-                for _ in 0..pos.n_char {
-                    buffer.push(' ');
-                }
-                buffer.push('^');
-                eprintln!("{}", buffer);
-                eprintln!("{}", msg);
-                panic!();
-            }
-        }
-    }
-
     pub fn label(&mut self) -> usize {
         self.label += 1;
         self.label
@@ -422,16 +410,16 @@ impl ToString for RegKind {
             RegKind::Rsi => "rsi",
             RegKind::Rdx => "rdx",
             RegKind::Rcx => "rcx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "rbp",
+            RegKind::Rsp => "rsp",
             RegKind::R8 => "r8",
             RegKind::R9 => "r9",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10",
+            RegKind::R11 => "r11",
+            RegKind::R12 => "r12",
+            RegKind::R13 => "r13",
+            RegKind::R14 => "r14",
+            RegKind::R15 => "r15",
         }
         .to_string()
     }
@@ -455,43 +443,43 @@ impl TryFrom<&str> for RegKind {
 }
 
 impl RegKind {
-    pub fn dword(&self) -> &str {
+    pub const fn dword(&self) -> &str {
         match self {
             RegKind::Rax => "eax",
             RegKind::Rdi => "edi",
             RegKind::Rsi => "esi",
             RegKind::Rdx => "edx",
             RegKind::Rcx => "ecx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "ebp",
+            RegKind::Rsp => "esp",
             RegKind::R8 => "r8d",
             RegKind::R9 => "r9d",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10d",
+            RegKind::R11 => "r11d",
+            RegKind::R12 => "r12d",
+            RegKind::R13 => "r13d",
+            RegKind::R14 => "r14d",
+            RegKind::R15 => "r15d",
         }
     }
 
-    pub fn qword(&self) -> &str {
+    pub const fn qword(&self) -> &str {
         match self {
             RegKind::Rax => "rax",
             RegKind::Rdi => "rdi",
             RegKind::Rsi => "rsi",
             RegKind::Rdx => "rdx",
             RegKind::Rcx => "rcx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "rbp",
+            RegKind::Rsp => "rsp",
             RegKind::R8 => "r8",
             RegKind::R9 => "r9",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10",
+            RegKind::R11 => "r11",
+            RegKind::R12 => "r12",
+            RegKind::R13 => "r13",
+            RegKind::R14 => "r14",
+            RegKind::R15 => "r15",
         }
     }
 }

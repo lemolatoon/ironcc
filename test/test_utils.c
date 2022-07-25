@@ -5,7 +5,7 @@ void assertion_failed(int index, int expected, int got)
 {
     printf("Assertion_failed At test%d\n", index);
     printf("Expected %d, but got %d\n", expected, got);
-    exit(index);
+    exit(1);
 }
 
 void passed(int index) { printf("Test %d passed\n", index); }

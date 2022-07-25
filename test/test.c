@@ -23,6 +23,7 @@ int main()
     assert(12, 0, test12());
     assert(13, 0, test13());
     assert(14, 0, test14());
+    assert(15, 0, test15());
 
     print_ok();
     return 0;
@@ -273,6 +274,15 @@ int test14()
 {
     int a = 5;
     assert(14, 5, a);
+    return 0;
+}
+
+int test15()
+{
+    int *first_ptr = alloc4(1, 2, 3, 4);
+    int *last_ptr = first_ptr + 3;
+    assert(15, 4, *last_ptr);
+    assert(15, 3, last_ptr - first_ptr);
     return 0;
 }
 

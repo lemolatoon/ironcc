@@ -1,12 +1,13 @@
 extern crate ironcc;
 pub mod test_utils;
 
+use ironcc::error::CompileError;
 use ironcc::parse::*;
 use ironcc::tokenize::*;
 use test_utils::ast::*;
 
 #[test]
-fn parse_test() {
+fn parse_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -15,7 +16,9 @@ fn parse_test() {
         TokenKind::Num(2),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         Expr::new_binary(
@@ -37,7 +40,9 @@ fn parse_test() {
         TokenKind::Num(3),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         Expr::new_binary(
@@ -68,7 +73,9 @@ fn parse_test() {
         TokenKind::Num(5),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -91,7 +98,9 @@ fn parse_test() {
         TokenKind::Num(3),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(BinOpKind::Mul, bin(BinOpKind::Add, num(1), num(2)), num(3)).kind
@@ -115,7 +124,9 @@ fn parse_test() {
         TokenKind::Num(5),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -148,7 +159,9 @@ fn parse_test() {
         TokenKind::Num(5),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -162,10 +175,12 @@ fn parse_test() {
         )
         .kind
     );
+
+    Ok(())
 }
 
 #[test]
-fn parse_unary_test() {
+fn parse_unary_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -187,7 +202,9 @@ fn parse_unary_test() {
         TokenKind::Num(5),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -209,7 +226,9 @@ fn parse_unary_test() {
         TokenKind::Num(1),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(expr.kind, unary(UnOp::Plus, num(1)).kind);
 
     let input = String::new();
@@ -223,15 +242,19 @@ fn parse_unary_test() {
         TokenKind::CloseDelim(DelimToken::Paran),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22))).kind
     );
+
+    Ok(())
 }
 
 #[test]
-fn parse_compare_op_test() {
+fn parse_compare_op_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -244,7 +267,9 @@ fn parse_compare_op_test() {
         TokenKind::Num(4),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -268,7 +293,9 @@ fn parse_compare_op_test() {
         TokenKind::Num(5),
         TokenKind::Eof
     );
-    let expr = parser.parse_expr(&mut TokenStream::new(tokens.into_iter(), &input));
+    let expr = parser
+        .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     assert_eq!(
         expr.kind,
         bin(
@@ -282,10 +309,12 @@ fn parse_compare_op_test() {
         )
         .kind
     );
+
+    Ok(())
 }
 
 #[test]
-fn parse_stmt_test() {
+fn parse_stmt_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -301,7 +330,9 @@ fn parse_stmt_test() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", vec![])),
         block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
@@ -327,17 +358,20 @@ fn parse_stmt_test() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }
 
 #[test]
-fn parse_assign_expr_test() {
+fn parse_assign_expr_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -353,7 +387,9 @@ fn parse_assign_expr_test() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
@@ -378,7 +414,9 @@ fn parse_assign_expr_test() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![expr_stmt(assign(
@@ -406,7 +444,9 @@ fn parse_assign_expr_test() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![expr_stmt(assign(
@@ -416,10 +456,11 @@ fn parse_assign_expr_test() {
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }
 
 #[test]
-fn parse_various_stmts() {
+fn parse_various_stmts() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -448,7 +489,9 @@ fn parse_various_stmts() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![
@@ -493,7 +536,9 @@ fn parse_various_stmts() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     ); // -> 1
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![
@@ -550,7 +595,9 @@ fn parse_various_stmts() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     ); // -> 1
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![
@@ -594,7 +641,9 @@ fn parse_various_stmts() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     ); // -> 1
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![
@@ -608,10 +657,11 @@ fn parse_various_stmts() {
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }
 
 #[test]
-fn parse_call_func() {
+fn parse_call_func() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -630,17 +680,20 @@ fn parse_call_func() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }
 
 #[test]
-fn parse_ptr() {
+fn parse_ptr() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -656,7 +709,9 @@ fn parse_ptr() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![ret(deref(lvar("a")))]),
@@ -696,14 +751,16 @@ fn parse_ptr() {
         TokenKind::Eof
     );
     assert_eq!(
-        tokenize_and_kinds(&input),
+        tokenize_and_kinds(&input).unwrap(),
         tokens
             .clone()
             .into_iter()
             .map(|k| k.kind)
             .collect::<Vec<_>>()
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![
@@ -717,10 +774,11 @@ fn parse_ptr() {
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }
 
 #[test]
-fn parse_declaration() {
+fn parse_declaration() -> Result<(), CompileError> {
     let input = String::from("int main() {int a;}");
     let parser = Parser::new(&input);
     let tokens = tokens!(
@@ -735,16 +793,18 @@ fn parse_declaration() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let tokenized = tokenize_and_kinds(&input);
+    let tokenized = tokenize_and_kinds(&input).unwrap();
     assert_eq!(
-        tokenized.clone(),
+        tokenized,
         tokens
             .clone()
             .into_iter()
             .map(|k| k.kind)
             .collect::<Vec<_>>()
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![declare_stmt(declare(
@@ -755,7 +815,7 @@ fn parse_declaration() {
     )]);
 
     assert_eq!(parsed, expected);
-    let input = String::from("int main() {int *a;}");
+    let input = String::from("int  main() {int *a;}");
     let parser = Parser::new(&input);
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -770,16 +830,18 @@ fn parse_declaration() {
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
     );
-    let tokenized = tokenize_and_kinds(&input);
+    let tokenized = tokenize_and_kinds(&input).unwrap();
     assert_eq!(
-        tokenized.clone(),
+        tokenized,
         tokens
             .clone()
             .into_iter()
             .map(|k| k.kind)
             .collect::<Vec<_>>()
     );
-    let parsed = parser.parse_program(&mut TokenStream::new(tokens.into_iter(), &input));
+    let parsed = parser
+        .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
+        .unwrap();
     let expected = Program::with_vec(vec![func_def(
         declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
         block(vec![declare_stmt(declare(
@@ -790,4 +852,5 @@ fn parse_declaration() {
     )]);
 
     assert_eq!(parsed, expected);
+    Ok(())
 }

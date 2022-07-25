@@ -5,13 +5,26 @@ use std::io::BufWriter;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use std::process::exit;
 
 use ironcc::analyze::Analyzer;
+use ironcc::error::CompileError;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
-use ironcc::{generate::Generater, parse::Parser};
+use ironcc::{generate::Generator, parse::Parser};
 
-fn main() -> Result<(), std::io::Error> {
+fn main() {
+    let result = compile();
+    match result {
+        Ok(_) => {}
+        Err(err) => {
+            eprintln!("{}", err);
+            exit(1);
+        }
+    }
+}
+
+fn compile() -> Result<(), CompileError> {
     let args: Vec<String> = env::args().collect();
     let (mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
@@ -19,18 +32,18 @@ fn main() -> Result<(), std::io::Error> {
         .expect("This source is not valid UTF8");
 
     let tokenizer = Tokenizer::new(&input);
-    let tokens = tokenizer.tokenize();
+    let tokens = tokenizer.tokenize()?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);
-    let program = parser.parse_program(&mut token_stream);
+    let program = parser.parse_program(&mut token_stream)?;
     // println!("{:#?}", program.clone().into_iter().collect::<Vec<_>>());
 
     let mut analyzer = Analyzer::new(&input);
-    let converted_program = analyzer.down_program(program);
+    let converted_program = analyzer.down_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);
-    let mut generater = Generater::new(&input);
+    let mut generater = Generator::new(&input);
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 
