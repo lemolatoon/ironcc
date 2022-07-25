@@ -23,12 +23,16 @@ impl<'a> Analyzer<'a> {
 
     pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
         let mut conv_program = ConvProgram::new();
-        for component in program.into_iter() {
+        for component in program {
             match component {
                 ProgramKind::Func(func_declare, body) => {
                     let mut lvar_map = BTreeMap::new();
                     self.offset = 0; // reset another func's offset
-                    conv_program.push(self.down_func_declare(func_declare, body, &mut lvar_map)?)
+                    conv_program.push(self.down_func_declare(
+                        &func_declare,
+                        body,
+                        &mut lvar_map,
+                    )?);
                 }
             }
         }
@@ -37,7 +41,7 @@ impl<'a> Analyzer<'a> {
 
     pub fn down_func_declare(
         &mut self,
-        declare: Declaration,
+        declare: &Declaration,
         body: Stmt,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvProgramKind, CompileError> {
@@ -46,11 +50,13 @@ impl<'a> Analyzer<'a> {
         // TODO: manage fucn's return type
         let ty = declare.ty();
         let args = match declare.declrtr.clone() {
-            DirectDeclarator::Ident(_) => Err(unimplemented_err!(
-                self,
-                declare.pos,
-                "Currently top-level declaration is not allowed."
-            ))?,
+            DirectDeclarator::Ident(_) => {
+                return Err(unimplemented_err!(
+                    self,
+                    declare.pos,
+                    "Currently top-level declaration is not allowed."
+                ))
+            }
             DirectDeclarator::Func(_, args) => args,
         };
         for arg in args {
@@ -176,7 +182,7 @@ impl<'a> Analyzer<'a> {
                 pos,
             )),
             // currently all ident is local variable
-            ExprKind::LVar(name) => self.fetch_lvar(name, pos, lvar_map),
+            ExprKind::LVar(name) => self.fetch_lvar(&name, pos, lvar_map),
             ExprKind::Func(name, args) => Ok(ConvExpr::new_func(
                 name,
                 args.into_iter()
@@ -197,6 +203,7 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn down_binary(
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
@@ -208,8 +215,8 @@ impl<'a> Analyzer<'a> {
         let kind = ConvBinOpKind::new(kind).unwrap();
         let new_ty = match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
-                (Type::Base(lht), Type::Base(rht)) => {
-                    if lht != rht {
+                (Type::Base(lhs_ty), Type::Base(rhs_ty)) => {
+                    if lhs_ty != rhs_ty {
                         return Err(CompileError::new_type_error(
                             self.input,
                             lhs,
@@ -220,7 +227,7 @@ impl<'a> Analyzer<'a> {
                             ),
                         ));
                     }
-                    Type::Base(*lht)
+                    Type::Base(*lhs_ty)
                 }
                 (Type::Base(base), Type::Ptr(ptr_base)) => {
                     if *base != BaseType::Int {
@@ -338,11 +345,11 @@ impl<'a> Analyzer<'a> {
 
     pub fn fetch_lvar(
         &self,
-        name: String,
+        name: &str,
         pos: Position,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvExpr, CompileError> {
-        let lvar = match lvar_map.get(&name) {
+        let lvar = match lvar_map.get(name) {
             Some(lvar) => lvar.clone(),
             None => {
                 return Err(CompileError::new(
@@ -368,23 +375,17 @@ impl<'a> Analyzer<'a> {
         ty: Type,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<Lvar, CompileError> {
-        let offset = match lvar_map.get(&name) {
-            Some(_) => {
-                return Err(CompileError::new_redefined_variable(
-                    src,
-                    name,
-                    pos,
-                    VariableKind::Local,
-                ))
-            }
-            None => {
-                *new_offset += ty.size_of();
-                lvar_map.insert(
-                    name.clone(), // TODO: remove this clone
-                    Lvar::new_raw(*new_offset, ty.clone()),
-                );
-                *new_offset
-            }
+        let offset = if lvar_map.get(&name).is_some() {
+            return Err(CompileError::new_redefined_variable(
+                src,
+                name,
+                pos,
+                VariableKind::Local,
+            ));
+        } else {
+            *new_offset += ty.size_of();
+            lvar_map.insert(name, Lvar::new_raw(*new_offset, ty.clone()));
+            *new_offset
         };
         Ok(Lvar::new_raw(offset, ty))
     }
@@ -396,7 +397,7 @@ pub struct ConvProgram {
 }
 
 impl ConvProgram {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             components: Vec::new(),
         }
@@ -459,13 +460,13 @@ pub struct ConvStmt {
 }
 
 impl ConvStmt {
-    pub fn new_expr(expr: ConvExpr) -> Self {
+    pub const fn new_expr(expr: ConvExpr) -> Self {
         Self {
             kind: ConvStmtKind::Expr(expr),
         }
     }
 
-    pub fn new_ret(expr: ConvExpr, name: String) -> Self {
+    pub const fn new_ret(expr: ConvExpr, name: String) -> Self {
         Self {
             kind: ConvStmtKind::Return(expr, name),
         }
@@ -565,7 +566,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_lvar_raw(lvar: Lvar, ty: Type, pos: Position) -> Self {
+    pub const fn new_lvar_raw(lvar: Lvar, ty: Type, pos: Position) -> Self {
         ConvExpr {
             kind: ConvExprKind::Lvar(lvar),
             ty,
@@ -614,7 +615,7 @@ pub struct Lvar {
 }
 
 impl Lvar {
-    pub fn new_raw(offset: usize, ty: Type) -> Self {
+    pub const fn new_raw(offset: usize, ty: Type) -> Self {
         Self { offset, ty }
     }
 }
@@ -626,7 +627,7 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn size_of(&self) -> usize {
+    pub const fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
             Type::Ptr(_) => 8,

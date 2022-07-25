@@ -50,7 +50,7 @@ impl<'a> Generater<'a> {
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
-        ty: Type,
+        ty: &Type,
     ) -> Result<(), std::io::Error> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
@@ -67,7 +67,7 @@ impl<'a> Generater<'a> {
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
-        ty: Type,
+        ty: &Type,
     ) -> Result<(), std::io::Error> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
@@ -88,7 +88,7 @@ impl<'a> Generater<'a> {
         writeln!(f, ".intel_syntax noprefix\n")?;
         writeln!(f, ".global main")?;
 
-        for component in program.into_iter() {
+        for component in program {
             match component {
                 ConvProgramKind::Func(ConvFuncDef {
                     ty: _, // TODO: determine how to use this
@@ -111,7 +111,7 @@ impl<'a> Generater<'a> {
                     for (idx, Lvar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
-                        self.assign(f, RegKind::Rax, arg_reg[idx], ty)?; // *rax = value
+                        self.assign(f, RegKind::Rax, arg_reg[idx], &ty)?; // *rax = value
                     }
                     // gen body stmt
                     self.gen_stmt(f, body)?;
@@ -217,7 +217,7 @@ impl<'a> Generater<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr)?;
                 self.pop(f, format_args!("rax"))?; // rax = &expr
-                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
+                self.deref(f, RegKind::Rax, RegKind::Rax, &ty)?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
@@ -226,7 +226,7 @@ impl<'a> Generater<'a> {
                 self.gen_expr(f, *rhs)?;
                 self.pop(f, format_args!("rdi"))?; // rhs; rdi = rhs
                 self.pop(f, format_args!("rax"))?; // lhs's addr; rax = &lhs
-                self.assign(f, RegKind::Rax, RegKind::Rdi, ty)?; // *rax = rdi
+                self.assign(f, RegKind::Rax, RegKind::Rdi, &ty)?; // *rax = rdi
                 self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
             }
             ConvExprKind::Func(name, args) => {
@@ -236,7 +236,7 @@ impl<'a> Generater<'a> {
                     .collect();
                 let arg_len = args.len();
                 if arg_len > arg_reg.len() {
-                    panic!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
+                    todo!("calling function args' len is greater than 6. Currently only support less than or equal to 6.");
                 }
                 for arg in args {
                     self.gen_expr(f, arg)?;
@@ -266,7 +266,7 @@ impl<'a> Generater<'a> {
                 };
                 self.gen_expr(f, *expr)?;
                 self.pop(f, format_args!("rax"))?; // rax = expr
-                self.deref(f, RegKind::Rax, RegKind::Rax, ty)?; // rax = *rax
+                self.deref(f, RegKind::Rax, RegKind::Rax, &ty)?; // rax = *rax
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Addr(expr) => {
@@ -422,16 +422,16 @@ impl ToString for RegKind {
             RegKind::Rsi => "rsi",
             RegKind::Rdx => "rdx",
             RegKind::Rcx => "rcx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "rbp",
+            RegKind::Rsp => "rsp",
             RegKind::R8 => "r8",
             RegKind::R9 => "r9",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10",
+            RegKind::R11 => "r11",
+            RegKind::R12 => "r12",
+            RegKind::R13 => "r13",
+            RegKind::R14 => "r14",
+            RegKind::R15 => "r15",
         }
         .to_string()
     }
@@ -455,43 +455,43 @@ impl TryFrom<&str> for RegKind {
 }
 
 impl RegKind {
-    pub fn dword(&self) -> &str {
+    pub const fn dword(&self) -> &str {
         match self {
             RegKind::Rax => "eax",
             RegKind::Rdi => "edi",
             RegKind::Rsi => "esi",
             RegKind::Rdx => "edx",
             RegKind::Rcx => "ecx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "rbp",
+            RegKind::Rsp => "rsp",
             RegKind::R8 => "r8d",
             RegKind::R9 => "r9d",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10",
+            RegKind::R11 => "r11",
+            RegKind::R12 => "r12",
+            RegKind::R13 => "r13",
+            RegKind::R14 => "r14",
+            RegKind::R15 => "r15",
         }
     }
 
-    pub fn qword(&self) -> &str {
+    pub const fn qword(&self) -> &str {
         match self {
             RegKind::Rax => "rax",
             RegKind::Rdi => "rdi",
             RegKind::Rsi => "rsi",
             RegKind::Rdx => "rdx",
             RegKind::Rcx => "rcx",
-            RegKind::Rbp => todo!(),
-            RegKind::Rsp => todo!(),
+            RegKind::Rbp => "rbp",
+            RegKind::Rsp => "rsp",
             RegKind::R8 => "r8",
             RegKind::R9 => "r9",
-            RegKind::R10 => todo!(),
-            RegKind::R11 => todo!(),
-            RegKind::R12 => todo!(),
-            RegKind::R13 => todo!(),
-            RegKind::R14 => todo!(),
-            RegKind::R15 => todo!(),
+            RegKind::R10 => "r10",
+            RegKind::R11 => "r11",
+            RegKind::R12 => "r12",
+            RegKind::R13 => "r13",
+            RegKind::R14 => "r14",
+            RegKind::R15 => "r15",
         }
     }
 }

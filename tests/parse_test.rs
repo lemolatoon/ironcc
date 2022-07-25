@@ -795,7 +795,7 @@ fn parse_declaration() -> Result<(), CompileError> {
     );
     let tokenized = tokenize_and_kinds(&input).unwrap();
     assert_eq!(
-        tokenized.clone(),
+        tokenized,
         tokens
             .clone()
             .into_iter()
@@ -832,7 +832,7 @@ fn parse_declaration() -> Result<(), CompileError> {
     );
     let tokenized = tokenize_and_kinds(&input).unwrap();
     assert_eq!(
-        tokenized.clone(),
+        tokenized,
         tokens
             .clone()
             .into_iter()

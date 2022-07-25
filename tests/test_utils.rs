@@ -21,9 +21,9 @@ macro_rules! tokens {
 }
 
 #[cfg(test)]
-pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
-    lhs.into_iter()
-        .zip(rhs.into_iter())
+pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
+    lhs.iter()
+        .zip(rhs.iter())
         .fold(true, |acc, (l_token, r_token)| {
             acc && l_token.kind_eq(r_token)
         })

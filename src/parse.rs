@@ -43,7 +43,7 @@ impl<'a> Parser<'a> {
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace))?;
         let mut stmts = Vec::new();
-        while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
+        while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
             stmts.push(self.parse_stmt(tokens)?);
         }
         let body = Stmt::new_block(stmts);
@@ -58,17 +58,17 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         // <declaration-specifiers> := <type-specifiers>
-        let (type_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
         // <pointer>*
-        let n_star = self.parse_pointer(tokens)?;
+        let n_star = Self::parse_pointer(tokens)?;
         // first element of direct diclarator is Ident
         let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident()?);
-        if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
+        if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
             let mut args = Vec::new();
             // function declaration
-            if !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+            if !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
                 args.push(self.parse_declaration(tokens)?);
-                while tokens.consume(TokenKind::Comma) {
+                while tokens.consume(&TokenKind::Comma) {
                     args.push(self.parse_declaration(tokens)?);
                 }
                 tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
@@ -76,7 +76,7 @@ impl<'a> Parser<'a> {
             direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
         }
         // TODO: support Initializer
-        let init = if tokens.consume(TokenKind::Eq) {
+        let init = if tokens.consume(&TokenKind::Eq) {
             Some(self.parse_initializer(tokens)?)
         } else {
             None
@@ -96,10 +96,10 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        if tokens.consume(TokenKind::OpenDelim(DelimToken::Brace)) {
+        if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             let mut exprs = vec![self.parse_assign(tokens)?];
-            while tokens.consume(TokenKind::Comma) {
-                if tokens.peek_expect(TokenKind::CloseDelim(DelimToken::Brace)) {
+            while tokens.consume(&TokenKind::Comma) {
+                if tokens.peek_expect(&TokenKind::CloseDelim(DelimToken::Brace)) {
                     break;
                 };
 
@@ -112,9 +112,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_type_specifier<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
+    pub fn parse_type_specifier<I>(
+        tokens: &mut TokenStream<I>,
     ) -> Result<(TypeSpec, Position), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -129,15 +128,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_pointer<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<usize, CompileError>
+    pub fn parse_pointer<I>(tokens: &mut TokenStream<I>) -> Result<usize, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut n_star = 0;
-        while tokens.consume(TokenKind::BinOp(BinOpToken::Star)) {
+        while tokens.consume(&TokenKind::BinOp(BinOpToken::Star)) {
             n_star += 1;
         }
         Ok(n_star)
@@ -147,44 +143,45 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        if tokens.consume(TokenKind::Return) {
+        if tokens.consume(&TokenKind::Return) {
             // return stmt
             let returning_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::Semi)?;
             Ok(Stmt::ret(returning_expr))
-        } else if tokens.consume(TokenKind::If) {
+        } else if tokens.consume(&TokenKind::If) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
             let conditional_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
             let then_stmt = self.parse_stmt(tokens)?;
-            let mut else_stmt = None;
-            if tokens.consume(TokenKind::Else) {
-                else_stmt = Some(self.parse_stmt(tokens)?);
-            }
+            let else_stmt = if tokens.consume(&TokenKind::Else) {
+                Some(self.parse_stmt(tokens)?)
+            } else {
+                None
+            };
             Ok(Stmt::new_if(conditional_expr, then_stmt, else_stmt))
-        } else if tokens.consume(TokenKind::While) {
+        } else if tokens.consume(&TokenKind::While) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
             let conditional_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
             let then_stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_while(conditional_expr, then_stmt))
-        } else if tokens.consume(TokenKind::For) {
+        } else if tokens.consume(&TokenKind::For) {
             tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
-            let init_expr = if tokens.consume(TokenKind::Semi) {
+            let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
                 let expr = self.parse_expr(tokens)?;
                 tokens.expect(TokenKind::Semi)?;
                 Some(expr)
             };
-            let cond_expr = if tokens.consume(TokenKind::Semi) {
+            let cond_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
                 let expr = self.parse_expr(tokens)?;
                 tokens.expect(TokenKind::Semi)?;
                 Some(expr)
             };
-            let inc_expr = if tokens.consume(TokenKind::Semi) {
+            let inc_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
                 let expr = self.parse_expr(tokens)?;
@@ -193,9 +190,9 @@ impl<'a> Parser<'a> {
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
             let then_stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt))
-        } else if tokens.consume(TokenKind::OpenDelim(DelimToken::Brace)) {
+        } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             let mut stmts = Vec::new();
-            while !tokens.consume(TokenKind::CloseDelim(DelimToken::Brace)) {
+            while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
                 stmts.push(self.parse_stmt(tokens)?);
             }
             Ok(Stmt::new_block(stmts))
@@ -353,7 +350,7 @@ impl<'a> Parser<'a> {
                 ) {
                     // e.g) sizeof(int)
                     tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
+                    let expr = Expr::new_type_sizeof(Self::parse_type_name(tokens)?, pos);
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                     expr
                 } else {
@@ -381,14 +378,14 @@ impl<'a> Parser<'a> {
                     expr
                 }
                 TokenKind::Ident(name) => {
-                    if tokens.consume(TokenKind::OpenDelim(DelimToken::Paran)) {
+                    if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
                         // func call
                         let mut args = Vec::new();
-                        if tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                        if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
                             return Ok(Expr::new_func(name, args, pos));
                         }
                         args.push(self.parse_expr(tokens)?);
-                        while !tokens.consume(TokenKind::CloseDelim(DelimToken::Paran)) {
+                        while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
                             tokens.expect(TokenKind::Comma)?;
                             args.push(self.parse_expr(tokens)?);
                         }
@@ -406,15 +403,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_type_name<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<TypeName, CompileError>
+    pub fn parse_type_name<I>(tokens: &mut TokenStream<I>) -> Result<TypeName, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
-        let n_star = self.parse_pointer(tokens)?;
+        let (ty_spec, pos) = Self::parse_type_specifier(tokens)?;
+        let n_star = Self::parse_pointer(tokens)?;
         // TODO: support DirectAbstractDeclarator
         let abs_declrtr = if n_star == 0 {
             None
@@ -431,7 +425,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             components: Vec::new(),
         }
@@ -481,7 +475,8 @@ pub struct Declaration {
 }
 
 impl Declaration {
-    pub fn new(
+    // TODO: need or not
+    pub const fn new(
         ty_spec: TypeSpec,
         n_star: usize,
         declrtr: DirectDeclarator,
@@ -540,13 +535,13 @@ pub enum TypeSpec {
 }
 
 impl Stmt {
-    pub fn expr(expr: Expr) -> Self {
+    pub const fn expr(expr: Expr) -> Self {
         Self {
             kind: StmtKind::Expr(expr),
         }
     }
 
-    pub fn ret(expr: Expr) -> Self {
+    pub const fn ret(expr: Expr) -> Self {
         Self {
             kind: StmtKind::Return(expr),
         }
@@ -576,7 +571,7 @@ impl Stmt {
         }
     }
 
-    pub fn new_declare(declaration: Declaration) -> Self {
+    pub const fn new_declare(declaration: Declaration) -> Self {
         Self {
             kind: StmtKind::Declare(declaration),
         }
@@ -593,7 +588,7 @@ pub struct TypeName {
 }
 
 impl TypeName {
-    pub fn new(
+    pub const fn new(
         spec_quals: SpecQual,
         abs_declrtr: Option<AbstractDeclarator>,
         pos: Position,
@@ -634,7 +629,7 @@ pub struct AbstractDeclarator {
 }
 
 impl AbstractDeclarator {
-    pub fn new(n_star: usize, d_abs_declrtr: Option<DirectAbstructDeclarator>) -> Self {
+    pub const fn new(n_star: usize, d_abs_declrtr: Option<DirectAbstructDeclarator>) -> Self {
         Self {
             n_star,
             direct_abstruct_declarator: d_abs_declrtr,
@@ -699,14 +694,14 @@ impl Expr {
         }
     }
 
-    pub fn new_num(num: isize, pos: Position) -> Self {
+    pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ExprKind::Num(num),
             pos,
         }
     }
 
-    pub fn new_lvar(name: String, pos: Position) -> Self {
+    pub const fn new_lvar(name: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::LVar(name),
             pos,
@@ -756,7 +751,7 @@ impl Expr {
         }
     }
 
-    pub fn new_type_sizeof(type_name: TypeName, pos: Position) -> Self {
+    pub const fn new_type_sizeof(type_name: TypeName, pos: Position) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)),
             pos,

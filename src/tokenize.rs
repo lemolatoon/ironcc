@@ -6,7 +6,7 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub const fn new(input: &'a str) -> Self {
         Self { input }
     }
 
@@ -18,11 +18,11 @@ impl<'a> Tokenizer<'a> {
         'tokenize_loop: while !input.is_empty() {
             // skip white spaces
             if input.starts_with(' ') || input.starts_with('\t') {
-                pos.next_char();
+                pos.advance_char();
                 input = &input[1..];
                 continue;
             } else if input.starts_with('\n') {
-                pos.next_line();
+                pos.advance_line();
                 input = &input[1..];
                 continue;
             }
@@ -55,7 +55,7 @@ impl<'a> Tokenizer<'a> {
             // <, <=, >, >=, ==, !=
             for (literal, kind) in two_word_tokens {
                 if input.starts_with(literal) {
-                    tokens.push(Token::new(kind, pos.next_token(literal.len())));
+                    tokens.push(Token::new(kind, pos.advance_and_get_token(literal.len())));
                     input = &input[literal.len()..];
                     continue 'tokenize_loop;
                 }
@@ -75,7 +75,7 @@ impl<'a> Tokenizer<'a> {
                     .expect("Currently support only a number literal.");
                 tokens.push(Token::new(
                     TokenKind::Num(num as isize),
-                    pos.next_token(len_token),
+                    pos.advance_and_get_token(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
@@ -103,15 +103,14 @@ impl<'a> Tokenizer<'a> {
                         "sizeof" => TokenKind::SizeOf,
                         _ => TokenKind::Ident(ident),
                     },
-                    pos.next_token(len_token),
+                    pos.advance_and_get_token(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
-            } else {
-                return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
             }
+            return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
         }
-        tokens.push(Token::new(TokenKind::Eof, pos.next_token(0)));
+        tokens.push(Token::new(TokenKind::Eof, pos.advance_and_get_token(0)));
 
         Ok(tokens)
     }
@@ -239,6 +238,8 @@ impl Token {
         self.kind == rhs.kind
     }
 
+    // clippy gives incorrect warning
+    #[allow(clippy::missing_const_for_fn)]
     pub fn kind(self) -> Box<TokenKind> {
         self.kind
     }
@@ -255,21 +256,18 @@ impl Position {
         Self { n_char, n_line }
     }
 
-    pub fn next_line(&mut self) -> Self {
-        let return_struct = *self;
+    pub fn advance_line(&mut self) {
         self.n_char = 0;
         self.n_line += 1;
-        return_struct
     }
 
-    // increment self.n_char and return not incremented, cloned Position struct
-    pub fn next_char(&mut self) -> Self {
-        let return_struct = *self;
+    /// increment `self.n_char`
+    pub fn advance_char(&mut self) {
         self.n_char += 1;
-        return_struct
     }
 
-    pub fn next_token(&mut self, len_token: usize) -> Self {
+    #[must_use]
+    pub fn advance_and_get_token(&mut self, len_token: usize) -> Self {
         let return_struct = *self;
         self.n_char += len_token;
         return_struct
@@ -309,9 +307,9 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     }
 
     /// if next token is passed kind consume it and return true, else do nothing and return false
-    pub fn consume(&mut self, kind: TokenKind) -> bool {
+    pub fn consume(&mut self, kind: &TokenKind) -> bool {
         if let Some(token) = self.peek() {
-            if *token.kind == kind {
+            if *token.kind == *kind {
                 self.next();
                 return true;
             }
@@ -320,9 +318,9 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     }
 
     /// if next token is passed kind, then return true, otherwise return false (Not consume)
-    pub fn peek_expect(&mut self, kind: TokenKind) -> bool {
+    pub fn peek_expect(&mut self, kind: &TokenKind) -> bool {
         if let Some(token) = self.peek() {
-            if *token.kind == kind {
+            if *token.kind == *kind {
                 return true;
             }
         }
@@ -352,8 +350,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         }
     }
 
-    /// # Panics
-    /// when next token is not TokenKind::Ident
     pub fn consume_ident(&mut self) -> Result<String, CompileError> {
         let token = self.next();
         match token {
@@ -461,7 +457,7 @@ macro_rules! tokens {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = crate::tokenize::Position::default();
+            let pos = $crate::tokenize::Position::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -485,7 +481,7 @@ macro_rules! token_kinds {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = crate::tokenize::Position::default();
+            let pos = $crate::tokenize::Position::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -496,9 +492,9 @@ macro_rules! token_kinds {
 }
 
 #[cfg(test)]
-pub fn kind_eq(lhs: &Vec<Token>, rhs: &Vec<Token>) -> bool {
-    lhs.into_iter()
-        .zip(rhs.into_iter())
+pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
+    lhs.iter()
+        .zip(rhs.iter())
         .fold(true, |acc, (l_token, r_token)| {
             acc && l_token.kind_eq(r_token)
         })

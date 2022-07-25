@@ -9,7 +9,7 @@ macro_rules! unimplemented_err {
     ($self: ident, $pos: expr, $msg: expr) => {
         CompileError::new(
             $self.input,
-            crate::error::CompileErrorKind::Unimplemented(
+            $crate::error::CompileErrorKind::Unimplemented(
                 Some($pos),
                 format!("{}{}", $crate::meta!(), $msg),
             ),
@@ -18,7 +18,7 @@ macro_rules! unimplemented_err {
     () => {
         CompileError::new(
             "",
-            crate::error::CompileErrorKind::Unimplemented(
+            $crate::error::CompileErrorKind::Unimplemented(
                 None,
                 format!("{} Not yet unimplemented.", $crate::meta!()),
             ),

@@ -39,7 +39,7 @@ impl Clone for CompileErrorKind {
             Self::ParseError(arg0) => Self::ParseError(arg0.clone()),
             Self::AnalyzeError(arg0) => Self::AnalyzeError(arg0.clone()),
             Self::GenerateError(arg0) => Self::GenerateError(arg0.clone()),
-            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(arg0.clone(), arg1.clone()),
+            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(*arg0, arg1.clone()),
             Self::IOError(arg0) => Self::IOError(Box::new(format!("{:?}", arg0))),
         }
     }
@@ -118,13 +118,15 @@ impl Clone for ParseErrorKind {
 
 impl Display for CompileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <Self as Debug>::fmt(&self, f)
+        <Self as Debug>::fmt(self, f)
     }
 }
 
 impl Debug for CompileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use CompileErrorKind::*;
+        use CompileErrorKind::{
+            AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
+        };
         match &self.kind {
             TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)) => {
                 error_at(&self.src, vec![*pos], f)?;
@@ -207,7 +209,7 @@ fn error_at(
     let mut same_line_positions = Vec::new();
     let mut tmp_vec = Vec::new();
     // TOOD: handle None well
-    let mut tmp_line = positions.first().map(|pos| pos.n_line).unwrap_or(0);
+    let mut tmp_line = positions.first().map_or(0, |pos| pos.n_line);
     for pos in positions {
         if pos.n_line == tmp_line {
             tmp_vec.push(pos);
@@ -239,13 +241,14 @@ fn error_at(
             }
             num_prefix.push(' ');
         }
-        match splited.nth(n_line) {
-            Some(line) => writeln!(f, "{}{}", num_prefix, line),
-            None => writeln!(
+        if let Some(line) = splited.nth(n_line) {
+            writeln!(f, "{}{}", num_prefix, line)
+        } else {
+            writeln!(
                 f,
                 "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
                 same_line_pos.first().unwrap()
-            ),
+            )
         }?;
         let n_iter = same_line_pos.last().unwrap().n_char + max_prefix_len;
         let mut buffer = String::with_capacity(n_iter + 1);
@@ -261,23 +264,6 @@ fn error_at(
         }
         writeln!(f, "{}", buffer)?;
     }
-    // let pos = positions.first().unwrap();
-    // let mut splited = src.split('\n');
-    // let prefix = format!("{}:{}:  ", pos.n_line + 1, pos.n_char + 1);
-    // match splited.nth(pos.n_line) {
-    //     Some(line) => writeln!(f, "{}{}", prefix, line),
-    //     None => writeln!(
-    //         f,
-    //         "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
-    //         pos
-    //     ),
-    // }?;
-    // let mut buffer = String::with_capacity(pos.n_char + 1);
-    // for _ in 0..(pos.n_char + prefix.len()) {
-    //     buffer.push(' ');
-    // }
-    // buffer.push('^');
-    // writeln!(f, "{}", buffer)?;
     Ok(())
 }
 
@@ -288,9 +274,9 @@ fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
     writeln!(f, "====================")?;
     let splited: Vec<&str> = src.split('\n').collect();
     let last_n_line = splited.len() - 1;
-    let n_char = splited.last().map(|s| s.len()).unwrap_or(0);
+    let n_char = splited.last().map_or(0, |s| s.len());
     let prefix = format!("{}:{}:  ", last_n_line + 1, n_char + 1);
-    for n_line in (last_n_line.checked_sub(2).unwrap_or(0))..=last_n_line {
+    for n_line in last_n_line.saturating_sub(2)..=last_n_line {
         let mut num_prefix = String::with_capacity(prefix.len());
         num_prefix.push_str(&n_line.to_string());
         while num_prefix.len() < prefix.len() {
