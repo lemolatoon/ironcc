@@ -104,3 +104,20 @@ fn variable_redefined() {
         tester.conv_program()
     );
 }
+
+#[test]
+fn type_error() {
+    let src = "int main() { int *a; int *b; int *p = b + b; return 0; }";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _, _,)),
+                src: _,
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
+}

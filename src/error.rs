@@ -1,5 +1,5 @@
 use crate::analyze::ConvExpr;
-use crate::parse::Expr;
+use crate::analyze::Type;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
 use std::error::Error;
@@ -68,6 +68,25 @@ impl CompileError {
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)),
         )
     }
+
+    pub fn new_type_error(
+        src: &str,
+        expr0: ConvExpr,
+        expr1: ConvExpr,
+        msg: Option<String>,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, msg)),
+        )
+    }
+
+    pub fn new_type_expect_failed(src: &str, pos: Position, expected: Type, got: Type) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)),
+        )
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -127,7 +146,19 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
             }
-            AnalyzeError(_) => todo!(),
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
+            }
+            AnalyzeError(AnalyzeErrorKind::TypeError(exp0, exp1, Some(msg))) => {
+                error_at(&self.src, vec![exp0.pos, exp1.pos], f)?;
+                writeln!(f, "{:?} and {:?} is not allowed.", exp0.ty, exp1.ty)?;
+                writeln!(f, "{}", msg)?;
+            }
+            AnalyzeError(AnalyzeErrorKind::TypeError(exp0, exp1, None)) => {
+                error_at(&self.src, vec![exp0.pos, exp1.pos], f)?;
+                writeln!(f, "{:?} and {:?} is not allowed.", exp0.ty, exp1.ty)?;
+            }
             GenerateError(_) => todo!(),
             Unimplemented(Some(pos), msg) => {
                 error_at(&self.src, vec![*pos], f)?;
@@ -146,7 +177,8 @@ impl Debug for CompileError {
 pub enum AnalyzeErrorKind {
     RedefinedError(String, Position, VariableKind),
     UndeclaredError(String, Position, VariableKind),
-    TypeError(Expr, Expr),
+    TypeError(ConvExpr, ConvExpr, Option<String>),
+    TypeExpectFailed(Position, Type, Type),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -167,6 +199,7 @@ fn error_at(
     mut positions: Vec<Position>,
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
+    // TODO: fix bug when positions.len() >= 2.
     writeln!(f, "====================")?;
     writeln!(f, "{}", src)?;
     writeln!(f, "====================")?;

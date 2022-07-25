@@ -209,12 +209,27 @@ impl<'a> Analyzer<'a> {
         let new_ty = match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lht), Type::Base(rht)) => {
-                    assert_eq!(lht, rht);
+                    if lht != rht {
+                        return Err(CompileError::new_type_error(
+                            self.input,
+                            lhs,
+                            rhs,
+                            Some(
+                                "incompatible type addition or substraction is not allowed"
+                                    .to_string(),
+                            ),
+                        ));
+                    }
                     Type::Base(*lht)
                 }
                 (Type::Base(base), Type::Ptr(ptr_base)) => {
                     if *base != BaseType::Int {
-                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                        return Err(CompileError::new_type_expect_failed(
+                            self.input,
+                            lhs.pos,
+                            Type::Base(BaseType::Int),
+                            Type::Base(*base),
+                        ));
                     }
                     lhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
@@ -227,7 +242,12 @@ impl<'a> Analyzer<'a> {
                 }
                 (Type::Ptr(ptr_base), Type::Base(base)) => {
                     if *base != BaseType::Int {
-                        panic!("ptr and {:?}'s binary expr is not allowed.", base);
+                        return Err(CompileError::new_type_expect_failed(
+                            self.input,
+                            lhs.pos,
+                            Type::Base(*base),
+                            Type::Base(BaseType::Int),
+                        ));
                     }
 
                     rhs = ConvExpr::new_binary(
@@ -240,18 +260,49 @@ impl<'a> Analyzer<'a> {
                     ); // p + i ->  p + i * sizeof(*p)
                     Type::Ptr(ptr_base.clone())
                 }
-                (Type::Ptr(_), Type::Ptr(_)) => panic!("Ptr + Ptr is not allowed."),
+                (Type::Ptr(_), Type::Ptr(_)) => {
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("ptr + ptr or ptr - ptr is not allowed. ".to_string()),
+                    ))
+                }
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
-                assert_eq!(lhs.ty, rhs.ty);
+                if lhs.ty != rhs.ty {
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some(
+                            "incompatible type multiplication or division is not allowed"
+                                .to_string(),
+                        ),
+                    ));
+                }
                 lhs.ty.clone()
             }
             ConvBinOpKind::Rem => {
-                assert_eq!(lhs.ty, rhs.ty);
+                if lhs.ty != rhs.ty {
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type take remaint is not allowed".to_string()),
+                    ));
+                }
                 lhs.ty.clone()
             }
             ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
-                assert_eq!(lhs.ty, rhs.ty);
+                if lhs.ty != rhs.ty {
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type binary expr is not allowed".to_string()),
+                    ));
+                }
                 Type::Base(BaseType::Int)
             }
         };
@@ -563,31 +614,6 @@ pub struct Lvar {
 }
 
 impl Lvar {
-    /// create first defined variable
-    pub fn new(
-        name: String,
-        // pos: Position,
-        new_offset: &mut usize,
-        ty: Type,
-        lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Result<Self, CompileError> {
-        let offset = match lvar_map.get(&name) {
-            Some(_) => return Err(unimplemented_err!()),
-            None => {
-                *new_offset += ty.size_of();
-                lvar_map.insert(
-                    name.clone(), // TODO: remove this clone
-                    Self {
-                        offset: *new_offset,
-                        ty: ty.clone(),
-                    },
-                );
-                *new_offset
-            }
-        };
-        Ok(Self { offset, ty })
-    }
-
     pub fn new_raw(offset: usize, ty: Type) -> Self {
         Self { offset, ty }
     }

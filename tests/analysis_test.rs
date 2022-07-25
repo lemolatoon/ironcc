@@ -74,8 +74,10 @@ fn analysis_ident_test() -> Result<(), CompileError> {
     // dummy fucn defining
     let mut lvar_map = BTreeMap::new();
     let mut offset = 0;
-    Lvar::new(
+    Analyzer::new_lvar(
+        &input,
         "a".to_string(),
+        Position::default(),
         &mut offset,
         Type::Base(BaseType::Int),
         &mut lvar_map,
@@ -433,7 +435,15 @@ fn cblock(stmts: Vec<ConvStmt>) -> ConvStmt {
 fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
     let mut lvar_map = BTreeMap::new();
     let offset = &mut offset;
-    Lvar::new(name.to_string(), offset, ty, &mut lvar_map).unwrap();
+    Analyzer::new_lvar(
+        "",
+        name.to_string(),
+        Position::default(),
+        offset,
+        ty,
+        &mut lvar_map,
+    )
+    .unwrap();
 
     let lvar = match &mut lvar_map.get(name) {
         Some(lvar) => lvar.clone(),
@@ -446,7 +456,15 @@ fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
 fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> Lvar {
     let offset = &mut offset;
     let mut empty = BTreeMap::new();
-    Lvar::new(name.to_string(), offset, ty, &mut empty).unwrap()
+    Analyzer::new_lvar(
+        "",
+        name.to_string(),
+        Position::default(),
+        offset,
+        ty,
+        &mut empty,
+    )
+    .unwrap()
 }
 
 fn cexpr_stmt(expr: ConvExpr) -> ConvStmt {
