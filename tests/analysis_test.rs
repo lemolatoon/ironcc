@@ -97,7 +97,9 @@ fn analysis_program_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", vec![])),
+        TypeSpec::Int,
+        0,
+        func_dd("main", vec![]),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -117,12 +119,13 @@ fn analysis_program_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("a"), bin(BinOpKind::Ge, num(1), lvar("k")))),
             expr_stmt(lvar("b")),
         ]),
+        Position::default(),
     )]);
     let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Base(BaseType::Int),
+            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
             "main",
             Vec::new(),
             cblock(vec![
@@ -155,7 +158,9 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", vec![])),
+        TypeSpec::Int,
+        0,
+        func_dd("main", vec![]),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -176,12 +181,13 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("c"), num(3))),
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
         ]),
+        Position::default(),
     )]);
     let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Base(BaseType::Int),
+            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
             "main",
             Vec::new(),
             cblock(vec![
@@ -215,16 +221,14 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
-        declare(
-            TypeSpec::Int,
-            0,
-            func_dd(
-                "main",
-                vec!["a", "b", "c"]
-                    .into_iter()
-                    .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
-                    .collect(),
-            ),
+        TypeSpec::Int,
+        0,
+        func_dd(
+            "main",
+            vec!["a", "b", "c"]
+                .into_iter()
+                .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
+                .collect(),
         ),
         block(vec![
             declare_stmt(declare(
@@ -237,12 +241,20 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
             ret(bin(BinOpKind::Div, lvar("b"), lvar("c"))),
         ]),
+        Position::default(),
     )]);
     let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Base(BaseType::Int),
+            Type::Func(
+                Box::new(Type::Base(BaseType::Int)),
+                vec![
+                    Type::Base(BaseType::Int),
+                    Type::Base(BaseType::Int),
+                    Type::Base(BaseType::Int)
+                ]
+            ),
             "main",
             vec![
                 clvar_strct("a", Type::Base(BaseType::Int), 0),
@@ -288,7 +300,9 @@ fn analysis_declaration() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", vec![])),
+        TypeSpec::Int,
+        0,
+        func_dd("main", vec![]),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -312,12 +326,13 @@ fn analysis_declaration() -> Result<(), CompileError> {
             )), // int x;
             expr_stmt(bin(BinOpKind::Add, lvar("a"), lvar("k"))), // a + k
         ]),
+        Position::default(),
     )]);
     let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Base(BaseType::Int),
+            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
             "main",
             Vec::new(),
             cblock(vec![
@@ -357,7 +372,9 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let program = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -372,12 +389,13 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("p"), bin(BinOpKind::Add, lvar("k"), num(1)))), // p = k + 1;
             ret(num(0)),
         ]),
+        Position::default(),
     )]);
     let converted_program = analyzer.down_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Base(BaseType::Int),
+            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
             "main",
             Vec::new(),
             cblock(vec![

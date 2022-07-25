@@ -3,8 +3,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     parse::{
-        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Initializer, Program,
-        ProgramKind, SizeOfOperandKind, Stmt, StmtKind, UnOp,
+        BinOpKind, Binary, Declaration, Declarator, DirectDeclarator, Expr, ExprKind, Initializer,
+        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -25,12 +25,18 @@ impl<'a> Analyzer<'a> {
         let mut conv_program = ConvProgram::new();
         for component in program {
             match component {
-                ProgramKind::Func(func_declare, body) => {
+                ProgramComponent {
+                    kind: ProgramKind::FuncDef(type_spec, declrtr, body),
+
+                    pos,
+                } => {
                     let mut lvar_map = BTreeMap::new();
                     self.offset = 0; // reset another func's offset
-                    conv_program.push(self.down_func_declare(
-                        &func_declare,
+                    conv_program.push(self.down_func_def(
+                        &type_spec,
+                        &declrtr,
                         body,
+                        pos,
                         &mut lvar_map,
                     )?);
                 }
@@ -39,21 +45,38 @@ impl<'a> Analyzer<'a> {
         Ok(conv_program)
     }
 
-    pub fn down_func_declare(
+    pub fn down_func_def(
         &mut self,
-        declare: &Declaration,
+        ty_spec: &TypeSpec,
+        declrtr: &Declarator,
         body: Stmt,
+        pos: Position,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
-        let ident = declare.ident_name();
+        let ident = declrtr.d_declrtr.ident_name();
+        let ty = Type::from_ty_spec_and_declrtr(ty_spec, declrtr);
+
         // TODO: manage func's return type
-        let ty = declare.ty();
-        let args = match declare.declrtr.clone() {
+        let (ret_ty, args);
+        if let Type::Func(this_ret_ty, this_args) = ty.clone() {
+            (ret_ty, args) = (this_ret_ty, this_args)
+        } else {
+            return Err(CompileError::new_type_expect_failed(
+                self.input,
+                pos,
+                Type::Func(
+                    Box::new(Type::Base(BaseType::Int)),
+                    vec![Type::Base(BaseType::Int)],
+                ),
+                ty,
+            ));
+        }
+        let args = match declrtr.d_declrtr.clone() {
             DirectDeclarator::Ident(_) => {
                 return Err(unimplemented_err!(
                     self,
-                    declare.pos,
+                    pos,
                     "Currently top-level declaration is not allowed."
                 ))
             }
@@ -115,7 +138,10 @@ impl<'a> Analyzer<'a> {
             StmtKind::Declare(declare) => {
                 let ty = declare.ty();
                 // TODO: avoid func definition here
-                assert!(!matches!(declare.declrtr, DirectDeclarator::Func(_, _)));
+                assert!(!matches!(
+                    declare.declrtr.d_declrtr,
+                    DirectDeclarator::Func(_, _)
+                ));
                 let name = declare.ident_name();
                 let lvar = Self::new_lvar(
                     self.input,
@@ -214,13 +240,13 @@ impl<'a> Analyzer<'a> {
                 // type check
                 let conv_expr = self.down_expr(*expr, lvar_map)?;
                 let base_ty = match conv_expr.ty.clone() {
-                    Type::Base(base) => {
+                    ty @ (Type::Base(_) | Type::Func(_, _)) => {
                         return Err(CompileError::new_type_expect_failed(
                             self.input,
                             conv_expr.pos,
                             // TODO: base type is not a problem of this error
-                            Type::Ptr(Box::new(Type::Base(base))),
-                            Type::Base(base),
+                            Type::Ptr(Box::new(Type::Base(BaseType::Int))),
+                            ty,
                         ));
                     }
                     Type::Ptr(ptr_base) => ptr_base,
@@ -358,6 +384,11 @@ impl<'a> Analyzer<'a> {
                     rhs,
                     Some("ptr + ptr or ptr - ptr is not allowed. ".to_string()),
                 )),
+                (Type::Base(_), Type::Func(_, _)) => todo!(),
+                (Type::Ptr(_), Type::Func(_, _)) => todo!(),
+                (Type::Func(_, _), Type::Base(_)) => todo!(),
+                (Type::Func(_, _), Type::Ptr(_)) => todo!(),
+                (Type::Func(_, _), Type::Func(_, _)) => todo!(),
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
@@ -709,13 +740,32 @@ impl Lvar {
 pub enum Type {
     Base(BaseType),
     Ptr(Box<Type>),
+    Func(Box<Type>, Vec<Type>),
 }
 
 impl Type {
+    pub fn from_ty_spec_and_declrtr(ty_spec: &TypeSpec, declrtr: &Declarator) -> Self {
+        let base = match ty_spec {
+            TypeSpec::Int => BaseType::Int,
+        };
+        let mut ty = Type::Base(base);
+        let mut watching_d_declrtr = &declrtr.d_declrtr;
+        while let DirectDeclarator::Func(d_declrtr, args) = watching_d_declrtr {
+            // TODO: support function type for declaration
+            // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
+            ty = Type::Func(Box::new(ty), args.iter().map(Declaration::ty).collect());
+            watching_d_declrtr = d_declrtr;
+        }
+        for _ in 0..declrtr.n_star {
+            ty = Type::Ptr(Box::new(ty));
+        }
+        ty
+    }
+
     pub const fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
-            Type::Ptr(_) => 8,
+            Type::Ptr(_) | Type::Func(_, _) => 8,
         }
     }
 }

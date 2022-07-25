@@ -1,9 +1,9 @@
 <program>                   := <program-item>*
 <program-item>              := <declaration>
                                 | <func-def>
-<func-def>                  := <declaration> <blockstmt>
+<func-def>                  := <declaration-specifiers> <declarator> <blockstmt>
 
-<declaration>               := <declaration-specifiers> <init-declarator>*
+<declaration>               := <declaration-specifiers> <init-declarator>* ";"
 <declaration-specifiers>    := <type-specifiers>
 <type-specifiers>           := "int"
 
@@ -27,7 +27,7 @@
                                 | "return" <expr> ";"
                                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
-                                | <declaration> ";"
+                                | <declaration> 
 <blockstmt>                 := "{" <stmt>* "}"
 
 

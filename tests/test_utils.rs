@@ -177,8 +177,17 @@ pub mod ast {
         Expr::new_addr(expr, Position::default())
     }
 
-    pub fn func_def(declare: Declaration, body: Stmt) -> ProgramKind {
-        ProgramKind::Func(declare, body)
+    pub fn func_def(
+        type_spec: TypeSpec,
+        n_star: usize,
+        d_declrtr: DirectDeclarator,
+        body: Stmt,
+        pos: Position,
+    ) -> ProgramComponent {
+        ProgramComponent::new(
+            ProgramKind::new_funcdef(type_spec, n_star, d_declrtr, body),
+            pos,
+        )
     }
 
     pub fn declare_stmt(declaration: Declaration) -> Stmt {

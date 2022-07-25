@@ -276,7 +276,9 @@ impl<'a> Generator<'a> {
             }
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
-                    Type::Base(_) => return Err(CompileError::new_deref_error(self.input, *expr)),
+                    Type::Base(_) | Type::Func(_, _) => {
+                        return Err(CompileError::new_deref_error(self.input, *expr))
+                    }
                     Type::Ptr(base) => *base,
                 };
                 self.gen_expr(f, *expr.clone())?;
