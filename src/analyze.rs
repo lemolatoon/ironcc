@@ -55,23 +55,14 @@ impl<'a> Analyzer<'a> {
         };
         for arg in args {
             // register func args as lvar
-            lvars.push(
-                Lvar::new(
-                    arg.ident_name().to_owned(),
-                    &mut self.offset,
-                    arg.ty(),
-                    lvar_map,
-                )
-                .unwrap_or_else(|_| {
-                    self.error_at(
-                        None,
-                        &format!(
-                            "Redefined Local Variable {:?} at `down_func`: {:?}",
-                            arg, declare
-                        ),
-                    )
-                }),
-            );
+            lvars.push(Self::new_lvar(
+                self.input,
+                arg.ident_name().to_owned(),
+                arg.pos,
+                &mut self.offset,
+                arg.ty(),
+                lvar_map,
+            )?);
         }
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
@@ -125,10 +116,14 @@ impl<'a> Analyzer<'a> {
                 let ty = declare.ty();
                 // TODO: avoid func definition here
                 let name = declare.ident_name();
-                let lvar = Lvar::new(name.to_owned(), &mut self.offset, ty.clone(), lvar_map)
-                    .unwrap_or_else(|_| {
-                        self.error_at(declare.pos, "Local Variable Redifined here.")
-                    });
+                let lvar = Self::new_lvar(
+                    self.input,
+                    name.to_owned(),
+                    declare.pos,
+                    &mut self.offset,
+                    ty.clone(),
+                    lvar_map,
+                )?;
                 // empty block stmt
                 match declare.initializer {
                     Some(Initializer::Expr(init)) => ConvStmt::new_expr(ConvExpr::new_assign(
@@ -181,7 +176,7 @@ impl<'a> Analyzer<'a> {
                 pos,
             )),
             // currently all ident is local variable
-            ExprKind::LVar(name) => self.new_lvar(name, pos, lvar_map),
+            ExprKind::LVar(name) => self.fetch_lvar(name, pos, lvar_map),
             ExprKind::Func(name, args) => Ok(ConvExpr::new_func(
                 name,
                 args.into_iter()
@@ -290,7 +285,7 @@ impl<'a> Analyzer<'a> {
         }
     }
 
-    pub fn new_lvar(
+    pub fn fetch_lvar(
         &self,
         name: String,
         pos: Position,
@@ -311,6 +306,36 @@ impl<'a> Analyzer<'a> {
         };
         let ty = lvar.ty.clone();
         Ok(ConvExpr::new_lvar_raw(lvar, ty, pos))
+    }
+
+    /// create first defined variable
+    pub fn new_lvar(
+        src: &str,
+        name: String,
+        pos: Position,
+        new_offset: &mut usize,
+        ty: Type,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Result<Lvar, CompileError> {
+        let offset = match lvar_map.get(&name) {
+            Some(_) => {
+                return Err(CompileError::new_redefined_variable(
+                    src,
+                    name,
+                    pos,
+                    VariableKind::Local,
+                ))
+            }
+            None => {
+                *new_offset += ty.size_of();
+                lvar_map.insert(
+                    name.clone(), // TODO: remove this clone
+                    Lvar::new_raw(*new_offset, ty.clone()),
+                );
+                *new_offset
+            }
+        };
+        Ok(Lvar::new_raw(offset, ty))
     }
 }
 
@@ -538,14 +563,16 @@ pub struct Lvar {
 }
 
 impl Lvar {
+    /// create first defined variable
     pub fn new(
         name: String,
+        // pos: Position,
         new_offset: &mut usize,
         ty: Type,
         lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Result<Self, ()> {
+    ) -> Result<Self, CompileError> {
         let offset = match lvar_map.get(&name) {
-            Some(_) => return Err(()),
+            Some(_) => return Err(unimplemented_err!()),
             None => {
                 *new_offset += ty.size_of();
                 lvar_map.insert(
@@ -559,6 +586,10 @@ impl Lvar {
             }
         };
         Ok(Self { offset, ty })
+    }
+
+    pub fn new_raw(offset: usize, ty: Type) -> Self {
+        Self { offset, ty }
     }
 }
 

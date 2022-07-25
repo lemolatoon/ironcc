@@ -1,11 +1,8 @@
 pub mod test_utils;
 
-use ironcc::{
-    error::{
-        AnalyzeErrorKind, CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind,
-        VariableKind,
-    },
-    unimplemented_err,
+use ironcc::error::{
+    AnalyzeErrorKind, CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind,
+    VariableKind,
 };
 use test_utils::CachedProcesser;
 
@@ -57,6 +54,45 @@ fn variable_undeclared() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                    _,
+                    _,
+                    VariableKind::Local
+                )),
+                src: _,
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
+}
+
+#[test]
+fn variable_redefined() {
+    let src = "int main() { int b; int b; return b; }";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(
+                    _,
+                    _,
+                    VariableKind::Local
+                )),
+                src: _,
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
+
+    let src = "int main() { int b = double(5); return b; } int double(int num) {int num = 3; return num*2;}";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(
                     _,
                     _,
                     VariableKind::Local

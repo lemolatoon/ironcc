@@ -2,7 +2,6 @@ use crate::{
     analyze::{BaseType, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
-    unimplemented_err,
 };
 use std::fmt::Debug;
 

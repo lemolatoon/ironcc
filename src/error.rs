@@ -56,6 +56,20 @@ impl From<io::Error> for CompileError {
     }
 }
 
+impl CompileError {
+    pub fn new_redefined_variable(
+        src: &str,
+        name: String,
+        pos: Position,
+        kind: VariableKind,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)),
+        )
+    }
+}
+
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TokenizeErrorKind {
     UnexpectedChar(Position, char),
@@ -109,6 +123,10 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
             }
+            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
+            }
             AnalyzeError(_) => todo!(),
             GenerateError(_) => todo!(),
             Unimplemented(Some(pos), msg) => {
@@ -126,7 +144,7 @@ impl Debug for CompileError {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum AnalyzeErrorKind {
-    RedefinedError(VariableKind),
+    RedefinedError(String, Position, VariableKind),
     UndeclaredError(String, Position, VariableKind),
     TypeError(Expr, Expr),
 }
