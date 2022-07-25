@@ -91,6 +91,27 @@ impl CompileError {
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)),
         )
     }
+
+    pub fn new_deref_error(src: &str, expr: ConvExpr) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::GenerateError(GenerateErrorKind::DerefError(expr)),
+        )
+    }
+
+    pub fn new_lvalue_error(src: &str, expr: ConvExpr) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::GenerateError(GenerateErrorKind::LeftValueError(expr)),
+        )
+    }
+
+    pub fn new_type_size_error(src: &str, status: UnexpectedTypeSizeStatus) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::GenerateError(GenerateErrorKind::UnexpectedTypeSize(status)),
+        )
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -156,16 +177,47 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
-            AnalyzeError(AnalyzeErrorKind::TypeError(exp0, exp1, Some(msg))) => {
-                error_at(&self.src, vec![exp0.pos, exp1.pos], f)?;
-                writeln!(f, "{:?} and {:?} is not allowed.", exp0.ty, exp1.ty)?;
+            AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, Some(msg))) => {
+                error_at(&self.src, vec![expr0.pos, expr1.pos], f)?;
+                writeln!(f, "{:?} and {:?} is not allowed.", expr0.ty, expr1.ty)?;
                 writeln!(f, "{}", msg)?;
             }
-            AnalyzeError(AnalyzeErrorKind::TypeError(exp0, exp1, None)) => {
-                error_at(&self.src, vec![exp0.pos, exp1.pos], f)?;
-                writeln!(f, "{:?} and {:?} is not allowed.", exp0.ty, exp1.ty)?;
+            AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, None)) => {
+                error_at(&self.src, vec![expr0.pos, expr1.pos], f)?;
+                writeln!(f, "{:?} and {:?} is not allowed.", expr0.ty, expr1.ty)?;
             }
-            GenerateError(_) => todo!(),
+            GenerateError(GenerateErrorKind::DerefError(expr)) => {
+                error_at(&self.src, vec![expr.pos], f)?;
+                writeln!(f, "{:?} cannot be derefered.", expr.ty)?;
+            }
+            GenerateError(GenerateErrorKind::LeftValueError(expr)) => {
+                error_at(&self.src, vec![expr.pos], f)?;
+                writeln!(
+                    f,
+                    "This expr cannot be used for generate address(Not left value). Type: {:?}",
+                    expr.ty
+                )?;
+            }
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Expr(expr),
+            )) => {
+                error_at(&self.src, vec![expr.pos], f)?;
+                writeln!(
+                    f,
+                    "This expr's type size is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}",
+                    expr.ty
+                )?;
+            }
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::FuncArgs(name, ty),
+            )) => {
+                writeln!(
+                    f,
+                    "one of func {}'s args is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}",
+                    name,
+                    ty
+                )?;
+            }
             Unimplemented(Some(pos), msg) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{}", msg)?;
@@ -194,9 +246,15 @@ pub enum VariableKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum GenerateErrorKind {
-    UnexpectedTypeSize(usize),
+    UnexpectedTypeSize(UnexpectedTypeSizeStatus),
     LeftValueError(ConvExpr),
     DerefError(ConvExpr),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum UnexpectedTypeSizeStatus {
+    Expr(ConvExpr),
+    FuncArgs(String, Type),
 }
 
 /// write source annotation which indicates `pos` in `src`
@@ -219,7 +277,7 @@ fn error_at(
         } else {
             tmp_line = pos.n_line;
             same_line_positions.push(tmp_vec);
-            tmp_vec = Vec::new();
+            tmp_vec = vec![pos];
         }
     }
     same_line_positions.push(tmp_vec);

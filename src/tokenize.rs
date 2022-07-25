@@ -121,27 +121,6 @@ impl<'a> Tokenizer<'a> {
             CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)),
         )
     }
-
-    /// # Panics
-    /// always
-    pub fn error_at(&self, pos: &Position, msg: &str) -> ! {
-        let mut splited = self.input.split('\n');
-        let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-            panic!(
-                "Position is illegal, pos: {:?},\n input: {}",
-                pos, self.input
-            )
-        });
-        eprintln!("{}", line);
-        let mut buffer = String::with_capacity(pos.n_char + 1);
-        for _ in 0..pos.n_char {
-            buffer.push(' ');
-        }
-        buffer.push('^');
-        eprintln!("{}", buffer);
-        eprintln!("{}", msg);
-        panic!()
-    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -409,37 +388,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             self.input,
             CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
         )
-    }
-
-    /// # Panics
-    /// always panic
-    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
-        let pos: Option<Position> = pos.into();
-        match pos {
-            None => panic!("Passed pos info was None.\n{}", msg),
-            Some(pos) => {
-                eprintln!("=====");
-                eprintln!("{}", self.input);
-                eprintln!("{:?}", pos);
-                eprintln!("=====");
-                let mut splited = self.input.split('\n');
-                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-                    panic!(
-                        "Position is illegal, pos: {:?},\n input: {}",
-                        pos, self.input
-                    )
-                });
-                eprintln!("{}", line);
-                let mut buffer = String::with_capacity(pos.n_char + 1);
-                for _ in 0..pos.n_char {
-                    buffer.push(' ');
-                }
-                buffer.push('^');
-                eprintln!("{}", buffer);
-                eprintln!("{}", msg);
-                panic!();
-            }
-        }
     }
 }
 

@@ -143,6 +143,8 @@ impl<'a> Analyzer<'a> {
         })
     }
 
+    // this `&self` will be used when type checking is activated
+    #[allow(clippy::unused_self)]
     pub fn new_assign_expr_with_type_check(
         &self,
         lhs: ConvExpr,
