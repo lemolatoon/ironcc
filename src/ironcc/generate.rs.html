@@ -488,18 +488,6 @@
 <span id="483">483</span>
 <span id="484">484</span>
 <span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -507,17 +495,17 @@
         <span class="ident">ConvBinOpKind</span>, <span class="ident">ConvBinary</span>, <span class="ident">ConvExpr</span>, <span class="ident">ConvExprKind</span>, <span class="ident">ConvFuncDef</span>, <span class="ident">ConvProgram</span>,
         <span class="ident">ConvProgramKind</span>, <span class="ident">ConvStmt</span>, <span class="ident">ConvStmtKind</span>, <span class="ident">Lvar</span>, <span class="ident">Type</span>,
     },
-    <span class="ident">tokenize::Position</span>,
+    <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">UnexpectedTypeSizeStatus</span>},
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Generater</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Generator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
     <span class="ident">label</span>: <span class="ident">usize</span>,
     <span class="ident">depth</span>: <span class="ident">usize</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Generater</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Generator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">input</span>,
@@ -530,7 +518,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">arg</span>: <span class="ident">std::fmt::Arguments</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  push {}&quot;</span>, <span class="ident">arg</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(())
@@ -540,7 +528,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">arg</span>: <span class="ident">std::fmt::Arguments</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  pop {}&quot;</span>, <span class="ident">arg</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(())
@@ -552,12 +540,13 @@
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">lhs</span>: <span class="ident">RegKind</span>,
         <span class="ident">rhs</span>: <span class="ident">RegKind</span>,
-        <span class="ident">ty</span>: <span class="ident">Type</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+        <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">Type</span>,
+        <span class="ident">status</span>: <span class="ident">UnexpectedTypeSizeStatus</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
             <span class="number">4</span> =&gt; (<span class="string">&quot;DWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">dword</span>()),
             <span class="number">8</span> =&gt; (<span class="string">&quot;QWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
-            <span class="ident">n</span> =&gt; <span class="self">self</span>.<span class="ident">error_at</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Unexpected Type size: {} by {:?}&quot;</span>, <span class="ident">n</span>, <span class="ident">ty</span>)),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">status</span>)),
         };
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov {} [{}], {}&quot;</span>, <span class="ident">prefix</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -569,12 +558,13 @@
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">lhs</span>: <span class="ident">RegKind</span>,
         <span class="ident">rhs</span>: <span class="ident">RegKind</span>,
-        <span class="ident">ty</span>: <span class="ident">Type</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+        <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">Type</span>,
+        <span class="ident">status</span>: <span class="ident">UnexpectedTypeSizeStatus</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
             <span class="number">4</span> =&gt; (<span class="string">&quot;DWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">dword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
             <span class="number">8</span> =&gt; (<span class="string">&quot;QWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
-            <span class="ident">n</span> =&gt; <span class="self">self</span>.<span class="ident">error_at</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Unexpected Type size: {} by {:?}&quot;</span>, <span class="ident">n</span>, <span class="ident">ty</span>)),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">status</span>)),
         };
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov {}, {} [{}]&quot;</span>, <span class="ident">lhs</span>, <span class="ident">prefix</span>, <span class="ident">rhs</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -586,11 +576,11 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">program</span>: <span class="ident">ConvProgram</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.intel_syntax noprefix\n&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.global main&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">program</span>.<span class="ident">into_iter</span>() {
+        <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">program</span> {
             <span class="kw">match</span> <span class="ident">component</span> {
                 <span class="ident">ConvProgramKind::Func</span>(<span class="ident">ConvFuncDef</span> {
                     <span class="ident">ty</span>: <span class="kw">_</span>, <span class="comment">// TODO: determine how to use this</span>
@@ -602,7 +592,6 @@
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rbp, rsp&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="comment">// TODO: determine this dynamically by counting the number of local variables</span>
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rsp, {}&quot;</span>, <span class="ident">lvars</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">8</span>)<span class="question-mark">?</span>; <span class="comment">// 64bit var * 8</span>
 
                     <span class="comment">// assign args</span>
@@ -613,11 +602,16 @@
                     <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">Lvar</span> { <span class="ident">offset</span>, <span class="ident">ty</span> }) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, rbp&quot;</span>)<span class="question-mark">?</span>;
                         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rax, {}&quot;</span>, <span class="ident">offset</span>)<span class="question-mark">?</span>; <span class="comment">// rax = &amp;arg</span>
-                        <span class="self">self</span>.<span class="ident">assign</span>(<span class="ident">f</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">arg_reg</span>[<span class="ident">idx</span>], <span class="ident">ty</span>)<span class="question-mark">?</span>; <span class="comment">// *rax = value</span>
+                        <span class="self">self</span>.<span class="ident">assign</span>(
+                            <span class="ident">f</span>,
+                            <span class="ident">RegKind::Rax</span>,
+                            <span class="ident">arg_reg</span>[<span class="ident">idx</span>],
+                            <span class="kw-2">&amp;</span><span class="ident">ty</span>,
+                            <span class="ident">UnexpectedTypeSizeStatus::FuncArgs</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">ty</span>.<span class="ident">clone</span>()),
+                        )<span class="question-mark">?</span>; <span class="comment">// *rax = value</span>
                     }
                     <span class="comment">// gen body stmt</span>
                     <span class="self">self</span>.<span class="ident">gen_stmt</span>(<span class="ident">f</span>, <span class="ident">body</span>)<span class="question-mark">?</span>;
-                    <span class="comment">// TODO: change this label dynamically base on func name</span>
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.L{}_ret:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rsp, rbp&quot;</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
@@ -633,7 +627,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">stmt</span>: <span class="ident">ConvStmt</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">stmt</span>.<span class="ident">kind</span> {
             <span class="ident">ConvStmtKind::Expr</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>;
@@ -706,29 +700,41 @@
     }
 
     <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">/// return errors when file IO failed</span>
+    <span class="doccomment">/// return errors when file IO failed or compilation falied</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_expr</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">expr</span>: <span class="ident">ConvExpr</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
             <span class="ident">ConvExprKind::Num</span>(<span class="ident">val</span>) =&gt; <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>))<span class="question-mark">?</span>,
             <span class="ident">ConvExprKind::Binary</span>(<span class="ident">c_binary</span>) =&gt; <span class="self">self</span>.<span class="ident">gen_binary</span>(<span class="ident">f</span>, <span class="ident">c_binary</span>)<span class="question-mark">?</span>,
             <span class="ident">ConvExprKind::Lvar</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">ty</span>.<span class="ident">clone</span>();
-                <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="ident">expr</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// rax = &amp;expr</span>
-                <span class="self">self</span>.<span class="ident">deref</span>(<span class="ident">f</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">ty</span>)<span class="question-mark">?</span>; <span class="comment">// rax = *rax</span>
+                <span class="self">self</span>.<span class="ident">deref</span>(
+                    <span class="ident">f</span>,
+                    <span class="ident">RegKind::Rax</span>,
+                    <span class="ident">RegKind::Rax</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">ty</span>,
+                    <span class="ident">UnexpectedTypeSizeStatus::Expr</span>(<span class="ident">expr</span>),
+                )<span class="question-mark">?</span>; <span class="comment">// rax = *rax</span>
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">ConvExprKind::Assign</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">ty</span>.<span class="ident">clone</span>();
-                <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">lhs</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">lhs</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">rhs</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rdi&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// rhs; rdi = rhs</span>
                 <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// lhs&#39;s addr; rax = &amp;lhs</span>
-                <span class="self">self</span>.<span class="ident">assign</span>(<span class="ident">f</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">RegKind::Rdi</span>, <span class="ident">ty</span>)<span class="question-mark">?</span>; <span class="comment">// *rax = rdi</span>
+                <span class="self">self</span>.<span class="ident">assign</span>(
+                    <span class="ident">f</span>,
+                    <span class="ident">RegKind::Rax</span>,
+                    <span class="ident">RegKind::Rdi</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">ty</span>,
+                    <span class="ident">UnexpectedTypeSizeStatus::Expr</span>(<span class="kw-2">*</span><span class="ident">lhs</span>),
+                )<span class="question-mark">?</span>; <span class="comment">// *rax = rdi</span>
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rdi&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// evaluated value of assign expr is rhs&#39;s value</span>
             }
             <span class="ident">ConvExprKind::Func</span>(<span class="ident">name</span>, <span class="ident">args</span>) =&gt; {
@@ -738,7 +744,7 @@
                     .<span class="ident">collect</span>();
                 <span class="kw">let</span> <span class="ident">arg_len</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
                 <span class="kw">if</span> <span class="ident">arg_len</span> <span class="op">&gt;</span> <span class="ident">arg_reg</span>.<span class="ident">len</span>() {
-                    <span class="macro">panic!</span>(<span class="string">&quot;calling function args&#39; len is greater than 6. Currently only support less than or equal to 6.&quot;</span>);
+                    <span class="macro">todo!</span>(<span class="string">&quot;calling function args&#39; len is greater than 6. Currently only support less than or equal to 6.&quot;</span>);
                 }
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
                     <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">arg</span>)<span class="question-mark">?</span>;
@@ -760,15 +766,18 @@
             }
             <span class="ident">ConvExprKind::Deref</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Clone::clone</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">ty</span>) {
-                    <span class="ident">Type::Base</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">error_at</span>(
-                        <span class="ident">expr</span>.<span class="ident">pos</span>,
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Deref has to be Ptr type expr, but got {:?}&quot;</span>, <span class="ident">expr</span>),
-                    ),
+                    <span class="ident">Type::Base</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_deref_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">expr</span>)),
                     <span class="ident">Type::Ptr</span>(<span class="ident">base</span>) =&gt; <span class="kw-2">*</span><span class="ident">base</span>,
                 };
-                <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// rax = expr</span>
-                <span class="self">self</span>.<span class="ident">deref</span>(<span class="ident">f</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">RegKind::Rax</span>, <span class="ident">ty</span>)<span class="question-mark">?</span>; <span class="comment">// rax = *rax</span>
+                <span class="self">self</span>.<span class="ident">deref</span>(
+                    <span class="ident">f</span>,
+                    <span class="ident">RegKind::Rax</span>,
+                    <span class="ident">RegKind::Rax</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">ty</span>,
+                    <span class="ident">UnexpectedTypeSizeStatus::Expr</span>(<span class="kw-2">*</span><span class="ident">expr</span>),
+                )<span class="question-mark">?</span>; <span class="comment">// rax = *rax</span>
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">ConvExprKind::Addr</span>(<span class="ident">expr</span>) =&gt; {
@@ -779,12 +788,12 @@
     }
 
     <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">/// return errors when file IO failed</span>
+    <span class="doccomment">/// return errors when file IO failed or compilation failed</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_lvalue</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">expr</span>: <span class="ident">ConvExpr</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
             <span class="ident">ConvExprKind::Lvar</span>(<span class="ident">Lvar</span> { <span class="ident">offset</span>, <span class="ident">ty</span>: <span class="kw">_</span> }) =&gt; {
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, rbp&quot;</span>)<span class="question-mark">?</span>;
@@ -794,13 +803,7 @@
             <span class="ident">ConvExprKind::Deref</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>)<span class="question-mark">?</span>;
             }
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">error_at</span>(
-                <span class="ident">expr</span>.<span class="ident">pos</span>,
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;This {:?} Expr cannnot be used for generating left value&quot;</span>,
-                    <span class="ident">expr</span>.<span class="ident">kind</span>
-                ),
-            ),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_lvalue_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">expr</span>)),
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -809,7 +812,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">c_binary</span>: <span class="ident">ConvBinary</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ConvBinary</span> { <span class="ident">kind</span>: <span class="ident">op</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span> } <span class="op">=</span> <span class="ident">c_binary</span>;
         <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">lhs</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">rhs</span>)<span class="question-mark">?</span>;
@@ -864,33 +867,6 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// always</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="op">!</span> {
-        <span class="kw">let</span> <span class="ident">pos</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">into</span>();
-        <span class="kw">match</span> <span class="ident">pos</span> {
-            <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Passed pos info was None.\n{}&quot;</span>, <span class="ident">msg</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">pos</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">splited</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>);
-                <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">splited</span>.<span class="ident">nth</span>(<span class="ident">pos</span>.<span class="ident">n_line</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="macro">panic!</span>(
-                        <span class="string">&quot;Position is illegal, pos: {:?},\n input: {}&quot;</span>,
-                        <span class="ident">pos</span>, <span class="self">self</span>.<span class="ident">input</span>
-                    )
-                });
-                <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">line</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">pos</span>.<span class="ident">n_char</span> <span class="op">+</span> <span class="number">1</span>);
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">pos</span>.<span class="ident">n_char</span> {
-                    <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
-                }
-                <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39;^&#39;</span>);
-                <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>);
-                <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>);
-                <span class="macro">panic!</span>();
-            }
-        }
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">label</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">label</span>
@@ -924,16 +900,16 @@
             <span class="ident">RegKind::Rsi</span> =&gt; <span class="string">&quot;rsi&quot;</span>,
             <span class="ident">RegKind::Rdx</span> =&gt; <span class="string">&quot;rdx&quot;</span>,
             <span class="ident">RegKind::Rcx</span> =&gt; <span class="string">&quot;rcx&quot;</span>,
-            <span class="ident">RegKind::Rbp</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::Rsp</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::Rbp</span> =&gt; <span class="string">&quot;rbp&quot;</span>,
+            <span class="ident">RegKind::Rsp</span> =&gt; <span class="string">&quot;rsp&quot;</span>,
             <span class="ident">RegKind::R8</span> =&gt; <span class="string">&quot;r8&quot;</span>,
             <span class="ident">RegKind::R9</span> =&gt; <span class="string">&quot;r9&quot;</span>,
-            <span class="ident">RegKind::R10</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R11</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R12</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R13</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R14</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R15</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::R10</span> =&gt; <span class="string">&quot;r10&quot;</span>,
+            <span class="ident">RegKind::R11</span> =&gt; <span class="string">&quot;r11&quot;</span>,
+            <span class="ident">RegKind::R12</span> =&gt; <span class="string">&quot;r12&quot;</span>,
+            <span class="ident">RegKind::R13</span> =&gt; <span class="string">&quot;r13&quot;</span>,
+            <span class="ident">RegKind::R14</span> =&gt; <span class="string">&quot;r14&quot;</span>,
+            <span class="ident">RegKind::R15</span> =&gt; <span class="string">&quot;r15&quot;</span>,
         }
         .<span class="ident">to_string</span>()
     }
@@ -957,46 +933,46 @@
 }
 
 <span class="kw">impl</span> <span class="ident">RegKind</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dword</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">dword</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">RegKind::Rax</span> =&gt; <span class="string">&quot;eax&quot;</span>,
             <span class="ident">RegKind::Rdi</span> =&gt; <span class="string">&quot;edi&quot;</span>,
             <span class="ident">RegKind::Rsi</span> =&gt; <span class="string">&quot;esi&quot;</span>,
             <span class="ident">RegKind::Rdx</span> =&gt; <span class="string">&quot;edx&quot;</span>,
             <span class="ident">RegKind::Rcx</span> =&gt; <span class="string">&quot;ecx&quot;</span>,
-            <span class="ident">RegKind::Rbp</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::Rsp</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::Rbp</span> =&gt; <span class="string">&quot;ebp&quot;</span>,
+            <span class="ident">RegKind::Rsp</span> =&gt; <span class="string">&quot;esp&quot;</span>,
             <span class="ident">RegKind::R8</span> =&gt; <span class="string">&quot;r8d&quot;</span>,
             <span class="ident">RegKind::R9</span> =&gt; <span class="string">&quot;r9d&quot;</span>,
-            <span class="ident">RegKind::R10</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R11</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R12</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R13</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R14</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R15</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::R10</span> =&gt; <span class="string">&quot;r10d&quot;</span>,
+            <span class="ident">RegKind::R11</span> =&gt; <span class="string">&quot;r11d&quot;</span>,
+            <span class="ident">RegKind::R12</span> =&gt; <span class="string">&quot;r12d&quot;</span>,
+            <span class="ident">RegKind::R13</span> =&gt; <span class="string">&quot;r13d&quot;</span>,
+            <span class="ident">RegKind::R14</span> =&gt; <span class="string">&quot;r14d&quot;</span>,
+            <span class="ident">RegKind::R15</span> =&gt; <span class="string">&quot;r15d&quot;</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">qword</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">qword</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">RegKind::Rax</span> =&gt; <span class="string">&quot;rax&quot;</span>,
             <span class="ident">RegKind::Rdi</span> =&gt; <span class="string">&quot;rdi&quot;</span>,
             <span class="ident">RegKind::Rsi</span> =&gt; <span class="string">&quot;rsi&quot;</span>,
             <span class="ident">RegKind::Rdx</span> =&gt; <span class="string">&quot;rdx&quot;</span>,
             <span class="ident">RegKind::Rcx</span> =&gt; <span class="string">&quot;rcx&quot;</span>,
-            <span class="ident">RegKind::Rbp</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::Rsp</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::Rbp</span> =&gt; <span class="string">&quot;rbp&quot;</span>,
+            <span class="ident">RegKind::Rsp</span> =&gt; <span class="string">&quot;rsp&quot;</span>,
             <span class="ident">RegKind::R8</span> =&gt; <span class="string">&quot;r8&quot;</span>,
             <span class="ident">RegKind::R9</span> =&gt; <span class="string">&quot;r9&quot;</span>,
-            <span class="ident">RegKind::R10</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R11</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R12</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R13</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R14</span> =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">RegKind::R15</span> =&gt; <span class="macro">todo!</span>(),
+            <span class="ident">RegKind::R10</span> =&gt; <span class="string">&quot;r10&quot;</span>,
+            <span class="ident">RegKind::R11</span> =&gt; <span class="string">&quot;r11&quot;</span>,
+            <span class="ident">RegKind::R12</span> =&gt; <span class="string">&quot;r12&quot;</span>,
+            <span class="ident">RegKind::R13</span> =&gt; <span class="string">&quot;r13&quot;</span>,
+            <span class="ident">RegKind::R14</span> =&gt; <span class="string">&quot;r14&quot;</span>,
+            <span class="ident">RegKind::R15</span> =&gt; <span class="string">&quot;r15&quot;</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
 </body></html>
