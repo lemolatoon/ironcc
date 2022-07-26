@@ -3,8 +3,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     parse::{
-        BinOpKind, Binary, Declaration, Declarator, DirectDeclarator, Expr, ExprKind, Initializer,
-        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
+        BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, Initializer, Program,
+        ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -14,11 +14,17 @@ use crate::{
 pub struct Analyzer<'a> {
     input: &'a str,
     offset: usize,
+    func_map: BTreeMap<String, Func>,
 }
 
 impl<'a> Analyzer<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self { input, offset: 0 }
+    pub fn new(input: &'a str) -> Self {
+        let func_map: BTreeMap<String, Func> = BTreeMap::new();
+        Self {
+            input,
+            offset: 0,
+            func_map,
+        }
     }
 
     pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
@@ -40,9 +46,38 @@ impl<'a> Analyzer<'a> {
                         &mut lvar_map,
                     )?);
                 }
+                ProgramComponent {
+                    kind: ProgramKind::Declaration(declaration),
+                    pos,
+                } => {
+                    let name = declaration.ident_name();
+                    if let Some(_) = self.func_map.get(&name.to_string()) {
+                        return Err(CompileError::new_redefined_variable(
+                            self.input,
+                            name.to_string(),
+                            pos,
+                            VariableKind::Func,
+                        ));
+                    }
+                    match declaration.ty(self)? {
+                        Type::Base(_) | Type::Ptr(_) | Type::Array(_, _) => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                pos,
+                                "Global variable is not yet unimplemented."
+                            ))
+                        }
+                        Type::Func(ret_ty, args) => {
+                            self.func_map.insert(
+                                name.to_string(),
+                                Func::new_raw(name.to_string(), args, *ret_ty, pos),
+                            );
+                        }
+                    }
+                }
             }
         }
-        Ok(conv_program)
+        return Ok(conv_program);
     }
 
     pub fn down_func_def(
@@ -57,10 +92,9 @@ impl<'a> Analyzer<'a> {
         let ident = declrtr.d_declrtr.ident_name();
         let ty = self.get_type(ty_spec, declrtr)?;
 
-        // TODO: manage func's return type
-        let (ret_ty, args);
+        let (ret_ty, args_ty);
         if let Type::Func(this_ret_ty, this_args) = ty.clone() {
-            (ret_ty, args) = (this_ret_ty, this_args)
+            (ret_ty, args_ty) = (this_ret_ty, this_args);
         } else {
             return Err(CompileError::new_type_expect_failed(
                 self.input,
@@ -96,6 +130,10 @@ impl<'a> Analyzer<'a> {
                 lvar_map,
             )?);
         }
+        self.func_map.insert(
+            ident.to_string(),
+            Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
+        );
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
             ident.to_owned(),
@@ -177,15 +215,12 @@ impl<'a> Analyzer<'a> {
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
         if lhs.ty != rhs.ty {
-            // TODO:
-            // return Err here after impl prototype func declaration
-
-            // return Err(CompileError::new_type_error(
-            //     self.input,
-            //     lhs,
-            //     rhs,
-            //     Some("Assign expression's lhs and rhs has to have compatible types"),
-            // ));
+            return Err(CompileError::new_type_error(
+                self.input,
+                lhs,
+                rhs,
+                Some("Assign expression's lhs and rhs has to have compatible types"),
+            ));
         }
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
@@ -226,15 +261,10 @@ impl<'a> Analyzer<'a> {
                 let rhs = self.down_expr(*rhs, lvar_map)?;
                 self.new_assign_expr_with_type_check(lhs, rhs, pos)
             }
-            // currently all ident is local variable
             ExprKind::LVar(name) => self.fetch_lvar(&name, pos, lvar_map),
-            ExprKind::Func(name, args) => Ok(ConvExpr::new_func(
-                name,
-                args.into_iter()
-                    .map(|expr| self.down_expr(expr, lvar_map))
-                    .collect::<Result<Vec<_>, CompileError>>()?,
-                pos,
-            )),
+            ExprKind::Func(name, args) => {
+                self.new_call_func_with_type_check(name, args, pos, lvar_map)
+            }
             ExprKind::Deref(expr) => {
                 // type check
                 let conv_expr = self.down_expr(*expr, lvar_map)?;
@@ -271,6 +301,57 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    pub fn new_call_func_with_type_check(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        pos: Position,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Result<ConvExpr, CompileError> {
+        // args type check
+        let args = args
+            .into_iter()
+            .map(|expr| self.down_expr(expr, lvar_map))
+            .collect::<Result<Vec<_>, CompileError>>()?;
+        let Func {
+            name: _,
+            args: args_ty,
+            ret: ret_ty,
+            pos: declared_pos,
+        } = match self.func_map.get(&name) {
+            Some(func) => func,
+            None => {
+                return Err(CompileError::new_undeclared_error(
+                    self.input,
+                    name,
+                    pos,
+                    VariableKind::Func,
+                ))
+            }
+        };
+        if args_ty.len() != args.len() {
+            return Err(CompileError::new_args_error(
+                self.input,
+                name,
+                pos,
+                args_ty.len(),
+                args.len(),
+                *declared_pos,
+            ));
+        }
+        for (expected_ty, got_expr) in args_ty.iter().zip(args.iter()) {
+            if *expected_ty != got_expr.ty {
+                return Err(CompileError::new_type_expect_failed(
+                    self.input,
+                    got_expr.pos,
+                    expected_ty.clone(),
+                    got_expr.ty.clone(),
+                ));
+            }
+        }
+        Ok(ConvExpr::new_func(name, args, ret_ty.clone(), pos))
+    }
+
     #[allow(clippy::too_many_lines)]
     pub fn down_binary(
         &mut self,
@@ -280,7 +361,7 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = self.down_expr(*rhs, lvar_map)?;
         let mut lhs = self.down_expr(*lhs, lvar_map)?;
-        let kind = ConvBinOpKind::new(kind).unwrap();
+        let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lhs_ty), Type::Base(rhs_ty)) => {
@@ -380,7 +461,7 @@ impl<'a> Analyzer<'a> {
                         ConvBinOpKind::Div,
                         subtracted,
                         size_of,
-                        Type::Ptr(base_ty),
+                        *base_ty,
                         pos,
                     ))
                 }
@@ -449,33 +530,6 @@ impl<'a> Analyzer<'a> {
                     Type::Base(BaseType::Int),
                     pos,
                 ))
-            }
-        }
-    }
-
-    /// # Panics
-    /// always
-    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
-        let pos: Option<Position> = pos.into();
-        match pos {
-            None => panic!("Passed pos info was None.\n{}", msg),
-            Some(pos) => {
-                let mut splited = self.input.split('\n');
-                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-                    panic!(
-                        "Position is illegal, pos: {:?},\n input: {}",
-                        pos, self.input
-                    )
-                });
-                eprintln!("{}", line);
-                let mut buffer = String::with_capacity(pos.n_char + 1);
-                for _ in 0..pos.n_char {
-                    buffer.push(' ');
-                }
-                buffer.push('^');
-                eprintln!("{}", buffer);
-                eprintln!("{}", msg);
-                panic!();
             }
         }
     }
@@ -728,10 +782,10 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_func(name: String, args: Vec<ConvExpr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<ConvExpr>, ret_ty: Type, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Func(name, args),
-            ty: Type::Base(BaseType::Int), // TODO: change this by reading function definition
+            ty: ret_ty,
             pos,
         }
     }
@@ -804,6 +858,25 @@ impl Lvar {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Func {
+    pub name: String,
+    pub args: Vec<Type>,
+    pub ret: Type,
+    pub pos: Position,
+}
+
+impl Func {
+    pub const fn new_raw(name: String, args: Vec<Type>, ret: Type, pos: Position) -> Self {
+        Self {
+            name,
+            args,
+            ret,
+            pos,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Base(BaseType),
     Ptr(Box<Type>),
@@ -868,7 +941,7 @@ pub enum ConvBinOpKind {
 }
 
 impl ConvBinOpKind {
-    pub const fn new(kind: BinOpKind) -> Option<Self> {
+    pub const fn new(kind: &BinOpKind) -> Option<Self> {
         match kind {
             BinOpKind::Add => Some(ConvBinOpKind::Add),
             BinOpKind::Sub => Some(ConvBinOpKind::Sub),

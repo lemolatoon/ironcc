@@ -139,8 +139,8 @@ assert 10 "int main() {int a; int i; int j;a  = 1; for (i = 0; i < 2; i = i + 1)
 
 assert 105 "int main(){int j; int sum; int i;sum = 4; i = 0; while (i < 74) {for (j = 1; j < 10; j = j + 1) { sum = sum + j;}i = i + 3;} return sum % 256;}"
  
-assert 2 "int main(){return just2();}"
-assert 198 "int main(){return just_ret(198);}"
+assert 2 "int just2();int main(){return just2();}"
+assert 198 "int just_ret(int a);int main(){return just_ret(198);}"
 
 assert 1 "int main(){int a; int b;b = 0; a= 100; a=b=1; return a == 1;}"
 
@@ -160,14 +160,14 @@ assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; retur
 assert 3 "int main() {int x; int *px; int **ppx;x = 3; px = &x; ppx = &px; return **ppx;}"
 assert 7 "int main() {int x; int *px;x = 3; int y; int z;y = 4; px = &x; int *py;py = &y; z = *px + *py; return z;}"
 
-assert 1 "int main() {int *p; p = alloc4(1, 2, 3, 4);  return *p;}"
+assert 1 "int*alloc4(int a, int b, int c, int d);int main() {int *p; p = alloc4(1, 2, 3, 4);  return *p;}"
 
 assert 7 "int sub(int a, int b) {return a - b;} int main() {return sub(15, 8);}"
 
-assert 3 "int main() {int *p; p = alloc4(1, 2, 3, 4);  return *(p + 2);}"
+assert 3 "int*alloc4(int a, int b, int c, int d);int main() {int *p; p = alloc4(1, 2, 3, 4);  return *(p + 2);}"
 
 assert 3 "int main() {int x;x=5; int *p;  p = &x; *p = 3; return x;}"
-assert 10 "int main() {int x;x=5; int y; y = 10; int *px; px= &x; int *py; py = &y; int **ppx; ppx = &x; no(); *ppx = py;  return **ppx;} int no(){}"
+assert 10 "int no(){}int main() {int x;x=5; int y; y = 10; int *px; px= &x; int *py; py = &y; int **ppx; ppx = &px; no(); *ppx = py;  return **ppx;} "
 
 assert 10  "int main() {
     int x;

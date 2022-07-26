@@ -5,8 +5,8 @@ use std::collections::BTreeMap;
 
 use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
+use ironcc::parse::*;
 use ironcc::tokenize::{Position, TokenStream, Tokenizer};
-use ironcc::{parse::*, tokenize};
 use test_utils::ast::*;
 
 #[test]
@@ -577,7 +577,12 @@ fn _cfor_(
 }
 
 fn _cfunc(name: &str, args: Vec<ConvExpr>) -> ConvExpr {
-    ConvExpr::new_func(name.to_string(), args, Position::default())
+    ConvExpr::new_func(
+        name.to_string(),
+        args,
+        Type::Base(BaseType::Int),
+        Position::default(),
+    )
 }
 
 fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {

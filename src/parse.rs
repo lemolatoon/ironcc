@@ -25,7 +25,19 @@ impl<'a> Parser<'a> {
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
-            program.push(self.parse_func_def(tokens)?);
+            let mut tmp_tokens = tokens.clone();
+            let component = {
+                let declaration = self.parse_declaration(&mut tmp_tokens)?;
+                if Some(TokenKind::Semi) == tmp_tokens.peek_kind() {
+                    tmp_tokens.expect(TokenKind::Semi).unwrap();
+                    *tokens = tmp_tokens;
+                    let pos = declaration.pos;
+                    ProgramComponent::new(ProgramKind::Declaration(declaration), pos)
+                } else {
+                    self.parse_func_def(tokens)?
+                }
+            };
+            program.push(component);
         }
         tokens.expect(TokenKind::Eof)?;
         assert!(tokens.next().is_none());
@@ -61,10 +73,10 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         // <declaration-specifiers> := <type-specifiers>
+        // first element of direct diclarator is Ident
         let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
         // <pointer>*
         let n_star = Self::parse_pointer(tokens)?;
-        // first element of direct diclarator is Ident
         let direct_declarator = self.parse_direct_declarator(tokens)?;
         let init = if tokens.consume(&TokenKind::Eq) {
             Some(self.parse_initializer(tokens)?)
@@ -512,6 +524,7 @@ impl ProgramComponent {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ProgramKind {
     FuncDef(TypeSpec, Declarator, Stmt),
+    Declaration(Declaration),
 }
 
 impl ProgramKind {
