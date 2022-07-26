@@ -224,7 +224,7 @@ impl Token {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default, Copy)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy, Default)]
 pub struct Position {
     pub n_char: usize,
     pub n_line: usize,
@@ -365,6 +365,10 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
 
     pub fn peek_kind(&mut self) -> Option<TokenKind> {
         self.iter.peek().map(|token| *token.kind.clone())
+    }
+
+    pub fn next_kind(&mut self) -> Option<TokenKind> {
+        self.next().map(|token| *token.kind)
     }
 
     /// # Panics

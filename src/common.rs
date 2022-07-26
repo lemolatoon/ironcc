@@ -1,17 +1,26 @@
 /// return `CompilerError` whose kind is `Unimplemented`
-///  - 1st arg: `self`: where `self.input: &str` is valid
+///  - 1st arg: `input`:&str
 ///  - 2nd arg: `pos`: Position
 ///  - 3rd arg: `msg`: error message
 ///
 /// Also no args provided is allowed.
 #[macro_export]
 macro_rules! unimplemented_err {
-    ($self: ident, $pos: expr, $msg: expr) => {
+    ($input: expr, $pos: expr, $msg: expr) => {
         CompileError::new(
-            $self.input,
+            $input,
             $crate::error::CompileErrorKind::Unimplemented(
                 Some($pos),
                 format!("{}{}", $crate::meta!(), $msg),
+            ),
+        )
+    };
+    ($msg: expr) => {
+        CompileError::new(
+            "",
+            $crate::error::CompileErrorKind::Unimplemented(
+                None,
+                format!("{} {}", $crate::meta!(), $msg),
             ),
         )
     };

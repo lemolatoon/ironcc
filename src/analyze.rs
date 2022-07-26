@@ -55,7 +55,7 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
         let ident = declrtr.d_declrtr.ident_name();
-        let ty = Type::from_ty_spec_and_declrtr(ty_spec, declrtr);
+        let ty = self.get_type(ty_spec, declrtr)?;
 
         // TODO: manage func's return type
         let (ret_ty, args);
@@ -73,9 +73,11 @@ impl<'a> Analyzer<'a> {
             ));
         }
         let args = match declrtr.d_declrtr.clone() {
-            DirectDeclarator::Ident(_) => {
+            DirectDeclarator::Ident(_)
+            | DirectDeclarator::Array(_, _)
+            | DirectDeclarator::Declarator(_) => {
                 return Err(unimplemented_err!(
-                    self,
+                    self.input,
                     pos,
                     "Currently top-level declaration is not allowed."
                 ))
@@ -84,12 +86,13 @@ impl<'a> Analyzer<'a> {
         };
         for arg in args {
             // register func args as lvar
+            let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
             lvars.push(Self::new_lvar(
                 self.input,
                 arg.ident_name().to_owned(),
                 arg.pos,
                 &mut self.offset,
-                arg.ty(),
+                ty,
                 lvar_map,
             )?);
         }
@@ -136,12 +139,8 @@ impl<'a> Analyzer<'a> {
                     .collect::<Result<Vec<_>, CompileError>>()?,
             ),
             StmtKind::Declare(declare) => {
-                let ty = declare.ty();
-                // TODO: avoid func definition here
-                assert!(!matches!(
-                    declare.declrtr.d_declrtr,
-                    DirectDeclarator::Func(_, _)
-                ));
+                let ty = declare.ty(self)?;
+                // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declare.ident_name();
                 let lvar = Self::new_lvar(
                     self.input,
@@ -248,6 +247,13 @@ impl<'a> Analyzer<'a> {
                             Type::Ptr(Box::new(Type::Base(BaseType::Int))),
                             ty,
                         ));
+                    }
+                    Type::Array(_, _) => {
+                        return Err(unimplemented_err!(
+                            self.input,
+                            conv_expr.pos,
+                            "dereference to array is currently not supported."
+                        ))
                     }
                     Type::Ptr(ptr_base) => ptr_base,
                 };
@@ -389,6 +395,14 @@ impl<'a> Analyzer<'a> {
                 (Type::Func(_, _), Type::Base(_)) => todo!(),
                 (Type::Func(_, _), Type::Ptr(_)) => todo!(),
                 (Type::Func(_, _), Type::Func(_, _)) => todo!(),
+                // TODO: convert array to ptr before this match expr
+                (Type::Base(_), Type::Array(_, _)) => todo!(),
+                (Type::Ptr(_), Type::Array(_, _)) => todo!(),
+                (Type::Func(_, _), Type::Array(_, _)) => todo!(),
+                (Type::Array(_, _), Type::Base(_)) => todo!(),
+                (Type::Array(_, _), Type::Ptr(_)) => todo!(),
+                (Type::Array(_, _), Type::Func(_, _)) => todo!(),
+                (Type::Array(_, _), Type::Array(_, _)) => todo!(),
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
@@ -464,6 +478,59 @@ impl<'a> Analyzer<'a> {
                 panic!();
             }
         }
+    }
+
+    pub fn get_type<T: Into<Type> + Clone>(
+        &self,
+        ty_spec: T,
+        declrtr: &Declarator,
+    ) -> Result<Type, CompileError> {
+        let mut ty = ty_spec.into();
+        for _ in 0..declrtr.n_star {
+            ty = Type::Ptr(Box::new(ty));
+        }
+        let mut watching_d_declrtr = &declrtr.d_declrtr;
+        loop {
+            match watching_d_declrtr {
+                DirectDeclarator::Func(d_declrtr, args) => {
+                    // TODO: support function type for declaration
+                    // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
+                    ty = Type::Func(
+                        Box::new(ty),
+                        args.iter()
+                            .map(|declaration| {
+                                self.get_type(&declaration.ty_spec, &declaration.declrtr)
+                            })
+                            .collect::<Result<Vec<_>, CompileError>>()?,
+                    );
+                    watching_d_declrtr = d_declrtr;
+                }
+                DirectDeclarator::Array(d_declrtr, expr) => {
+                    #[allow(clippy::cast_sign_loss)]
+                    let size = *if let Expr {
+                        kind: ExprKind::Num(size),
+                        pos: _,
+                    } = expr
+                    {
+                        size
+                    } else {
+                        return Err(unimplemented_err!(format!(
+                            "Other than num expr is not allowed as lenghth of array {:?}",
+                            expr
+                        )));
+                    } as usize;
+                    ty = Type::Array(Box::new(ty), size);
+                    watching_d_declrtr = d_declrtr;
+                }
+                DirectDeclarator::Declarator(declarator) => {
+                    ty = self.get_type(ty, declarator)?;
+                    break;
+                }
+                DirectDeclarator::Ident(_) => break,
+            }
+        }
+
+        Ok(ty)
     }
 
     pub fn fetch_lvar(
@@ -741,31 +808,23 @@ pub enum Type {
     Base(BaseType),
     Ptr(Box<Type>),
     Func(Box<Type>, Vec<Type>),
+    Array(Box<Type>, usize),
+}
+
+impl From<&TypeSpec> for Type {
+    fn from(ty_spec: &TypeSpec) -> Self {
+        match ty_spec {
+            TypeSpec::Int => Type::Base(BaseType::Int),
+        }
+    }
 }
 
 impl Type {
-    pub fn from_ty_spec_and_declrtr(ty_spec: &TypeSpec, declrtr: &Declarator) -> Self {
-        let base = match ty_spec {
-            TypeSpec::Int => BaseType::Int,
-        };
-        let mut ty = Type::Base(base);
-        let mut watching_d_declrtr = &declrtr.d_declrtr;
-        while let DirectDeclarator::Func(d_declrtr, args) = watching_d_declrtr {
-            // TODO: support function type for declaration
-            // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
-            ty = Type::Func(Box::new(ty), args.iter().map(Declaration::ty).collect());
-            watching_d_declrtr = d_declrtr;
-        }
-        for _ in 0..declrtr.n_star {
-            ty = Type::Ptr(Box::new(ty));
-        }
-        ty
-    }
-
     pub const fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
             Type::Ptr(_) | Type::Func(_, _) => 8,
+            Type::Array(ty, size) => ty.size_of() * *size,
         }
     }
 }

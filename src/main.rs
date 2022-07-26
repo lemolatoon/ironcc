@@ -37,7 +37,6 @@ fn compile() -> Result<(), CompileError> {
 
     let parser = Parser::new(&input);
     let program = parser.parse_program(&mut token_stream)?;
-    // println!("{:#?}", program.clone().into_iter().collect::<Vec<_>>());
 
     let mut analyzer = Analyzer::new(&input);
     let converted_program = analyzer.down_program(program)?;

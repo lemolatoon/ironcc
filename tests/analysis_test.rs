@@ -3,10 +3,10 @@ pub mod test_utils;
 
 use std::collections::BTreeMap;
 
-use ironcc::analyze::*;
+use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
-use ironcc::parse::*;
-use ironcc::tokenize::Position;
+use ironcc::tokenize::{Position, TokenStream, Tokenizer};
+use ironcc::{parse::*, tokenize};
 use test_utils::ast::*;
 
 #[test]
@@ -424,6 +424,71 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
         )])
     );
     Ok(())
+}
+
+#[test]
+fn parse_type_test() {
+    use analyze::BaseType;
+    use analyze::Type;
+    let declaration_src = "{int *array[5]; return array;}";
+    let ty = extract_ty(declaration_src);
+    assert_eq!(
+        ty,
+        Type::Array(Box::new(Type::Ptr(Box::new(Type::Base(BaseType::Int)))), 5)
+    );
+
+    let declaration_src =
+        "{int *(*(*func)(int arg_f1, int* arg_f2))(int **arg_f_ret_1); return func;}";
+    // `func` is a pointer { of function(int, int*) returning { a pointer { of function(int **) { returning int* } } } }
+    let ty = extract_ty(declaration_src);
+    let int = || Type::Base(BaseType::Int);
+    let ptr = |ty| Type::Ptr(Box::new(ty));
+    let func = |ty, args| Type::Func(Box::new(ty), args);
+    assert_eq!(
+        ty,
+        ptr(func(
+            ptr(func(ptr(int()), vec![ptr(ptr(int()))])),
+            vec![int(), ptr(int())]
+        ))
+    );
+
+    let src = "{int *(*(*signal)(int arg0, int *(*f)(int arg0)))(int a); return signal;}";
+    // `signal` is a pointer to function(int, a pointer to function(int) returning a pointer to int) returning a pointer to function(int) returning a pointer to int
+    let ty = extract_ty(src);
+    assert_eq!(
+        ty,
+        ptr(func(
+            ptr(func(ptr(int()), vec![int()])),
+            vec![int(), ptr(func(ptr(int()), vec![int()]))]
+        ))
+    )
+}
+
+fn extract_ty(src: &str) -> Type {
+    let tokens = Tokenizer::new(src).tokenize().unwrap();
+    let mut tokens = TokenStream::new(tokens.into_iter(), src);
+    let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
+    let mut analyzer = Analyzer::new(src);
+    let mut empty_lvar_map = BTreeMap::new();
+    let conv_stmt = analyzer
+        .down_stmt(ast, &mut empty_lvar_map, "main".to_string())
+        .unwrap();
+    if let ConvStmt {
+        kind: ConvStmtKind::Block(vec),
+    } = conv_stmt
+    {
+        let second_stmt = vec.get(1).unwrap();
+        if let ConvStmt {
+            kind: ConvStmtKind::Return(expr, _),
+        } = second_stmt
+        {
+            expr.ty.clone()
+        } else {
+            panic!("Return expected.")
+        }
+    } else {
+        panic!("Block expected.");
+    }
 }
 
 fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
