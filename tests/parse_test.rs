@@ -334,8 +334,11 @@ fn parse_stmt_test() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", vec![])),
+        TypeSpec::Int,
+        0,
+        func_dd("main", vec![]),
         block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -362,8 +365,11 @@ fn parse_stmt_test() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -391,8 +397,11 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -418,11 +427,14 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![expr_stmt(assign(
             lvar("a"),
             assign(lvar("b"), num(2)),
         ))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -448,11 +460,14 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![expr_stmt(assign(
             bin(BinOpKind::Add, lvar("a"), num(1)),
             num(2),
         ))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -493,7 +508,9 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             expr_stmt(assign(lvar("a"), num(22))),
             if_(
@@ -502,6 +519,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 Some(ret(num(0))),
             ),
         ]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -540,7 +558,9 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             expr_stmt(assign(lvar("a"), num(22))),
             while_(
@@ -549,6 +569,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
             ),
             ret(lvar("a")),
         ]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -599,7 +620,9 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             expr_stmt(assign(lvar("x"), num(1))),
             for_(
@@ -613,6 +636,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 ),
             ),
         ]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -645,7 +669,9 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             expr_stmt(assign(lvar("a"), num(13))),
             ret(bin(
@@ -654,6 +680,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 bin(BinOpKind::Rem, num(3), num(1)),
             )),
         ]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -684,8 +711,11 @@ fn parse_call_func() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -713,8 +743,11 @@ fn parse_ptr() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![ret(deref(lvar("a")))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -762,7 +795,9 @@ fn parse_ptr() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![
             expr_stmt(assign(lvar("a"), func("foo", vec![num(3), num(1)]))),
             expr_stmt(assign(lvar("ap"), addr(lvar("a")))),
@@ -771,6 +806,7 @@ fn parse_ptr() -> Result<(), CompileError> {
                 bin(BinOpKind::Add, lvar("a"), num(1)),
             )),
         ]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -806,12 +842,15 @@ fn parse_declaration() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![declare_stmt(declare(
             TypeSpec::Int,
             0,
             DirectDeclarator::Ident("a".to_string()),
         ))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -843,12 +882,15 @@ fn parse_declaration() -> Result<(), CompileError> {
         .parse_program(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        declare(TypeSpec::Int, 0, func_dd("main", Vec::new())),
+        TypeSpec::Int,
+        0,
+        func_dd("main", Vec::new()),
         block(vec![declare_stmt(declare(
             TypeSpec::Int,
             1,
             DirectDeclarator::Ident("a".to_string()),
         ))]),
+        Position::default(),
     )]);
 
     assert_eq!(parsed, expected);

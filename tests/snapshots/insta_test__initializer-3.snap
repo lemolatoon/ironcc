@@ -1,13 +1,16 @@
 ---
 source: tests/insta_test.rs
-expression: tester.conv_program()
+expression: tester.conv_program().as_ref().unwrap()
 ---
 ConvProgram {
     components: [
         Func(
             ConvFuncDef {
-                ty: Base(
-                    Int,
+                ty: Func(
+                    Base(
+                        Int,
+                    ),
+                    [],
                 ),
                 name: "main",
                 args: [],

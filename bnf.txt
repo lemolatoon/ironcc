@@ -1,15 +1,16 @@
 <program>                   := <program-item>*
 <program-item>              := <declaration>
                                 | <func-def>
-<func-def>                  := <declaration> <blockstmt>
+<func-def>                  := <declaration-specifiers> <declarator> <blockstmt>
 
-<declaration>               := <declaration-specifiers> <init-declarator>*
+<declaration>               := <declaration-specifiers> <init-declarator>* ";"
 <declaration-specifiers>    := <type-specifiers>
 <type-specifiers>           := "int"
 
 <init-declarator>           := <declarator> ("=" <initializer>)?
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
+                                | "(" <declarator> ")"
                                 | <direct-declarator> "[" <assign> "]"                                  # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 <initializer>               := <assign>
@@ -27,7 +28,7 @@
                                 | "return" <expr> ";"
                                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
-                                | <declaration> ";"
+                                | <declaration> 
 <blockstmt>                 := "{" <stmt>* "}"
 
 

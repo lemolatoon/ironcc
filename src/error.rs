@@ -69,6 +69,38 @@ impl CompileError {
         )
     }
 
+    pub fn new_undeclared_error(
+        src: &str,
+        name: String,
+        pos: Position,
+        kind: VariableKind,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)),
+        )
+    }
+
+    pub fn new_args_error(
+        src: &str,
+        name: String,
+        pos: Position,
+        expected: usize,
+        got: usize,
+        declared_pos: Position,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::FuncArgsError(
+                name,
+                pos,
+                expected,
+                got,
+                declared_pos,
+            )),
+        )
+    }
+
     pub fn new_type_error<T: Into<String>>(
         src: &str,
         expr0: ConvExpr,
@@ -186,6 +218,22 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![expr0.pos, expr1.pos], f)?;
                 writeln!(f, "{:?} and {:?} is not allowed.", expr0.ty, expr1.ty)?;
             }
+            AnalyzeError(AnalyzeErrorKind::FuncArgsError(
+                name,
+                pos,
+                expected,
+                got,
+                declared_pos,
+            )) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(
+                    f,
+                    "In {:?}'s calling, {} args expected, but got {}",
+                    name, expected, got
+                )?;
+                error_at(&self.src, vec![*declared_pos], f)?;
+                writeln!(f, "{} is first declared here.", name)?;
+            }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
                 error_at(&self.src, vec![expr.pos], f)?;
                 writeln!(f, "{:?} cannot be derefered.", expr.ty)?;
@@ -235,6 +283,7 @@ impl Debug for CompileError {
 pub enum AnalyzeErrorKind {
     RedefinedError(String, Position, VariableKind),
     UndeclaredError(String, Position, VariableKind),
+    FuncArgsError(String, Position, usize, usize, Position),
     TypeError(ConvExpr, ConvExpr, Option<String>),
     TypeExpectFailed(Position, Type, Type),
 }
@@ -242,6 +291,7 @@ pub enum AnalyzeErrorKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum VariableKind {
     Local,
+    Func,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -263,9 +313,7 @@ fn error_at(
     mut positions: Vec<Position>,
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
-    writeln!(f, "====================")?;
-    writeln!(f, "{}", src)?;
-    writeln!(f, "====================")?;
+    writeln!(f, "\n")?;
     positions.sort_by(|a, b| (a.n_line, a.n_char).cmp(&(b.n_line, b.n_char)));
     let mut same_line_positions = Vec::new();
     let mut tmp_vec = Vec::new();

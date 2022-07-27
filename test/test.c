@@ -1,3 +1,36 @@
+int test0();
+int test0_2();
+int test0_3();
+int test1();
+int test2(int arg0);
+int test3(int arg0);
+int test4(int arg0);
+int test5(int arg0);
+int test6(int arg0);
+int test7(int arg0);
+int test8();
+int test9();
+int test9_0();
+int test9_1();
+int test10();
+int test11();
+int test12();
+int test13();
+int test14();
+int test15();
+int assert(int index, int expected, int got);
+
+int f(int arg0);
+int g(int arg0);
+int h(int arg0);
+
+int sub(int arg0, int arg1);
+int add(int arg0, int arg1);
+
+int **alloc4_ptr(int *a, int *b, int *c, int *d);
+int *alloc4(int a, int b, int c, int d);
+
+int print_ok();
 
 int main()
 {

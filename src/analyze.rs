@@ -3,8 +3,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     parse::{
-        BinOpKind, Binary, Declaration, DirectDeclarator, Expr, ExprKind, Initializer, Program,
-        ProgramKind, SizeOfOperandKind, Stmt, StmtKind, UnOp,
+        BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, Initializer, Program,
+        ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -14,46 +14,105 @@ use crate::{
 pub struct Analyzer<'a> {
     input: &'a str,
     offset: usize,
+    func_map: BTreeMap<String, Func>,
 }
 
 impl<'a> Analyzer<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self { input, offset: 0 }
+    pub fn new(input: &'a str) -> Self {
+        let func_map: BTreeMap<String, Func> = BTreeMap::new();
+        Self {
+            input,
+            offset: 0,
+            func_map,
+        }
     }
 
     pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
         let mut conv_program = ConvProgram::new();
         for component in program {
             match component {
-                ProgramKind::Func(func_declare, body) => {
+                ProgramComponent {
+                    kind: ProgramKind::FuncDef(type_spec, declrtr, body),
+
+                    pos,
+                } => {
                     let mut lvar_map = BTreeMap::new();
                     self.offset = 0; // reset another func's offset
-                    conv_program.push(self.down_func_declare(
-                        &func_declare,
+                    conv_program.push(self.down_func_def(
+                        &type_spec,
+                        &declrtr,
                         body,
+                        pos,
                         &mut lvar_map,
                     )?);
                 }
+                ProgramComponent {
+                    kind: ProgramKind::Declaration(declaration),
+                    pos,
+                } => {
+                    let name = declaration.ident_name();
+                    if let Some(_) = self.func_map.get(&name.to_string()) {
+                        return Err(CompileError::new_redefined_variable(
+                            self.input,
+                            name.to_string(),
+                            pos,
+                            VariableKind::Func,
+                        ));
+                    }
+                    match declaration.ty(self)? {
+                        Type::Base(_) | Type::Ptr(_) | Type::Array(_, _) => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                pos,
+                                "Global variable is not yet unimplemented."
+                            ))
+                        }
+                        Type::Func(ret_ty, args) => {
+                            self.func_map.insert(
+                                name.to_string(),
+                                Func::new_raw(name.to_string(), args, *ret_ty, pos),
+                            );
+                        }
+                    }
+                }
             }
         }
-        Ok(conv_program)
+        return Ok(conv_program);
     }
 
-    pub fn down_func_declare(
+    pub fn down_func_def(
         &mut self,
-        declare: &Declaration,
+        ty_spec: &TypeSpec,
+        declrtr: &Declarator,
         body: Stmt,
+        pos: Position,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
-        let ident = declare.ident_name();
-        // TODO: manage func's return type
-        let ty = declare.ty();
-        let args = match declare.declrtr.clone() {
-            DirectDeclarator::Ident(_) => {
+        let ident = declrtr.d_declrtr.ident_name();
+        let ty = self.get_type(ty_spec, declrtr)?;
+
+        let (ret_ty, args_ty);
+        if let Type::Func(this_ret_ty, this_args) = ty.clone() {
+            (ret_ty, args_ty) = (this_ret_ty, this_args);
+        } else {
+            return Err(CompileError::new_type_expect_failed(
+                self.input,
+                pos,
+                Type::Func(
+                    Box::new(Type::Base(BaseType::Int)),
+                    vec![Type::Base(BaseType::Int)],
+                ),
+                ty,
+            ));
+        }
+        let args = match declrtr.d_declrtr.clone() {
+            DirectDeclarator::Ident(_)
+            | DirectDeclarator::Array(_, _)
+            | DirectDeclarator::Declarator(_) => {
                 return Err(unimplemented_err!(
-                    self,
-                    declare.pos,
+                    self.input,
+                    pos,
                     "Currently top-level declaration is not allowed."
                 ))
             }
@@ -61,15 +120,20 @@ impl<'a> Analyzer<'a> {
         };
         for arg in args {
             // register func args as lvar
+            let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
             lvars.push(Self::new_lvar(
                 self.input,
                 arg.ident_name().to_owned(),
                 arg.pos,
                 &mut self.offset,
-                arg.ty(),
+                ty,
                 lvar_map,
             )?);
         }
+        self.func_map.insert(
+            ident.to_string(),
+            Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
+        );
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
             ident.to_owned(),
@@ -113,9 +177,8 @@ impl<'a> Analyzer<'a> {
                     .collect::<Result<Vec<_>, CompileError>>()?,
             ),
             StmtKind::Declare(declare) => {
-                let ty = declare.ty();
-                // TODO: avoid func definition here
-                assert!(!matches!(declare.declrtr, DirectDeclarator::Func(_, _)));
+                let ty = declare.ty(self)?;
+                // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declare.ident_name();
                 let lvar = Self::new_lvar(
                     self.input,
@@ -152,15 +215,12 @@ impl<'a> Analyzer<'a> {
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
         if lhs.ty != rhs.ty {
-            // TODO:
-            // return Err here after impl prototype func declaration
-
-            // return Err(CompileError::new_type_error(
-            //     self.input,
-            //     lhs,
-            //     rhs,
-            //     Some("Assign expression's lhs and rhs has to have compatible types"),
-            // ));
+            return Err(CompileError::new_type_error(
+                self.input,
+                lhs,
+                rhs,
+                Some("Assign expression's lhs and rhs has to have compatible types"),
+            ));
         }
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
@@ -201,27 +261,29 @@ impl<'a> Analyzer<'a> {
                 let rhs = self.down_expr(*rhs, lvar_map)?;
                 self.new_assign_expr_with_type_check(lhs, rhs, pos)
             }
-            // currently all ident is local variable
             ExprKind::LVar(name) => self.fetch_lvar(&name, pos, lvar_map),
-            ExprKind::Func(name, args) => Ok(ConvExpr::new_func(
-                name,
-                args.into_iter()
-                    .map(|expr| self.down_expr(expr, lvar_map))
-                    .collect::<Result<Vec<_>, CompileError>>()?,
-                pos,
-            )),
+            ExprKind::Func(name, args) => {
+                self.new_call_func_with_type_check(name, args, pos, lvar_map)
+            }
             ExprKind::Deref(expr) => {
                 // type check
                 let conv_expr = self.down_expr(*expr, lvar_map)?;
                 let base_ty = match conv_expr.ty.clone() {
-                    Type::Base(base) => {
+                    ty @ (Type::Base(_) | Type::Func(_, _)) => {
                         return Err(CompileError::new_type_expect_failed(
                             self.input,
                             conv_expr.pos,
                             // TODO: base type is not a problem of this error
-                            Type::Ptr(Box::new(Type::Base(base))),
-                            Type::Base(base),
+                            Type::Ptr(Box::new(Type::Base(BaseType::Int))),
+                            ty,
                         ));
+                    }
+                    Type::Array(_, _) => {
+                        return Err(unimplemented_err!(
+                            self.input,
+                            conv_expr.pos,
+                            "dereference to array is currently not supported."
+                        ))
                     }
                     Type::Ptr(ptr_base) => ptr_base,
                 };
@@ -239,6 +301,57 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    pub fn new_call_func_with_type_check(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        pos: Position,
+        lvar_map: &mut BTreeMap<String, Lvar>,
+    ) -> Result<ConvExpr, CompileError> {
+        // args type check
+        let args = args
+            .into_iter()
+            .map(|expr| self.down_expr(expr, lvar_map))
+            .collect::<Result<Vec<_>, CompileError>>()?;
+        let Func {
+            name: _,
+            args: args_ty,
+            ret: ret_ty,
+            pos: declared_pos,
+        } = match self.func_map.get(&name) {
+            Some(func) => func,
+            None => {
+                return Err(CompileError::new_undeclared_error(
+                    self.input,
+                    name,
+                    pos,
+                    VariableKind::Func,
+                ))
+            }
+        };
+        if args_ty.len() != args.len() {
+            return Err(CompileError::new_args_error(
+                self.input,
+                name,
+                pos,
+                args_ty.len(),
+                args.len(),
+                *declared_pos,
+            ));
+        }
+        for (expected_ty, got_expr) in args_ty.iter().zip(args.iter()) {
+            if *expected_ty != got_expr.ty {
+                return Err(CompileError::new_type_expect_failed(
+                    self.input,
+                    got_expr.pos,
+                    expected_ty.clone(),
+                    got_expr.ty.clone(),
+                ));
+            }
+        }
+        Ok(ConvExpr::new_func(name, args, ret_ty.clone(), pos))
+    }
+
     #[allow(clippy::too_many_lines)]
     pub fn down_binary(
         &mut self,
@@ -248,7 +361,7 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = self.down_expr(*rhs, lvar_map)?;
         let mut lhs = self.down_expr(*lhs, lvar_map)?;
-        let kind = ConvBinOpKind::new(kind).unwrap();
+        let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lhs_ty), Type::Base(rhs_ty)) => {
@@ -348,7 +461,7 @@ impl<'a> Analyzer<'a> {
                         ConvBinOpKind::Div,
                         subtracted,
                         size_of,
-                        Type::Ptr(base_ty),
+                        *base_ty,
                         pos,
                     ))
                 }
@@ -358,6 +471,19 @@ impl<'a> Analyzer<'a> {
                     rhs,
                     Some("ptr + ptr or ptr - ptr is not allowed. ".to_string()),
                 )),
+                (Type::Base(_), Type::Func(_, _)) => todo!(),
+                (Type::Ptr(_), Type::Func(_, _)) => todo!(),
+                (Type::Func(_, _), Type::Base(_)) => todo!(),
+                (Type::Func(_, _), Type::Ptr(_)) => todo!(),
+                (Type::Func(_, _), Type::Func(_, _)) => todo!(),
+                // TODO: convert array to ptr before this match expr
+                (Type::Base(_), Type::Array(_, _)) => todo!(),
+                (Type::Ptr(_), Type::Array(_, _)) => todo!(),
+                (Type::Func(_, _), Type::Array(_, _)) => todo!(),
+                (Type::Array(_, _), Type::Base(_)) => todo!(),
+                (Type::Array(_, _), Type::Ptr(_)) => todo!(),
+                (Type::Array(_, _), Type::Func(_, _)) => todo!(),
+                (Type::Array(_, _), Type::Array(_, _)) => todo!(),
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
@@ -408,31 +534,57 @@ impl<'a> Analyzer<'a> {
         }
     }
 
-    /// # Panics
-    /// always
-    pub fn error_at(&self, pos: impl Into<Option<Position>>, msg: &str) -> ! {
-        let pos: Option<Position> = pos.into();
-        match pos {
-            None => panic!("Passed pos info was None.\n{}", msg),
-            Some(pos) => {
-                let mut splited = self.input.split('\n');
-                let line = splited.nth(pos.n_line).unwrap_or_else(|| {
-                    panic!(
-                        "Position is illegal, pos: {:?},\n input: {}",
-                        pos, self.input
-                    )
-                });
-                eprintln!("{}", line);
-                let mut buffer = String::with_capacity(pos.n_char + 1);
-                for _ in 0..pos.n_char {
-                    buffer.push(' ');
+    pub fn get_type<T: Into<Type> + Clone>(
+        &self,
+        ty_spec: T,
+        declrtr: &Declarator,
+    ) -> Result<Type, CompileError> {
+        let mut ty = ty_spec.into();
+        for _ in 0..declrtr.n_star {
+            ty = Type::Ptr(Box::new(ty));
+        }
+        let mut watching_d_declrtr = &declrtr.d_declrtr;
+        loop {
+            match watching_d_declrtr {
+                DirectDeclarator::Func(d_declrtr, args) => {
+                    // TODO: support function type for declaration
+                    // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
+                    ty = Type::Func(
+                        Box::new(ty),
+                        args.iter()
+                            .map(|declaration| {
+                                self.get_type(&declaration.ty_spec, &declaration.declrtr)
+                            })
+                            .collect::<Result<Vec<_>, CompileError>>()?,
+                    );
+                    watching_d_declrtr = d_declrtr;
                 }
-                buffer.push('^');
-                eprintln!("{}", buffer);
-                eprintln!("{}", msg);
-                panic!();
+                DirectDeclarator::Array(d_declrtr, expr) => {
+                    #[allow(clippy::cast_sign_loss)]
+                    let size = *if let Expr {
+                        kind: ExprKind::Num(size),
+                        pos: _,
+                    } = expr
+                    {
+                        size
+                    } else {
+                        return Err(unimplemented_err!(format!(
+                            "Other than num expr is not allowed as lenghth of array {:?}",
+                            expr
+                        )));
+                    } as usize;
+                    ty = Type::Array(Box::new(ty), size);
+                    watching_d_declrtr = d_declrtr;
+                }
+                DirectDeclarator::Declarator(declarator) => {
+                    ty = self.get_type(ty, declarator)?;
+                    break;
+                }
+                DirectDeclarator::Ident(_) => break,
             }
         }
+
+        Ok(ty)
     }
 
     pub fn fetch_lvar(
@@ -630,10 +782,10 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_func(name: String, args: Vec<ConvExpr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<ConvExpr>, ret_ty: Type, pos: Position) -> Self {
         Self {
             kind: ConvExprKind::Func(name, args),
-            ty: Type::Base(BaseType::Int), // TODO: change this by reading function definition
+            ty: ret_ty,
             pos,
         }
     }
@@ -706,16 +858,46 @@ impl Lvar {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Func {
+    pub name: String,
+    pub args: Vec<Type>,
+    pub ret: Type,
+    pub pos: Position,
+}
+
+impl Func {
+    pub const fn new_raw(name: String, args: Vec<Type>, ret: Type, pos: Position) -> Self {
+        Self {
+            name,
+            args,
+            ret,
+            pos,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Base(BaseType),
     Ptr(Box<Type>),
+    Func(Box<Type>, Vec<Type>),
+    Array(Box<Type>, usize),
+}
+
+impl From<&TypeSpec> for Type {
+    fn from(ty_spec: &TypeSpec) -> Self {
+        match ty_spec {
+            TypeSpec::Int => Type::Base(BaseType::Int),
+        }
+    }
 }
 
 impl Type {
     pub const fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
-            Type::Ptr(_) => 8,
+            Type::Ptr(_) | Type::Func(_, _) => 8,
+            Type::Array(ty, size) => ty.size_of() * *size,
         }
     }
 }
@@ -759,7 +941,7 @@ pub enum ConvBinOpKind {
 }
 
 impl ConvBinOpKind {
-    pub const fn new(kind: BinOpKind) -> Option<Self> {
+    pub const fn new(kind: &BinOpKind) -> Option<Self> {
         match kind {
             BinOpKind::Add => Some(ConvBinOpKind::Add),
             BinOpKind::Sub => Some(ConvBinOpKind::Sub),

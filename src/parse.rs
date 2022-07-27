@@ -1,5 +1,5 @@
 use crate::{
-    analyze::{BaseType, Type},
+    analyze::{Analyzer, BaseType, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
 };
@@ -25,21 +25,35 @@ impl<'a> Parser<'a> {
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
-            program.push(self.parse_func(tokens)?);
+            let mut tmp_tokens = tokens.clone();
+            let component = {
+                let declaration = self.parse_declaration(&mut tmp_tokens)?;
+                if Some(TokenKind::Semi) == tmp_tokens.peek_kind() {
+                    tmp_tokens.expect(TokenKind::Semi).unwrap();
+                    *tokens = tmp_tokens;
+                    let pos = declaration.pos;
+                    ProgramComponent::new(ProgramKind::Declaration(declaration), pos)
+                } else {
+                    self.parse_func_def(tokens)?
+                }
+            };
+            program.push(component);
         }
         tokens.expect(TokenKind::Eof)?;
         assert!(tokens.next().is_none());
         Ok(program)
     }
 
-    pub fn parse_func<'b, I>(
+    pub fn parse_func_def<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
-    ) -> Result<ProgramKind, CompileError>
+    ) -> Result<ProgramComponent, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let declaration = self.parse_declaration(tokens)?;
+        let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
+        let n_star = Self::parse_pointer(tokens)?;
+        let d_declrtr = self.parse_direct_declarator(tokens)?;
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace))?;
         let mut stmts = Vec::new();
@@ -47,7 +61,8 @@ impl<'a> Parser<'a> {
             stmts.push(self.parse_stmt(tokens)?);
         }
         let body = Stmt::new_block(stmts);
-        Ok(ProgramKind::Func(declaration, body))
+        let kind = ProgramKind::new_funcdef(type_spec, n_star, d_declrtr, body);
+        Ok(ProgramComponent::new(kind, pos))
     }
 
     pub fn parse_declaration<'b, I>(
@@ -58,23 +73,11 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         // <declaration-specifiers> := <type-specifiers>
+        // first element of direct diclarator is Ident
         let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
         // <pointer>*
         let n_star = Self::parse_pointer(tokens)?;
-        // first element of direct diclarator is Ident
-        let mut direct_diclarator = DirectDeclarator::Ident(tokens.consume_ident()?);
-        if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
-            let mut args = Vec::new();
-            // function declaration
-            if !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
-                args.push(self.parse_declaration(tokens)?);
-                while tokens.consume(&TokenKind::Comma) {
-                    args.push(self.parse_declaration(tokens)?);
-                }
-                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
-            }
-            direct_diclarator = DirectDeclarator::Func(Box::new(direct_diclarator), args);
-        }
+        let direct_declarator = self.parse_direct_declarator(tokens)?;
         let init = if tokens.consume(&TokenKind::Eq) {
             Some(self.parse_initializer(tokens)?)
         } else {
@@ -83,11 +86,68 @@ impl<'a> Parser<'a> {
         Ok(Declaration::new(
             type_spec,
             n_star,
-            direct_diclarator,
+            direct_declarator,
             init,
             pos,
         ))
     }
+
+    pub fn parse_declarator<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Declarator, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        Ok(Declarator::new(
+            Self::parse_pointer(tokens)?,
+            self.parse_direct_declarator(tokens)?,
+        ))
+    }
+
+    pub fn parse_direct_declarator<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<DirectDeclarator, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut direct_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+            // "(" <declaration> ")"
+            let d_declrtr = DirectDeclarator::Declarator(Box::new(self.parse_declarator(tokens)?));
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+            d_declrtr
+        } else {
+            // <ident>
+            DirectDeclarator::Ident(tokens.consume_ident()?)
+        };
+        loop {
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+                // function declaration
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                    // e.g) `main()`
+                    direct_declarator =
+                        DirectDeclarator::Func(Box::new(direct_declarator), Vec::new());
+                } else {
+                    let mut args = Vec::new();
+                    args.push(self.parse_declaration(tokens)?);
+                    while tokens.consume(&TokenKind::Comma) {
+                        args.push(self.parse_declaration(tokens)?);
+                    }
+                    direct_declarator = DirectDeclarator::Func(Box::new(direct_declarator), args);
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                }
+            } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
+                let expr = self.parse_assign(tokens)?;
+                direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), expr);
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+            } else {
+                break;
+            }
+        }
+        Ok(direct_declarator)
+    }
+
     pub fn parse_initializer<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
@@ -418,9 +478,9 @@ impl<'a> Parser<'a> {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Program {
-    components: Vec<ProgramKind>,
+    components: Vec<ProgramComponent>,
 }
 
 impl Program {
@@ -430,17 +490,17 @@ impl Program {
         }
     }
 
-    pub fn with_vec(vec: Vec<ProgramKind>) -> Self {
+    pub fn with_vec(vec: Vec<ProgramComponent>) -> Self {
         Self { components: vec }
     }
 
-    pub fn push(&mut self, func: ProgramKind) {
-        self.components.push(func);
+    pub fn push(&mut self, component: ProgramComponent) {
+        self.components.push(component);
     }
 }
 
 impl IntoIterator for Program {
-    type Item = ProgramKind;
+    type Item = ProgramComponent;
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -449,25 +509,48 @@ impl IntoIterator for Program {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum ProgramKind {
-    Func(Declaration, Stmt),
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct ProgramComponent {
+    pub kind: ProgramKind,
+    pub pos: Position,
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+impl ProgramComponent {
+    pub const fn new(kind: ProgramKind, pos: Position) -> Self {
+        Self { kind, pos }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ProgramKind {
+    FuncDef(TypeSpec, Declarator, Stmt),
+    Declaration(Declaration),
+}
+
+impl ProgramKind {
+    pub const fn new_funcdef(
+        type_spec: TypeSpec,
+        n_star: usize,
+        d_declrtr: DirectDeclarator,
+        body: Stmt,
+    ) -> Self {
+        ProgramKind::FuncDef(type_spec, Declarator::new(n_star, d_declrtr), body)
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Stmt {
     pub kind: StmtKind,
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 /// Declaration
 pub struct Declaration {
     // type-specifier
     pub ty_spec: TypeSpec,
     // init-declarator
     // declarator
-    pub n_star: usize,
-    pub declrtr: DirectDeclarator,
+    pub declrtr: Declarator,
     // initializer
     pub initializer: Option<Initializer>,
     pub pos: Position,
@@ -478,57 +561,65 @@ impl Declaration {
     pub const fn new(
         ty_spec: TypeSpec,
         n_star: usize,
-        declrtr: DirectDeclarator,
+        d_declrtr: DirectDeclarator,
         initializer: Option<Initializer>,
         pos: Position,
     ) -> Self {
         Self {
             ty_spec,
-            n_star,
-            declrtr,
+            declrtr: Declarator::new(n_star, d_declrtr),
             initializer,
             pos,
         }
     }
 
     pub fn ident_name(&self) -> &str {
-        self.declrtr.ident_name()
+        self.declrtr.d_declrtr.ident_name()
     }
 
-    pub fn ty(&self) -> Type {
-        let base = match self.ty_spec {
-            TypeSpec::Int => BaseType::Int,
-        };
-        let mut ty = Type::Base(base);
-        for _ in 0..self.n_star {
-            ty = Type::Ptr(Box::new(ty));
-        }
-        ty
+    pub fn ty(&self, analyzer: &Analyzer) -> Result<Type, CompileError> {
+        analyzer.get_type(&self.ty_spec, &self.declrtr)
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Declarator {
+    pub n_star: usize,
+    pub d_declrtr: DirectDeclarator,
+}
+
+impl Declarator {
+    pub const fn new(n_star: usize, d_declrtr: DirectDeclarator) -> Self {
+        Self { n_star, d_declrtr }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum DirectDeclarator {
     Ident(String),
+    Array(Box<DirectDeclarator>, Expr),
     Func(Box<DirectDeclarator>, Vec<Declaration>),
+    Declarator(Box<Declarator>),
 }
 
 impl DirectDeclarator {
     pub fn ident_name(&self) -> &str {
         match self {
             DirectDeclarator::Ident(name) => name,
-            DirectDeclarator::Func(direct_declarator, _) => direct_declarator.ident_name(),
+            DirectDeclarator::Func(direct_declarator, _)
+            | DirectDeclarator::Array(direct_declarator, _) => direct_declarator.ident_name(),
+            DirectDeclarator::Declarator(declarator) => declarator.d_declrtr.ident_name(),
         }
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Initializer {
     Expr(Expr),
     Array(Vec<Expr>),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum TypeSpec {
     Int,
 }
@@ -578,7 +669,7 @@ impl Stmt {
 }
 
 /// \<type-name\> := \<specifier-qualifier-list\> \<abstract-declarator\>?
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct TypeName {
     // TODO: actually Vec
     spec_quals: SpecQual,
@@ -615,11 +706,11 @@ impl TypeName {
 }
 
 /// \<specifier-sualifier-list\> := \<type-specifiers\>
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct SpecQual(TypeSpec);
 
 /// \<abstract-declarator\> := "\*"\* \<direct-abstract-declarator\>?
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct AbstractDeclarator {
     /// "\*"\*
     n_star: usize,
@@ -636,13 +727,13 @@ impl AbstractDeclarator {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum DirectAbstructDeclarator {
     /// <direct-abstruct-declarator>? "[]"
     Array(Option<Box<DirectAbstructDeclarator>>),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum StmtKind {
     Expr(Expr),
     Return(Expr),
@@ -653,13 +744,13 @@ pub enum StmtKind {
     Declare(Declaration),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Expr {
     pub kind: ExprKind,
     pub pos: Position,
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ExprKind {
     Binary(Binary),
     Num(isize),
@@ -672,13 +763,13 @@ pub enum ExprKind {
     SizeOf(SizeOfOperandKind),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum SizeOfOperandKind {
     Expr(Box<Expr>),
     Type(TypeName),
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum UnOp {
     Plus,
     /// before analysis only
@@ -763,7 +854,7 @@ impl Expr {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Binary {
     pub kind: BinOpKind,
     pub lhs: Box<Expr>,
@@ -776,7 +867,7 @@ impl Binary {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug, Copy)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum BinOpKind {
     /// The `+` operator (addition)
     Add,
