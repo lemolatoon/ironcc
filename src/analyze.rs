@@ -268,26 +268,25 @@ impl<'a> Analyzer<'a> {
             ExprKind::Deref(expr) => {
                 // type check
                 let conv_expr = self.down_expr(*expr, lvar_map)?;
-                let base_ty = match conv_expr.ty.clone() {
+                match conv_expr.ty.clone() {
                     ty @ (Type::Base(_) | Type::Func(_, _)) => {
-                        return Err(CompileError::new_type_expect_failed(
+                        Err(CompileError::new_type_expect_failed(
                             self.input,
                             conv_expr.pos,
                             // TODO: base type is not a problem of this error
                             Type::Ptr(Box::new(Type::Base(BaseType::Int))),
                             ty,
-                        ));
-                    }
-                    Type::Array(_, _) => {
-                        return Err(unimplemented_err!(
-                            self.input,
-                            conv_expr.pos,
-                            "dereference to array is currently not supported."
                         ))
                     }
-                    Type::Ptr(ptr_base) => ptr_base,
-                };
-                Ok(ConvExpr::new_deref(conv_expr, *base_ty, pos))
+                    // `*array` := `*(&array[0])`
+                    Type::Array(array_base, _) => Ok(ConvExpr::new_deref(
+                        // TODO: define appropriate error type
+                        ConvExpr::new_addr(conv_expr.convert_array_to_ptr().unwrap(), pos),
+                        *array_base,
+                        pos,
+                    )),
+                    Type::Ptr(ptr_base) => Ok(ConvExpr::new_deref(conv_expr, *ptr_base, pos)),
+                }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(self.down_expr(*expr, lvar_map)?, pos)),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
@@ -768,6 +767,26 @@ pub struct ConvExpr {
     pub pos: Position,
 }
 impl ConvExpr {
+    // use appropriate error type
+    pub fn convert_array_to_ptr(mut self) -> Result<Self, ()> {
+        let len = if let Type::Array(base_ty, len) = self.ty.clone() {
+            self.ty = Type::Ptr(base_ty);
+            len
+        } else {
+            return Err(());
+        };
+        if let ConvExprKind::Lvar(lvar) = &mut self.kind {
+            lvar.offset /= len;
+        }
+        Ok(self)
+    }
+
+    #[must_use]
+    pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
+        self.ty = f(self.ty);
+        self
+    }
+
     pub fn new_binary(
         kind: ConvBinOpKind,
         lhs: ConvExpr,
