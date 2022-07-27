@@ -37,20 +37,38 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
 </pre><pre class="rust"><code><span class="doccomment">/// return `CompilerError` whose kind is `Unimplemented`</span>
-<span class="doccomment">///  - 1st arg: `self`: where `self.input: &amp;str` is valid</span>
+<span class="doccomment">///  - 1st arg: `input`:&amp;str</span>
 <span class="doccomment">///  - 2nd arg: `pos`: Position</span>
 <span class="doccomment">///  - 3rd arg: `msg`: error message</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Also no args provided is allowed.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">unimplemented_err</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">input</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
         <span class="ident">CompileError::new</span>(
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">input</span>,
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">input</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
                 <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>),
                 <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
+            ),
+        )
+    };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
+        <span class="ident">CompileError::new</span>(
+            <span class="string">&quot;&quot;</span>,
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
+                <span class="prelude-val">None</span>,
+                <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
             ),
         )
     };

@@ -457,6 +457,10 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">ParseErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
@@ -683,7 +687,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Position</span> {
     <span class="kw">pub</span> <span class="ident">n_char</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">n_line</span>: <span class="ident">usize</span>,
@@ -824,6 +828,10 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">clone</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>)
     }
 
     <span class="doccomment">/// # Panics</span>
