@@ -25,23 +25,22 @@ Program {
                                         ty_spec: Int,
                                         declrtr: Declarator {
                                             n_star: 0,
-                                            d_declrtr: Ident(
-                                                "a",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
+                                            d_declrtr: Array(
+                                                Ident(
+                                                    "array",
+                                                ),
                                                 Expr {
                                                     kind: Num(
                                                         5,
                                                     ),
                                                     pos: Position {
-                                                        n_char: 9,
+                                                        n_char: 11,
                                                         n_line: 2,
                                                     },
                                                 },
                                             ),
-                                        ),
+                                        },
+                                        initializer: None,
                                         pos: Position {
                                             n_char: 1,
                                             n_line: 2,
@@ -50,128 +49,31 @@ Program {
                                 ),
                             },
                             Stmt {
-                                kind: Declare(
-                                    Declaration {
-                                        ty_spec: Int,
-                                        declrtr: Declarator {
-                                            n_star: 0,
-                                            d_declrtr: Ident(
-                                                "b",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: SizeOf(
-                                                        Expr(
-                                                            Expr {
-                                                                kind: LVar(
-                                                                    "a",
-                                                                ),
-                                                                pos: Position {
-                                                                    n_char: 17,
-                                                                    n_line: 3,
-                                                                },
-                                                            },
-                                                        ),
-                                                    ),
-                                                    pos: Position {
-                                                        n_char: 9,
-                                                        n_line: 3,
-                                                    },
+                                kind: Return(
+                                    Expr {
+                                        kind: Array(
+                                            Expr {
+                                                kind: LVar(
+                                                    "array",
+                                                ),
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 3,
                                                 },
-                                            ),
+                                            },
+                                            Expr {
+                                                kind: Num(
+                                                    0,
+                                                ),
+                                                pos: Position {
+                                                    n_char: 21,
+                                                    n_line: 3,
+                                                },
+                                            },
                                         ),
                                         pos: Position {
-                                            n_char: 1,
+                                            n_char: 15,
                                             n_line: 3,
-                                        },
-                                    },
-                                ),
-                            },
-                            Stmt {
-                                kind: Declare(
-                                    Declaration {
-                                        ty_spec: Int,
-                                        declrtr: Declarator {
-                                            n_star: 0,
-                                            d_declrtr: Ident(
-                                                "c",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: SizeOf(
-                                                        Type(
-                                                            TypeName {
-                                                                spec_quals: SpecQual(
-                                                                    Int,
-                                                                ),
-                                                                abstract_declarator: None,
-                                                                pos: Position {
-                                                                    n_char: 17,
-                                                                    n_line: 4,
-                                                                },
-                                                            },
-                                                        ),
-                                                    ),
-                                                    pos: Position {
-                                                        n_char: 9,
-                                                        n_line: 4,
-                                                    },
-                                                },
-                                            ),
-                                        ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 4,
-                                        },
-                                    },
-                                ),
-                            },
-                            Stmt {
-                                kind: Declare(
-                                    Declaration {
-                                        ty_spec: Int,
-                                        declrtr: Declarator {
-                                            n_star: 0,
-                                            d_declrtr: Ident(
-                                                "d",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: SizeOf(
-                                                        Type(
-                                                            TypeName {
-                                                                spec_quals: SpecQual(
-                                                                    Int,
-                                                                ),
-                                                                abstract_declarator: Some(
-                                                                    AbstractDeclarator {
-                                                                        n_star: 1,
-                                                                        direct_abstruct_declarator: None,
-                                                                    },
-                                                                ),
-                                                                pos: Position {
-                                                                    n_char: 17,
-                                                                    n_line: 5,
-                                                                },
-                                                            },
-                                                        ),
-                                                    ),
-                                                    pos: Position {
-                                                        n_char: 9,
-                                                        n_line: 5,
-                                                    },
-                                                },
-                                            ),
-                                        ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 5,
                                         },
                                     },
                                 ),

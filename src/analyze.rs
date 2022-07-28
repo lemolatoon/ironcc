@@ -281,7 +281,7 @@ impl<'a> Analyzer<'a> {
                     // `*array` := `*(&array[0])`
                     Type::Array(array_base, _) => Ok(ConvExpr::new_deref(
                         // TODO: define appropriate error type
-                        ConvExpr::new_addr(conv_expr.convert_array_to_ptr().unwrap(), pos),
+                        conv_expr.convert_array_to_ptr().unwrap(),
                         *array_base,
                         pos,
                     )),
@@ -296,6 +296,13 @@ impl<'a> Analyzer<'a> {
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
                 let size = type_name.ty().size_of() as isize;
                 Ok(ConvExpr::new_num(size, pos))
+            }
+            ExprKind::Array(expr, index) => {
+                let pos = expr.pos;
+                // `a[i]` := `*(a + i)`
+                let desugered =
+                    Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
+                self.down_expr(desugered, lvar_map)
             }
         }
     }
@@ -358,8 +365,14 @@ impl<'a> Analyzer<'a> {
         pos: Position,
         lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvExpr, CompileError> {
-        let mut rhs = self.down_expr(*rhs, lvar_map)?;
-        let mut lhs = self.down_expr(*lhs, lvar_map)?;
+        let mut rhs = self
+            .down_expr(*rhs, lvar_map)?
+            .convert_array_to_ptr()
+            .unwrap();
+        let mut lhs = self
+            .down_expr(*lhs, lvar_map)?
+            .convert_array_to_ptr()
+            .unwrap();
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -767,18 +780,20 @@ pub struct ConvExpr {
     pub pos: Position,
 }
 impl ConvExpr {
-    // use appropriate error type
+    /// if `self.kind == Type::Array(_)` return ptr-converted expr, otherwise return `self` itself
     pub fn convert_array_to_ptr(mut self) -> Result<Self, ()> {
-        let len = if let Type::Array(base_ty, len) = self.ty.clone() {
-            self.ty = Type::Ptr(base_ty);
-            len
+        if let Type::Array(base_ty, _) = self.ty.clone() {
+            self.ty = *base_ty;
         } else {
-            return Err(());
+            return Ok(self);
         };
-        if let ConvExprKind::Lvar(lvar) = &mut self.kind {
-            lvar.offset /= len;
+        if let ConvExprKind::Lvar(_) = &mut self.kind {
+        } else {
+            // All array type expr must have lvar as their inner kind
+            return Err(());
         }
-        Ok(self)
+        let pos = self.pos;
+        Ok(ConvExpr::new_addr(self, pos))
     }
 
     #[must_use]

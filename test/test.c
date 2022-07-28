@@ -19,6 +19,7 @@ int test13();
 int test14();
 int test15();
 int test16();
+int test17();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -61,6 +62,7 @@ int main()
     assert(14, 0, test14());
     assert(15, 0, test15());
     assert(16, 0, test16());
+    assert(17, 0, test17());
 
     print_ok();
     return 0;
@@ -328,6 +330,20 @@ int test16()
     int array[5];
     *array = 1;
     assert(16, 1, *array);
+    assert(16, 1, array[0]);
+    return 0;
+}
+
+int test17()
+{
+    int a[2];
+    a[0] = 3;
+    a[1] = 5;
+    assert(16, 3, *a);
+    assert(16, 3, a[0]);
+    assert(16, 3, 0 [a]);
+    assert(16, 5, 1 [a]);
+    assert(16, 5, *(a + 1));
     return 0;
 }
 

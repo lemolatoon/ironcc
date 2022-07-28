@@ -28,13 +28,26 @@ fn initializer() -> Result<(), CompileError> {
 }
 
 #[test]
-fn array_syntax_sugar() -> Result<(), CompileError> {
+fn size_of() -> Result<(), CompileError> {
     let src = "\n\
     int main() {\n \
         int a = 5;\n \
         int b = sizeof (a);\n \
         int c = sizeof (int);\n \
         int d = sizeof (int*);\n \
+    }\n\
+    ";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
+    Ok(())
+}
+
+#[test]
+fn array_syntax_sugar() -> Result<(), CompileError> {
+    let src = "\n\
+    int main() {\n \
+        int array[5];
+        return array[0];
     }\n\
     ";
     let mut tester = CachedProcesser::new(src);
