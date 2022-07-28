@@ -20,6 +20,7 @@ int test14();
 int test15();
 int test16();
 int test17();
+int test18();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -35,6 +36,8 @@ int **alloc4_ptr(int *a, int *b, int *c, int *d);
 int *alloc4(int a, int b, int c, int d);
 
 int print_ok();
+
+int exit(int status);
 
 int main()
 {
@@ -63,6 +66,7 @@ int main()
     assert(15, 0, test15());
     assert(16, 0, test16());
     assert(17, 0, test17());
+    assert(18, 0, test18());
 
     print_ok();
     return 0;
@@ -347,6 +351,56 @@ int test17()
     return 0;
 }
 
-int add(int x, int y) { return x + y; }
+int init_2d_mat(int (*mat)[2], int a, int b, int c, int d)
+{
+    mat[0][0] = a;
+    mat[0][1] = b;
+    mat[1][0] = c;
+    mat[1][1] = d;
+    return 0;
+}
 
-int sub(int x, int y) { return x - y; }
+int (*mat_mul_2d(int (*new_mat)[2], int (*lhs)[2], int (*rhs)[2]))[2]
+{
+    for (int i = 0; i < 2; i = i + 1)
+    {
+        for (int j = 0; j < 2; j = j + 1)
+        {
+            new_mat[i][j] = 0;
+            for (int k = 0; k < 2; k = k + 1)
+            {
+                new_mat[i][j] = new_mat[i][j] + lhs[i][k] * rhs[k][j];
+            }
+        }
+    }
+    return new_mat;
+}
+
+int test18()
+{
+    assert(18, 0, 0);
+    int mat1[2][2];
+    init_2d_mat(mat1, 1, 2, 1, 3);
+    assert(18, 2, mat1[0][1]);
+    int mat2[2][2];
+    init_2d_mat(mat2, 3, -2, -1, 1);
+    assert(18, 1, mat2[1][1]);
+    int multiplied[2][2];
+    mat_mul_2d(multiplied, mat1, mat2);
+    assert(18, 1, multiplied[0][0]);
+    assert(18, 0, multiplied[0][1]);
+    assert(18, 0, multiplied[1][0]);
+    assert(18, 1, multiplied[1][1]);
+
+    return 0;
+}
+
+int add(int x, int y)
+{
+    return x + y;
+}
+
+int sub(int x, int y)
+{
+    return x - y;
+}

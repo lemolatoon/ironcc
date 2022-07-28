@@ -28,6 +28,7 @@
                                 | "return" <expr> ";"
                                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
+                                | "for" "(" <declaration> ";" <expr>? ";" <expr>? ")" <stmt>
                                 | <declaration> 
 <blockstmt>                 := "{" <stmt>* "}"
 

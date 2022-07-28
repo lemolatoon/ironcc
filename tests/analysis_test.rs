@@ -434,7 +434,8 @@ fn parse_type_test() {
     let ty = extract_ty(declaration_src);
     assert_eq!(
         ty,
-        Type::Array(Box::new(Type::Ptr(Box::new(Type::Base(BaseType::Int)))), 5)
+        // after array to ptr conversion
+        Type::Ptr(Box::new(Type::Ptr(Box::new(Type::Base(BaseType::Int)))))
     );
 
     let declaration_src =
@@ -444,6 +445,7 @@ fn parse_type_test() {
     let int = || Type::Base(BaseType::Int);
     let ptr = |ty| Type::Ptr(Box::new(ty));
     let func = |ty, args| Type::Func(Box::new(ty), args);
+    let arr = |ty, size| Type::Array(Box::new(ty), size);
     assert_eq!(
         ty,
         ptr(func(
@@ -461,7 +463,24 @@ fn parse_type_test() {
             ptr(func(ptr(int()), vec![int()])),
             vec![int(), ptr(func(ptr(int()), vec![int()]))]
         ))
-    )
+    );
+
+    let src = "int init_2d_mat(int (*mat)[2], int a, int b, int c, int d) {}";
+    let ty = extract_func_ty(src);
+    assert_eq!(
+        ty,
+        func(int(), vec![ptr(arr(int(), 2)), int(), int(), int(), int()])
+    );
+
+    let src = "int (*mat_mul_2d(int (*new_mat)[2], int (*lhs)[2], int (*rhs)[2]))[2] {}";
+    let ty = extract_func_ty(src);
+    assert_eq!(
+        ty,
+        func(
+            ptr(arr(int(), 2)),
+            vec![ptr(arr(int(), 2)), ptr(arr(int(), 2)), ptr(arr(int(), 2)),]
+        )
+    );
 }
 
 fn extract_ty(src: &str) -> Type {
@@ -488,6 +507,41 @@ fn extract_ty(src: &str) -> Type {
         }
     } else {
         panic!("Block expected.");
+    }
+}
+
+fn extract_func_ty(src: &str) -> Type {
+    let tokens = Tokenizer::new(src).tokenize().unwrap();
+    let mut tokens = TokenStream::new(tokens.into_iter(), src);
+    let ast = Parser::new(src).parse_func_def(&mut tokens).unwrap();
+    let (ty_spec, declarator, body, pos) = if let ProgramComponent {
+        kind: ProgramKind::FuncDef(ty_spec, declarator, body),
+        pos,
+    } = ast
+    {
+        (ty_spec, declarator, body, pos)
+    } else {
+        panic!("ProgramKind::Func expected.")
+    };
+    let mut analyzer = Analyzer::new(src);
+    // return Declaration::new(ty_spec, declarator.n_star, declarator.d_declrtr, None, pos)
+    //     .ty(&analyzer)
+    //     .unwrap();
+    let conv_program = analyzer
+        .down_func_def(&ty_spec, &declarator, body, pos)
+        .unwrap();
+
+    match conv_program {
+        ConvProgramKind::Func(ConvFuncDef {
+            ty,
+            name: _,
+            args: _,
+            body: _,
+            lvars: _,
+        }) => ty,
+        _ => {
+            panic!("Block expected.");
+        }
     }
 }
 

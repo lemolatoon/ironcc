@@ -229,9 +229,15 @@ impl<'a> Parser<'a> {
             let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
-                let expr = self.parse_expr(tokens)?;
-                tokens.expect(TokenKind::Semi)?;
-                Some(expr)
+                Some(if tokens.is_type() {
+                    let declaration = self.parse_declaration(tokens)?;
+                    tokens.expect(TokenKind::Semi)?;
+                    ForInitKind::Declaration(declaration)
+                } else {
+                    let expr = self.parse_expr(tokens)?;
+                    tokens.expect(TokenKind::Semi)?;
+                    ForInitKind::Expr(expr)
+                })
             };
             let cond_expr = if tokens.consume(&TokenKind::Semi) {
                 None
@@ -629,6 +635,15 @@ impl DirectDeclarator {
             DirectDeclarator::Declarator(declarator) => declarator.d_declrtr.ident_name(),
         }
     }
+
+    pub fn args(&self) -> Option<Vec<Declaration>> {
+        match self {
+            DirectDeclarator::Ident(_) => None,
+            DirectDeclarator::Array(d_declrtr, _) => d_declrtr.args(),
+            DirectDeclarator::Declarator(declrtr) => declrtr.d_declrtr.args(),
+            DirectDeclarator::Func(_, args) => Some(args.clone()),
+        }
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -673,7 +688,12 @@ impl Stmt {
         }
     }
 
-    pub fn new_for(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Self {
+    pub fn new_for(
+        init: Option<ForInitKind>,
+        cond: Option<Expr>,
+        inc: Option<Expr>,
+        then: Stmt,
+    ) -> Self {
         Self {
             kind: StmtKind::For(init, cond, inc, Box::new(then)),
         }
@@ -758,8 +778,14 @@ pub enum StmtKind {
     Block(Vec<Stmt>),
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
-    For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),
+    For(Option<ForInitKind>, Option<Expr>, Option<Expr>, Box<Stmt>),
     Declare(Declaration),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ForInitKind {
+    Declaration(Declaration),
+    Expr(Expr),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

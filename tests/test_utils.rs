@@ -248,7 +248,7 @@ pub mod ast {
     }
 
     pub fn for_(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Stmt {
-        Stmt::new_for(init, cond, inc, then)
+        Stmt::new_for(init.map(ForInitKind::Expr), cond, inc, then)
     }
 
     pub fn func(name: &str, args: Vec<Expr>) -> Expr {
