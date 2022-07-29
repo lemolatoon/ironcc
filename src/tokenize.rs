@@ -10,6 +10,7 @@ impl<'a> Tokenizer<'a> {
         Self { input }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn tokenize(&self) -> Result<Vec<Token>, CompileError> {
         let mut tokens = Vec::new();
         let mut pos = Position::default(); // 0, 0
@@ -24,6 +25,15 @@ impl<'a> Tokenizer<'a> {
             } else if input.starts_with('\n') {
                 pos.advance_line();
                 input = &input[1..];
+                continue;
+            } else if input.starts_with("//") {
+                let mut input_iter = input.chars();
+                let mut num_this_line_char = 1;
+                while !matches!(input_iter.next(), Some('\n')) {
+                    num_this_line_char += 1;
+                }
+                pos.advance_line();
+                input = &input[num_this_line_char..];
                 continue;
             }
 

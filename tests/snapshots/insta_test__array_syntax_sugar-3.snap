@@ -18,79 +18,98 @@ ConvProgram {
                     kind: Block(
                         [
                             ConvStmt {
-                                kind: Expr(
-                                    ConvExpr {
-                                        kind: Assign(
-                                            ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
-                                                        offset: 4,
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
-                                                    },
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 1,
-                                                    n_line: 2,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Num(
-                                                    5,
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 9,
-                                                    n_line: 2,
-                                                },
-                                            },
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 2,
-                                        },
-                                    },
+                                kind: Block(
+                                    [],
                                 ),
                             },
                             ConvStmt {
-                                kind: Expr(
+                                kind: Return(
                                     ConvExpr {
-                                        kind: Assign(
+                                        kind: Deref(
                                             ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
-                                                        offset: 8,
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
+                                                kind: Binary(
+                                                    ConvBinary {
+                                                        kind: Add,
+                                                        lhs: ConvExpr {
+                                                            kind: Addr(
+                                                                ConvExpr {
+                                                                    kind: Lvar(
+                                                                        Lvar {
+                                                                            offset: 20,
+                                                                            ty: Array(
+                                                                                Base(
+                                                                                    Int,
+                                                                                ),
+                                                                                5,
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                    ty: Base(
+                                                                        Int,
+                                                                    ),
+                                                                    pos: Position {
+                                                                        n_char: 15,
+                                                                        n_line: 3,
+                                                                    },
+                                                                },
+                                                            ),
+                                                            ty: Ptr(
+                                                                Base(
+                                                                    Int,
+                                                                ),
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 15,
+                                                                n_line: 3,
+                                                            },
+                                                        },
+                                                        rhs: ConvExpr {
+                                                            kind: Binary(
+                                                                ConvBinary {
+                                                                    kind: Mul,
+                                                                    lhs: ConvExpr {
+                                                                        kind: Num(
+                                                                            0,
+                                                                        ),
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                        pos: Position {
+                                                                            n_char: 21,
+                                                                            n_line: 3,
+                                                                        },
+                                                                    },
+                                                                    rhs: ConvExpr {
+                                                                        kind: Num(
+                                                                            4,
+                                                                        ),
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                        pos: Position {
+                                                                            n_char: 15,
+                                                                            n_line: 3,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            ),
+                                                            ty: Base(
+                                                                Int,
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 15,
+                                                                n_line: 3,
+                                                            },
+                                                        },
                                                     },
                                                 ),
-                                                ty: Base(
-                                                    Int,
+                                                ty: Ptr(
+                                                    Base(
+                                                        Int,
+                                                    ),
                                                 ),
                                                 pos: Position {
-                                                    n_char: 1,
-                                                    n_line: 3,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Num(
-                                                    4,
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 9,
+                                                    n_char: 15,
                                                     n_line: 3,
                                                 },
                                             },
@@ -99,98 +118,11 @@ ConvProgram {
                                             Int,
                                         ),
                                         pos: Position {
-                                            n_char: 1,
+                                            n_char: 15,
                                             n_line: 3,
                                         },
                                     },
-                                ),
-                            },
-                            ConvStmt {
-                                kind: Expr(
-                                    ConvExpr {
-                                        kind: Assign(
-                                            ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
-                                                        offset: 12,
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
-                                                    },
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 1,
-                                                    n_line: 4,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Num(
-                                                    4,
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 9,
-                                                    n_line: 4,
-                                                },
-                                            },
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 4,
-                                        },
-                                    },
-                                ),
-                            },
-                            ConvStmt {
-                                kind: Expr(
-                                    ConvExpr {
-                                        kind: Assign(
-                                            ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
-                                                        offset: 16,
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
-                                                    },
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 1,
-                                                    n_line: 5,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Num(
-                                                    8,
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 9,
-                                                    n_line: 5,
-                                                },
-                                            },
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 5,
-                                        },
-                                    },
+                                    "main",
                                 ),
                             },
                         ],
@@ -198,27 +130,12 @@ ConvProgram {
                 },
                 lvars: {
                     Lvar {
-                        offset: 4,
-                        ty: Base(
-                            Int,
-                        ),
-                    },
-                    Lvar {
-                        offset: 8,
-                        ty: Base(
-                            Int,
-                        ),
-                    },
-                    Lvar {
-                        offset: 12,
-                        ty: Base(
-                            Int,
-                        ),
-                    },
-                    Lvar {
-                        offset: 16,
-                        ty: Base(
-                            Int,
+                        offset: 20,
+                        ty: Array(
+                            Base(
+                                Int,
+                            ),
+                            5,
                         ),
                     },
                 },

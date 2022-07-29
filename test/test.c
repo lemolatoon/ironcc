@@ -18,7 +18,13 @@ int test12();
 int test13();
 int test14();
 int test15();
+int test16();
+int test17();
+int test18();
+int test19();
+// actually `void`
 int assert(int index, int expected, int got);
+// this is comment for the test of function of comment
 
 int f(int arg0);
 int g(int arg0);
@@ -57,6 +63,10 @@ int main()
     assert(13, 0, test13());
     assert(14, 0, test14());
     assert(15, 0, test15());
+    assert(16, 0, test16());
+    assert(17, 0, test17());
+    assert(18, 0, test18());
+    assert(19, 0, test19());
 
     print_ok();
     return 0;
@@ -319,6 +329,92 @@ int test15()
     return 0;
 }
 
-int add(int x, int y) { return x + y; }
+int test16()
+{
+    int array[5];
+    *array = 1;
+    assert(16, 1, *array);
+    assert(16, 1, array[0]);
+    return 0;
+}
 
-int sub(int x, int y) { return x - y; }
+int test17()
+{
+    int a[2];
+    a[0] = 3;
+    a[1] = 5;
+    assert(16, 3, *a);
+    assert(16, 3, a[0]);
+    assert(16, 3, 0 [a]);
+    assert(16, 5, 1 [a]);
+    assert(16, 5, *(a + 1));
+    return 0;
+}
+
+int init_2d_mat(int (*mat)[2], int a, int b, int c, int d)
+{
+    mat[0][0] = a;
+    mat[0][1] = b;
+    mat[1][0] = c;
+    mat[1][1] = d;
+    return 0;
+}
+
+int (*mat_mul_2d(int (*new_mat)[2], int (*lhs)[2], int (*rhs)[2]))[2]
+{
+    for (int i = 0; i < 2; i = i + 1)
+    {
+        for (int j = 0; j < 2; j = j + 1)
+        {
+            new_mat[i][j] = 0;
+            for (int k = 0; k < 2; k = k + 1)
+            {
+                new_mat[i][j] = new_mat[i][j] + lhs[i][k] * rhs[k][j];
+            }
+        }
+    }
+    return new_mat;
+}
+
+int test18()
+{
+    assert(18, 0, 0);
+    int mat1[2][2];
+    init_2d_mat(mat1, 1, 2, 1, 3);
+    assert(18, 2, mat1[0][1]);
+    int mat2[2][2];
+    init_2d_mat(mat2, 3, -2, -1, 1);
+    assert(18, 1, mat2[1][1]);
+    int multiplied[2][2];
+    mat_mul_2d(multiplied, mat1, mat2);
+    assert(18, 1, multiplied[0][0]);
+    assert(18, 0, multiplied[0][1]);
+    assert(18, 0, multiplied[1][0]);
+    assert(18, 1, multiplied[1][1]);
+
+    return 0;
+}
+
+int test19()
+{
+    int dummy;
+    int array1[3];
+    assert(19, 4 * 3, sizeof(array1));
+    int *array2[3];
+    assert(19, 8 * 3, sizeof(array2));
+    int(*array3)[3];
+    assert(19, 8, sizeof(array3));
+    int **array4[3][5][7];
+    assert(19, 8 * 3 * 5 * 7, sizeof(array4));
+    return 0;
+}
+
+int add(int x, int y)
+{
+    return x + y;
+}
+
+int sub(int x, int y)
+{
+    return x - y;
+}

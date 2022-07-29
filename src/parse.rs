@@ -229,9 +229,15 @@ impl<'a> Parser<'a> {
             let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
-                let expr = self.parse_expr(tokens)?;
-                tokens.expect(TokenKind::Semi)?;
-                Some(expr)
+                Some(if tokens.is_type() {
+                    let declaration = self.parse_declaration(tokens)?;
+                    tokens.expect(TokenKind::Semi)?;
+                    ForInitKind::Declaration(declaration)
+                } else {
+                    let expr = self.parse_expr(tokens)?;
+                    tokens.expect(TokenKind::Semi)?;
+                    ForInitKind::Expr(expr)
+                })
             };
             let cond_expr = if tokens.consume(&TokenKind::Semi) {
                 None
@@ -386,19 +392,19 @@ impl<'a> Parser<'a> {
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
-                Expr::new_unary(UnOp::Plus, self.parse_primary(tokens)?, pos)
+                Expr::new_unary(UnOp::Plus, self.parse_mul(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Minus) => {
                 tokens.next();
-                Expr::new_unary(UnOp::Minus, self.parse_primary(tokens)?, pos)
+                Expr::new_unary(UnOp::Minus, self.parse_mul(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
-                Expr::new_deref(self.parse_unary(tokens)?, pos)
+                Expr::new_deref(self.parse_mul(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::And) => {
                 tokens.next();
-                Expr::new_addr(self.parse_unary(tokens)?, pos)
+                Expr::new_addr(self.parse_mul(tokens)?, pos)
             }
             TokenKind::SizeOf => {
                 tokens.next();
@@ -417,8 +423,26 @@ impl<'a> Parser<'a> {
                     Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
                 }
             }
-            _ => self.parse_primary(tokens)?,
+            _ => self.parse_postfix(tokens)?,
         })
+    }
+    pub fn parse_postfix<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut expr = self.parse_primary(tokens)?;
+        let mut pos = expr.pos;
+
+        while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
+            //
+            expr = Expr::new_array(expr, self.parse_primary(tokens)?, pos);
+            pos = expr.pos;
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+        }
+        Ok(expr)
     }
 
     pub fn parse_primary<'b, I>(
@@ -611,6 +635,15 @@ impl DirectDeclarator {
             DirectDeclarator::Declarator(declarator) => declarator.d_declrtr.ident_name(),
         }
     }
+
+    pub fn args(&self) -> Option<Vec<Declaration>> {
+        match self {
+            DirectDeclarator::Ident(_) => None,
+            DirectDeclarator::Array(d_declrtr, _) => d_declrtr.args(),
+            DirectDeclarator::Declarator(declrtr) => declrtr.d_declrtr.args(),
+            DirectDeclarator::Func(_, args) => Some(args.clone()),
+        }
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -655,7 +688,12 @@ impl Stmt {
         }
     }
 
-    pub fn new_for(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Self {
+    pub fn new_for(
+        init: Option<ForInitKind>,
+        cond: Option<Expr>,
+        inc: Option<Expr>,
+        then: Stmt,
+    ) -> Self {
         Self {
             kind: StmtKind::For(init, cond, inc, Box::new(then)),
         }
@@ -740,8 +778,14 @@ pub enum StmtKind {
     Block(Vec<Stmt>),
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
-    For(Option<Expr>, Option<Expr>, Option<Expr>, Box<Stmt>),
+    For(Option<ForInitKind>, Option<Expr>, Option<Expr>, Box<Stmt>),
     Declare(Declaration),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ForInitKind {
+    Declaration(Declaration),
+    Expr(Expr),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -761,6 +805,7 @@ pub enum ExprKind {
     Deref(Box<Expr>),
     Addr(Box<Expr>),
     SizeOf(SizeOfOperandKind),
+    Array(Box<Expr>, Box<Expr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -777,6 +822,13 @@ pub enum UnOp {
 }
 
 impl Expr {
+    pub fn new_array(expr: Expr, index: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Array(Box::new(expr), Box::new(index)),
+            pos,
+        }
+    }
+
     pub fn new_binary(kind: BinOpKind, lhs: Expr, rhs: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Binary(Binary::new(kind, Box::new(lhs), Box::new(rhs))),
