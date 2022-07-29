@@ -490,6 +490,10 @@
 <span id="485">485</span>
 <span id="486">486</span>
 <span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -594,7 +598,11 @@
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rbp, rsp&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rsp, {}&quot;</span>, <span class="ident">lvars</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">8</span>)<span class="question-mark">?</span>; <span class="comment">// 64bit var * 8</span>
+                    <span class="macro">writeln!</span>(
+                        <span class="ident">f</span>,
+                        <span class="string">&quot;  sub rsp, {}&quot;</span>,
+                        <span class="ident">lvars</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">x</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">x</span>.<span class="ident">ty</span>.<span class="ident">size_of</span>())
+                    )<span class="question-mark">?</span>;
 
                     <span class="comment">// assign args</span>
                     <span class="kw">let</span> <span class="ident">arg_reg</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">RegKind</span><span class="op">&gt;</span> <span class="op">=</span> [<span class="string">&quot;rdi&quot;</span>, <span class="string">&quot;rsi&quot;</span>, <span class="string">&quot;rdx&quot;</span>, <span class="string">&quot;rcx&quot;</span>, <span class="string">&quot;r8&quot;</span>, <span class="string">&quot;r9&quot;</span>]

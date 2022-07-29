@@ -897,6 +897,58 @@
 <span id="892">892</span>
 <span id="893">893</span>
 <span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">analyze</span>::{<span class="ident">Analyzer</span>, <span class="ident">BaseType</span>, <span class="ident">Type</span>},
     <span class="ident">error::CompileError</span>,
@@ -1128,9 +1180,15 @@
             <span class="kw">let</span> <span class="ident">init_expr</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">tokens</span>.<span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::Semi</span>) {
                 <span class="prelude-val">None</span>
             } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_expr</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>;
-                <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="ident">TokenKind::Semi</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(<span class="ident">expr</span>)
+                <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">tokens</span>.<span class="ident">is_type</span>() {
+                    <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_declaration</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>;
+                    <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="ident">TokenKind::Semi</span>)<span class="question-mark">?</span>;
+                    <span class="ident">ForInitKind::Declaration</span>(<span class="ident">declaration</span>)
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_expr</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>;
+                    <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="ident">TokenKind::Semi</span>)<span class="question-mark">?</span>;
+                    <span class="ident">ForInitKind::Expr</span>(<span class="ident">expr</span>)
+                })
             };
             <span class="kw">let</span> <span class="ident">cond_expr</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">tokens</span>.<span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::Semi</span>) {
                 <span class="prelude-val">None</span>
@@ -1285,19 +1343,19 @@
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">kind</span> {
             <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Plus</span>) =&gt; {
                 <span class="ident">tokens</span>.<span class="ident">next</span>();
-                <span class="ident">Expr::new_unary</span>(<span class="ident">UnOp::Plus</span>, <span class="self">self</span>.<span class="ident">parse_primary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
+                <span class="ident">Expr::new_unary</span>(<span class="ident">UnOp::Plus</span>, <span class="self">self</span>.<span class="ident">parse_mul</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
             }
             <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Minus</span>) =&gt; {
                 <span class="ident">tokens</span>.<span class="ident">next</span>();
-                <span class="ident">Expr::new_unary</span>(<span class="ident">UnOp::Minus</span>, <span class="self">self</span>.<span class="ident">parse_primary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
+                <span class="ident">Expr::new_unary</span>(<span class="ident">UnOp::Minus</span>, <span class="self">self</span>.<span class="ident">parse_mul</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
             }
             <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Star</span>) =&gt; {
                 <span class="ident">tokens</span>.<span class="ident">next</span>();
-                <span class="ident">Expr::new_deref</span>(<span class="self">self</span>.<span class="ident">parse_unary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
+                <span class="ident">Expr::new_deref</span>(<span class="self">self</span>.<span class="ident">parse_mul</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
             }
             <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::And</span>) =&gt; {
                 <span class="ident">tokens</span>.<span class="ident">next</span>();
-                <span class="ident">Expr::new_addr</span>(<span class="self">self</span>.<span class="ident">parse_unary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
+                <span class="ident">Expr::new_addr</span>(<span class="self">self</span>.<span class="ident">parse_mul</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
             }
             <span class="ident">TokenKind::SizeOf</span> =&gt; {
                 <span class="ident">tokens</span>.<span class="ident">next</span>();
@@ -1316,8 +1374,26 @@
                     <span class="ident">Expr::new_expr_sizeof</span>(<span class="self">self</span>.<span class="ident">parse_unary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>)
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">parse_primary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>,
+            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">parse_postfix</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>,
         })
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_postfix</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">I</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">I</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span>, <span class="ident">CompileError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">I</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_primary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">pos</span>;
+
+        <span class="kw">while</span> <span class="ident">tokens</span>.<span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::OpenDelim</span>(<span class="ident">DelimToken::Bracket</span>)) {
+            <span class="comment">//</span>
+            <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expr::new_array</span>(<span class="ident">expr</span>, <span class="self">self</span>.<span class="ident">parse_primary</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>, <span class="ident">pos</span>);
+            <span class="ident">pos</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">pos</span>;
+            <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Bracket</span>))<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(<span class="ident">expr</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_primary</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">I</span><span class="op">&gt;</span>(
@@ -1510,6 +1586,15 @@
             <span class="ident">DirectDeclarator::Declarator</span>(<span class="ident">declarator</span>) =&gt; <span class="ident">declarator</span>.<span class="ident">d_declrtr</span>.<span class="ident">ident_name</span>(),
         }
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Declaration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">DirectDeclarator::Ident</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">DirectDeclarator::Array</span>(<span class="ident">d_declrtr</span>, <span class="kw">_</span>) =&gt; <span class="ident">d_declrtr</span>.<span class="ident">args</span>(),
+            <span class="ident">DirectDeclarator::Declarator</span>(<span class="ident">declrtr</span>) =&gt; <span class="ident">declrtr</span>.<span class="ident">d_declrtr</span>.<span class="ident">args</span>(),
+            <span class="ident">DirectDeclarator::Func</span>(<span class="kw">_</span>, <span class="ident">args</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">args</span>.<span class="ident">clone</span>()),
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -1554,7 +1639,12 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_for</span>(<span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">cond</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">inc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">then</span>: <span class="ident">Stmt</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_for</span>(
+        <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ForInitKind</span><span class="op">&gt;</span>,
+        <span class="ident">cond</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+        <span class="ident">inc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+        <span class="ident">then</span>: <span class="ident">Stmt</span>,
+    ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">StmtKind::For</span>(<span class="ident">init</span>, <span class="ident">cond</span>, <span class="ident">inc</span>, <span class="ident">Box::new</span>(<span class="ident">then</span>)),
         }
@@ -1639,8 +1729,14 @@
     <span class="ident">Block</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span>),
     <span class="ident">If</span>(<span class="ident">Expr</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span><span class="op">&gt;</span>),
     <span class="ident">While</span>(<span class="ident">Expr</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span>),
-    <span class="ident">For</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span>),
+    <span class="ident">For</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ForInitKind</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stmt</span><span class="op">&gt;</span>),
     <span class="ident">Declare</span>(<span class="ident">Declaration</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ForInitKind</span> {
+    <span class="ident">Declaration</span>(<span class="ident">Declaration</span>),
+    <span class="ident">Expr</span>(<span class="ident">Expr</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -1660,6 +1756,7 @@
     <span class="ident">Deref</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
     <span class="ident">Addr</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
     <span class="ident">SizeOf</span>(<span class="ident">SizeOfOperandKind</span>),
+    <span class="ident">Array</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -1676,6 +1773,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Expr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">expr</span>: <span class="ident">Expr</span>, <span class="ident">index</span>: <span class="ident">Expr</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ExprKind::Array</span>(<span class="ident">Box::new</span>(<span class="ident">expr</span>), <span class="ident">Box::new</span>(<span class="ident">index</span>)),
+            <span class="ident">pos</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_binary</span>(<span class="ident">kind</span>: <span class="ident">BinOpKind</span>, <span class="ident">lhs</span>: <span class="ident">Expr</span>, <span class="ident">rhs</span>: <span class="ident">Expr</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ExprKind::Binary</span>(<span class="ident">Binary::new</span>(<span class="ident">kind</span>, <span class="ident">Box::new</span>(<span class="ident">lhs</span>), <span class="ident">Box::new</span>(<span class="ident">rhs</span>))),
