@@ -1,7 +1,7 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
@@ -15,7 +15,9 @@ fn analysis_test() -> Result<(), CompileError> {
     let mut analyzer = Analyzer::new(&input);
     let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
+    let converted_expr = analyzer
+        .down_expr(expr, &mut lvar_map, BTreeSet::new())
+        .unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -36,7 +38,9 @@ fn analysis_test() -> Result<(), CompileError> {
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Ge, num(1), num(2));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
+    let converted_expr = analyzer
+        .down_expr(expr, &mut lvar_map, BTreeSet::new())
+        .unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -52,7 +56,9 @@ fn analysis_test() -> Result<(), CompileError> {
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Gt, num(1), num(2));
     let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
+    let converted_expr = analyzer
+        .down_expr(expr, &mut lvar_map, BTreeSet::new())
+        .unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -84,7 +90,9 @@ fn analysis_ident_test() -> Result<(), CompileError> {
     )
     .unwrap();
     // dummy fucn defining end
-    let converted_expr = analyzer.down_expr(expr, &mut lvar_map).unwrap();
+    let converted_expr = analyzer
+        .down_expr(expr, &mut lvar_map, BTreeSet::new())
+        .unwrap();
     assert_eq!(
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
@@ -539,9 +547,6 @@ fn extract_func_ty(src: &str) -> Type {
             body: _,
             lvars: _,
         }) => ty,
-        _ => {
-            panic!("Block expected.");
-        }
     }
 }
 

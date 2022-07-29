@@ -21,6 +21,7 @@ int test15();
 int test16();
 int test17();
 int test18();
+int test19();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -36,8 +37,6 @@ int **alloc4_ptr(int *a, int *b, int *c, int *d);
 int *alloc4(int a, int b, int c, int d);
 
 int print_ok();
-
-int exit(int status);
 
 int main()
 {
@@ -67,6 +66,7 @@ int main()
     assert(16, 0, test16());
     assert(17, 0, test17());
     assert(18, 0, test18());
+    assert(19, 0, test19());
 
     print_ok();
     return 0;
@@ -392,6 +392,20 @@ int test18()
     assert(18, 0, multiplied[1][0]);
     assert(18, 1, multiplied[1][1]);
 
+    return 0;
+}
+
+int test19()
+{
+    int dummy;
+    int array1[3];
+    assert(19, 4 * 3, sizeof(array1));
+    int *array2[3];
+    assert(19, 8 * 3, sizeof(array2));
+    int(*array3)[3];
+    assert(19, 8, sizeof(array3));
+    int **array4[3][5][7];
+    assert(19, 8 * 3 * 5 * 7, sizeof(array4));
     return 0;
 }
 
