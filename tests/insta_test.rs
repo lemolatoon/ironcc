@@ -54,3 +54,17 @@ fn array_syntax_sugar() -> Result<(), CompileError> {
     all!(tester);
     Ok(())
 }
+
+#[test]
+fn scopes() {
+    let src = "\n\
+    int main() {\n \
+        int a;
+        {int *k;}
+        {int *i; {int k;}}
+        int c[2];
+    }\n\
+    ";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
+}

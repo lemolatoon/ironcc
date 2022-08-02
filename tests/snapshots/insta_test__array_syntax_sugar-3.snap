@@ -128,17 +128,7 @@ ConvProgram {
                         ],
                     ),
                 },
-                lvars: {
-                    Lvar {
-                        offset: 20,
-                        ty: Array(
-                            Base(
-                                Int,
-                            ),
-                            5,
-                        ),
-                    },
-                },
+                stack_size: 20,
             },
         ),
     ],

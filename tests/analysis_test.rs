@@ -14,10 +14,7 @@ fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
-    let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer
-        .down_expr(expr, &mut lvar_map, BTreeSet::new())
-        .unwrap();
+    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -37,10 +34,7 @@ fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Ge, num(1), num(2));
-    let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer
-        .down_expr(expr, &mut lvar_map, BTreeSet::new())
-        .unwrap();
+    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -55,10 +49,7 @@ fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Gt, num(1), num(2));
-    let mut lvar_map = BTreeMap::new();
-    let converted_expr = analyzer
-        .down_expr(expr, &mut lvar_map, BTreeSet::new())
-        .unwrap();
+    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -78,21 +69,19 @@ fn analysis_ident_test() -> Result<(), CompileError> {
     let mut analyzer = Analyzer::new(&input);
     let expr = assign(lvar("a"), num(1));
     // dummy fucn defining
-    let mut lvar_map = BTreeMap::new();
     let mut offset = 0;
-    Analyzer::new_lvar(
-        &input,
-        "a".to_string(),
-        Position::default(),
-        &mut offset,
-        Type::Base(BaseType::Int),
-        &mut lvar_map,
-    )
-    .unwrap();
-    // dummy fucn defining end
-    let converted_expr = analyzer
-        .down_expr(expr, &mut lvar_map, BTreeSet::new())
+    analyzer
+        .scope
+        .register_var(
+            &input,
+            Position::default(),
+            &mut offset,
+            &"a".to_string(),
+            Type::Base(BaseType::Int),
+        )
         .unwrap();
+    // dummy fucn defining end
+    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
@@ -496,10 +485,7 @@ fn extract_ty(src: &str) -> Type {
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
     let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new(src);
-    let mut empty_lvar_map = BTreeMap::new();
-    let conv_stmt = analyzer
-        .down_stmt(ast, &mut empty_lvar_map, "main".to_string())
-        .unwrap();
+    let conv_stmt = analyzer.down_stmt(ast, "main".to_string()).unwrap();
     if let ConvStmt {
         kind: ConvStmtKind::Block(vec),
     } = conv_stmt
@@ -545,7 +531,7 @@ fn extract_func_ty(src: &str) -> Type {
             name: _,
             args: _,
             body: _,
-            lvars: _,
+            stack_size: _,
         }) => ty,
     }
 }
@@ -566,7 +552,7 @@ fn cfunc_def(
         name.to_string(),
         args,
         body,
-        lvars.into_iter().collect(),
+        lvars.into_iter().map(|lvar| lvar.offset).max().unwrap_or(0),
     ))
 }
 
