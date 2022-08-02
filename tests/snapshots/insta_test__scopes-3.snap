@@ -1,6 +1,5 @@
 ---
 source: tests/insta_test.rs
-assertion_line: 69
 expression: tester.conv_program().as_ref().unwrap()
 ---
 ConvProgram {
@@ -64,7 +63,7 @@ ConvProgram {
                         ],
                     ),
                 },
-                stack_size: 32,
+                stack_size: 16,
             },
         ),
     ],

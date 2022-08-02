@@ -41,10 +41,8 @@ impl<'a> Analyzer<'a> {
 
                     pos,
                 } => {
-                    self.scope.push_scope();
-                    self.offset = 0; // reset another func's offset
+                    assert_eq!(self.offset, 0);
                     conv_program.push(self.down_func_def(&type_spec, &declrtr, body, pos)?);
-                    self.scope.pop_scope();
                     self.scope.reset_stack();
                 }
                 ProgramComponent {
@@ -115,24 +113,36 @@ impl<'a> Analyzer<'a> {
                 "function declarator should not be `Ident(_)`"
             ));
         };
-        // let mut this_func_map = BTreeMap::new();
-        for arg in args {
-            // register func args as lvar
-            let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
-            let name = arg.ident_name();
-            let lvar = self
-                .scope
-                .register_var(self.input, arg.pos, &mut self.offset, name, ty)?;
-            lvars.push(lvar.clone());
-            // this_func_map.insert(name.to_string(), lvar);
-        }
-        self.func_map.insert(
-            ident.to_string(),
-            Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
-        );
-        let body = self.down_stmt(body, ident.to_owned())?;
+        self.scope.push_scope();
+        let body = if let StmtKind::Block(stmts) = body.kind {
+            for arg in args {
+                // register func args as lvar
+                let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
+                let name = arg.ident_name();
+                let lvar =
+                    self.scope
+                        .register_var(self.input, arg.pos, &mut self.offset, name, ty)?;
+                lvars.push(lvar.clone());
+            }
+            self.func_map.insert(
+                ident.to_string(),
+                Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
+            );
+            ConvStmt::new_block(
+                stmts
+                    .into_iter()
+                    .map(|stmt| self.down_stmt(stmt, ident.to_string()))
+                    .collect::<Result<Vec<_>, CompileError>>()?,
+            )
+        } else {
+            return Err(unimplemented_err!(
+                self.input,
+                pos,
+                "Function body must be block stmt."
+            ));
+        };
+        self.scope.pop_scope(&mut self.offset);
         let stack_size = self.scope.get_stack_size(); // this_func_map.into_values().collect::<BTreeSet<_>>(),
-        println!("got stack_size : {stack_size}");
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
             ident.to_owned(),
@@ -193,7 +203,7 @@ impl<'a> Analyzer<'a> {
                         .transpose()?,
                     self.down_stmt(*then, fn_name)?,
                 );
-                self.scope.pop_scope();
+                self.scope.pop_scope(&mut self.offset);
                 for_stmt
             }
             StmtKind::Block(stmts) => {
@@ -204,8 +214,7 @@ impl<'a> Analyzer<'a> {
                         .map(|stmt| self.down_stmt(stmt, fn_name.clone()))
                         .collect::<Result<Vec<_>, CompileError>>()?,
                 );
-                dbg!(&block);
-                self.scope.pop_scope();
+                self.scope.pop_scope(&mut self.offset);
                 block
             }
             StmtKind::Declare(declare) => {
@@ -676,7 +685,6 @@ impl<'a> Analyzer<'a> {
         pos: Position,
         // lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvExpr, CompileError> {
-        dbg!(&self.scope);
         let lvar = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar.clone(),
             None => {
@@ -976,33 +984,17 @@ impl Scope {
         self.scopes.push(BTreeMap::new());
     }
 
-    pub fn pop_scope(&mut self) {
+    pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
         let poped = self.scopes.pop();
-        // self.max_stack_size = usize::max(
-        //     self.max_stack_size,
-        //     poped.map_or(0, |scope_map| {
-        //         scope_map
-        //             .values()
-        //             .map(|lvar| lvar.offset)
-        //             .max()
-        //             .unwrap_or(0)
-        //     }),
-        // );
+        *offset -= poped.map_or(0, |scope_map| {
+            scope_map
+                .values()
+                .fold(0, |acc, lvar| acc + lvar.ty.size_of())
+        });
     }
 
-    pub fn get_stack_size(&self) -> usize {
-        // let poped = self.scopes.last();
-        // self.max_stack_size = usize::max(
-        //     self.max_stack_size,
-        //     poped.map_or(0, |scope_map| {
-        //         scope_map
-        //             .values()
-        //             .map(|lvar| lvar.offset)
-        //             .max()
-        //             .unwrap_or(0)
-        //     }),
-        // );
+    pub const fn get_stack_size(&self) -> usize {
         self.max_stack_size
     }
 
