@@ -1043,7 +1043,7 @@ impl Scope {
                 src,
                 name.to_string(),
                 pos,
-                VariableKind::Local,
+                VariableKind::Global,
             ));
         }
         let wathing_scope = self.get_current_scope_mut();

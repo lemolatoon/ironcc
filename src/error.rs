@@ -291,6 +291,7 @@ pub enum AnalyzeErrorKind {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum VariableKind {
     Local,
+    Global,
     Func,
 }
 

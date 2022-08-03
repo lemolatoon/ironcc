@@ -216,3 +216,50 @@ fn func_arg_error() {
         tester.conv_program()
     );
 }
+
+#[test]
+fn scopes() {
+    let src = "
+    int main() {
+        {
+            int i = 0;
+        }
+        return i;
+    }
+    ";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                    _,
+                    _,
+                    VariableKind::Local,
+                )),
+                src: _,
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
+
+    let src = "
+    int main() {
+        int sum = 0;
+        for (int i = 0; i < 10;i = i + 1) {
+            sum = sum + i;
+        }
+        for (int i = 11; i < 20;i = i + 1) {
+            sum = sum + i;
+        }
+        return sum;
+    }
+    ";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(tester.conv_program(), Ok(_)),
+        "{:?}",
+        tester.conv_program()
+    );
+}
