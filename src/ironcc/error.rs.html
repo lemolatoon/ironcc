@@ -421,6 +421,7 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
+<span id="419">419</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExpr</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::Type</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::Position</span>;
@@ -714,6 +715,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableKind</span> {
     <span class="ident">Local</span>,
+    <span class="ident">Global</span>,
     <span class="ident">Func</span>,
 }
 
