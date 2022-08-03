@@ -18,7 +18,7 @@ pub struct Analyzer<'a> {
     input: &'a str,
     offset: usize,
     func_map: BTreeMap<String, Func>,
-    scope: Scope,
+    pub scope: Scope,
 }
 
 impl<'a> Analyzer<'a> {
@@ -41,10 +41,9 @@ impl<'a> Analyzer<'a> {
 
                     pos,
                 } => {
-                    self.scope.push_scope();
-                    self.offset = 0; // reset another func's offset
+                    assert_eq!(self.offset, 0);
                     conv_program.push(self.down_func_def(&type_spec, &declrtr, body, pos)?);
-                    self.scope.pop_scope();
+                    self.scope.reset_stack();
                 }
                 ProgramComponent {
                     kind: ProgramKind::Declaration(declaration),
@@ -114,76 +113,82 @@ impl<'a> Analyzer<'a> {
                 "function declarator should not be `Ident(_)`"
             ));
         };
-        let mut this_func_map = BTreeMap::new();
-        for arg in args {
-            // register func args as lvar
-            let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
-            let name = arg.ident_name();
-            let lvar = self
-                .scope
-                .register_var(self.input, arg.pos, &mut self.offset, name, ty)?;
-            lvars.push(lvar.clone());
-            this_func_map.insert(name.to_string(), lvar);
-        }
-        self.func_map.insert(
-            ident.to_string(),
-            Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
-        );
+        self.scope.push_scope();
+        let body = if let StmtKind::Block(stmts) = body.kind {
+            for arg in args {
+                // register func args as lvar
+                let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
+                let name = arg.ident_name();
+                let lvar =
+                    self.scope
+                        .register_var(self.input, arg.pos, &mut self.offset, name, ty)?;
+                lvars.push(lvar.clone());
+            }
+            self.func_map.insert(
+                ident.to_string(),
+                Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
+            );
+            ConvStmt::new_block(
+                stmts
+                    .into_iter()
+                    .map(|stmt| self.down_stmt(stmt, ident.to_string()))
+                    .collect::<Result<Vec<_>, CompileError>>()?,
+            )
+        } else {
+            return Err(unimplemented_err!(
+                self.input,
+                pos,
+                "Function body must be block stmt."
+            ));
+        };
+        self.scope.pop_scope(&mut self.offset);
+        let stack_size = self.scope.get_stack_size(); // this_func_map.into_values().collect::<BTreeSet<_>>(),
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
             ident.to_owned(),
             lvars,
-            self.down_stmt(body, &mut this_func_map, ident.to_owned())?,
-            this_func_map.into_values().collect::<BTreeSet<_>>(),
+            body,
+            stack_size,
         )))
     }
 
-    pub fn down_stmt(
-        &mut self,
-        stmt: Stmt,
-        lvar_map: &mut BTreeMap<String, Lvar>,
-        fn_name: String,
-    ) -> Result<ConvStmt, CompileError> {
+    #[allow(clippy::pedantic)]
+    pub fn down_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
         Ok(match stmt.kind {
-            StmtKind::Expr(expr) => {
-                ConvStmt::new_expr(self.down_expr(expr, lvar_map, BTreeSet::new())?)
-            }
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, BTreeSet::new())?),
             StmtKind::Return(expr) => {
-                ConvStmt::new_ret(self.down_expr(expr, lvar_map, BTreeSet::new())?, fn_name)
+                ConvStmt::new_ret(self.down_expr(expr, BTreeSet::new())?, fn_name)
             }
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
-                self.down_expr(cond, lvar_map, BTreeSet::new())?,
-                self.down_stmt(*then, lvar_map, fn_name.clone())?,
-                els.map(|stmt| self.down_stmt(*stmt, lvar_map, fn_name.clone()))
+                self.down_expr(cond, BTreeSet::new())?,
+                self.down_stmt(*then, fn_name.clone())?,
+                els.map(|stmt| self.down_stmt(*stmt, fn_name.clone()))
                     .transpose()?,
             ),
             StmtKind::While(cond, then) => ConvStmt::new_while(
-                self.down_expr(cond, lvar_map, BTreeSet::new())?,
-                self.down_stmt(*then, lvar_map, fn_name)?,
+                self.down_expr(cond, BTreeSet::new())?,
+                self.down_stmt(*then, fn_name)?,
             ),
             StmtKind::For(init, cond, inc, then) => {
                 self.scope.push_scope();
                 let for_stmt = ConvStmt::new_for(
                     init.map_or(Ok(None), |expr| match expr {
-                        ForInitKind::Expr(expr) => self
-                            .down_expr(expr, lvar_map, BTreeSet::new())
-                            .map(|expr| Some(expr)),
+                        ForInitKind::Expr(expr) => self.down_expr(expr, BTreeSet::new()).map(Some),
                         ForInitKind::Declaration(declaration) => {
                             let ty = declaration.ty(self)?;
                             let lvar = self.scope.register_var(
                                 self.input,
                                 declaration.pos,
                                 &mut self.offset,
-                                &declaration.ident_name().to_string(),
+                                declaration.ident_name(),
                                 ty.clone(),
                             )?;
-                            lvar_map.insert(declaration.ident_name().to_string(), lvar.clone());
+                            // lvar_map.insert(declaration.ident_name().to_string(), lvar.clone());
                             if let Some(init) = declaration.initializer {
                                 Ok(Some(self.new_init_expr(
                                     init,
                                     lvar,
                                     ty,
-                                    lvar_map,
                                     BTreeSet::new(),
                                     declaration.pos,
                                 )?))
@@ -192,13 +197,13 @@ impl<'a> Analyzer<'a> {
                             }
                         }
                     })?,
-                    cond.map(|expr| self.down_expr(expr, lvar_map, BTreeSet::new()))
+                    cond.map(|expr| self.down_expr(expr, BTreeSet::new()))
                         .transpose()?,
-                    inc.map(|expr| self.down_expr(expr, lvar_map, BTreeSet::new()))
+                    inc.map(|expr| self.down_expr(expr, BTreeSet::new()))
                         .transpose()?,
-                    self.down_stmt(*then, lvar_map, fn_name)?,
+                    self.down_stmt(*then, fn_name)?,
                 );
-                self.scope.pop_scope();
+                self.scope.pop_scope(&mut self.offset);
                 for_stmt
             }
             StmtKind::Block(stmts) => {
@@ -206,27 +211,26 @@ impl<'a> Analyzer<'a> {
                 let block = ConvStmt::new_block(
                     stmts
                         .into_iter()
-                        .map(|stmt| self.down_stmt(stmt, lvar_map, fn_name.clone()))
+                        .map(|stmt| self.down_stmt(stmt, fn_name.clone()))
                         .collect::<Result<Vec<_>, CompileError>>()?,
                 );
-                self.scope.pop_scope();
+                self.scope.pop_scope(&mut self.offset);
                 block
             }
             StmtKind::Declare(declare) => {
                 let ty = declare.ty(self)?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declare.ident_name();
-                let lvar = Self::new_lvar(
+                let lvar = self.scope.register_var(
                     self.input,
-                    name.to_owned(),
                     declare.pos,
                     &mut self.offset,
+                    name,
                     ty.clone(),
-                    lvar_map,
                 )?;
                 match declare.initializer {
                     Some(Initializer::Expr(init)) => {
-                        let rhs = self.down_expr(init, lvar_map, BTreeSet::new())?;
+                        let rhs = self.down_expr(init, BTreeSet::new())?;
                         ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                             // Safety:
                             // the lvar is generated by `Self::new_lvar` which initializes lvar_map
@@ -271,7 +275,7 @@ impl<'a> Analyzer<'a> {
     pub fn down_expr(
         &mut self,
         expr: Expr,
-        lvar_map: &mut BTreeMap<String, Lvar>,
+        // lvar_map: &mut BTreeMap<String, Lvar>,
         mut attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         let pos = expr.pos;
@@ -281,50 +285,37 @@ impl<'a> Analyzer<'a> {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => self.down_binary(
-                Binary::new(BinOpKind::Le, rhs, lhs),
-                pos,
-                lvar_map,
-                attrs.clone(),
-            ),
+            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos, attrs.clone()),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => self.down_binary(
-                Binary::new(BinOpKind::Lt, rhs, lhs),
-                pos,
-                lvar_map,
-                attrs.clone(),
-            ),
+            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, attrs.clone()),
             // do nothing
-            ExprKind::Binary(binary) => self.down_binary(binary, pos, lvar_map, attrs.clone()), // do nothing
+            ExprKind::Binary(binary) => self.down_binary(binary, pos, attrs.clone()), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
                 Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
                 pos,
-                lvar_map,
                 attrs.clone(),
             ),
             // do nothing
-            ExprKind::Unary(UnOp::Plus, operand) => {
-                self.down_expr(*operand, lvar_map, attrs.clone())
-            }
+            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, attrs.clone()),
             // do nothing
             ExprKind::Assign(lhs, rhs) => {
-                let lhs = self.down_expr(*lhs, lvar_map, attrs.clone())?;
-                let rhs = self.down_expr(*rhs, lvar_map, attrs.clone())?;
+                let lhs = self.down_expr(*lhs, attrs.clone())?;
+                let rhs = self.down_expr(*rhs, attrs.clone())?;
                 self.new_assign_expr_with_type_check(lhs, rhs, pos)
             }
-            ExprKind::LVar(name) => self.fetch_lvar(&name, pos, lvar_map),
+            ExprKind::LVar(name) => self.fetch_lvar(&name, pos),
             ExprKind::Func(name, args) => {
-                self.new_call_func_with_type_check(name, args, pos, lvar_map, &attrs)
+                self.new_call_func_with_type_check(name, args, pos, &attrs)
             }
             ExprKind::Deref(expr) => {
                 // type check
-                let conv_expr = self.down_expr(*expr, lvar_map, attrs.clone())?;
+                let conv_expr = self.down_expr(*expr, attrs.clone())?;
                 match conv_expr.ty.clone() {
                     ty @ (Type::Base(_) | Type::Func(_, _)) => {
                         Err(CompileError::new_type_expect_failed(
@@ -346,12 +337,12 @@ impl<'a> Analyzer<'a> {
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
-                self.down_expr(*expr, lvar_map, attrs.clone())?,
+                self.down_expr(*expr, attrs.clone())?,
                 pos,
             )),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
                 attrs.insert(DownExprAttribute::NoArrayPtrConversion);
-                let size = self.down_expr(*expr, lvar_map, attrs.clone())?.ty.size_of() as isize;
+                let size = self.down_expr(*expr, attrs.clone())?.ty.size_of() as isize;
                 Ok(ConvExpr::new_num(size, pos))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
@@ -363,7 +354,7 @@ impl<'a> Analyzer<'a> {
                 // `a[i]` := `*(a + i)`
                 let desugered =
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
-                self.down_expr(desugered, lvar_map, attrs.clone())
+                self.down_expr(desugered, attrs.clone())
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -378,13 +369,12 @@ impl<'a> Analyzer<'a> {
         name: String,
         args: Vec<Expr>,
         pos: Position,
-        lvar_map: &mut BTreeMap<String, Lvar>,
         attrs: &BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         // args type check
         let args = args
             .into_iter()
-            .map(|expr| self.down_expr(expr, lvar_map, attrs.clone()))
+            .map(|expr| self.down_expr(expr, attrs.clone()))
             .collect::<Result<Vec<_>, CompileError>>()?;
         let Func {
             name: _,
@@ -430,11 +420,11 @@ impl<'a> Analyzer<'a> {
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
         pos: Position,
-        lvar_map: &mut BTreeMap<String, Lvar>,
+        // lvar_map: &mut BTreeMap<String, Lvar>,
         attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
-        let mut rhs = self.down_expr(*rhs, lvar_map, attrs.clone())?;
-        let mut lhs = self.down_expr(*lhs, lvar_map, attrs)?;
+        let mut rhs = self.down_expr(*rhs, attrs.clone())?;
+        let mut lhs = self.down_expr(*lhs, attrs)?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -613,13 +603,13 @@ impl<'a> Analyzer<'a> {
         init: Initializer,
         lvar: Lvar,
         ty: Type,
-        lvar_map: &mut BTreeMap<String, Lvar>,
+        // lvar_map: &mut BTreeMap<String, Lvar>,
         attrs: BTreeSet<DownExprAttribute>,
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
         match init {
             Initializer::Expr(init) => {
-                let rhs = self.down_expr(init, lvar_map, attrs)?;
+                let rhs = self.down_expr(init, attrs)?;
                 self.new_assign_expr_with_type_check(
                     // Safety:
                     // the lvar is generated by `Self::new_lvar` which initializes lvar_map
@@ -693,9 +683,9 @@ impl<'a> Analyzer<'a> {
         &self,
         name: &str,
         pos: Position,
-        lvar_map: &mut BTreeMap<String, Lvar>,
+        // lvar_map: &mut BTreeMap<String, Lvar>,
     ) -> Result<ConvExpr, CompileError> {
-        let lvar = match lvar_map.get(name) {
+        let lvar = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar.clone(),
             None => {
                 return Err(CompileError::new(
@@ -779,23 +769,17 @@ pub struct ConvFuncDef {
     pub name: String,
     pub args: Vec<Lvar>,
     pub body: ConvStmt,
-    pub lvars: BTreeSet<Lvar>,
+    pub stack_size: usize,
 }
 
 impl ConvFuncDef {
-    pub fn new(
-        ty: Type,
-        name: String,
-        args: Vec<Lvar>,
-        body: ConvStmt,
-        lvars: BTreeSet<Lvar>,
-    ) -> Self {
+    pub fn new(ty: Type, name: String, args: Vec<Lvar>, body: ConvStmt, stack_size: usize) -> Self {
         Self {
             ty,
             name,
             args,
             body,
-            lvars,
+            stack_size,
         }
     }
 }
@@ -985,6 +969,7 @@ impl Lvar {
 pub struct Scope {
     global: BTreeMap<String, Lvar>,
     pub scopes: Vec<BTreeMap<String, Lvar>>,
+    max_stack_size: usize,
 }
 
 impl Scope {
@@ -992,15 +977,30 @@ impl Scope {
         Self {
             global: BTreeMap::new(),
             scopes: Vec::new(),
+            max_stack_size: 0,
         }
     }
     pub fn push_scope(&mut self) {
         self.scopes.push(BTreeMap::new());
     }
 
-    pub fn pop_scope(&mut self) {
+    pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
-        self.scopes.pop();
+        let poped = self.scopes.pop();
+        *offset -= poped.map_or(0, |scope_map| {
+            scope_map
+                .values()
+                .fold(0, |acc, lvar| acc + lvar.ty.size_of())
+        });
+    }
+
+    pub const fn get_stack_size(&self) -> usize {
+        self.max_stack_size
+    }
+
+    pub fn reset_stack(&mut self) {
+        assert!(self.scopes.is_empty());
+        self.max_stack_size = 0;
     }
 
     pub fn look_up(&self, name: &String) -> Option<&Lvar> {
@@ -1012,8 +1012,8 @@ impl Scope {
         self.global.get(name)
     }
 
-    fn get_current_scope(&mut self) -> &mut BTreeMap<String, Lvar> {
-        if let Some(map) = self.scopes.first_mut() {
+    fn get_current_scope_mut(&mut self) -> &mut BTreeMap<String, Lvar> {
+        if let Some(map) = self.scopes.last_mut() {
             map
         } else {
             &mut self.global
@@ -1031,7 +1031,7 @@ impl Scope {
         for scope in &self.scopes {
             if scope.contains_key(name) {
                 return Err(CompileError::new_redefined_variable(
-                    &src,
+                    src,
                     name.to_string(),
                     pos,
                     VariableKind::Local,
@@ -1040,16 +1040,17 @@ impl Scope {
         }
         if self.global.contains_key(name) {
             return Err(CompileError::new_redefined_variable(
-                &src,
+                src,
                 name.to_string(),
                 pos,
-                VariableKind::Local,
+                VariableKind::Global,
             ));
         }
-        let wathing_scope = self.get_current_scope();
+        let wathing_scope = self.get_current_scope_mut();
         *new_offset += ty.size_of();
         let lvar = Lvar::new_raw(*new_offset, ty);
         wathing_scope.insert(name.to_string(), lvar.clone());
+        self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
         Ok(lvar)
     }
 }

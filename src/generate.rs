@@ -97,16 +97,12 @@ impl<'a> Generator<'a> {
                     name,
                     args,
                     body,
-                    lvars,
+                    stack_size,
                 }) => {
                     writeln!(f, "{}:", name)?;
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
-                    writeln!(
-                        f,
-                        "  sub rsp, {}",
-                        lvars.iter().fold(0, |acc, x| acc + x.ty.size_of())
-                    )?;
+                    writeln!(f, "  sub rsp, {}", stack_size)?;
 
                     // assign args
                     let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]

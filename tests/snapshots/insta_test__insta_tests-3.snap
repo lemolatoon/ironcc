@@ -265,30 +265,7 @@ ConvProgram {
                         ],
                     ),
                 },
-                lvars: {
-                    Lvar {
-                        offset: 4,
-                        ty: Base(
-                            Int,
-                        ),
-                    },
-                    Lvar {
-                        offset: 12,
-                        ty: Ptr(
-                            Base(
-                                Int,
-                            ),
-                        ),
-                    },
-                    Lvar {
-                        offset: 20,
-                        ty: Ptr(
-                            Base(
-                                Int,
-                            ),
-                        ),
-                    },
-                },
+                stack_size: 20,
             },
         ),
     ],
