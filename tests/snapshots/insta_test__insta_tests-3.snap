@@ -27,8 +27,8 @@ ConvProgram {
                                     ConvExpr {
                                         kind: Assign(
                                             ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
+                                                kind: LVar(
+                                                    LVar {
                                                         offset: 4,
                                                         ty: Base(
                                                             Int,
@@ -76,8 +76,8 @@ ConvProgram {
                                     ConvExpr {
                                         kind: Assign(
                                             ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
+                                                kind: LVar(
+                                                    LVar {
                                                         offset: 12,
                                                         ty: Ptr(
                                                             Base(
@@ -99,8 +99,8 @@ ConvProgram {
                                             ConvExpr {
                                                 kind: Addr(
                                                     ConvExpr {
-                                                        kind: Lvar(
-                                                            Lvar {
+                                                        kind: LVar(
+                                                            LVar {
                                                                 offset: 4,
                                                                 ty: Base(
                                                                     Int,
@@ -149,8 +149,8 @@ ConvProgram {
                                     ConvExpr {
                                         kind: Assign(
                                             ConvExpr {
-                                                kind: Lvar(
-                                                    Lvar {
+                                                kind: LVar(
+                                                    LVar {
                                                         offset: 20,
                                                         ty: Ptr(
                                                             Base(
@@ -174,8 +174,8 @@ ConvProgram {
                                                     ConvBinary {
                                                         kind: Add,
                                                         lhs: ConvExpr {
-                                                            kind: Lvar(
-                                                                Lvar {
+                                                            kind: LVar(
+                                                                LVar {
                                                                     offset: 12,
                                                                     ty: Ptr(
                                                                         Base(
@@ -199,8 +199,8 @@ ConvProgram {
                                                                 ConvBinary {
                                                                     kind: Mul,
                                                                     lhs: ConvExpr {
-                                                                        kind: Lvar(
-                                                                            Lvar {
+                                                                        kind: LVar(
+                                                                            LVar {
                                                                                 offset: 4,
                                                                                 ty: Base(
                                                                                     Int,

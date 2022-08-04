@@ -70,9 +70,10 @@ fn analysis_ident_test() -> Result<(), CompileError> {
     let expr = assign(lvar("a"), num(1));
     // dummy fucn defining
     let mut offset = 0;
+    analyzer.scope.push_scope();
     analyzer
         .scope
-        .register_var(
+        .register_lvar(
             &input,
             Position::default(),
             &mut offset,
@@ -82,6 +83,8 @@ fn analysis_ident_test() -> Result<(), CompileError> {
         .unwrap();
     // dummy fucn defining end
     let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
+    analyzer.scope.pop_scope(&mut offset);
+    assert_eq!(offset, 0);
     assert_eq!(
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
@@ -543,9 +546,9 @@ fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
 fn cfunc_def(
     ty: Type,
     name: &str,
-    args: Vec<Lvar>,
+    args: Vec<LVar>,
     body: ConvStmt,
-    lvars: Vec<Lvar>,
+    lvars: Vec<LVar>,
 ) -> ConvProgramKind {
     ConvProgramKind::Func(ConvFuncDef::new(
         ty,
@@ -581,7 +584,7 @@ fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
     ConvExpr::new_lvar_raw(lvar, ty, Position::default())
 }
 
-fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> Lvar {
+fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> LVar {
     let offset = &mut offset;
     let mut empty = BTreeMap::new();
     Analyzer::new_lvar(

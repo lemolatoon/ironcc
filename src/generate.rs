@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 use crate::{
     analyze::{
         ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram,
-        ConvProgramKind, ConvStmt, ConvStmtKind, Lvar, Type,
+        ConvProgramKind, ConvStmt, ConvStmtKind, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
 };
@@ -109,7 +109,7 @@ impl<'a> Generator<'a> {
                         .into_iter()
                         .map(|reg| reg.try_into().unwrap())
                         .collect();
-                    for (idx, Lvar { offset, ty }) in args.into_iter().enumerate() {
+                    for (idx, LVar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
                         self.assign(
@@ -219,7 +219,7 @@ impl<'a> Generator<'a> {
         match expr.kind {
             ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
-            ConvExprKind::Lvar(_) => {
+            ConvExprKind::LVar(_) => {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr.clone())?;
                 self.pop(f, format_args!("rax"))?; // rax = &expr
@@ -295,6 +295,7 @@ impl<'a> Generator<'a> {
             ConvExprKind::Addr(expr) => {
                 self.gen_lvalue(f, *expr)?;
             }
+            ConvExprKind::GVar(_) => todo!(),
         }
         Ok(())
     }
@@ -307,7 +308,7 @@ impl<'a> Generator<'a> {
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
         match expr.kind {
-            ConvExprKind::Lvar(Lvar { offset, ty: _ }) => {
+            ConvExprKind::LVar(LVar { offset, ty: _ }) => {
                 writeln!(f, "  mov rax, rbp")?;
                 writeln!(f, "  sub rax, {}", offset)?;
                 self.push(f, format_args!("rax"))?;

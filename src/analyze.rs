@@ -59,11 +59,11 @@ impl<'a> Analyzer<'a> {
                         ));
                     }
                     match declaration.ty(self)? {
-                        Type::Base(_) | Type::Ptr(_) | Type::Array(_, _) => {
+                        ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
                             return Err(unimplemented_err!(
                                 self.input,
                                 pos,
-                                "Global variable is not yet unimplemented."
+                                format!("Global variable is not yet unimplemented.: {:?}", ty)
                             ))
                         }
                         Type::Func(ret_ty, args) => {
@@ -121,7 +121,7 @@ impl<'a> Analyzer<'a> {
                 let name = arg.ident_name();
                 let lvar =
                     self.scope
-                        .register_var(self.input, arg.pos, &mut self.offset, name, ty)?;
+                        .register_lvar(self.input, arg.pos, &mut self.offset, name, ty)?;
                 lvars.push(lvar.clone());
             }
             self.func_map.insert(
@@ -176,7 +176,7 @@ impl<'a> Analyzer<'a> {
                         ForInitKind::Expr(expr) => self.down_expr(expr, BTreeSet::new()).map(Some),
                         ForInitKind::Declaration(declaration) => {
                             let ty = declaration.ty(self)?;
-                            let lvar = self.scope.register_var(
+                            let lvar = self.scope.register_lvar(
                                 self.input,
                                 declaration.pos,
                                 &mut self.offset,
@@ -221,7 +221,7 @@ impl<'a> Analyzer<'a> {
                 let ty = declare.ty(self)?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declare.ident_name();
-                let lvar = self.scope.register_var(
+                let lvar = self.scope.register_lvar(
                     self.input,
                     declare.pos,
                     &mut self.offset,
@@ -420,7 +420,6 @@ impl<'a> Analyzer<'a> {
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
         pos: Position,
-        // lvar_map: &mut BTreeMap<String, Lvar>,
         attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = self.down_expr(*rhs, attrs.clone())?;
@@ -601,9 +600,8 @@ impl<'a> Analyzer<'a> {
     pub fn new_init_expr(
         &mut self,
         init: Initializer,
-        lvar: Lvar,
+        lvar: LVar,
         ty: Type,
-        // lvar_map: &mut BTreeMap<String, Lvar>,
         attrs: BTreeSet<DownExprAttribute>,
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
@@ -679,13 +677,8 @@ impl<'a> Analyzer<'a> {
         Ok(ty)
     }
 
-    pub fn fetch_lvar(
-        &self,
-        name: &str,
-        pos: Position,
-        // lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Result<ConvExpr, CompileError> {
-        let lvar = match self.scope.look_up(&name.to_string()) {
+    pub fn fetch_lvar(&self, name: &str, pos: Position) -> Result<ConvExpr, CompileError> {
+        let var = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar.clone(),
             None => {
                 return Err(CompileError::new(
@@ -698,8 +691,13 @@ impl<'a> Analyzer<'a> {
                 ))
             }
         };
-        let ty = lvar.ty.clone();
-        Ok(ConvExpr::new_lvar_raw(lvar, ty, pos))
+        Ok(match var {
+            Var::GVar(global) => ConvExpr::new_gvar(global, pos),
+            Var::LVar(local) => {
+                let ty = local.ty.clone();
+                ConvExpr::new_lvar_raw(local, ty, pos)
+            }
+        })
     }
 
     /// create first defined variable
@@ -709,8 +707,8 @@ impl<'a> Analyzer<'a> {
         pos: Position,
         new_offset: &mut usize,
         ty: Type,
-        lvar_map: &mut BTreeMap<String, Lvar>,
-    ) -> Result<Lvar, CompileError> {
+        lvar_map: &mut BTreeMap<String, LVar>,
+    ) -> Result<LVar, CompileError> {
         let offset = if lvar_map.get(&name).is_some() {
             return Err(CompileError::new_redefined_variable(
                 src,
@@ -720,10 +718,10 @@ impl<'a> Analyzer<'a> {
             ));
         } else {
             *new_offset += ty.size_of();
-            lvar_map.insert(name, Lvar::new_raw(*new_offset, ty.clone()));
+            lvar_map.insert(name, LVar::new_raw(*new_offset, ty.clone()));
             *new_offset
         };
-        Ok(Lvar::new_raw(offset, ty))
+        Ok(LVar::new_raw(offset, ty))
     }
 }
 
@@ -767,13 +765,13 @@ pub enum ConvProgramKind {
 pub struct ConvFuncDef {
     pub ty: Type,
     pub name: String,
-    pub args: Vec<Lvar>,
+    pub args: Vec<LVar>,
     pub body: ConvStmt,
     pub stack_size: usize,
 }
 
 impl ConvFuncDef {
-    pub fn new(ty: Type, name: String, args: Vec<Lvar>, body: ConvStmt, stack_size: usize) -> Self {
+    pub fn new(ty: Type, name: String, args: Vec<LVar>, body: ConvStmt, stack_size: usize) -> Self {
         Self {
             ty,
             name,
@@ -915,9 +913,18 @@ impl ConvExpr {
         }
     }
 
-    pub const fn new_lvar_raw(lvar: Lvar, ty: Type, pos: Position) -> Self {
+    pub const fn new_lvar_raw(lvar: LVar, ty: Type, pos: Position) -> Self {
         ConvExpr {
-            kind: ConvExprKind::Lvar(lvar),
+            kind: ConvExprKind::LVar(lvar),
+            ty,
+            pos,
+        }
+    }
+
+    pub fn new_gvar(gvar: GVar, pos: Position) -> Self {
+        let ty = gvar.ty.clone();
+        ConvExpr {
+            kind: ConvExprKind::GVar(gvar),
             ty,
             pos,
         }
@@ -945,7 +952,8 @@ impl ConvExpr {
 pub enum ConvExprKind {
     Binary(ConvBinary),
     Num(isize),
-    Lvar(Lvar),
+    LVar(LVar),
+    GVar(GVar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
     Func(String, Vec<ConvExpr>),
     Deref(Box<ConvExpr>),
@@ -953,13 +961,13 @@ pub enum ConvExprKind {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub struct Lvar {
+pub struct LVar {
     /// Used like `mov rax, [rbp - offset]`
     pub offset: usize,
     pub ty: Type,
 }
 
-impl Lvar {
+impl LVar {
     pub const fn new_raw(offset: usize, ty: Type) -> Self {
         Self { offset, ty }
     }
@@ -967,8 +975,8 @@ impl Lvar {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Scope {
-    global: BTreeMap<String, Lvar>,
-    pub scopes: Vec<BTreeMap<String, Lvar>>,
+    global: BTreeMap<String, GVar>,
+    pub scopes: Vec<BTreeMap<String, LVar>>,
     max_stack_size: usize,
 }
 
@@ -1003,31 +1011,34 @@ impl Scope {
         self.max_stack_size = 0;
     }
 
-    pub fn look_up(&self, name: &String) -> Option<&Lvar> {
+    pub fn look_up(&self, name: &String) -> Option<Var> {
         for map in self.scopes.iter().rev() {
             if let Some(lvar) = map.get(name) {
-                return Some(lvar);
+                return Some(Var::LVar(lvar.clone()));
             }
         }
-        self.global.get(name)
+        self.global.get(name).map(|gvar| Var::GVar(gvar.clone()))
     }
 
-    fn get_current_scope_mut(&mut self) -> &mut BTreeMap<String, Lvar> {
+    fn insert_lvar_to_current_scope(&mut self, name: String, lvar: LVar) {
         if let Some(map) = self.scopes.last_mut() {
-            map
+            map.insert(name, lvar);
         } else {
-            &mut self.global
+            panic!("Unreacheable. scope stacks have to have local scope when you register lvar.");
         }
     }
 
-    pub fn register_var(
+    fn insert_global_var_to_global_scope(&mut self, gvar: GVar) {
+        self.global.insert(gvar.name.clone(), gvar);
+    }
+
+    pub fn register_gvar(
         &mut self,
         src: &str,
         pos: Position,
-        new_offset: &mut usize,
         name: &str,
         ty: Type,
-    ) -> Result<Lvar, CompileError> {
+    ) -> Result<GVar, CompileError> {
         for scope in &self.scopes {
             if scope.contains_key(name) {
                 return Err(CompileError::new_redefined_variable(
@@ -1046,10 +1057,43 @@ impl Scope {
                 VariableKind::Global,
             ));
         }
-        let wathing_scope = self.get_current_scope_mut();
+        let gvar = GVar {
+            name: name.to_string(),
+            ty,
+        };
+        self.insert_global_var_to_global_scope(gvar.clone());
+        Ok(gvar)
+    }
+
+    pub fn register_lvar(
+        &mut self,
+        src: &str,
+        pos: Position,
+        new_offset: &mut usize,
+        name: &str,
+        ty: Type,
+    ) -> Result<LVar, CompileError> {
+        for scope in &self.scopes {
+            if scope.contains_key(name) {
+                return Err(CompileError::new_redefined_variable(
+                    src,
+                    name.to_string(),
+                    pos,
+                    VariableKind::Local,
+                ));
+            }
+        }
+        if self.global.contains_key(name) {
+            return Err(CompileError::new_redefined_variable(
+                src,
+                name.to_string(),
+                pos,
+                VariableKind::Global,
+            ));
+        }
         *new_offset += ty.size_of();
-        let lvar = Lvar::new_raw(*new_offset, ty);
-        wathing_scope.insert(name.to_string(), lvar.clone());
+        let lvar = LVar::new_raw(*new_offset, ty);
+        self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
         Ok(lvar)
     }
@@ -1062,9 +1106,24 @@ impl Default for Scope {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub struct GlobalVar {
+pub struct GVar {
     name: String,
     ty: Type,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum Var {
+    GVar(GVar),
+    LVar(LVar),
+}
+
+impl Var {
+    pub fn ty(&self) -> Type {
+        match self {
+            Var::GVar(gvar) => gvar.ty.clone(),
+            Var::LVar(lvar) => lvar.ty.clone(),
+        }
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
