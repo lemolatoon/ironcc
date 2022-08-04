@@ -536,6 +536,7 @@ fn extract_func_ty(src: &str) -> Type {
             body: _,
             stack_size: _,
         }) => ty,
+        ConvProgramKind::Global(_) => panic!("Func expected."),
     }
 }
 

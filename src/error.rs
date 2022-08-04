@@ -1,4 +1,5 @@
 use crate::analyze::ConvExpr;
+use crate::analyze::GVar;
 use crate::analyze::Type;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
@@ -266,6 +267,14 @@ impl Debug for CompileError {
                     ty
                 )?;
             }
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Global(GVar { name, ty }),
+            )) => {
+                writeln!(
+                    f,
+                    "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}", name, ty, ty.size_of()
+                )?;
+            }
             Unimplemented(Some(pos), msg) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{}", msg)?;
@@ -306,6 +315,7 @@ pub enum GenerateErrorKind {
 pub enum UnexpectedTypeSizeStatus {
     Expr(ConvExpr),
     FuncArgs(String, Type),
+    Global(GVar),
 }
 
 /// write source annotation which indicates `pos` in `src`

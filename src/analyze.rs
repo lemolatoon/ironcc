@@ -50,23 +50,20 @@ impl<'a> Analyzer<'a> {
                     pos,
                 } => {
                     let name = declaration.ident_name();
-                    if self.func_map.get(&name.to_string()).is_some() {
-                        return Err(CompileError::new_redefined_variable(
-                            self.input,
-                            name.to_string(),
-                            pos,
-                            VariableKind::Func,
-                        ));
-                    }
                     match declaration.ty(self)? {
                         ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            return Err(unimplemented_err!(
-                                self.input,
-                                pos,
-                                format!("Global variable is not yet unimplemented.: {:?}", ty)
-                            ))
+                            let gvar = self.scope.register_gvar(self.input, pos, name, ty)?;
+                            conv_program.push(ConvProgramKind::Global(gvar));
                         }
                         Type::Func(ret_ty, args) => {
+                            if self.func_map.get(&name.to_string()).is_some() {
+                                return Err(CompileError::new_redefined_variable(
+                                    self.input,
+                                    name.to_string(),
+                                    pos,
+                                    VariableKind::Func,
+                                ));
+                            }
                             self.func_map.insert(
                                 name.to_string(),
                                 Func::new_raw(name.to_string(), args, *ret_ty, pos),
@@ -759,6 +756,7 @@ impl IntoIterator for ConvProgram {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvProgramKind {
     Func(ConvFuncDef),
+    Global(GVar),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -1107,8 +1105,8 @@ impl Default for Scope {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct GVar {
-    name: String,
-    ty: Type,
+    pub name: String,
+    pub ty: Type,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

@@ -22,6 +22,7 @@ int test16();
 int test17();
 int test18();
 int test19();
+int test20();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -67,6 +68,7 @@ int main()
     assert(17, 0, test17());
     assert(18, 0, test18());
     assert(19, 0, test19());
+    assert(20, 0, test20());
 
     print_ok();
     return 0;
@@ -406,6 +408,30 @@ int test19()
     assert(19, 8, sizeof(array3));
     int **array4[3][5][7];
     assert(19, 8 * 3 * 5 * 7, sizeof(array4));
+    return 0;
+}
+
+int test20_g_var;
+int test20_index;
+
+int inc_test20_index();
+
+int test20()
+{
+    test20_g_var = 9;
+    assert(20, 9, test20_g_var);
+    test20_index = 0;
+    inc_test20_index();
+    assert(20, 20, test20_index);
+    return 0;
+}
+
+int inc_test20_index()
+{
+    for (int i = 0; i < 20; i = i + 1)
+    {
+        test20_index = test20_index + 1;
+    }
     return 0;
 }
 
