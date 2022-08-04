@@ -246,13 +246,13 @@ impl<'a> Parser<'a> {
                 tokens.expect(TokenKind::Semi)?;
                 Some(expr)
             };
-            let inc_expr = if tokens.consume(&TokenKind::Semi) {
+            let inc_expr = if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
                 None
             } else {
                 let expr = self.parse_expr(tokens)?;
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                 Some(expr)
             };
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
             let then_stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt))
         } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {

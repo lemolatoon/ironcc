@@ -208,8 +208,8 @@ impl<'a> Generator<'a> {
                 let label_index = self.label();
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
+                    self.pop(f, format_args!("rax"))?;
                 }
-                self.pop(f, format_args!("rax"))?;
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 if let Some(cond) = cond {
                     self.gen_expr(f, cond)?;
