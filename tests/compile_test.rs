@@ -263,3 +263,62 @@ fn scopes() {
         tester.conv_program()
     );
 }
+
+#[test]
+fn global_variable() {
+    let src = "
+    int global1;
+    int main() {
+        int global1;
+    }";
+    let mut tester = CachedProcesser::new(src);
+    let result = tester.conv_program();
+    assert!(
+        matches!(
+            result,
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(
+                    _,
+                    _,
+                    VariableKind::Global,
+                )),
+                src: _,
+            })
+        ),
+        "{:?}",
+        result,
+    );
+
+    let src = "
+    int global1;
+    int (*global1)[3];
+    int main() {
+    }";
+    let mut tester = CachedProcesser::new(src);
+    let result = tester.conv_program();
+    assert!(
+        matches!(
+            result,
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(
+                    _,
+                    _,
+                    VariableKind::Global,
+                )),
+                src: _,
+            })
+        ),
+        "{:?}",
+        result,
+    );
+
+    let src = "
+    int main() {
+        int (*global1)[3];
+    }
+    int global1;
+    ";
+    let mut tester = CachedProcesser::new(src);
+    let result = tester.conv_program();
+    assert!(matches!(result, Ok(_)), "{:?}", result,);
+}
