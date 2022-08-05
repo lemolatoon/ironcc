@@ -1,4 +1,6 @@
+use crate::analyze::ConstExpr;
 use crate::analyze::ConvExpr;
+use crate::analyze::ConvExprKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
 use crate::tokenize::Position;
@@ -111,8 +113,39 @@ impl CompileError {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-                expr0,
-                expr1,
+                TypeErrorKind::Expr(expr0, expr1),
+                msg.map(std::convert::Into::into),
+            )),
+        )
+    }
+
+    pub fn new_type_error_const<T: Into<String>>(
+        src: &str,
+        expr0: ConstExpr,
+        expr1: ConstExpr,
+        msg: Option<T>,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+                TypeErrorKind::ConstExpr(expr0, expr1),
+                msg.map(std::convert::Into::into),
+            )),
+        )
+    }
+
+    pub fn new_type_error_types<T: Into<String>>(
+        src: &str,
+        pos0: Position,
+        pos1: Position,
+        ty0: Type,
+        ty1: Type,
+        msg: Option<T>,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+                TypeErrorKind::Type(pos0, pos1, ty0, ty1),
                 msg.map(std::convert::Into::into),
             )),
         )
@@ -122,6 +155,13 @@ impl CompileError {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)),
+        )
+    }
+
+    pub fn new_const_expr_error(src: &str, pos: Position, kind: ConvExprKind) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)),
         )
     }
 
@@ -181,6 +221,7 @@ impl Display for CompileError {
 }
 
 impl Debug for CompileError {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use CompileErrorKind::{
             AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
@@ -210,14 +251,14 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
-            AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, Some(msg))) => {
-                error_at(&self.src, vec![expr0.pos, expr1.pos], f)?;
-                writeln!(f, "{:?} and {:?} is not allowed.", expr0.ty, expr1.ty)?;
-                writeln!(f, "{}", msg)?;
-            }
-            AnalyzeError(AnalyzeErrorKind::TypeError(expr0, expr1, None)) => {
-                error_at(&self.src, vec![expr0.pos, expr1.pos], f)?;
-                writeln!(f, "{:?} and {:?} is not allowed.", expr0.ty, expr1.ty)?;
+            AnalyzeError(AnalyzeErrorKind::TypeError(error, msg)) => {
+                let poses = error.positions();
+                error_at(&self.src, vec![poses.0, poses.1], f)?;
+                let types = error.types();
+                writeln!(f, "{:?} and {:?} is not allowed.", types.0, types.1)?;
+                if let Some(msg) = msg {
+                    writeln!(f, "{}", msg)?;
+                }
             }
             AnalyzeError(AnalyzeErrorKind::FuncArgsError(
                 name,
@@ -234,6 +275,14 @@ impl Debug for CompileError {
                 )?;
                 error_at(&self.src, vec![*declared_pos], f)?;
                 writeln!(f, "{} is first declared here.", name)?;
+            }
+            AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(
+                    f,
+                    "This kind({:?}) of Expr cannot be evaluated as constants.",
+                    kind
+                )?;
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
                 error_at(&self.src, vec![expr.pos], f)?;
@@ -268,7 +317,7 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
-                UnexpectedTypeSizeStatus::Global(GVar { name, ty }),
+                UnexpectedTypeSizeStatus::Global(GVar { name, ty, init: _ }),
             )) => {
                 writeln!(
                     f,
@@ -293,8 +342,34 @@ pub enum AnalyzeErrorKind {
     RedefinedError(String, Position, VariableKind),
     UndeclaredError(String, Position, VariableKind),
     FuncArgsError(String, Position, usize, usize, Position),
-    TypeError(ConvExpr, ConvExpr, Option<String>),
+    TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(Position, Type, Type),
+    ConstExprError(Position, ConvExprKind),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum TypeErrorKind {
+    Expr(ConvExpr, ConvExpr),
+    ConstExpr(ConstExpr, ConstExpr),
+    Type(Position, Position, Type, Type),
+}
+
+impl TypeErrorKind {
+    pub fn positions(&self) -> (Position, Position) {
+        match self {
+            TypeErrorKind::Expr(expr0, expr1) => (expr0.pos, expr1.pos),
+            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),
+            TypeErrorKind::Type(pos0, pos1, _, _) => (*pos0, *pos1),
+        }
+    }
+
+    pub fn types(&self) -> (Type, Type) {
+        match self {
+            TypeErrorKind::Expr(expr0, expr1) => (expr0.ty.clone(), expr1.ty.clone()),
+            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.ty.clone(), expr1.ty.clone()),
+            TypeErrorKind::Type(_, _, ty0, ty1) => (ty0.clone(), ty1.clone()),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

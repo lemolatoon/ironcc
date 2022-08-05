@@ -2,10 +2,12 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram,
-        ConvProgramKind, ConvStmt, ConvStmtKind, GVar, LVar, Type,
+        BaseType, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary, ConvExpr,
+        ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvStmtKind, GVar,
+        LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
+    unimplemented_err,
 };
 
 #[derive(Debug, Clone)]
@@ -129,27 +131,44 @@ impl<'a> Generator<'a> {
                     self.pop(f, format_args!("rbp"))?;
                     writeln!(f, "  ret")?;
                 }
-                ConvProgramKind::Global(GVar { name, ty }) => {
+                ConvProgramKind::Global(GVar { name, ty, init }) => {
                     writeln!(f, ".data")?;
                     writeln!(f, "{}:", name)?;
-                    match ty.size_of() {
-                        four_n if four_n % 4 == 0 => {
-                            for _ in 0..(four_n / 4) {
-                                writeln!(f, ".long 0")?;
-                            }
-                        }
-                        eight_n if eight_n % 4 == 0 => {
-                            for _ in 0..(eight_n / 8) {
-                                writeln!(f, ".value 0")?;
-                            }
-                        }
-                        _ => {
-                            return Err(CompileError::new_type_size_error(
-                                self.input,
-                                UnexpectedTypeSizeStatus::Global(GVar { name, ty }),
-                            ))
-                        }
+                    let gvar = GVar {
+                        name: name.clone(),
+                        ty: ty.clone(),
+                        init: init.clone(),
                     };
+                    let size_hint = |ty: Type| match ty.base_type().size_of() {
+                        4 => Ok("long"),
+                        8 => Ok("quad"),
+                        _ => Err(CompileError::new_type_size_error(
+                            self.input,
+                            UnexpectedTypeSizeStatus::Global(gvar),
+                        )),
+                    };
+                    match init {
+                        Some(init) => match ty {
+                            Type::Base(BaseType::Int) => writeln!(f, ".long {}", if let ConstInitializer::Expr(ConstExpr { kind: ConstExprKind::Num(num), ty: _, pos:_ }) = init {num} else {unreachable!()})?,
+                            // TODO : ptr init
+                            Type::Ptr(_) => writeln!(f, ".quad 0")?,
+                            Type::Func(_, _) => panic!("Unreacheable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
+                            Type::Array(ty, size) => {match init {
+                                ConstInitializer::Array(vec) => {
+                                    let size_of = ty.size_of();
+                                    let size_explanation = size_hint(*ty)?;
+                                    for i in 0..size {
+                                        if let Some(ConstExpr { kind: ConstExprKind::Num(val), ty: _, pos: _ }) = vec.get(i) {
+                                            writeln!(f, ".{} {}", size_explanation, val)?;
+                                        } else {
+                                            writeln!(f, ".zero {}", size_of)?;
+                                        }
+                                }},
+                                _ => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
+                            }},
+                        },
+                        None => writeln!(f, ".zero {}", ty.size_of())?,
+                    }
                 }
             }
         }
@@ -319,14 +338,14 @@ impl<'a> Generator<'a> {
             ConvExprKind::Addr(expr) => {
                 self.gen_lvalue(f, *expr)?;
             }
-            ConvExprKind::GVar(GVar { name, ty }) => {
+            ConvExprKind::GVar(GVar { name, ty, init }) => {
                 match ty.size_of() {
                     4 => writeln!(f, "  mov eax, DWORD PTR {}[rip]", name)?,
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
                         return Err(CompileError::new_type_size_error(
                             self.input,
-                            UnexpectedTypeSizeStatus::Global(GVar { name, ty }),
+                            UnexpectedTypeSizeStatus::Global(GVar { name, ty, init }),
                         ))
                     }
                 };
@@ -352,7 +371,11 @@ impl<'a> Generator<'a> {
             ConvExprKind::Deref(expr) => {
                 self.gen_expr(f, *expr)?;
             }
-            ConvExprKind::GVar(GVar { name, ty: _ }) => {
+            ConvExprKind::GVar(GVar {
+                name,
+                ty: _,
+                init: _,
+            }) => {
                 writeln!(f, "  mov rax, offset {}", name)?;
                 self.push(f, format_args!("rax"))?;
             }

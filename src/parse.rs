@@ -1,5 +1,5 @@
 use crate::{
-    analyze::{Analyzer, BaseType, Type},
+    analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
 };
@@ -650,6 +650,22 @@ impl DirectDeclarator {
 pub enum Initializer {
     Expr(Expr),
     Array(Vec<Expr>),
+}
+
+impl Initializer {
+    pub fn map(
+        self,
+        mut f: impl FnMut(Expr) -> Result<ConstExpr, CompileError>,
+    ) -> Result<ConstInitializer, CompileError> {
+        match self {
+            Initializer::Expr(expr) => Ok(ConstInitializer::Expr(f(expr)?)),
+            Initializer::Array(vec) => Ok(ConstInitializer::Array(
+                vec.into_iter()
+                    .map(f)
+                    .collect::<Result<Vec<ConstExpr>, CompileError>>()?,
+            )),
+        }
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

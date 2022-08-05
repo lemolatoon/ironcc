@@ -138,7 +138,7 @@ fn type_error() {
         matches!(
             tester.conv_program(),
             Err(CompileError {
-                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _, _,)),
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
                 src: _,
             })
         ),
@@ -152,7 +152,7 @@ fn type_error() {
         matches!(
             tester.conv_program(),
             Err(CompileError {
-                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _, _,)),
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
                 src: _,
             })
         ),
@@ -166,7 +166,7 @@ fn type_error() {
         matches!(
             tester.conv_program(),
             Err(CompileError {
-                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _, _,)),
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
                 src: _,
             })
         ),

@@ -47,12 +47,68 @@ impl<'a> Analyzer<'a> {
                 }
                 ProgramComponent {
                     kind: ProgramKind::Declaration(declaration),
-                    pos,
+                    pos: _,
                 } => {
                     let name = declaration.ident_name();
+                    let init = &declaration.initializer;
+                    let pos = declaration.pos;
                     match declaration.ty(self)? {
                         ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            let gvar = self.scope.register_gvar(self.input, pos, name, ty)?;
+                            let init = init
+                                .as_ref()
+                                .map(|expr| {
+                                    expr.clone().map(|expr| {
+                                        ConstExpr::try_eval_as_const(
+                                            self.input,
+                                            self.down_expr(expr, BTreeSet::new())?,
+                                        )
+                                    })
+                                })
+                                .transpose()?;
+                            let init_pos_ty = match &init {
+                                Some(ConstInitializer::Array(exprs)) => {
+                                    // array initializer's items have the same types each or not.
+                                    if !exprs.get(0).map_or(true, |first| {
+                                        exprs.iter().map(|expr| &expr.ty).all(|ty| *ty == first.ty)
+                                    }) {
+                                        return Err(CompileError::new_type_error_const(
+                                            self.input,
+                                            exprs[0].clone(),
+                                            exprs[1].clone(),
+                                            Some("Array Initializer has imcompatible types"),
+                                        ));
+                                    }
+                                    Some((exprs[0].pos, exprs[0].ty.clone()))
+                                }
+                                Some(ConstInitializer::Expr(expr)) => {
+                                    Some((expr.pos, expr.ty.clone()))
+                                }
+                                None => None,
+                            };
+                            if let Some((init_pos, init_ty)) = init_pos_ty {
+                                let type_imcopatible = match ty.clone() {
+                                    Type::Base(BaseType::Int) => ty != init_ty,
+                                    Type::Ptr(_) => {
+                                        return Err(unimplemented_err!(
+                                            "Ptr init is not implemented"
+                                        ))
+                                    }
+                                    Type::Func(_, _) => unreachable!(),
+                                    Type::Array(base, _) => *base != init_ty,
+                                };
+                                if type_imcopatible {
+                                    return Err(CompileError::new_type_error_types(
+                                        self.input,
+                                        pos,
+                                        init_pos,
+                                        ty,
+                                        init_ty,
+                                        Some("Incopatible type at initializer"),
+                                    ));
+                                }
+                            }
+
+                            let gvar = self.scope.register_gvar(self.input, pos, name, ty, init)?;
                             conv_program.push(ConvProgramKind::Global(gvar));
                         }
                         Type::Func(ret_ty, args) => {
@@ -1036,6 +1092,7 @@ impl Scope {
         pos: Position,
         name: &str,
         ty: Type,
+        init: Option<ConstInitializer>,
     ) -> Result<GVar, CompileError> {
         for scope in &self.scopes {
             if scope.contains_key(name) {
@@ -1058,6 +1115,7 @@ impl Scope {
         let gvar = GVar {
             name: name.to_string(),
             ty,
+            init,
         };
         self.insert_global_var_to_global_scope(gvar.clone());
         Ok(gvar)
@@ -1107,6 +1165,7 @@ impl Default for Scope {
 pub struct GVar {
     pub name: String,
     pub ty: Type,
+    pub init: Option<ConstInitializer>,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1144,6 +1203,106 @@ impl Func {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ConstInitializer {
+    Expr(ConstExpr),
+    Array(Vec<ConstExpr>),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct ConstExpr {
+    pub kind: ConstExprKind,
+    pub ty: Type,
+    pub pos: Position,
+}
+
+impl ConstExpr {
+    pub fn display_literal(&self) -> String {
+        match self.kind {
+            ConstExprKind::Num(n) => n.to_string(),
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ConstExprKind {
+    Num(isize),
+}
+
+impl ConstExpr {
+    fn try_eval_as_const(src: &str, expr: ConvExpr) -> Result<Self, CompileError> {
+        fn to_num(
+            src: &str,
+            ConvExpr { kind, ty: _, pos }: ConvExpr,
+        ) -> Result<isize, CompileError> {
+            let bool_to_isize = |b| if b { 1 } else { 0 };
+            Ok(match kind {
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Add,
+                    lhs,
+                    rhs,
+                }) => to_num(src, *lhs)? + to_num(src, *rhs)?,
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Sub,
+                    lhs,
+                    rhs,
+                }) => to_num(src, *lhs)? - to_num(src, *rhs)?,
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Mul,
+                    lhs,
+                    rhs,
+                }) => to_num(src, *lhs)? * to_num(src, *rhs)?,
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Div,
+                    lhs,
+                    rhs,
+                }) => to_num(src, *lhs)? / to_num(src, *rhs)?,
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Rem,
+                    lhs,
+                    rhs,
+                }) => to_num(src, *lhs)? % to_num(src, *rhs)?,
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Eq,
+                    lhs,
+                    rhs,
+                }) => bool_to_isize(to_num(src, *lhs)? == to_num(src, *rhs)?),
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Ne,
+                    lhs,
+                    rhs,
+                }) => bool_to_isize(to_num(src, *lhs)? != to_num(src, *rhs)?),
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Lt,
+                    lhs,
+                    rhs,
+                }) => bool_to_isize(to_num(src, *lhs)? < to_num(src, *rhs)?),
+                ConvExprKind::Binary(ConvBinary {
+                    kind: ConvBinOpKind::Le,
+                    lhs,
+                    rhs,
+                }) => bool_to_isize(to_num(src, *lhs)? <= to_num(src, *rhs)?),
+                ConvExprKind::Num(num) => num,
+                ConvExprKind::LVar(_)
+                | ConvExprKind::GVar(_)
+                | ConvExprKind::Assign(_, _)
+                | ConvExprKind::Func(_, _)
+                | ConvExprKind::Deref(_)
+                | ConvExprKind::Addr(_) => {
+                    return Err(CompileError::new_const_expr_error(src, pos, kind))
+                }
+            })
+        }
+        let pos = expr.pos;
+        let ty = expr.ty.clone();
+        Ok(ConstExpr {
+            kind: ConstExprKind::Num(to_num(src, expr)?),
+            ty,
+            pos,
+        })
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Base(BaseType),
     Ptr(Box<Type>),
@@ -1165,6 +1324,14 @@ impl Type {
             Type::Base(BaseType::Int) => 4,
             Type::Ptr(_) | Type::Func(_, _) => 8,
             Type::Array(ty, size) => ty.size_of() * *size,
+        }
+    }
+
+    pub const fn base_type(&self) -> &Type {
+        match self {
+            ty @ Type::Base(BaseType::Int) => ty,
+            Type::Ptr(base) | Type::Func(base, _) => base,
+            Type::Array(base, _) => base,
         }
     }
 }
