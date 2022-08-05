@@ -186,6 +186,10 @@ assert 10  "int main() {
     }
     return **z;}"
 
+assert 0 "int global_var; int main() {return global_var;}"
+assert 6 "int global_var; int main() {global_var = 6;return global_var;}"
+assert 9 "int global_var[2]; int main() {global_var[1] = 9;return *(global_var + 1);}"
+
 wait
 
 check

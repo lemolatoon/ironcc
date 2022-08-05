@@ -33,8 +33,8 @@ ConvProgram {
                                                         lhs: ConvExpr {
                                                             kind: Addr(
                                                                 ConvExpr {
-                                                                    kind: Lvar(
-                                                                        Lvar {
+                                                                    kind: LVar(
+                                                                        LVar {
                                                                             offset: 20,
                                                                             ty: Array(
                                                                                 Base(
