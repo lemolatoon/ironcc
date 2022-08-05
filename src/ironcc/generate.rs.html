@@ -490,14 +490,80 @@
 <span id="485">485</span>
 <span id="486">486</span>
 <span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">analyze</span>::{
-        <span class="ident">ConvBinOpKind</span>, <span class="ident">ConvBinary</span>, <span class="ident">ConvExpr</span>, <span class="ident">ConvExprKind</span>, <span class="ident">ConvFuncDef</span>, <span class="ident">ConvProgram</span>,
-        <span class="ident">ConvProgramKind</span>, <span class="ident">ConvStmt</span>, <span class="ident">ConvStmtKind</span>, <span class="ident">Lvar</span>, <span class="ident">Type</span>,
+        <span class="ident">BaseType</span>, <span class="ident">ConstExpr</span>, <span class="ident">ConstExprKind</span>, <span class="ident">ConstInitializer</span>, <span class="ident">ConvBinOpKind</span>, <span class="ident">ConvBinary</span>, <span class="ident">ConvExpr</span>,
+        <span class="ident">ConvExprKind</span>, <span class="ident">ConvFuncDef</span>, <span class="ident">ConvProgram</span>, <span class="ident">ConvProgramKind</span>, <span class="ident">ConvStmt</span>, <span class="ident">ConvStmtKind</span>, <span class="ident">GVar</span>,
+        <span class="ident">LVar</span>, <span class="ident">Type</span>,
     },
     <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">UnexpectedTypeSizeStatus</span>},
+    <span class="ident">unimplemented_err</span>,
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -591,6 +657,8 @@
                     <span class="ident">body</span>,
                     <span class="ident">stack_size</span>,
                 }) =&gt; {
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.text&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.global {}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rbp, rsp&quot;</span>)<span class="question-mark">?</span>;
@@ -601,7 +669,7 @@
                         .<span class="ident">into_iter</span>()
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">reg</span><span class="op">|</span> <span class="ident">reg</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
                         .<span class="ident">collect</span>();
-                    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">Lvar</span> { <span class="ident">offset</span>, <span class="ident">ty</span> }) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+                    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">LVar</span> { <span class="ident">offset</span>, <span class="ident">ty</span> }) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, rbp&quot;</span>)<span class="question-mark">?</span>;
                         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rax, {}&quot;</span>, <span class="ident">offset</span>)<span class="question-mark">?</span>; <span class="comment">// rax = &amp;arg</span>
                         <span class="self">self</span>.<span class="ident">assign</span>(
@@ -618,6 +686,45 @@
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rsp, rbp&quot;</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  ret&quot;</span>)<span class="question-mark">?</span>;
+                }
+                <span class="ident">ConvProgramKind::Global</span>(<span class="ident">GVar</span> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">init</span> }) =&gt; {
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.data&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">gvar</span> <span class="op">=</span> <span class="ident">GVar</span> {
+                        <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                        <span class="ident">ty</span>: <span class="ident">ty</span>.<span class="ident">clone</span>(),
+                        <span class="ident">init</span>: <span class="ident">init</span>.<span class="ident">clone</span>(),
+                    };
+                    <span class="kw">let</span> <span class="ident">size_hint</span> <span class="op">=</span> <span class="op">|</span><span class="ident">ty</span>: <span class="ident">Type</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">base_type</span>().<span class="ident">size_of</span>() {
+                        <span class="number">4</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;long&quot;</span>),
+                        <span class="number">8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;quad&quot;</span>),
+                        <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(
+                            <span class="self">self</span>.<span class="ident">input</span>,
+                            <span class="ident">UnexpectedTypeSizeStatus::Global</span>(<span class="ident">gvar</span>),
+                        )),
+                    };
+                    <span class="kw">match</span> <span class="ident">init</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">init</span>) =&gt; <span class="kw">match</span> <span class="ident">ty</span> {
+                            <span class="ident">Type::Base</span>(<span class="ident">BaseType::Int</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.long {}&quot;</span>, <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ConstInitializer::Expr</span>(<span class="ident">ConstExpr</span> { <span class="ident">kind</span>: <span class="ident">ConstExprKind::Num</span>(<span class="ident">num</span>), <span class="ident">ty</span>: <span class="kw">_</span>, <span class="ident">pos</span>:<span class="kw">_</span> }) <span class="op">=</span> <span class="ident">init</span> {<span class="ident">num</span>} <span class="kw">else</span> {<span class="macro">unreachable!</span>()})<span class="question-mark">?</span>,
+                            <span class="comment">// TODO : ptr init</span>
+                            <span class="ident">Type::Ptr</span>(<span class="kw">_</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.quad 0&quot;</span>)<span class="question-mark">?</span>,
+                            <span class="ident">Type::Func</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unreacheable. `Type::Func` has to be analyzed as FuncDeclaration not global variable.&quot;</span>),
+                            <span class="ident">Type::Array</span>(<span class="ident">ty</span>, <span class="ident">size</span>) =&gt; {<span class="kw">match</span> <span class="ident">init</span> {
+                                <span class="ident">ConstInitializer::Array</span>(<span class="ident">vec</span>) =&gt; {
+                                    <span class="kw">let</span> <span class="ident">size_of</span> <span class="op">=</span> <span class="ident">ty</span>.<span class="ident">size_of</span>();
+                                    <span class="kw">let</span> <span class="ident">size_explanation</span> <span class="op">=</span> <span class="ident">size_hint</span>(<span class="kw-2">*</span><span class="ident">ty</span>)<span class="question-mark">?</span>;
+                                    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ConstExpr</span> { <span class="ident">kind</span>: <span class="ident">ConstExprKind::Num</span>(<span class="ident">val</span>), <span class="ident">ty</span>: <span class="kw">_</span>, <span class="ident">pos</span>: <span class="kw">_</span> }) <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">get</span>(<span class="ident">i</span>) {
+                                            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.{} {}&quot;</span>, <span class="ident">size_explanation</span>, <span class="ident">val</span>)<span class="question-mark">?</span>;
+                                        } <span class="kw">else</span> {
+                                            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.zero {}&quot;</span>, <span class="ident">size_of</span>)<span class="question-mark">?</span>;
+                                        }
+                                }},
+                                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(<span class="string">&quot;Num literal initializer should not be used for array global variable.&quot;</span>)),
+                            }},
+                        },
+                        <span class="prelude-val">None</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.zero {}&quot;</span>, <span class="ident">ty</span>.<span class="ident">size_of</span>())<span class="question-mark">?</span>,
+                    }
                 }
             }
         }
@@ -676,8 +783,8 @@
                 <span class="kw">let</span> <span class="ident">label_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">label</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">init</span> {
                     <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">init</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
                 }
-                <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.Lbegin{}:&quot;</span>, <span class="ident">label_index</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cond</span>) <span class="op">=</span> <span class="ident">cond</span> {
                     <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">cond</span>)<span class="question-mark">?</span>;
@@ -711,7 +818,7 @@
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
             <span class="ident">ConvExprKind::Num</span>(<span class="ident">val</span>) =&gt; <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>))<span class="question-mark">?</span>,
             <span class="ident">ConvExprKind::Binary</span>(<span class="ident">c_binary</span>) =&gt; <span class="self">self</span>.<span class="ident">gen_binary</span>(<span class="ident">f</span>, <span class="ident">c_binary</span>)<span class="question-mark">?</span>,
-            <span class="ident">ConvExprKind::Lvar</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">ConvExprKind::LVar</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">ty</span>.<span class="ident">clone</span>();
                 <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="ident">expr</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>; <span class="comment">// rax = &amp;expr</span>
@@ -787,6 +894,19 @@
             <span class="ident">ConvExprKind::Addr</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">gen_lvalue</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>)<span class="question-mark">?</span>;
             }
+            <span class="ident">ConvExprKind::GVar</span>(<span class="ident">GVar</span> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">init</span> }) =&gt; {
+                <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
+                    <span class="number">4</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov eax, DWORD PTR {}[rip]&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>,
+                    <span class="number">8</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, QWORD PTR {}[rip]&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>,
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(
+                            <span class="self">self</span>.<span class="ident">input</span>,
+                            <span class="ident">UnexpectedTypeSizeStatus::Global</span>(<span class="ident">GVar</span> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">init</span> }),
+                        ))
+                    }
+                };
+                <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
+            }
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -799,13 +919,21 @@
         <span class="ident">expr</span>: <span class="ident">ConvExpr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
-            <span class="ident">ConvExprKind::Lvar</span>(<span class="ident">Lvar</span> { <span class="ident">offset</span>, <span class="ident">ty</span>: <span class="kw">_</span> }) =&gt; {
+            <span class="ident">ConvExprKind::LVar</span>(<span class="ident">LVar</span> { <span class="ident">offset</span>, <span class="ident">ty</span>: <span class="kw">_</span> }) =&gt; {
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, rbp&quot;</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rax, {}&quot;</span>, <span class="ident">offset</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">ConvExprKind::Deref</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">ConvExprKind::GVar</span>(<span class="ident">GVar</span> {
+                <span class="ident">name</span>,
+                <span class="ident">ty</span>: <span class="kw">_</span>,
+                <span class="ident">init</span>: <span class="kw">_</span>,
+            }) =&gt; {
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, offset {}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_lvalue_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">expr</span>)),
         }

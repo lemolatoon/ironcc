@@ -422,7 +422,95 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExpr</span>;
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConstExpr</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExpr</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExprKind</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::GVar</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::Type</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::Position</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::Token</span>;
@@ -534,8 +622,39 @@
         <span class="ident">CompileError::new</span>(
             <span class="ident">src</span>,
             <span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
-                <span class="ident">expr0</span>,
-                <span class="ident">expr1</span>,
+                <span class="ident">TypeErrorKind::Expr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>),
+                <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
+            )),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error_const</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+        <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">expr0</span>: <span class="ident">ConstExpr</span>,
+        <span class="ident">expr1</span>: <span class="ident">ConstExpr</span>,
+        <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="ident">CompileError::new</span>(
+            <span class="ident">src</span>,
+            <span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
+                <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>),
+                <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
+            )),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error_types</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+        <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">pos0</span>: <span class="ident">Position</span>,
+        <span class="ident">pos1</span>: <span class="ident">Position</span>,
+        <span class="ident">ty0</span>: <span class="ident">Type</span>,
+        <span class="ident">ty1</span>: <span class="ident">Type</span>,
+        <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="ident">CompileError::new</span>(
+            <span class="ident">src</span>,
+            <span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
+                <span class="ident">TypeErrorKind::Type</span>(<span class="ident">pos0</span>, <span class="ident">pos1</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>),
                 <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
             )),
         )
@@ -545,6 +664,13 @@
         <span class="ident">CompileError::new</span>(
             <span class="ident">src</span>,
             <span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(<span class="ident">pos</span>, <span class="ident">expected</span>, <span class="ident">got</span>)),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_const_expr_error</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pos</span>: <span class="ident">Position</span>, <span class="ident">kind</span>: <span class="ident">ConvExprKind</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">CompileError::new</span>(
+            <span class="ident">src</span>,
+            <span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::ConstExprError</span>(<span class="ident">pos</span>, <span class="ident">kind</span>)),
         )
     }
 
@@ -604,6 +730,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">CompileError</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_lines</span>)]</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">use</span> <span class="ident">CompileErrorKind</span>::{
             <span class="ident">AnalyzeError</span>, <span class="ident">GenerateError</span>, <span class="ident">IOError</span>, <span class="ident">ParseError</span>, <span class="ident">TokenizeError</span>, <span class="ident">Unimplemented</span>,
@@ -633,14 +760,14 @@
                 <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} type expected, but got {:?}&quot;</span>, <span class="ident">expected</span>, <span class="ident">got</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>, <span class="prelude-val">Some</span>(<span class="ident">msg</span>))) =&gt; {
-                <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="ident">expr0</span>.<span class="ident">pos</span>, <span class="ident">expr1</span>.<span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} and {:?} is not allowed.&quot;</span>, <span class="ident">expr0</span>.<span class="ident">ty</span>, <span class="ident">expr1</span>.<span class="ident">ty</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
-            }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>, <span class="prelude-val">None</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="ident">expr0</span>.<span class="ident">pos</span>, <span class="ident">expr1</span>.<span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} and {:?} is not allowed.&quot;</span>, <span class="ident">expr0</span>.<span class="ident">ty</span>, <span class="ident">expr1</span>.<span class="ident">ty</span>)<span class="question-mark">?</span>;
+            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(<span class="ident">error</span>, <span class="ident">msg</span>)) =&gt; {
+                <span class="kw">let</span> <span class="ident">poses</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">positions</span>();
+                <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="ident">poses</span>.<span class="number">0</span>, <span class="ident">poses</span>.<span class="number">1</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">types</span>();
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} and {:?} is not allowed.&quot;</span>, <span class="ident">types</span>.<span class="number">0</span>, <span class="ident">types</span>.<span class="number">1</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">msg</span> {
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
+                }
             }
             <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::FuncArgsError</span>(
                 <span class="ident">name</span>,
@@ -657,6 +784,14 @@
                 )<span class="question-mark">?</span>;
                 <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">declared_pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{} is first declared here.&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::ConstExprError</span>(<span class="ident">pos</span>, <span class="ident">kind</span>)) =&gt; {
+                <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(
+                    <span class="ident">f</span>,
+                    <span class="string">&quot;This kind({:?}) of Expr cannot be evaluated as constants.&quot;</span>,
+                    <span class="ident">kind</span>
+                )<span class="question-mark">?</span>;
             }
             <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::DerefError</span>(<span class="ident">expr</span>)) =&gt; {
                 <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
@@ -690,6 +825,14 @@
                     <span class="ident">ty</span>
                 )<span class="question-mark">?</span>;
             }
+            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(
+                <span class="ident">UnexpectedTypeSizeStatus::Global</span>(<span class="ident">GVar</span> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">init</span>: <span class="kw">_</span> }),
+            )) =&gt; {
+                <span class="macro">writeln!</span>(
+                    <span class="ident">f</span>,
+                    <span class="string">&quot;This Global Variable&#39;s type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}&quot;</span>, <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">ty</span>.<span class="ident">size_of</span>()
+                )<span class="question-mark">?</span>;
+            }
             <span class="ident">Unimplemented</span>(<span class="prelude-val">Some</span>(<span class="ident">pos</span>), <span class="ident">msg</span>) =&gt; {
                 <span class="ident">error_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>, <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">pos</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
@@ -708,8 +851,34 @@
     <span class="ident">RedefinedError</span>(<span class="ident">String</span>, <span class="ident">Position</span>, <span class="ident">VariableKind</span>),
     <span class="ident">UndeclaredError</span>(<span class="ident">String</span>, <span class="ident">Position</span>, <span class="ident">VariableKind</span>),
     <span class="ident">FuncArgsError</span>(<span class="ident">String</span>, <span class="ident">Position</span>, <span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">Position</span>),
-    <span class="ident">TypeError</span>(<span class="ident">ConvExpr</span>, <span class="ident">ConvExpr</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
+    <span class="ident">TypeError</span>(<span class="ident">TypeErrorKind</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
     <span class="ident">TypeExpectFailed</span>(<span class="ident">Position</span>, <span class="ident">Type</span>, <span class="ident">Type</span>),
+    <span class="ident">ConstExprError</span>(<span class="ident">Position</span>, <span class="ident">ConvExprKind</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeErrorKind</span> {
+    <span class="ident">Expr</span>(<span class="ident">ConvExpr</span>, <span class="ident">ConvExpr</span>),
+    <span class="ident">ConstExpr</span>(<span class="ident">ConstExpr</span>, <span class="ident">ConstExpr</span>),
+    <span class="ident">Type</span>(<span class="ident">Position</span>, <span class="ident">Position</span>, <span class="ident">Type</span>, <span class="ident">Type</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">TypeErrorKind</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">Position</span>, <span class="ident">Position</span>) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">TypeErrorKind::Expr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; (<span class="ident">expr0</span>.<span class="ident">pos</span>, <span class="ident">expr1</span>.<span class="ident">pos</span>),
+            <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; (<span class="ident">expr0</span>.<span class="ident">pos</span>, <span class="ident">expr1</span>.<span class="ident">pos</span>),
+            <span class="ident">TypeErrorKind::Type</span>(<span class="ident">pos0</span>, <span class="ident">pos1</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; (<span class="kw-2">*</span><span class="ident">pos0</span>, <span class="kw-2">*</span><span class="ident">pos1</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">types</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">Type</span>, <span class="ident">Type</span>) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">TypeErrorKind::Expr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; (<span class="ident">expr0</span>.<span class="ident">ty</span>.<span class="ident">clone</span>(), <span class="ident">expr1</span>.<span class="ident">ty</span>.<span class="ident">clone</span>()),
+            <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; (<span class="ident">expr0</span>.<span class="ident">ty</span>.<span class="ident">clone</span>(), <span class="ident">expr1</span>.<span class="ident">ty</span>.<span class="ident">clone</span>()),
+            <span class="ident">TypeErrorKind::Type</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>) =&gt; (<span class="ident">ty0</span>.<span class="ident">clone</span>(), <span class="ident">ty1</span>.<span class="ident">clone</span>()),
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -730,6 +899,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnexpectedTypeSizeStatus</span> {
     <span class="ident">Expr</span>(<span class="ident">ConvExpr</span>),
     <span class="ident">FuncArgs</span>(<span class="ident">String</span>, <span class="ident">Type</span>),
+    <span class="ident">Global</span>(<span class="ident">GVar</span>),
 }
 
 <span class="doccomment">/// write source annotation which indicates `pos` in `src`</span>
