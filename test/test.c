@@ -72,7 +72,7 @@ int main()
     assert(19, 0, test19());
     assert(20, 0, test20());
     assert(21, 0, test21());
-    assert(22, 0, test21());
+    assert(22, 0, test22());
 
     print_ok();
     return 0;
@@ -450,8 +450,8 @@ int test22_global_with_init[3] = {1, 2, 3};
 int test22()
 {
     assert(22, 1, test22_global_with_init[0]);
-    assert(22, 2, test22_global_with_init[2]);
-    assert(22, 3, test22_global_with_init[3]);
+    assert(22, 2, test22_global_with_init[1]);
+    assert(22, 3, test22_global_with_init[2]);
     test22_global_with_init[0] = 9;
     assert(22, 9, *test22_global_with_init);
 }
