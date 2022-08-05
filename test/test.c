@@ -25,6 +25,7 @@ int test19();
 int test20();
 int test21();
 int test22();
+int test23();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -73,6 +74,7 @@ int main()
     assert(20, 0, test20());
     assert(21, 0, test21());
     assert(22, 0, test22());
+    assert(23, 0, test23());
 
     print_ok();
     return 0;
@@ -454,6 +456,15 @@ int test22()
     assert(22, 3, test22_global_with_init[2]);
     test22_global_with_init[0] = 9;
     assert(22, 9, *test22_global_with_init);
+}
+
+int test23_global = 3;
+int test23()
+{
+    assert(23, 3, test23_global);
+    int *p = &test23_global;
+    *p = 4;
+    assert(23, 4, test23_global);
 }
 
 int add(int x, int y)
