@@ -180,6 +180,7 @@ impl<'a> Parser<'a> {
         match tokens.next() {
             Some(Token { kind, pos }) => match *kind {
                 TokenKind::Type(TypeToken::Int) => Ok((TypeSpec::Int, pos)),
+                TokenKind::Type(TypeToken::Char) => Ok((TypeSpec::Char, pos)),
                 _ => Err(tokens
                     .new_expected_failed(Box::new("TokenKind::Type(_)"), Token::new(*kind, pos))),
             },
@@ -601,7 +602,7 @@ impl Declaration {
         self.declrtr.d_declrtr.ident_name()
     }
 
-    pub fn ty(&self, analyzer: &Analyzer) -> Result<Type, CompileError> {
+    pub fn ty(&self, analyzer: &mut Analyzer) -> Result<Type, CompileError> {
         analyzer.get_type(&self.ty_spec, &self.declrtr)
     }
 }
@@ -671,6 +672,7 @@ impl Initializer {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum TypeSpec {
     Int,
+    Char,
 }
 
 impl Stmt {
@@ -748,6 +750,7 @@ impl TypeName {
         // TODO: also consider array
         let base = match self.spec_quals.0 {
             TypeSpec::Int => BaseType::Int,
+            TypeSpec::Char => BaseType::Char,
         };
         let mut ty = Type::Base(base);
         if let Some(ref abs_declrtr) = self.abstract_declarator {

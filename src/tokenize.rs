@@ -110,6 +110,7 @@ impl<'a> Tokenizer<'a> {
                         "while" => TokenKind::While,
                         "for" => TokenKind::For,
                         "int" => TokenKind::Type(TypeToken::Int),
+                        "char" => TokenKind::Type(TypeToken::Char),
                         "sizeof" => TokenKind::SizeOf,
                         _ => TokenKind::Ident(ident),
                     },
@@ -182,6 +183,8 @@ pub enum TokenKind {
 pub enum TypeToken {
     /// `int`, type specifier
     Int,
+    /// `char`, type specifier
+    Char,
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {

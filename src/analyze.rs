@@ -5,6 +5,7 @@ use std::{
 
 use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
+    generate::RegSize,
     parse::{
         BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, ForInitKind, Initializer,
         Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
@@ -86,8 +87,8 @@ impl<'a> Analyzer<'a> {
                                 None => None,
                             };
                             if let Some((init_pos, init_ty)) = init_pos_ty {
-                                let type_imcopatible = match ty.clone() {
-                                    Type::Base(BaseType::Int) => ty != init_ty,
+                                let type_incompatible = match ty.clone() {
+                                    Type::Base(_) => ty != init_ty,
                                     Type::Ptr(_) => {
                                         return Err(unimplemented_err!(
                                             "Ptr init is not implemented"
@@ -96,15 +97,18 @@ impl<'a> Analyzer<'a> {
                                     Type::Func(_, _) => unreachable!(),
                                     Type::Array(base, _) => *base != init_ty,
                                 };
-                                if type_imcopatible {
-                                    return Err(CompileError::new_type_error_types(
-                                        self.input,
-                                        pos,
-                                        init_pos,
-                                        ty,
-                                        init_ty,
-                                        Some("Incopatible type at initializer"),
-                                    ));
+                                if type_incompatible {
+                                    if ty.is_base() && init_ty.is_base() {
+                                    } else {
+                                        return Err(CompileError::new_type_error_types(
+                                            self.input,
+                                            pos,
+                                            init_pos,
+                                            ty,
+                                            init_ty,
+                                            Some("Incompatible type at initializer"),
+                                        ));
+                                    }
                                 }
                             }
 
@@ -314,13 +318,26 @@ impl<'a> Analyzer<'a> {
         rhs: ConvExpr,
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
+        let mut rhs = rhs;
         if lhs.ty != rhs.ty {
-            return Err(CompileError::new_type_error(
-                self.input,
-                lhs,
-                rhs,
-                Some("Assign expression's lhs and rhs has to have compatible types"),
-            ));
+            match (lhs.ty.get_base(), rhs.ty.get_base()) {
+                (Some(lhs_base), Some(rhs_base)) => {
+                    let rhs_base = *rhs_base;
+                    rhs = ConvExpr::new_cast(
+                        rhs,
+                        lhs.ty.clone(),
+                        CastKind::Base2Base(rhs_base, *lhs_base),
+                    );
+                }
+                _ => {
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("Assign expression's lhs and rhs has to have compatible types"),
+                    ))
+                }
+            }
         }
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
@@ -338,28 +355,28 @@ impl<'a> Analyzer<'a> {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos, attrs.clone()),
+            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos, BTreeSet::new()),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, attrs.clone()),
+            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, BTreeSet::new()),
             // do nothing
-            ExprKind::Binary(binary) => self.down_binary(binary, pos, attrs.clone()), // do nothing
+            ExprKind::Binary(binary) => self.down_binary(binary, pos, BTreeSet::new()), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
                 Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
                 pos,
-                attrs.clone(),
+                BTreeSet::new(),
             ),
             // do nothing
-            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, attrs.clone()),
+            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, BTreeSet::new()),
             // do nothing
             ExprKind::Assign(lhs, rhs) => {
-                let lhs = self.down_expr(*lhs, attrs.clone())?;
-                let rhs = self.down_expr(*rhs, attrs.clone())?;
+                let lhs = self.down_expr(*lhs, BTreeSet::new())?;
+                let rhs = self.down_expr(*rhs, BTreeSet::new())?;
                 self.new_assign_expr_with_type_check(lhs, rhs, pos)
             }
             ExprKind::LVar(name) => self.fetch_lvar(&name, pos),
@@ -368,7 +385,7 @@ impl<'a> Analyzer<'a> {
             }
             ExprKind::Deref(expr) => {
                 // type check
-                let conv_expr = self.down_expr(*expr, attrs.clone())?;
+                let conv_expr = self.down_expr(*expr, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
                     ty @ (Type::Base(_) | Type::Func(_, _)) => {
                         Err(CompileError::new_type_expect_failed(
@@ -390,7 +407,7 @@ impl<'a> Analyzer<'a> {
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
-                self.down_expr(*expr, attrs.clone())?,
+                self.down_expr(*expr, BTreeSet::new())?,
                 pos,
             )),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
@@ -407,7 +424,7 @@ impl<'a> Analyzer<'a> {
                 // `a[i]` := `*(a + i)`
                 let desugered =
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
-                self.down_expr(desugered, attrs.clone())
+                self.down_expr(desugered, BTreeSet::new())
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -422,12 +439,12 @@ impl<'a> Analyzer<'a> {
         name: String,
         args: Vec<Expr>,
         pos: Position,
-        attrs: &BTreeSet<DownExprAttribute>,
+        _attrs: &BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         // args type check
-        let args = args
+        let mut args = args
             .into_iter()
-            .map(|expr| self.down_expr(expr, attrs.clone()))
+            .map(|expr| self.down_expr(expr, BTreeSet::new()))
             .collect::<Result<Vec<_>, CompileError>>()?;
         let Func {
             name: _,
@@ -455,14 +472,24 @@ impl<'a> Analyzer<'a> {
                 *declared_pos,
             ));
         }
-        for (expected_ty, got_expr) in args_ty.iter().zip(args.iter()) {
+        for (expected_ty, got_expr) in args_ty.iter().zip(args.iter_mut()) {
             if *expected_ty != got_expr.ty {
-                return Err(CompileError::new_type_expect_failed(
-                    self.input,
-                    got_expr.pos,
-                    expected_ty.clone(),
-                    got_expr.ty.clone(),
-                ));
+                if expected_ty.is_base() && got_expr.ty.is_base() {
+                    let to = *expected_ty.get_base().unwrap();
+                    let from = *got_expr.ty.get_base().unwrap();
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::Base2Base(from, to),
+                    );
+                } else {
+                    return Err(CompileError::new_type_expect_failed(
+                        self.input,
+                        got_expr.pos,
+                        expected_ty.clone(),
+                        got_expr.ty.clone(),
+                    ));
+                }
             }
         }
         Ok(ConvExpr::new_func(name, args, ret_ty.clone(), pos))
@@ -475,24 +502,17 @@ impl<'a> Analyzer<'a> {
         pos: Position,
         attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
-        let mut rhs = self.down_expr(*rhs, attrs.clone())?;
+        let mut rhs = self.down_expr(*rhs, BTreeSet::new())?;
         let mut lhs = self.down_expr(*lhs, attrs)?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lhs_ty), Type::Base(rhs_ty)) => {
-                    if lhs_ty != rhs_ty {
-                        return Err(CompileError::new_type_error(
-                            self.input,
-                            lhs,
-                            rhs,
-                            Some(
-                                "incompatible type addition or subtraction is not allowed"
-                                    .to_string(),
-                            ),
-                        ));
-                    }
-                    let base_ty = *lhs_ty;
+                    let base_ty = if lhs_ty.bytes() >= rhs_ty.bytes() {
+                        *lhs_ty
+                    } else {
+                        *rhs_ty
+                    };
                     Ok(ConvExpr::new_binary(
                         kind,
                         lhs,
@@ -678,7 +698,7 @@ impl<'a> Analyzer<'a> {
     }
 
     pub fn get_type<T: Into<Type> + Clone>(
-        &self,
+        &mut self,
         ty_spec: T,
         declrtr: &Declarator,
     ) -> Result<Type, CompileError> {
@@ -703,19 +723,24 @@ impl<'a> Analyzer<'a> {
                     watching_d_declrtr = d_declrtr;
                 }
                 DirectDeclarator::Array(d_declrtr, expr) => {
-                    #[allow(clippy::cast_sign_loss)]
-                    let size = *if let Expr {
-                        kind: ExprKind::Num(size),
-                        pos: _,
-                    } = expr
-                    {
-                        size
-                    } else {
-                        return Err(unimplemented_err!(format!(
-                            "Other than num expr is not allowed as lenghth of array {:?}",
-                            expr
-                        )));
-                    } as usize;
+                    let size = ConstExpr::try_eval_as_const(
+                        self.input,
+                        self.down_expr(expr.clone(), BTreeSet::new())?,
+                    )?
+                    .get_num_lit() as usize;
+                    // #[allow(clippy::cast_sign_loss)]
+                    // let size = *if let Expr {
+                    //     kind: ExprKind::Num(size),
+                    //     pos: _,
+                    // } = expr
+                    // {
+                    //     size
+                    // } else {
+                    //     return Err(unimplemented_err!(format!(
+                    //         "Other than num expr is not allowed as lenghth of array {:?}",
+                    //         expr
+                    //     )));
+                    // } as usize;
                     ty = Type::Array(Box::new(ty), size);
                     watching_d_declrtr = d_declrtr;
                 }
@@ -922,6 +947,39 @@ impl ConvExpr {
         ConvExpr::new_addr(self, pos)
     }
 
+    pub fn implicit_cast(
+        self,
+        src: &str,
+        ty: Type,
+        ctx: CastContext,
+    ) -> Result<Self, CompileError> {
+        match (ctx, self.ty.get_base(), ty.get_base()) {
+            (CastContext::Assign, Some(from_base), Some(to_base)) if from_base == to_base => {
+                // No Cast
+                Ok(self)
+            }
+            (CastContext::Assign, Some(from_base), Some(to_base)) if from_base > to_base => {
+                // Castable
+                let (from_base, to_base) = (from_base.clone(), to_base.clone());
+                Ok(ConvExpr::new_cast(
+                    self,
+                    Type::Base(to_base.clone()),
+                    CastKind::Base2Base(from_base, to_base),
+                ))
+            }
+            _ => Err(unimplemented_err!(
+                src,
+                self.pos,
+                format!("Implicit Cast Failed.: {:?} -> {:?}", self.ty, ty)
+            )),
+        }
+    }
+
+    // #[must_use]
+    // pub fn as_map_ty(&mut self, f: impl FnOnce(Type) -> Type) {
+    //     self.ty = f(self.ty);
+    // }
+
     #[must_use]
     pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
         self.ty = f(self.ty);
@@ -1000,6 +1058,21 @@ impl ConvExpr {
             pos,
         }
     }
+
+    pub fn new_cast(expr: ConvExpr, to_ty: Type, kind: CastKind) -> Self {
+        let pos = expr.pos;
+        Self {
+            kind: ConvExprKind::Cast(Box::new(expr), kind),
+            ty: to_ty,
+            pos,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug, Copy)]
+pub enum CastContext {
+    Assign,
+    // Binary,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -1012,6 +1085,12 @@ pub enum ConvExprKind {
     Func(String, Vec<ConvExpr>),
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
+    Cast(Box<ConvExpr>, CastKind),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum CastKind {
+    Base2Base(BaseType, BaseType),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1208,6 +1287,36 @@ pub enum ConstInitializer {
     Array(Vec<ConstExpr>),
 }
 
+impl ConstInitializer {
+    #[must_use]
+    pub fn map_ty(self, f: impl Fn(Type) -> Type) -> Self {
+        match self {
+            ConstInitializer::Expr(expr) => ConstInitializer::Expr(expr.map_ty(f)),
+            ConstInitializer::Array(exprs) => {
+                ConstInitializer::Array(exprs.into_iter().map(|expr| expr.map_ty(&f)).collect())
+            }
+        }
+    }
+
+    pub const fn get_num_lit(&self) -> Option<isize> {
+        match self {
+            ConstInitializer::Expr(expr) => Some(expr.get_num_lit()),
+            ConstInitializer::Array(_) => None,
+        }
+    }
+
+    // pub fn as_map_ty(&mut self, f: impl Fn(Type) -> Type) {
+    //     match self {
+    //         ConstInitializer::Expr(expr) => {
+    //             expr.map_ty(f);
+    //         }
+    //         ConstInitializer::Array(exprs) => {
+    //             exprs.iter_mut().map(|expr| expr.map_ty(&f));
+    //         }
+    //     }
+    // }
+}
+
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct ConstExpr {
     pub kind: ConstExprKind,
@@ -1219,13 +1328,28 @@ impl ConstExpr {
     pub fn display_literal(&self) -> String {
         match self.kind {
             ConstExprKind::Num(n) => n.to_string(),
+            ConstExprKind::Char(n) => n.to_string(),
         }
+    }
+
+    pub const fn get_num_lit(&self) -> isize {
+        match self.kind {
+            ConstExprKind::Num(n) => n,
+            ConstExprKind::Char(n) => n as isize,
+        }
+    }
+
+    #[must_use]
+    pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
+        self.ty = f(self.ty);
+        self
     }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ConstExprKind {
     Num(isize),
+    Char(i8),
 }
 
 impl ConstExpr {
@@ -1287,7 +1411,8 @@ impl ConstExpr {
                 | ConvExprKind::Assign(_, _)
                 | ConvExprKind::Func(_, _)
                 | ConvExprKind::Deref(_)
-                | ConvExprKind::Addr(_) => {
+                | ConvExprKind::Addr(_)
+                | ConvExprKind::Cast(_, _) => {
                     return Err(CompileError::new_const_expr_error(src, pos, kind))
                 }
             })
@@ -1314,6 +1439,7 @@ impl From<&TypeSpec> for Type {
     fn from(ty_spec: &TypeSpec) -> Self {
         match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
+            TypeSpec::Char => Type::Base(BaseType::Char),
         }
     }
 }
@@ -1322,6 +1448,7 @@ impl Type {
     pub const fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
+            Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) | Type::Func(_, _) => 8,
             Type::Array(ty, size) => ty.size_of() * *size,
         }
@@ -1329,9 +1456,23 @@ impl Type {
 
     pub const fn base_type(&self) -> &Type {
         match self {
-            ty @ Type::Base(BaseType::Int) => ty,
+            ty @ Type::Base(_) => ty,
             Type::Ptr(base) | Type::Func(base, _) => base,
             Type::Array(base, _) => base,
+        }
+    }
+
+    pub const fn get_base(&self) -> Option<&BaseType> {
+        match self {
+            Type::Base(base) => Some(base),
+            Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+        }
+    }
+
+    pub const fn is_base(&self) -> bool {
+        match self {
+            Type::Base(_) => true,
+            Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => false,
         }
     }
 }
@@ -1339,7 +1480,27 @@ impl Type {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum BaseType {
     Int,
+    Char,
 }
+
+impl BaseType {
+    pub const fn bytes(&self) -> usize {
+        match self {
+            BaseType::Int => 4,
+            BaseType::Char => 1,
+        }
+    }
+}
+
+impl From<&BaseType> for RegSize {
+    fn from(base: &BaseType) -> Self {
+        match base {
+            BaseType::Char => RegSize::Byte,
+            BaseType::Int => RegSize::Dword,
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvBinary {
     pub kind: ConvBinOpKind,

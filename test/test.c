@@ -26,6 +26,8 @@ int test20();
 int test21();
 int test22();
 int test23();
+int test24();
+int test25();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -75,6 +77,8 @@ int main()
     assert(21, 0, test21());
     assert(22, 0, test22());
     assert(23, 0, test23());
+    assert(24, 0, test24());
+    assert(25, 0, test25());
 
     print_ok();
     return 0;
@@ -456,6 +460,7 @@ int test22()
     assert(22, 3, test22_global_with_init[2]);
     test22_global_with_init[0] = 9;
     assert(22, 9, *test22_global_with_init);
+    return 0;
 }
 
 int test23_global = 3;
@@ -465,6 +470,44 @@ int test23()
     int *p = &test23_global;
     *p = 4;
     assert(23, 4, test23_global);
+    return 0;
+}
+
+char test24_char_global = 9;
+int test24_int_global = -1;
+int test24()
+{
+    assert(24, 9, test24_char_global);
+    test24_char_global = 98;
+    assert(24, 98, test24_char_global);
+    assert(24, -1, test24_int_global);
+    test24_char_global = test24_int_global;
+    assert(24, -1, test24_char_global);
+    test24_int_global = 999;
+    assert(24, 999, test24_int_global);
+    test24_int_global = test24_char_global;
+    assert(24, -1, test24_int_global);
+    return 0;
+}
+
+int test25()
+{
+    int int_var = -1;
+    char char_var;
+    char_var = int_var;
+    assert(25, -1, char_var);
+    char char_var2 = int_var;
+    assert(25, -1, char_var2);
+    int int_var2 = char_var2;
+    assert(25, -1, int_var2);
+    return 0;
+}
+
+int test26()
+{
+    int array[1 * 0 + 8 * 2];
+    assert(25, 16, sizeof(array) / sizeof(array[0]));
+    return 0;
 }
 
 int add(int x, int y)

@@ -68,3 +68,16 @@ fn scopes() {
     let mut tester = CachedProcesser::new(src);
     all!(tester);
 }
+
+#[test]
+fn implicit_cast() {
+    let src = "
+    int main() {
+        int a = 2;
+        char b = a;
+        b = 4;
+    }
+    ";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
+}
