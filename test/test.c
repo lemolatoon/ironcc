@@ -162,6 +162,16 @@ int test4(int i)
 
 int test5(int i) { return add(i, 1000000) + sub(i, 1000000); }
 
+int add(int x, int y)
+{
+    return x + y;
+}
+
+int sub(int x, int y)
+{
+    return x - y;
+}
+
 int test6(int i)
 {
     if (i == 0)
@@ -510,12 +520,12 @@ int test26()
     return 0;
 }
 
-int add(int x, int y)
+int test27()
 {
-    return x + y;
-}
-
-int sub(int x, int y)
-{
-    return x - y;
+    int array_with_init[1 + 2 + 1] = {1, 2, 3};
+    assert(27, 1, array_with_init[0]);
+    assert(27, 2, array_with_init[1]);
+    assert(27, 3, array_with_init[2]);
+    assert(27, 0, array_with_init[3]);
+    return 0;
 }
