@@ -28,6 +28,9 @@ int test22();
 int test23();
 int test24();
 int test25();
+int test26();
+int test27();
+int test28();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -79,6 +82,9 @@ int main()
     assert(23, 0, test23());
     assert(24, 0, test24());
     assert(25, 0, test25());
+    assert(26, 0, test26());
+    assert(27, 0, test27());
+    assert(28, 0, test28());
 
     print_ok();
     return 0;
@@ -516,7 +522,7 @@ int test25()
 int test26()
 {
     int array[1 * 0 + 8 * 2];
-    assert(25, 16, sizeof(array) / sizeof(array[0]));
+    assert(26, 16, sizeof(array) / sizeof(array[0]));
     return 0;
 }
 
@@ -526,6 +532,17 @@ int test27()
     assert(27, 1, array_with_init[0]);
     assert(27, 2, array_with_init[1]);
     assert(27, 3, array_with_init[2]);
-    assert(27, 0, array_with_init[3]);
+    array_with_init[3] = 4;
+    assert(27, 4, array_with_init[3]);
+    return 0;
+}
+
+int test28_var = 3;
+// int *test28_var_ptr = &test28_var;
+int test28()
+{
+    // assert(28, 3, test28_var);
+    // *test28_var_ptr = 89;
+    // assert(28, 89, test28_var);
     return 0;
 }

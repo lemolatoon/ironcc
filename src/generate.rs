@@ -80,6 +80,7 @@ impl<'a> Generator<'a> {
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             _ => return Err(CompileError::new_type_size_error(self.input, status)),
         };
+        writeln!(f, "# dummy 1")?;
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
     }
@@ -263,6 +264,7 @@ impl<'a> Generator<'a> {
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
+        writeln!(f, "# expr here.")?;
         match expr.kind {
             ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
