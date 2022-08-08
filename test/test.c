@@ -538,11 +538,11 @@ int test27()
 }
 
 int test28_var = 3;
-// int *test28_var_ptr = &test28_var;
+int *test28_var_ptr = &test28_var;
 int test28()
 {
-    // assert(28, 3, test28_var);
-    // *test28_var_ptr = 89;
-    // assert(28, 89, test28_var);
+    assert(28, 3, test28_var);
+    *test28_var_ptr = 89;
+    assert(28, 89, test28_var);
     return 0;
 }

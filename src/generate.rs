@@ -80,7 +80,6 @@ impl<'a> Generator<'a> {
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             _ => return Err(CompileError::new_type_size_error(self.input, status)),
         };
-        writeln!(f, "# dummy 1")?;
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
     }
@@ -156,7 +155,7 @@ impl<'a> Generator<'a> {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
-                            Type::Ptr(_) => writeln!(f, ".quad 0")?,
+                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_pos(), "Ptr Initializer should not be array."))?)?,
                             Type::Func(_, _) => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
@@ -264,7 +263,6 @@ impl<'a> Generator<'a> {
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
-        writeln!(f, "# expr here.")?;
         match expr.kind {
             ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
