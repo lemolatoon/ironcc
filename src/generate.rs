@@ -597,7 +597,7 @@ impl RegKind {
             RegKind::Rax => "al",
             RegKind::Rdi => "dil",
             RegKind::Rsi => "sil",
-            RegKind::Rdx => "di",
+            RegKind::Rdx => "dl",
             RegKind::Rcx => "cl",
             RegKind::Rbp => "bpl",
             RegKind::Rsp => "spl",

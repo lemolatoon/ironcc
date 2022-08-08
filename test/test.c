@@ -31,6 +31,7 @@ int test25();
 int test26();
 int test27();
 int test28();
+int test29();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -85,6 +86,7 @@ int main()
     assert(26, 0, test26());
     assert(27, 0, test27());
     assert(28, 0, test28());
+    assert(29, 0, test29());
 
     print_ok();
     return 0;
@@ -545,4 +547,17 @@ int test28()
     *test28_var_ptr = 89;
     assert(28, 89, test28_var);
     return 0;
+}
+
+char add_chars(char a, char b, char c);
+
+int test29()
+{
+    assert(29, 12, add_chars(9, 6, 3));
+    return 0;
+}
+
+char add_chars(char a, char b, char c)
+{
+    return a + b - c;
 }
