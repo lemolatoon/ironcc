@@ -169,7 +169,7 @@ impl<'a> Generator<'a> {
                                             writeln!(f, ".zero {}", size_of)?;
                                         }
                                 }},
-                                _ => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
+                                ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
                         },
                         None => writeln!(f, ".zero {}", ty.size_of())?,
@@ -553,7 +553,7 @@ pub enum RegSize {
 }
 
 impl RegSize {
-    pub fn try_new(size: usize) -> Option<Self> {
+    pub const fn try_new(size: usize) -> Option<Self> {
         Some(match size {
             1 => Self::Byte,
             4 => Self::Dword,

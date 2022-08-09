@@ -76,7 +76,7 @@ impl<'a> Analyzer<'a> {
                                             self.input,
                                             exprs[0].clone(),
                                             exprs[1].clone(),
-                                            Some("Array Initializer has imcompatible types"),
+                                            Some("Array Initializer has incompatible types"),
                                         ));
                                     }
                                     Some((exprs[0].pos, exprs[0].ty.clone()))
@@ -88,13 +88,7 @@ impl<'a> Analyzer<'a> {
                             };
                             if let Some((init_pos, init_ty)) = init_pos_ty {
                                 let type_incompatible = match ty.clone() {
-                                    Type::Base(_) => ty != init_ty,
-                                    Type::Ptr(_) => {
-                                        ty != init_ty
-                                        // return Err(unimplemented_err!(
-                                        //     "Ptr init is not implemented"
-                                        // ))
-                                    }
+                                    Type::Base(_) | Type::Ptr(_) => ty != init_ty,
                                     Type::Func(_, _) => unreachable!(),
                                     Type::Array(base, _) => *base != init_ty,
                                 };
@@ -393,21 +387,20 @@ impl<'a> Analyzer<'a> {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos, BTreeSet::new()),
+            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos, BTreeSet::new()),
+            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos),
             // do nothing
-            ExprKind::Binary(binary) => self.down_binary(binary, pos, BTreeSet::new()), // do nothing
+            ExprKind::Binary(binary) => self.down_binary(binary, pos), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
                 Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
                 pos,
-                BTreeSet::new(),
             ),
             // do nothing
             ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, BTreeSet::new()),
@@ -538,10 +531,9 @@ impl<'a> Analyzer<'a> {
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
         pos: Position,
-        attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = self.down_expr(*rhs, BTreeSet::new())?;
-        let mut lhs = self.down_expr(*lhs, attrs)?;
+        let mut lhs = self.down_expr(*lhs, BTreeSet::new())?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -556,6 +548,7 @@ impl<'a> Analyzer<'a> {
                         let lhs_ty = *lhs_ty;
                         let rhs_ty = *rhs_ty;
                         if lhs_ty.bytes() > rhs_ty.bytes() {
+                            // TODO: use fn `implicit_cast`
                             rhs = ConvExpr::new_cast(
                                 rhs,
                                 Type::Base(lhs_ty),
@@ -663,19 +656,16 @@ impl<'a> Analyzer<'a> {
                     rhs,
                     Some("ptr + ptr or ptr - ptr is not allowed. ".to_string()),
                 )),
-                (Type::Base(_), Type::Func(_, _)) => todo!(),
-                (Type::Ptr(_), Type::Func(_, _)) => todo!(),
-                (Type::Func(_, _), Type::Base(_)) => todo!(),
-                (Type::Func(_, _), Type::Ptr(_)) => todo!(),
-                (Type::Func(_, _), Type::Func(_, _)) => todo!(),
-                // TODO: convert array to ptr before this match expr
-                (Type::Base(_), Type::Array(_, _)) => todo!(),
-                (Type::Ptr(_), Type::Array(_, _)) => todo!(),
-                (Type::Func(_, _), Type::Array(_, _)) => todo!(),
-                (Type::Array(_, _), Type::Base(_)) => todo!(),
-                (Type::Array(_, _), Type::Ptr(_)) => todo!(),
-                (Type::Array(_, _), Type::Func(_, _)) => todo!(),
-                (Type::Array(_, _), Type::Array(_, _)) => todo!(),
+                (_, Type::Func(_, _)) | (Type::Func(_, _), _) => Err(unimplemented_err!(
+                    self.input,
+                    pos,
+                    "binary expr of function is not currently supported."
+                )),
+                (_, Type::Array(_, _)) | (Type::Array(_, _), _) => {
+                    unreachable!(
+                        "binary expr's operands(one of which is array) must be casted to ptr."
+                    )
+                }
             },
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
@@ -801,7 +791,7 @@ impl<'a> Analyzer<'a> {
 
     pub fn fetch_lvar(&self, name: &str, pos: Position) -> Result<ConvExpr, CompileError> {
         let var = match self.scope.look_up(&name.to_string()) {
-            Some(lvar) => lvar.clone(),
+            Some(lvar) => lvar,
             None => {
                 return Err(CompileError::new(
                     self.input,
@@ -981,6 +971,7 @@ pub struct ConvExpr {
 }
 impl ConvExpr {
     /// if `self.kind == Type::Array(_)` return ptr-converted expr, otherwise return `self` itself
+    #[must_use]
     pub fn convert_array_to_ptr(mut self) -> Self {
         if let Type::Array(base_ty, _) = self.ty.clone() {
             self.ty = *base_ty;
@@ -994,7 +985,7 @@ impl ConvExpr {
     pub fn implicit_cast(
         self,
         src: &str,
-        ty: Type,
+        ty: &Type,
         ctx: CastContext,
     ) -> Result<Self, CompileError> {
         match (ctx, self.ty.get_base(), ty.get_base()) {
@@ -1004,10 +995,10 @@ impl ConvExpr {
             }
             (CastContext::Assign, Some(from_base), Some(to_base)) if from_base > to_base => {
                 // Castable
-                let (from_base, to_base) = (from_base.clone(), to_base.clone());
+                let (from_base, to_base) = (*from_base, *to_base);
                 Ok(ConvExpr::new_cast(
                     self,
-                    Type::Base(to_base.clone()),
+                    Type::Base(to_base),
                     CastKind::Base2Base(from_base, to_base),
                 ))
             }
@@ -1198,11 +1189,16 @@ impl Scope {
     }
 
     fn insert_lvar_to_current_scope(&mut self, name: String, lvar: LVar) {
-        if let Some(map) = self.scopes.last_mut() {
-            map.insert(name, lvar);
-        } else {
-            panic!("Unreacheable. scope stacks have to have local scope when you register lvar.");
-        }
+        self.scopes.last_mut().map_or_else(
+            || {
+                unreachable!(
+                    "Unreachable. scope stacks have to have local scope when you register lvar."
+                );
+            },
+            |map| {
+                map.insert(name, lvar);
+            },
+        );
     }
 
     fn insert_global_var_to_global_scope(&mut self, gvar: GVar) {
@@ -1344,7 +1340,7 @@ impl ConstInitializer {
 
     pub fn get_num_lit(&self) -> Option<isize> {
         match self {
-            ConstInitializer::Expr(expr) => expr.get_num_lit().map_or(None, |num| Some(num)),
+            ConstInitializer::Expr(expr) => expr.get_num_lit().ok(),
             ConstInitializer::Array(_) => None,
         }
     }
@@ -1554,8 +1550,7 @@ impl Type {
     pub const fn base_type(&self) -> &Type {
         match self {
             ty @ Type::Base(_) => ty,
-            Type::Ptr(base) | Type::Func(base, _) => base,
-            Type::Array(base, _) => base,
+            Type::Ptr(base) | Type::Func(base, _) | Type::Array(base, _) => base,
         }
     }
 
