@@ -8,7 +8,8 @@ use crate::{
     generate::RegSize,
     parse::{
         BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, ForInitKind, Initializer,
-        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec, UnOp,
+        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec,
+        UnaryOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -20,6 +21,8 @@ pub struct Analyzer<'a> {
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
+    pub conv_program: ConvProgram,
+    lc_label: usize,
 }
 
 impl<'a> Analyzer<'a> {
@@ -30,20 +33,28 @@ impl<'a> Analyzer<'a> {
             offset: 0,
             func_map,
             scope: Scope::new(),
+            conv_program: ConvProgram::new(),
+            lc_label: 0,
         }
     }
 
-    pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
-        let mut conv_program = ConvProgram::new();
+    pub fn get_lc_label(&mut self) -> usize {
+        let lc_label = self.lc_label;
+        self.lc_label += 1;
+        lc_label
+    }
+
+    pub fn traverse_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
         for component in program {
             match component {
                 ProgramComponent {
-                    kind: ProgramKind::FuncDef(type_spec, declrtr, body),
+                    kind: ProgramKind::FuncDef(type_spec, declarator, body),
 
                     pos,
                 } => {
                     assert_eq!(self.offset, 0);
-                    conv_program.push(self.down_func_def(&type_spec, &declrtr, body, pos)?);
+                    let func_def = self.traverse_func_def(&type_spec, &declarator, body, pos)?;
+                    self.conv_program.push(func_def);
                     self.scope.reset_stack();
                 }
                 ProgramComponent {
@@ -55,60 +66,8 @@ impl<'a> Analyzer<'a> {
                     let pos = declaration.pos;
                     match declaration.ty(self)? {
                         ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            let init = init
-                                .as_ref()
-                                .map(|expr| {
-                                    expr.clone().map(|expr| {
-                                        ConstExpr::try_eval_as_const(
-                                            self.input,
-                                            self.down_expr(expr, BTreeSet::new())?,
-                                        )
-                                    })
-                                })
-                                .transpose()?;
-                            let init_pos_ty = match &init {
-                                Some(ConstInitializer::Array(exprs)) => {
-                                    // array initializer's items have the same types each or not.
-                                    if !exprs.get(0).map_or(true, |first| {
-                                        exprs.iter().map(|expr| &expr.ty).all(|ty| *ty == first.ty)
-                                    }) {
-                                        return Err(CompileError::new_type_error_const(
-                                            self.input,
-                                            exprs[0].clone(),
-                                            exprs[1].clone(),
-                                            Some("Array Initializer has incompatible types"),
-                                        ));
-                                    }
-                                    Some((exprs[0].pos, exprs[0].ty.clone()))
-                                }
-                                Some(ConstInitializer::Expr(expr)) => {
-                                    Some((expr.pos, expr.ty.clone()))
-                                }
-                                None => None,
-                            };
-                            if let Some((init_pos, init_ty)) = init_pos_ty {
-                                let type_incompatible = match ty.clone() {
-                                    Type::Base(_) | Type::Ptr(_) => ty != init_ty,
-                                    Type::Func(_, _) => unreachable!(),
-                                    Type::Array(base, _) => *base != init_ty,
-                                };
-                                if type_incompatible {
-                                    if ty.is_base() && init_ty.is_base() {
-                                    } else {
-                                        return Err(CompileError::new_type_error_types(
-                                            self.input,
-                                            pos,
-                                            init_pos,
-                                            ty,
-                                            init_ty,
-                                            Some("Incompatible type at initializer"),
-                                        ));
-                                    }
-                                }
-                            }
-
-                            let gvar = self.scope.register_gvar(self.input, pos, name, ty, init)?;
-                            conv_program.push(ConvProgramKind::Global(gvar));
+                            let gvar = self.new_global_variable(init, name, ty, pos)?;
+                            self.conv_program.push(ConvProgramKind::Global(gvar));
                         }
                         Type::Func(ret_ty, args) => {
                             if self.func_map.get(&name.to_string()).is_some() {
@@ -128,19 +87,105 @@ impl<'a> Analyzer<'a> {
                 }
             }
         }
-        Ok(conv_program)
+        Ok(self.conv_program.clone())
     }
 
-    pub fn down_func_def(
+    /// Construct Global Variable and register it to `self.scope`
+    pub fn new_global_variable(
+        &mut self,
+        init: &Option<Initializer>,
+        name: &str,
+        // global variable's type
+        ty: Type,
+        pos: Position,
+    ) -> Result<GVar, CompileError> {
+        let init = init
+            .as_ref()
+            .map(|expr| {
+                expr.clone().map(|expr| {
+                    ConstExpr::try_eval_as_const(
+                        self.input,
+                        self.traverse_expr(expr, BTreeSet::new())?,
+                    )
+                })
+            })
+            .transpose()?;
+        let init_pos_ty = match &init {
+            Some(ConstInitializer::Array(exprs)) => {
+                // array initializer's items have the same types each or not.
+                let mut unequal_type_index = 0;
+                if !exprs.get(0).map_or(true, |first| {
+                    exprs
+                        .iter()
+                        .map(|expr| &expr.ty)
+                        .enumerate()
+                        .all(|(idx, ty)| {
+                            unequal_type_index = idx;
+                            *ty == first.ty
+                        })
+                }) {
+                    return Err(CompileError::new_type_error_const(
+                        self.input,
+                        exprs[0].clone(),
+                        exprs[unequal_type_index].clone(),
+                        Some("Array Initializer has incompatible types"),
+                    ));
+                }
+                Some((exprs[0].pos, exprs[0].ty.clone()))
+            }
+            Some(ConstInitializer::Expr(expr)) => Some((expr.pos, expr.ty.clone())),
+            None => None,
+        };
+        if let Some((init_pos, init_ty)) = init_pos_ty {
+            // type check
+            match ty.clone() {
+                Type::Base(_) | Type::Ptr(_) => {
+                    if ty != init_ty {
+                        if ty.is_base() && init_ty.is_base() {
+                        } else {
+                            return Err(CompileError::new_type_error_types(
+                                self.input,
+                                pos,
+                                init_pos,
+                                ty,
+                                init_ty,
+                                Some("Incompatible type at expr initializer"),
+                            ));
+                        }
+                    }
+                }
+                Type::Func(_, _) => unreachable!(),
+                Type::Array(base, _) => {
+                    if *base != init_ty {
+                        if base.is_base() && init_ty.is_base() {
+                        } else {
+                            return Err(CompileError::new_type_error_types(
+                                self.input,
+                                pos,
+                                init_pos,
+                                *base,
+                                init_ty,
+                                Some("Incompatible type at array initializer"),
+                            ));
+                        }
+                    }
+                }
+            };
+        }
+
+        self.scope.register_gvar(self.input, pos, name, ty, init)
+    }
+
+    pub fn traverse_func_def(
         &mut self,
         ty_spec: &TypeSpec,
-        declrtr: &Declarator,
+        declarator: &Declarator,
         body: Stmt,
         pos: Position,
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
-        let ident = declrtr.d_declrtr.ident_name();
-        let ty = self.get_type(ty_spec, declrtr)?;
+        let ident = declarator.direct_declarator.ident_name();
+        let ty = self.get_type(ty_spec, declarator)?;
 
         let (ret_ty, args_ty);
         if let Type::Func(this_ret_ty, this_args) = ty.clone() {
@@ -156,7 +201,7 @@ impl<'a> Analyzer<'a> {
                 ty,
             ));
         }
-        let args = if let Some(args) = declrtr.d_declrtr.args() {
+        let args = if let Some(args) = declarator.direct_declarator.args() {
             args
         } else {
             return Err(unimplemented_err!(
@@ -169,7 +214,7 @@ impl<'a> Analyzer<'a> {
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
-                let ty = self.get_type(&arg.ty_spec, &arg.declrtr)?;
+                let ty = self.get_type(&arg.ty_spec, &arg.declarator)?;
                 let name = arg.ident_name();
                 let lvar =
                     self.scope
@@ -183,7 +228,7 @@ impl<'a> Analyzer<'a> {
             ConvStmt::new_block(
                 stmts
                     .into_iter()
-                    .map(|stmt| self.down_stmt(stmt, ident.to_string()))
+                    .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
                     .collect::<Result<Vec<_>, CompileError>>()?,
             )
         } else {
@@ -205,27 +250,29 @@ impl<'a> Analyzer<'a> {
     }
 
     #[allow(clippy::pedantic)]
-    pub fn down_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
+    pub fn traverse_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
         Ok(match stmt.kind {
-            StmtKind::Expr(expr) => ConvStmt::new_expr(self.down_expr(expr, BTreeSet::new())?),
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.traverse_expr(expr, BTreeSet::new())?),
             StmtKind::Return(expr) => {
-                ConvStmt::new_ret(self.down_expr(expr, BTreeSet::new())?, fn_name)
+                ConvStmt::new_ret(self.traverse_expr(expr, BTreeSet::new())?, fn_name)
             }
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
-                self.down_expr(cond, BTreeSet::new())?,
-                self.down_stmt(*then, fn_name.clone())?,
-                els.map(|stmt| self.down_stmt(*stmt, fn_name.clone()))
+                self.traverse_expr(cond, BTreeSet::new())?,
+                self.traverse_stmt(*then, fn_name.clone())?,
+                els.map(|stmt| self.traverse_stmt(*stmt, fn_name.clone()))
                     .transpose()?,
             ),
             StmtKind::While(cond, then) => ConvStmt::new_while(
-                self.down_expr(cond, BTreeSet::new())?,
-                self.down_stmt(*then, fn_name)?,
+                self.traverse_expr(cond, BTreeSet::new())?,
+                self.traverse_stmt(*then, fn_name)?,
             ),
             StmtKind::For(init, cond, inc, then) => {
                 self.scope.push_scope();
                 let for_stmt = ConvStmt::new_for(
                     init.map_or(Ok(None), |expr| match expr {
-                        ForInitKind::Expr(expr) => self.down_expr(expr, BTreeSet::new()).map(Some),
+                        ForInitKind::Expr(expr) => {
+                            self.traverse_expr(expr, BTreeSet::new()).map(Some)
+                        }
                         ForInitKind::Declaration(declaration) => {
                             let ty = declaration.ty(self)?;
                             let lvar = self.scope.register_lvar(
@@ -249,11 +296,11 @@ impl<'a> Analyzer<'a> {
                             }
                         }
                     })?,
-                    cond.map(|expr| self.down_expr(expr, BTreeSet::new()))
+                    cond.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
                         .transpose()?,
-                    inc.map(|expr| self.down_expr(expr, BTreeSet::new()))
+                    inc.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
                         .transpose()?,
-                    self.down_stmt(*then, fn_name)?,
+                    self.traverse_stmt(*then, fn_name)?,
                 );
                 self.scope.pop_scope(&mut self.offset);
                 for_stmt
@@ -263,7 +310,7 @@ impl<'a> Analyzer<'a> {
                 let block = ConvStmt::new_block(
                     stmts
                         .into_iter()
-                        .map(|stmt| self.down_stmt(stmt, fn_name.clone()))
+                        .map(|stmt| self.traverse_stmt(stmt, fn_name.clone()))
                         .collect::<Result<Vec<_>, CompileError>>()?,
                 );
                 self.scope.pop_scope(&mut self.offset);
@@ -282,7 +329,7 @@ impl<'a> Analyzer<'a> {
                 )?;
                 match declare.initializer {
                     Some(Initializer::Expr(init)) => {
-                        let rhs = self.down_expr(init, BTreeSet::new())?;
+                        let rhs = self.traverse_expr(init, BTreeSet::new())?;
                         ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                             // Safety:
                             // the lvar is generated by `register_lvar` which initializes lvar_map
@@ -297,7 +344,7 @@ impl<'a> Analyzer<'a> {
                                 .enumerate()
                                 .map(|(idx, expr)| {
                                     let expr_pos = expr.pos;
-                                    let rhs = self.down_expr(expr, BTreeSet::new())?;
+                                    let rhs = self.traverse_expr(expr, BTreeSet::new())?;
                                     Ok(ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                                         ConvExpr::new_deref(
                                             ConvExpr::new_binary(
@@ -342,8 +389,6 @@ impl<'a> Analyzer<'a> {
         })
     }
 
-    // this `&self` will be used when type checking is activated
-    #[allow(clippy::unused_self)]
     pub fn new_assign_expr_with_type_check(
         &self,
         lhs: ConvExpr,
@@ -374,7 +419,7 @@ impl<'a> Analyzer<'a> {
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
 
-    pub fn down_expr(
+    pub fn traverse_expr(
         &mut self,
         expr: Expr,
         // lvar_map: &mut BTreeMap<String, Lvar>,
@@ -387,27 +432,42 @@ impl<'a> Analyzer<'a> {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos),
+            }) => self.traverse_binary(Binary::new(BinOpKind::Le, rhs, lhs), pos),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => self.down_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos),
+            }) => self.traverse_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos),
             // do nothing
-            ExprKind::Binary(binary) => self.down_binary(binary, pos), // do nothing
+            ExprKind::Binary(binary) => self.traverse_binary(binary, pos), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
+            ExprKind::StrLit(mut letters) => {
+                let name = format!(".LC{}", self.get_lc_label());
+                let len = letters.len();
+                letters.push('\0');
+                let init = Some(Initializer::Array(
+                    letters
+                        .chars()
+                        .map(|c| Expr::new_num(u8::try_from(c).unwrap() as isize, pos))
+                        .collect(),
+                ));
+                let gvar = self.new_global_variable(
+                    &init,
+                    &name,
+                    Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
+                    pos,
+                )?;
+                self.conv_program
+                    .push(ConvProgramKind::Global(gvar.clone()));
+                // This gvar is initialized with `self.new_global_variable`, that's why this is ok.
+                Ok(ConvExpr::new_gvar(gvar, pos))
+            }
             // substitute `-x` into `0-x`
-            ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
-                Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
-                pos,
-            ),
-            // do nothing
-            ExprKind::Unary(UnOp::Plus, operand) => self.down_expr(*operand, BTreeSet::new()),
-            // do nothing
+            ExprKind::Unary(unary_op, operand) => self.traverse_unary(&unary_op, operand, pos),
             ExprKind::Assign(lhs, rhs) => {
-                let lhs = self.down_expr(*lhs, BTreeSet::new())?;
-                let rhs = self.down_expr(*rhs, BTreeSet::new())?;
+                let lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
+                let rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
                 self.new_assign_expr_with_type_check(lhs, rhs, pos)
             }
             ExprKind::LVar(name) => self.fetch_lvar(&name, pos),
@@ -416,7 +476,7 @@ impl<'a> Analyzer<'a> {
             }
             ExprKind::Deref(expr) => {
                 // type check
-                let conv_expr = self.down_expr(*expr, BTreeSet::new())?;
+                let conv_expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
                     ty @ (Type::Base(_) | Type::Func(_, _)) => {
                         Err(CompileError::new_type_expect_failed(
@@ -429,7 +489,6 @@ impl<'a> Analyzer<'a> {
                     }
                     // `*array` := `*(&array[0])`
                     Type::Array(array_base, _) => Ok(ConvExpr::new_deref(
-                        // TODO: define appropriate error type
                         conv_expr.convert_array_to_ptr(),
                         *array_base,
                         pos,
@@ -438,12 +497,12 @@ impl<'a> Analyzer<'a> {
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
-                self.down_expr(*expr, BTreeSet::new())?,
+                self.traverse_expr(*expr, BTreeSet::new())?,
                 pos,
             )),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
                 attrs.insert(DownExprAttribute::NoArrayPtrConversion);
-                let size = self.down_expr(*expr, attrs.clone())?.ty.size_of() as isize;
+                let size = self.traverse_expr(*expr, attrs.clone())?.ty.size_of() as isize;
                 Ok(ConvExpr::new_num(size, pos))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
@@ -453,9 +512,9 @@ impl<'a> Analyzer<'a> {
             ExprKind::Array(expr, index) => {
                 let pos = expr.pos;
                 // `a[i]` := `*(a + i)`
-                let desugered =
+                let desugared =
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
-                self.down_expr(desugered, BTreeSet::new())
+                self.traverse_expr(desugared, BTreeSet::new())
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -475,7 +534,7 @@ impl<'a> Analyzer<'a> {
         // args type check
         let mut args = args
             .into_iter()
-            .map(|expr| self.down_expr(expr, BTreeSet::new()))
+            .map(|expr| self.traverse_expr(expr, BTreeSet::new()))
             .collect::<Result<Vec<_>, CompileError>>()?;
         let Func {
             name: _,
@@ -527,13 +586,13 @@ impl<'a> Analyzer<'a> {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn down_binary(
+    pub fn traverse_binary(
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
-        let mut rhs = self.down_expr(*rhs, BTreeSet::new())?;
-        let mut lhs = self.down_expr(*lhs, BTreeSet::new())?;
+        let mut rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
+        let mut lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -688,7 +747,7 @@ impl<'a> Analyzer<'a> {
                         self.input,
                         lhs,
                         rhs,
-                        Some("incompatible type take remaint is not allowed".to_string()),
+                        Some("incompatible type take remainder is not allowed".to_string()),
                     ));
                 }
 
@@ -716,6 +775,48 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    pub fn traverse_unary(
+        &mut self,
+        unary_op: &UnaryOp,
+        operand: Box<Expr>,
+        pos: Position,
+    ) -> Result<ConvExpr, CompileError> {
+        match unary_op {
+            UnaryOp::Plus => self.traverse_expr(*operand, BTreeSet::new()),
+            UnaryOp::Minus => self.traverse_binary(
+                Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
+                pos,
+            ),
+            UnaryOp::BitInvert => {
+                let mut operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                if operand.ty != Type::Base(BaseType::Int) {
+                    if let Some(base_ty) = operand.ty.clone().get_base() {
+                        operand = ConvExpr::new_cast(
+                            operand,
+                            Type::Base(BaseType::Int),
+                            CastKind::Base2Base(*base_ty, BaseType::Int),
+                        );
+                    } else {
+                        return Err(CompileError::new_type_error_types(
+                            self.input,
+                            operand.pos,
+                            operand.pos,
+                            operand.ty,
+                            Type::Base(BaseType::Int),
+                            Some("Type Conversion failed at BitInvert `~`."),
+                        ));
+                    }
+                }
+                Ok(ConvExpr::new_unary(ConvUnaryOp::BitInvert, operand))
+            }
+            UnaryOp::LogicalNot => {
+                let eq_with_0 =
+                    Binary::new(BinOpKind::Eq, operand, Box::new(Expr::new_num(0, pos)));
+                Ok(self.traverse_binary(eq_with_0, pos)?)
+            }
+        }
+    }
+
     pub fn new_init_expr(
         &mut self,
         init: Initializer,
@@ -726,7 +827,7 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvExpr, CompileError> {
         match init {
             Initializer::Expr(init) => {
-                let rhs = self.down_expr(init, attrs)?;
+                let rhs = self.traverse_expr(init, attrs)?;
                 self.new_assign_expr_with_type_check(
                     // Safety:
                     // the lvar is generated by `Self::new_lvar` which initializes lvar_map
@@ -746,37 +847,37 @@ impl<'a> Analyzer<'a> {
     pub fn get_type<T: Into<Type> + Clone>(
         &mut self,
         ty_spec: T,
-        declrtr: &Declarator,
+        declarator: &Declarator,
     ) -> Result<Type, CompileError> {
         let mut ty = ty_spec.into();
-        for _ in 0..declrtr.n_star {
+        for _ in 0..declarator.n_star {
             ty = Type::Ptr(Box::new(ty));
         }
-        let mut watching_d_declrtr = &declrtr.d_declrtr;
+        let mut watching_direct_declarator = &declarator.direct_declarator;
         loop {
-            match watching_d_declrtr {
-                DirectDeclarator::Func(d_declrtr, args) => {
-                    // TODO: support function type for declaration
+            match watching_direct_declarator {
+                DirectDeclarator::Func(direct_declarator, args) => {
                     // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
                     ty = Type::Func(
                         Box::new(ty),
                         args.iter()
                             .map(|declaration| {
-                                self.get_type(&declaration.ty_spec, &declaration.declrtr)
+                                self.get_type(&declaration.ty_spec, &declaration.declarator)
                             })
                             .collect::<Result<Vec<_>, CompileError>>()?,
                     );
-                    watching_d_declrtr = d_declrtr;
+                    watching_direct_declarator = direct_declarator;
                 }
-                DirectDeclarator::Array(d_declrtr, expr) => {
+                DirectDeclarator::Array(direct_declarator, expr) => {
                     #[allow(clippy::cast_sign_loss)]
                     let size = ConstExpr::try_eval_as_const(
                         self.input,
-                        self.down_expr(expr.clone(), BTreeSet::new())?,
+                        // TODO: not unwrap, but check has init or not.
+                        self.traverse_expr(expr.clone().unwrap(), BTreeSet::new())?,
                     )?
                     .get_num_lit()? as usize;
                     ty = Type::Array(Box::new(ty), size);
-                    watching_d_declrtr = d_declrtr;
+                    watching_direct_declarator = direct_declarator;
                 }
                 DirectDeclarator::Declarator(declarator) => {
                     ty = self.get_type(ty, declarator)?;
@@ -896,55 +997,7 @@ impl ConvFuncDef {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ConvStmt {
-    pub kind: ConvStmtKind,
-}
-
-impl ConvStmt {
-    pub const fn new_expr(expr: ConvExpr) -> Self {
-        Self {
-            kind: ConvStmtKind::Expr(expr),
-        }
-    }
-
-    pub const fn new_ret(expr: ConvExpr, name: String) -> Self {
-        Self {
-            kind: ConvStmtKind::Return(expr, name),
-        }
-    }
-
-    pub fn new_block(stmts: Vec<ConvStmt>) -> Self {
-        Self {
-            kind: ConvStmtKind::Block(stmts),
-        }
-    }
-
-    pub fn new_if(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> Self {
-        Self {
-            kind: ConvStmtKind::If(cond, Box::new(then), els.map(Box::new)),
-        }
-    }
-
-    pub fn new_while(cond: ConvExpr, then: ConvStmt) -> Self {
-        Self {
-            kind: ConvStmtKind::While(cond, Box::new(then)),
-        }
-    }
-
-    pub fn new_for(
-        init: Option<ConvExpr>,
-        cond: Option<ConvExpr>,
-        inc: Option<ConvExpr>,
-        then: ConvStmt,
-    ) -> Self {
-        Self {
-            kind: ConvStmtKind::For(init, cond, inc, Box::new(then)),
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum ConvStmtKind {
+pub enum ConvStmt {
     Expr(ConvExpr),
     Return(ConvExpr, String),
     Block(Vec<ConvStmt>),
@@ -956,6 +1009,37 @@ pub enum ConvStmtKind {
         Option<ConvExpr>,
         Box<ConvStmt>,
     ),
+}
+
+impl ConvStmt {
+    pub const fn new_expr(expr: ConvExpr) -> Self {
+        ConvStmt::Expr(expr)
+    }
+
+    pub const fn new_ret(expr: ConvExpr, name: String) -> Self {
+        ConvStmt::Return(expr, name)
+    }
+
+    pub fn new_block(stmts: Vec<ConvStmt>) -> Self {
+        ConvStmt::Block(stmts)
+    }
+
+    pub fn new_if(cond: ConvExpr, then: ConvStmt, els: Option<ConvStmt>) -> Self {
+        ConvStmt::If(cond, Box::new(then), els.map(Box::new))
+    }
+
+    pub fn new_while(cond: ConvExpr, then: ConvStmt) -> Self {
+        ConvStmt::While(cond, Box::new(then))
+    }
+
+    pub fn new_for(
+        init: Option<ConvExpr>,
+        cond: Option<ConvExpr>,
+        inc: Option<ConvExpr>,
+        then: ConvStmt,
+    ) -> Self {
+        ConvStmt::For(init, cond, inc, Box::new(then))
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy)]
@@ -1010,11 +1094,6 @@ impl ConvExpr {
         }
     }
 
-    // #[must_use]
-    // pub fn as_map_ty(&mut self, f: impl FnOnce(Type) -> Type) {
-    //     self.ty = f(self.ty);
-    // }
-
     #[must_use]
     pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
         self.ty = f(self.ty);
@@ -1030,6 +1109,16 @@ impl ConvExpr {
     ) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
+            ty,
+            pos,
+        }
+    }
+
+    pub fn new_unary(unary_op: ConvUnaryOp, expr: ConvExpr) -> Self {
+        let ty = expr.ty.clone();
+        let pos = expr.pos;
+        Self {
+            kind: ConvExprKind::Unary(unary_op, Box::new(expr)),
             ty,
             pos,
         }
@@ -1113,6 +1202,7 @@ pub enum CastContext {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
     Binary(ConvBinary),
+    Unary(ConvUnaryOp, Box<ConvExpr>),
     Num(isize),
     LVar(LVar),
     GVar(GVar),
@@ -1121,6 +1211,11 @@ pub enum ConvExprKind {
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
     Cast(Box<ConvExpr>, CastKind),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ConvUnaryOp {
+    BitInvert,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1369,9 +1464,25 @@ pub struct ConstExpr {
 }
 
 impl ConstExpr {
+    pub const fn new_int(n: i32, pos: Position) -> Self {
+        Self {
+            kind: ConstExprKind::Int(n),
+            ty: Type::Base(BaseType::Int),
+            pos,
+        }
+    }
+
+    pub const fn new_char(n: i8, pos: Position) -> Self {
+        Self {
+            kind: ConstExprKind::Char(n),
+            ty: Type::Base(BaseType::Int),
+            pos,
+        }
+    }
+
     pub fn display_literal(&self) -> String {
         match &self.kind {
-            ConstExprKind::Num(n) => n.to_string(),
+            ConstExprKind::Int(n) => n.to_string(),
             ConstExprKind::Char(n) => n.to_string(),
             ConstExprKind::Addr(gvar) => gvar.name.clone(),
         }
@@ -1379,7 +1490,7 @@ impl ConstExpr {
 
     pub fn get_num_lit(&self) -> Result<isize, CompileError> {
         Ok(match &self.kind {
-            ConstExprKind::Num(n) => *n,
+            ConstExprKind::Int(n) => *n as isize,
             ConstExprKind::Char(n) => *n as isize,
             ConstExprKind::Addr(_) => {
                 return Err(unimplemented_err!(format!(
@@ -1387,6 +1498,22 @@ impl ConstExpr {
                     self
                 )))
             }
+        })
+    }
+
+    pub fn apply_unary_op(&self, unary_op: &ConvUnaryOp) -> Result<ConstExpr, CompileError> {
+        let pos = self.pos;
+        Ok(match unary_op {
+            ConvUnaryOp::BitInvert => match &self.kind {
+                ConstExprKind::Int(n) => ConstExpr::new_int(!*n, pos),
+                ConstExprKind::Char(n) => ConstExpr::new_char(!*n, pos),
+                ConstExprKind::Addr(_) => {
+                    return Err(unimplemented_err!(format!(
+                        "Const Expr which will be applied `~` unary op ({:?}) should be Literal.",
+                        self
+                    )))
+                }
+            },
         })
     }
 
@@ -1399,7 +1526,7 @@ impl ConstExpr {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ConstExprKind {
-    Num(isize),
+    Int(i32),
     Char(i8),
     Addr(Box<GVar>),
 }
@@ -1407,16 +1534,12 @@ pub enum ConstExprKind {
 impl ConstExpr {
     #[allow(clippy::too_many_lines)]
     fn try_eval_as_const(src: &str, expr: ConvExpr) -> Result<Self, CompileError> {
-        // fn to_num(
-        //     src: &str,
-        //     ConvExpr { kind, ty: _, pos }: ConvExpr,
-        // ) -> Result<isize, CompileError> {
         let pos = expr.pos;
         let ty = expr.ty.clone();
         let kind = expr.kind;
         let bool_to_isize = |b| if b { 1 } else { 0 };
-        let num_expr = |num| ConstExpr {
-            kind: ConstExprKind::Num(num),
+        let num_expr = |num: isize| ConstExpr {
+            kind: ConstExprKind::Int(num as i32),
             ty,
             pos,
         };
@@ -1516,6 +1639,9 @@ impl ConstExpr {
                     pos: expr_pos,
                 }
             }
+            ConvExprKind::Unary(unary_op, expr) => {
+                Self::try_eval_as_const(src, *expr)?.apply_unary_op(&unary_op)?
+            }
         })
     }
 }
@@ -1526,6 +1652,12 @@ pub enum Type {
     Ptr(Box<Type>),
     Func(Box<Type>, Vec<Type>),
     Array(Box<Type>, usize),
+}
+
+impl Type {
+    pub fn ptr(ty: Type) -> Self {
+        Type::Ptr(Box::new(ty))
+    }
 }
 
 impl From<&TypeSpec> for Type {

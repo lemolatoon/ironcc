@@ -1,0 +1,129 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func(
+                    Base(
+                        Int,
+                    ),
+                    [],
+                ),
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 1,
+                                                ty: Base(
+                                                    Char,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 2,
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Cast(
+                                            ConvExpr {
+                                                kind: Num(
+                                                    4,
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                pos: Position {
+                                                    n_char: 17,
+                                                    n_line: 2,
+                                                },
+                                            },
+                                            Base2Base(
+                                                Int,
+                                                Char,
+                                            ),
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        pos: Position {
+                                            n_char: 17,
+                                            n_line: 2,
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Char,
+                                ),
+                                pos: Position {
+                                    n_char: 8,
+                                    n_line: 2,
+                                },
+                            },
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Unary(
+                                    BitInvert,
+                                    ConvExpr {
+                                        kind: Cast(
+                                            ConvExpr {
+                                                kind: LVar(
+                                                    LVar {
+                                                        offset: 1,
+                                                        ty: Base(
+                                                            Char,
+                                                        ),
+                                                    },
+                                                ),
+                                                ty: Base(
+                                                    Char,
+                                                ),
+                                                pos: Position {
+                                                    n_char: 16,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                            Base2Base(
+                                                Char,
+                                                Int,
+                                            ),
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 16,
+                                            n_line: 3,
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 16,
+                                    n_line: 3,
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 1,
+            },
+        ),
+    ],
+}

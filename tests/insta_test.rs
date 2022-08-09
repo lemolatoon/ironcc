@@ -1,7 +1,7 @@
 use insta::assert_debug_snapshot;
 pub mod test_utils;
 use ironcc::error::CompileError;
-use test_utils::CachedProcesser;
+use test_utils::CachedProcessor;
 
 macro_rules! all {
     ($self: ident) => {
@@ -14,7 +14,7 @@ macro_rules! all {
 #[test]
 fn insta_tests() -> Result<(), CompileError> {
     let src = "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
     Ok(())
 }
@@ -22,7 +22,7 @@ fn insta_tests() -> Result<(), CompileError> {
 #[test]
 fn initializer() -> Result<(), CompileError> {
     let src = "int main() {int a = 5; int *p = &a; return 0;}";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
     Ok(())
 }
@@ -37,7 +37,7 @@ fn size_of() -> Result<(), CompileError> {
         int d = sizeof (int*);\n \
     }\n\
     ";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
     Ok(())
 }
@@ -50,7 +50,7 @@ fn array_syntax_sugar() -> Result<(), CompileError> {
         return array[0];
     }\n\
     ";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
     Ok(())
 }
@@ -65,7 +65,7 @@ fn scopes() {
         int c[2];
     }\n\
     ";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
 
@@ -78,7 +78,7 @@ fn implicit_cast() {
         b = 4;
     }
     ";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
 
@@ -92,6 +92,59 @@ fn add_char() {
         b + a;
     }
     ";
-    let mut tester = CachedProcesser::new(src);
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn string_literal() {
+    let src = r#"
+    int printf(char *msg);
+
+    int main() {
+        char *msg = "Hello World";
+        printf(msg);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn string_literal2() {
+    let src = r#"
+    int printf(char *msg);
+
+    int main() {
+        char *msg;
+        msg = "Hello World";
+        printf(msg);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn tilde() {
+    let src = "
+    int main() {
+        char a = 4; // -> -5
+        return ~a;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn exclamation() {
+    let src = "
+    int main() {
+        int a = 1;
+        return !a;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
     all!(tester);
 }

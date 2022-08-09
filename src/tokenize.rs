@@ -1,4 +1,5 @@
 use crate::error::{CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind};
+use crate::unimplemented_err;
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -19,7 +20,7 @@ impl<'a> Tokenizer<'a> {
         'tokenize_loop: while !input.is_empty() {
             // skip white spaces
             if input.starts_with(' ') || input.starts_with('\t') {
-                pos.advance_char();
+                pos.advance(1);
                 input = &input[1..];
                 continue;
             } else if input.starts_with('\n') {
@@ -37,12 +38,11 @@ impl<'a> Tokenizer<'a> {
                 continue;
             }
 
-            // reserved token
-            let two_word_tokens = vec![
-                ("<=", TokenKind::Le),
-                (">=", TokenKind::Ge),
-                ("==", TokenKind::EqEq),
-                ("!=", TokenKind::Ne),
+            let symbols = vec![
+                ("<=", TokenKind::BinOp(BinOpToken::Le)),
+                (">=", TokenKind::BinOp(BinOpToken::Ge)),
+                ("==", TokenKind::BinOp(BinOpToken::EqEq)),
+                ("!=", TokenKind::BinOp(BinOpToken::Ne)),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -56,19 +56,71 @@ impl<'a> Tokenizer<'a> {
                 ("}", TokenKind::CloseDelim(DelimToken::Brace)),
                 ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
                 (",", TokenKind::Comma),
-                ("<", TokenKind::Lt),
-                (">", TokenKind::Gt),
+                ("<", TokenKind::BinOp(BinOpToken::Lt)),
+                (">", TokenKind::BinOp(BinOpToken::Gt)),
+                ("~", TokenKind::Tilde),
+                ("!", TokenKind::Exclamation),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
             ];
 
-            // <, <=, >, >=, ==, !=
-            for (literal, kind) in two_word_tokens {
+            for (literal, kind) in symbols {
                 if input.starts_with(literal) {
-                    tokens.push(Token::new(kind, pos.advance_and_get_token(literal.len())));
+                    tokens.push(Token::new(kind, pos.get_pos_and_advance(literal.len())));
                     input = &input[literal.len()..];
                     continue 'tokenize_loop;
                 }
+            }
+
+            if input.starts_with('"') {
+                // string literal
+                let mut chars = input.chars().peekable();
+                chars.next(); // -> "
+                let mut str_lit = String::from(chars.next().unwrap());
+                let mut len_token = 2;
+                loop {
+                    match chars.peek() {
+                        Some('"') => {
+                            len_token += 1;
+                            chars.next();
+                            break;
+                        }
+                        Some('\\') => {
+                            len_token += 1;
+                            chars.next();
+                            // In the future, this pattern would have multiple arms.
+                            #[allow(clippy::single_match_else)]
+                            match chars.next() {
+                                Some('n') => {
+                                    len_token += 1;
+                                    str_lit.push('\n');
+                                }
+                                _ => {
+                                    pos.advance(len_token);
+                                    return Err(unimplemented_err!(
+                                        self.input,
+                                        pos,
+                                        "This type of escape Sequences are not currently implemented."
+                                    ));
+                                }
+                            }
+                        }
+                        Some(c) => {
+                            len_token += 1;
+                            str_lit.push(*c);
+                            chars.next();
+                        }
+                        None => {
+                            return Err(CompileError::new_unexpected_eof_tokenize(self.input, pos))
+                        }
+                    }
+                }
+                tokens.push(Token::new(
+                    TokenKind::Str(str_lit),
+                    pos.get_pos_and_advance(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
             }
 
             if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
@@ -85,14 +137,17 @@ impl<'a> Tokenizer<'a> {
                     .expect("Currently support only a number literal.");
                 tokens.push(Token::new(
                     TokenKind::Num(num as isize),
-                    pos.advance_and_get_token(len_token),
+                    pos.get_pos_and_advance(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
-            } else if input
-                .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
-            {
-                // Ident or reserved Token
+            } else if input.starts_with(
+                &('a'..='z')
+                    .chain('A'..='Z')
+                    .chain(vec!['_'].into_iter())
+                    .collect::<Vec<_>>()[..],
+            ) {
+                // Ident or reserved token
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
                 while let Some(
@@ -114,14 +169,14 @@ impl<'a> Tokenizer<'a> {
                         "sizeof" => TokenKind::SizeOf,
                         _ => TokenKind::Ident(ident),
                     },
-                    pos.advance_and_get_token(len_token),
+                    pos.get_pos_and_advance(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
             }
             return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
         }
-        tokens.push(Token::new(TokenKind::Eof, pos.advance_and_get_token(0)));
+        tokens.push(Token::new(TokenKind::Eof, pos.get_pos_and_advance(0)));
 
         Ok(tokens)
     }
@@ -137,12 +192,15 @@ impl<'a> Tokenizer<'a> {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenKind {
     BinOp(BinOpToken),
+    /// string literal
+    Str(String),
+    /// number literal
     Num(isize),
     /// An opening delimiter (e.g., `{`)
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
-    /// Semicoron `;`
+    /// Semicolon `;`
     Semi,
     /// An ident
     Ident(String),
@@ -160,22 +218,14 @@ pub enum TokenKind {
     For,
     /// `SizeOf`, reserved word
     SizeOf,
-    /// `<` Less than
-    Lt,
-    /// `<=` Less equal
-    Le,
-    /// `>` Greater than
-    Gt,
-    /// `>=` Greater equal
-    Ge,
-    /// `==` Equal equal
-    EqEq,
-    /// `!=` Not equal
-    Ne,
     /// `=` assign
     Eq,
     /// `,`
     Comma,
+    /// `~`
+    Tilde,
+    /// `!`
+    Exclamation,
     Eof,
 }
 
@@ -210,6 +260,18 @@ pub enum BinOpToken {
     Percent,
     /// `&`
     And,
+    /// `<` Less than
+    Lt,
+    /// `<=` Less equal
+    Le,
+    /// `>` Greater than
+    Gt,
+    /// `>=` Greater equal
+    Ge,
+    /// `==` Equal equal
+    EqEq,
+    /// `!=` Not equal
+    Ne,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -253,16 +315,16 @@ impl Position {
         self.n_line += 1;
     }
 
-    /// increment `self.n_char`
-    pub fn advance_char(&mut self) {
-        self.n_char += 1;
-    }
-
     #[must_use]
-    pub fn advance_and_get_token(&mut self, len_token: usize) -> Self {
+    pub fn get_pos_and_advance(&mut self, len_token: usize) -> Self {
         let return_struct = *self;
         self.n_char += len_token;
         return_struct
+    }
+
+    /// just advance `self.n_char` by `len_token`
+    pub fn advance(&mut self, len_token: usize) {
+        self.n_char += len_token;
     }
 }
 

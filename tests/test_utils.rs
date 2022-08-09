@@ -57,13 +57,13 @@ macro_rules! token_kinds {
     }};
 }
 
-pub struct CachedProcesser<'a> {
+pub struct CachedProcessor<'a> {
     tokenizer: CachedTokenizer<'a>,
     parser: CachedParser<'a>,
     analyzer: CachedAnalyzer<'a>,
 }
 
-impl<'a> CachedProcesser<'a> {
+impl<'a> CachedProcessor<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             tokenizer: CachedTokenizer::new(src),
@@ -73,7 +73,7 @@ impl<'a> CachedProcesser<'a> {
     }
 }
 
-impl<'a> CachedProcesser<'a> {
+impl<'a> CachedProcessor<'a> {
     pub fn program(&mut self) -> Result<&Program, CompileError> {
         let stream = self.tokenizer.stream()?;
         self.parser.program(stream)
@@ -161,7 +161,7 @@ impl<'a> CachedAnalyzer<'a> {
 
     pub fn conv_program(&mut self, program: Program) -> Result<&ConvProgram, CompileError> {
         self.program
-            .get_or_insert_with(|| self.analyzer.down_program(program))
+            .get_or_insert_with(|| self.analyzer.traverse_program(program))
             .as_ref()
             .map_err(|err| err.clone())
     }
@@ -180,12 +180,12 @@ pub mod ast {
     pub fn func_def(
         type_spec: TypeSpec,
         n_star: usize,
-        d_declrtr: DirectDeclarator,
+        direct_declarator: DirectDeclarator,
         body: Stmt,
         pos: Position,
     ) -> ProgramComponent {
         ProgramComponent::new(
-            ProgramKind::new_funcdef(type_spec, n_star, d_declrtr, body),
+            ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body),
             pos,
         )
     }
@@ -271,7 +271,7 @@ pub mod ast {
         Expr::new_num(n, Position::default())
     }
 
-    pub fn unary(op: UnOp, operand: Expr) -> Expr {
+    pub fn unary(op: UnaryOp, operand: Expr) -> Expr {
         Expr::new_unary(op, operand, Position::default())
     }
 }

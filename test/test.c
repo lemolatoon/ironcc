@@ -33,6 +33,9 @@ int test27();
 int test28();
 int test29();
 int test30();
+int test31();
+int test32();
+int test33();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -89,8 +92,35 @@ int main()
     assert(28, 0, test28());
     assert(29, 0, test29());
     assert(30, 0, test30());
+    assert(31, 0, test31());
+    assert(32, 0, test32());
+    assert(33, 0, test33());
 
     print_ok();
+    return 0;
+}
+
+int exit(int status);
+int printf2(char *msg, int arg0, int arg1);
+int assertion_failed(int index, int expected, int got)
+{
+    printf2("Assertion_failed At test%d\n", index, 0);
+    printf2("Expected %d, but got %d\n", expected, got);
+    exit(1);
+}
+
+int passed(int index) { printf2("Test %d passed\n", index, 0); }
+
+int assert(int index, int expected, int got)
+{
+    if (expected != got)
+    {
+        assertion_failed(index, expected, got);
+    }
+    else
+    {
+        passed(index);
+    }
     return 0;
 }
 
@@ -574,7 +604,6 @@ int ret3(int dummy1, int dummy2, int this)
     return this;
 }
 
-int exit(int status);
 int test30()
 {
     char char_var = -1;
@@ -584,9 +613,34 @@ int test30()
     assert(30, 3, ret3(0, 0, int_var + char_var));
     assert(30, -1, char_var);
     assert(30, 4, int_var);
-    // exit(int_var + char_var);
     assert(30, 3, int_var + char_var);
     assert(30, 3, char_var + int_var);
+    return 0;
+}
+
+int test31()
+{
+    // char str_lit[] = "123456789";
+    assert(31, 10, sizeof("123456789") / sizeof(char));
+    // assert(30, 10, sizeof(str_lit) / sizeof(str_lit[0]));
+    return 0;
+}
+
+int test32()
+{
+    int a = 4;
+    assert(32, -5, ~a);
+    assert(32, -10, ~9);
+    assert(32, 2, ~(-3));
+    char c = 3;
+    assert(32, -4, ~c);
+    char *hello_world = "Hello World";
+    assert(32, 108, hello_world[3]);
+    return 0;
+}
+
+int test33()
+{
     return 0;
 }
 

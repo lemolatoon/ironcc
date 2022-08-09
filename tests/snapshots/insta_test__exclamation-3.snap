@@ -1,0 +1,113 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func(
+                    Base(
+                        Int,
+                    ),
+                    [],
+                ),
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 4,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 2,
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            1,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 16,
+                                            n_line: 2,
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 8,
+                                    n_line: 2,
+                                },
+                            },
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Binary(
+                                    ConvBinary {
+                                        kind: Eq,
+                                        lhs: ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 4,
+                                                    ty: Base(
+                                                        Int,
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 3,
+                                            },
+                                        },
+                                        rhs: ConvExpr {
+                                            kind: Num(
+                                                0,
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 3,
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 4,
+            },
+        ),
+    ],
+}

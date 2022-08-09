@@ -11,7 +11,7 @@
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
                                 | "(" <declarator> ")"
-                                | <direct-declarator> "[" <assign> "]"                                  # array
+                                | <direct-declarator> "[" <assign>? "]"                                  # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 <initializer>               := <assign>
                                 | { <assign> ("," <assign>)* }
@@ -39,9 +39,10 @@
 <relational>                := <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
-<unary>                     := <postix>
+<unary>                     := <postfix>
                                 | "+" <mul>
                                 | "-" <mul>
+                                | "~" <mul>
                                 | "*" <mul>
                                 | "&" <mul>
                                 | "sizeof" <unary>
@@ -49,6 +50,7 @@
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
 <primary>                   := <num> 
+                                | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"
                                 | <ident> 
                                 | "(" <expr> ")"  

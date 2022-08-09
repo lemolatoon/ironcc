@@ -53,7 +53,7 @@ impl<'a> Parser<'a> {
     {
         let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
         let n_star = Self::parse_pointer(tokens)?;
-        let d_declrtr = self.parse_direct_declarator(tokens)?;
+        let direct_declarator = self.parse_direct_declarator(tokens)?;
         // have to be block stmt
         tokens.expect(TokenKind::OpenDelim(DelimToken::Brace))?;
         let mut stmts = Vec::new();
@@ -61,7 +61,7 @@ impl<'a> Parser<'a> {
             stmts.push(self.parse_stmt(tokens)?);
         }
         let body = Stmt::new_block(stmts);
-        let kind = ProgramKind::new_funcdef(type_spec, n_star, d_declrtr, body);
+        let kind = ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body);
         Ok(ProgramComponent::new(kind, pos))
     }
 
@@ -114,9 +114,10 @@ impl<'a> Parser<'a> {
     {
         let mut direct_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
             // "(" <declaration> ")"
-            let d_declrtr = DirectDeclarator::Declarator(Box::new(self.parse_declarator(tokens)?));
+            let direct_declarator =
+                DirectDeclarator::Declarator(Box::new(self.parse_declarator(tokens)?));
             tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
-            d_declrtr
+            direct_declarator
         } else {
             // <ident>
             DirectDeclarator::Ident(tokens.consume_ident()?)
@@ -138,9 +139,14 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                 }
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-                let expr = self.parse_assign(tokens)?;
-                direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), expr);
-                tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
+                    direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), None);
+                } else {
+                    let expr = self.parse_assign(tokens)?;
+                    direct_declarator =
+                        DirectDeclarator::Array(Box::new(direct_declarator), Some(expr));
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                }
             } else {
                 break;
             }
@@ -309,8 +315,8 @@ impl<'a> Parser<'a> {
         while let Some(Token { kind, pos }) = tokens.peek() {
             let pos = *pos;
             let op = match &**kind {
-                TokenKind::EqEq => BinOpKind::Eq,
-                TokenKind::Ne => BinOpKind::Ne,
+                TokenKind::BinOp(BinOpToken::EqEq) => BinOpKind::Eq,
+                TokenKind::BinOp(BinOpToken::Ne) => BinOpKind::Ne,
                 _ => break,
             };
             tokens.next();
@@ -330,10 +336,10 @@ impl<'a> Parser<'a> {
         while let Some(Token { kind, pos }) = tokens.peek() {
             let pos = *pos;
             let op = match &**kind {
-                TokenKind::Lt => BinOpKind::Lt,
-                TokenKind::Le => BinOpKind::Le,
-                TokenKind::Gt => BinOpKind::Gt,
-                TokenKind::Ge => BinOpKind::Ge,
+                TokenKind::BinOp(BinOpToken::Lt) => BinOpKind::Lt,
+                TokenKind::BinOp(BinOpToken::Le) => BinOpKind::Le,
+                TokenKind::BinOp(BinOpToken::Gt) => BinOpKind::Gt,
+                TokenKind::BinOp(BinOpToken::Ge) => BinOpKind::Ge,
                 _ => break,
             };
             let pos = pos;
@@ -393,11 +399,19 @@ impl<'a> Parser<'a> {
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
-                Expr::new_unary(UnOp::Plus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Plus, self.parse_mul(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Minus) => {
                 tokens.next();
-                Expr::new_unary(UnOp::Minus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
+            }
+            TokenKind::Tilde => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+            }
+            TokenKind::Exclamation => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
@@ -438,7 +452,6 @@ impl<'a> Parser<'a> {
         let mut pos = expr.pos;
 
         while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-            //
             expr = Expr::new_array(expr, self.parse_primary(tokens)?, pos);
             pos = expr.pos;
             tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
@@ -456,6 +469,7 @@ impl<'a> Parser<'a> {
         match tokens.next() {
             Some(Token { kind, pos }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, pos),
+                TokenKind::Str(letters) => Expr::new_str_lit(letters, pos),
                 TokenKind::OpenDelim(DelimToken::Paran) => {
                     let expr = self.parse_expr(tokens)?;
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
@@ -494,12 +508,12 @@ impl<'a> Parser<'a> {
         let (ty_spec, pos) = Self::parse_type_specifier(tokens)?;
         let n_star = Self::parse_pointer(tokens)?;
         // TODO: support DirectAbstractDeclarator
-        let abs_declrtr = if n_star == 0 {
+        let abs_declarator = if n_star == 0 {
             None
         } else {
             Some(AbstractDeclarator::new(n_star, None))
         };
-        Ok(TypeName::new(SpecQual(ty_spec), abs_declrtr, pos))
+        Ok(TypeName::new(SpecQual(ty_spec), abs_declarator, pos))
     }
 }
 
@@ -556,10 +570,10 @@ impl ProgramKind {
     pub const fn new_funcdef(
         type_spec: TypeSpec,
         n_star: usize,
-        d_declrtr: DirectDeclarator,
+        direct_declarator: DirectDeclarator,
         body: Stmt,
     ) -> Self {
-        ProgramKind::FuncDef(type_spec, Declarator::new(n_star, d_declrtr), body)
+        ProgramKind::FuncDef(type_spec, Declarator::new(n_star, direct_declarator), body)
     }
 }
 
@@ -575,7 +589,7 @@ pub struct Declaration {
     pub ty_spec: TypeSpec,
     // init-declarator
     // declarator
-    pub declrtr: Declarator,
+    pub declarator: Declarator,
     // initializer
     pub initializer: Option<Initializer>,
     pub pos: Position,
@@ -586,43 +600,46 @@ impl Declaration {
     pub const fn new(
         ty_spec: TypeSpec,
         n_star: usize,
-        d_declrtr: DirectDeclarator,
+        direct_declarator: DirectDeclarator,
         initializer: Option<Initializer>,
         pos: Position,
     ) -> Self {
         Self {
             ty_spec,
-            declrtr: Declarator::new(n_star, d_declrtr),
+            declarator: Declarator::new(n_star, direct_declarator),
             initializer,
             pos,
         }
     }
 
     pub fn ident_name(&self) -> &str {
-        self.declrtr.d_declrtr.ident_name()
+        self.declarator.direct_declarator.ident_name()
     }
 
     pub fn ty(&self, analyzer: &mut Analyzer) -> Result<Type, CompileError> {
-        analyzer.get_type(&self.ty_spec, &self.declrtr)
+        analyzer.get_type(&self.ty_spec, &self.declarator)
     }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Declarator {
     pub n_star: usize,
-    pub d_declrtr: DirectDeclarator,
+    pub direct_declarator: DirectDeclarator,
 }
 
 impl Declarator {
-    pub const fn new(n_star: usize, d_declrtr: DirectDeclarator) -> Self {
-        Self { n_star, d_declrtr }
+    pub const fn new(n_star: usize, direct_declarator: DirectDeclarator) -> Self {
+        Self {
+            n_star,
+            direct_declarator,
+        }
     }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum DirectDeclarator {
     Ident(String),
-    Array(Box<DirectDeclarator>, Expr),
+    Array(Box<DirectDeclarator>, Option<Expr>),
     Func(Box<DirectDeclarator>, Vec<Declaration>),
     Declarator(Box<Declarator>),
 }
@@ -633,15 +650,15 @@ impl DirectDeclarator {
             DirectDeclarator::Ident(name) => name,
             DirectDeclarator::Func(direct_declarator, _)
             | DirectDeclarator::Array(direct_declarator, _) => direct_declarator.ident_name(),
-            DirectDeclarator::Declarator(declarator) => declarator.d_declrtr.ident_name(),
+            DirectDeclarator::Declarator(declarator) => declarator.direct_declarator.ident_name(),
         }
     }
 
     pub fn args(&self) -> Option<Vec<Declaration>> {
         match self {
             DirectDeclarator::Ident(_) => None,
-            DirectDeclarator::Array(d_declrtr, _) => d_declrtr.args(),
-            DirectDeclarator::Declarator(declrtr) => declrtr.d_declrtr.args(),
+            DirectDeclarator::Array(direct_declarator, _) => direct_declarator.args(),
+            DirectDeclarator::Declarator(declarator) => declarator.direct_declarator.args(),
             DirectDeclarator::Func(_, args) => Some(args.clone()),
         }
     }
@@ -736,12 +753,12 @@ pub struct TypeName {
 impl TypeName {
     pub const fn new(
         spec_quals: SpecQual,
-        abs_declrtr: Option<AbstractDeclarator>,
+        abstract_declarator: Option<AbstractDeclarator>,
         pos: Position,
     ) -> Self {
         Self {
             spec_quals,
-            abstract_declarator: abs_declrtr,
+            abstract_declarator,
             pos,
         }
     }
@@ -753,8 +770,8 @@ impl TypeName {
             TypeSpec::Char => BaseType::Char,
         };
         let mut ty = Type::Base(base);
-        if let Some(ref abs_declrtr) = self.abstract_declarator {
-            for _ in 0..abs_declrtr.n_star {
+        if let Some(ref abstract_declarator) = self.abstract_declarator {
+            for _ in 0..abstract_declarator.n_star {
                 ty = Type::Ptr(Box::new(ty));
             }
         }
@@ -762,7 +779,7 @@ impl TypeName {
     }
 }
 
-/// \<specifier-sualifier-list\> := \<type-specifiers\>
+/// \<specifier-qualifier-list\> := \<type-specifiers\>
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct SpecQual(TypeSpec);
 
@@ -771,23 +788,26 @@ pub struct SpecQual(TypeSpec);
 pub struct AbstractDeclarator {
     /// "\*"\*
     n_star: usize,
-    /// \<direct-abstruct-declarator\>?
-    direct_abstruct_declarator: Option<DirectAbstructDeclarator>,
+    /// \<direct-abstract-declarator\>?
+    direct_abstract_declarator: Option<DirectAbstractDeclarator>,
 }
 
 impl AbstractDeclarator {
-    pub const fn new(n_star: usize, d_abs_declrtr: Option<DirectAbstructDeclarator>) -> Self {
+    pub const fn new(
+        n_star: usize,
+        direct_abstract_declarator: Option<DirectAbstractDeclarator>,
+    ) -> Self {
         Self {
             n_star,
-            direct_abstruct_declarator: d_abs_declrtr,
+            direct_abstract_declarator,
         }
     }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub enum DirectAbstructDeclarator {
-    /// <direct-abstruct-declarator>? "[]"
-    Array(Option<Box<DirectAbstructDeclarator>>),
+pub enum DirectAbstractDeclarator {
+    /// <direct-abstract-declarator>? "[]"
+    Array(Option<Box<DirectAbstractDeclarator>>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -817,7 +837,8 @@ pub struct Expr {
 pub enum ExprKind {
     Binary(Binary),
     Num(isize),
-    Unary(UnOp, Box<Expr>),
+    StrLit(String),
+    Unary(UnaryOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
     LVar(String),
     Func(String, Vec<Expr>),
@@ -834,10 +855,11 @@ pub enum SizeOfOperandKind {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub enum UnOp {
+pub enum UnaryOp {
     Plus,
-    /// before analysis only
     Minus,
+    BitInvert,
+    LogicalNot,
 }
 
 impl Expr {
@@ -862,6 +884,13 @@ impl Expr {
         }
     }
 
+    pub const fn new_str_lit(letters: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::StrLit(letters),
+            pos,
+        }
+    }
+
     pub const fn new_lvar(name: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::LVar(name),
@@ -869,7 +898,7 @@ impl Expr {
         }
     }
 
-    pub fn new_unary(kind: UnOp, expr: Expr, pos: Position) -> Self {
+    pub fn new_unary(kind: UnaryOp, expr: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Unary(kind, Box::new(expr)),
             pos,

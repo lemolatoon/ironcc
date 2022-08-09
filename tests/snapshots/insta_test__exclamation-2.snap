@@ -25,26 +25,25 @@ Program {
                                         ty_spec: Int,
                                         declarator: Declarator {
                                             n_star: 0,
-                                            direct_declarator: Array(
-                                                Ident(
-                                                    "array",
-                                                ),
-                                                Some(
-                                                    Expr {
-                                                        kind: Num(
-                                                            5,
-                                                        ),
-                                                        pos: Position {
-                                                            n_char: 11,
-                                                            n_line: 2,
-                                                        },
-                                                    },
-                                                ),
+                                            direct_declarator: Ident(
+                                                "a",
                                             ),
                                         },
-                                        initializer: None,
+                                        initializer: Some(
+                                            Expr(
+                                                Expr {
+                                                    kind: Num(
+                                                        1,
+                                                    ),
+                                                    pos: Position {
+                                                        n_char: 16,
+                                                        n_line: 2,
+                                                    },
+                                                },
+                                            ),
+                                        ),
                                         pos: Position {
-                                            n_char: 1,
+                                            n_char: 8,
                                             n_line: 2,
                                         },
                                     },
@@ -53,22 +52,14 @@ Program {
                             Stmt {
                                 kind: Return(
                                     Expr {
-                                        kind: Array(
+                                        kind: Unary(
+                                            LogicalNot,
                                             Expr {
                                                 kind: LVar(
-                                                    "array",
+                                                    "a",
                                                 ),
                                                 pos: Position {
-                                                    n_char: 15,
-                                                    n_line: 3,
-                                                },
-                                            },
-                                            Expr {
-                                                kind: Num(
-                                                    0,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 21,
+                                                    n_char: 16,
                                                     n_line: 3,
                                                 },
                                             },
@@ -85,7 +76,7 @@ Program {
                 },
             ),
             pos: Position {
-                n_char: 0,
+                n_char: 4,
                 n_line: 1,
             },
         },

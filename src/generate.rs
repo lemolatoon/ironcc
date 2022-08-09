@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
-        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvStmtKind,
+        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
         GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
@@ -143,7 +143,7 @@ impl<'a> Generator<'a> {
                     };
                     let size_hint = |ty: Type| match ty.base_type().size_of() {
                         // TODO: byte or string
-                        1 => Ok(".string"),
+                        1 => Ok("byte"),
                         4 => Ok("long"),
                         8 => Ok("quad"),
                         _ => Err(CompileError::new_type_size_error(
@@ -163,7 +163,7 @@ impl<'a> Generator<'a> {
                                     let size_of = ty.size_of();
                                     let size_explanation = size_hint(*ty)?;
                                     for i in 0..size {
-                                        if let Some(ConstExpr { kind: ConstExprKind::Num(val), ty: _, pos: _ }) = vec.get(i) {
+                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, pos: _ }) = vec.get(i) {
                                             writeln!(f, ".{} {}", size_explanation, val)?;
                                         } else {
                                             writeln!(f, ".zero {}", size_of)?;
@@ -186,17 +186,17 @@ impl<'a> Generator<'a> {
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
     ) -> Result<(), CompileError> {
-        match stmt.kind {
-            ConvStmtKind::Expr(expr) => {
+        match stmt {
+            ConvStmt::Expr(expr) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
             }
-            ConvStmtKind::Return(expr, name) => {
+            ConvStmt::Return(expr, name) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  jmp .L{}_ret", name)?;
             }
-            ConvStmtKind::If(cond, then, Some(els)) => {
+            ConvStmt::If(cond, then, Some(els)) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
                 self.pop(f, format_args!("rax"))?; // conditional expr
@@ -208,7 +208,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *els)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::If(cond, then, None) => {
+            ConvStmt::If(cond, then, None) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
                 self.pop(f, format_args!("rax"))?;
@@ -217,7 +217,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *then)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::While(cond, then) => {
+            ConvStmt::While(cond, then) => {
                 let label_index = self.label();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
@@ -228,7 +228,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::For(init, cond, inc, then) => {
+            ConvStmt::For(init, cond, inc, then) => {
                 let label_index = self.label();
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
@@ -248,7 +248,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::Block(stmts) => {
+            ConvStmt::Block(stmts) => {
                 for stmt in stmts {
                     self.gen_stmt(f, stmt)?;
                 }
@@ -358,6 +358,26 @@ impl<'a> Generator<'a> {
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Cast(expr, cast_kind) => self.gen_cast(f, *expr, &cast_kind)?,
+            ConvExprKind::Unary(unary_op, operand) => self.gen_unary(f, *operand, &unary_op)?,
+        }
+        Ok(())
+    }
+
+    pub fn gen_unary<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        operand: ConvExpr,
+        unary_op: &ConvUnaryOp,
+    ) -> Result<(), CompileError> {
+        let operand_ty = operand.ty.clone();
+        self.gen_expr(f, operand)?;
+        match unary_op {
+            ConvUnaryOp::BitInvert => {
+                assert!(operand_ty == Type::Base(BaseType::Int));
+                self.pop(f, format_args!("rax"))?;
+                writeln!(f, "  not eax")?;
+                self.push(f, format_args!("rax"))?;
+            }
         }
         Ok(())
     }

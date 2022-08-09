@@ -130,7 +130,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::EqEq,
+            TokenKind::BinOp(BinOpToken::EqEq),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -140,7 +140,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::Lt,
+            TokenKind::BinOp(BinOpToken::Lt),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -150,7 +150,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::Gt,
+            TokenKind::BinOp(BinOpToken::Gt),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -160,7 +160,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::Le,
+            TokenKind::BinOp(BinOpToken::Le),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -170,7 +170,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::Ge,
+            TokenKind::BinOp(BinOpToken::Ge),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -180,7 +180,7 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Num(1),
-            TokenKind::Ne,
+            TokenKind::BinOp(BinOpToken::Ne),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -312,7 +312,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::If,
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Ident("x".to_string()),
-            TokenKind::EqEq,
+            TokenKind::BinOp(BinOpToken::EqEq),
             TokenKind::Num(1),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::Ident("ifx".to_string()),
@@ -337,7 +337,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::While,
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Gt,
+            TokenKind::BinOp(BinOpToken::Gt),
             TokenKind::Num(0),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::Ident("x".to_string()),
@@ -364,7 +364,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::If,
             TokenKind::OpenDelim(DelimToken::Paran),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Gt,
+            TokenKind::BinOp(BinOpToken::Gt),
             TokenKind::Num(0),
             TokenKind::CloseDelim(DelimToken::Paran),
             TokenKind::Ident("x".to_string()),
@@ -396,7 +396,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
-            TokenKind::Le,
+            TokenKind::BinOp(BinOpToken::Le),
             TokenKind::Num(11),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
@@ -428,7 +428,7 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
-            TokenKind::Le,
+            TokenKind::BinOp(BinOpToken::Le),
             TokenKind::Num(11),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
