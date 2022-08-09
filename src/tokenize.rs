@@ -38,8 +38,7 @@ impl<'a> Tokenizer<'a> {
                 continue;
             }
 
-            // reserved token
-            let two_word_tokens = vec![
+            let symbols = vec![
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
@@ -59,12 +58,12 @@ impl<'a> Tokenizer<'a> {
                 (",", TokenKind::Comma),
                 ("<", TokenKind::BinOp(BinOpToken::Lt)),
                 (">", TokenKind::BinOp(BinOpToken::Gt)),
+                ("~", TokenKind::Tilde),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
             ];
 
-            // <, <=, >, >=, ==, !=
-            for (literal, kind) in two_word_tokens {
+            for (literal, kind) in symbols {
                 if input.starts_with(literal) {
                     tokens.push(Token::new(kind, pos.get_pos_and_advance(literal.len())));
                     input = &input[literal.len()..];
@@ -144,7 +143,7 @@ impl<'a> Tokenizer<'a> {
             } else if input
                 .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
             {
-                // Ident or reserved Token
+                // Ident or reserved token
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
                 while let Some(
@@ -219,6 +218,8 @@ pub enum TokenKind {
     Eq,
     /// `,`
     Comma,
+    /// `~`
+    Tilde,
     Eof,
 }
 

@@ -849,7 +849,6 @@ pub enum SizeOfOperandKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum UnaryOp {
     Plus,
-    /// before analysis only
     Minus,
 }
 

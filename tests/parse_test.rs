@@ -259,11 +259,11 @@ fn parse_compare_op_test() -> Result<(), CompileError> {
     let parser = Parser::new(&input);
     let tokens = tokens!(
         TokenKind::Num(1),
-        TokenKind::EqEq,
+        TokenKind::BinOp(BinOpToken::EqEq),
         TokenKind::Num(2),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(3),
-        TokenKind::Lt,
+        TokenKind::BinOp(BinOpToken::Lt),
         TokenKind::Num(4),
         TokenKind::Eof
     );
@@ -283,11 +283,11 @@ fn parse_compare_op_test() -> Result<(), CompileError> {
     let parser = Parser::new(&input);
     let tokens = tokens!(
         TokenKind::Num(1),
-        TokenKind::Ne,
+        TokenKind::BinOp(BinOpToken::Ne),
         TokenKind::Num(2),
         TokenKind::BinOp(BinOpToken::Star),
         TokenKind::Num(3),
-        TokenKind::Ge,
+        TokenKind::BinOp(BinOpToken::Ge),
         TokenKind::Num(4),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(5),
@@ -491,7 +491,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         TokenKind::If,
         TokenKind::OpenDelim(DelimToken::Paran),
         TokenKind::Ident('a'.to_string()),
-        TokenKind::Ge,
+        TokenKind::BinOp(BinOpToken::Ge),
         TokenKind::Num(10),
         TokenKind::CloseDelim(DelimToken::Paran),
         TokenKind::Return,
@@ -539,7 +539,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         TokenKind::While,
         TokenKind::OpenDelim(DelimToken::Paran),
         TokenKind::Ident('a'.to_string()),
-        TokenKind::Gt,
+        TokenKind::BinOp(BinOpToken::Gt),
         TokenKind::Num(0),
         TokenKind::CloseDelim(DelimToken::Paran),
         TokenKind::Ident('a'.to_string()),

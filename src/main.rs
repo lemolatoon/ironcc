@@ -60,7 +60,7 @@ fn get_io_file(args: Vec<String>) -> Result<(File, File), std::io::Error> {
     buffer.push(
         input_file_path
             .file_stem()
-            .expect("File name starts with `.`."),
+            .expect("File name starts with `.` ."),
     );
     buffer.push(".s");
     let output_file_path = Path::new(buffer.as_os_str());
