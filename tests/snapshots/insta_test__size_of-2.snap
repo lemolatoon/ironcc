@@ -152,7 +152,7 @@ Program {
                                                                 abstract_declarator: Some(
                                                                     AbstractDeclarator {
                                                                         n_star: 1,
-                                                                        direct_abstruct_declarator: None,
+                                                                        direct_abstract_declarator: None,
                                                                     },
                                                                 ),
                                                                 pos: Position {

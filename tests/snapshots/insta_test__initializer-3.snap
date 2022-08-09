@@ -14,13 +14,76 @@ ConvProgram {
                 ),
                 name: "main",
                 args: [],
-                body: ConvStmt {
-                    kind: Block(
-                        [
-                            ConvStmt {
-                                kind: Expr(
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
                                     ConvExpr {
-                                        kind: Assign(
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 4,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 12,
+                                            n_line: 0,
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            5,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 0,
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 12,
+                                    n_line: 0,
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 12,
+                                                ty: Ptr(
+                                                    Base(
+                                                        Int,
+                                                    ),
+                                                ),
+                                            },
+                                        ),
+                                        ty: Ptr(
+                                            Base(
+                                                Int,
+                                            ),
+                                        ),
+                                        pos: Position {
+                                            n_char: 23,
+                                            n_line: 0,
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Addr(
                                             ConvExpr {
                                                 kind: LVar(
                                                     LVar {
@@ -34,85 +97,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 pos: Position {
-                                                    n_char: 12,
-                                                    n_line: 0,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Num(
-                                                    5,
-                                                ),
-                                                ty: Base(
-                                                    Int,
-                                                ),
-                                                pos: Position {
-                                                    n_char: 20,
-                                                    n_line: 0,
-                                                },
-                                            },
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 0,
-                                        },
-                                    },
-                                ),
-                            },
-                            ConvStmt {
-                                kind: Expr(
-                                    ConvExpr {
-                                        kind: Assign(
-                                            ConvExpr {
-                                                kind: LVar(
-                                                    LVar {
-                                                        offset: 12,
-                                                        ty: Ptr(
-                                                            Base(
-                                                                Int,
-                                                            ),
-                                                        ),
-                                                    },
-                                                ),
-                                                ty: Ptr(
-                                                    Base(
-                                                        Int,
-                                                    ),
-                                                ),
-                                                pos: Position {
-                                                    n_char: 23,
-                                                    n_line: 0,
-                                                },
-                                            },
-                                            ConvExpr {
-                                                kind: Addr(
-                                                    ConvExpr {
-                                                        kind: LVar(
-                                                            LVar {
-                                                                offset: 4,
-                                                                ty: Base(
-                                                                    Int,
-                                                                ),
-                                                            },
-                                                        ),
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
-                                                        pos: Position {
-                                                            n_char: 33,
-                                                            n_line: 0,
-                                                        },
-                                                    },
-                                                ),
-                                                ty: Ptr(
-                                                    Base(
-                                                        Int,
-                                                    ),
-                                                ),
-                                                pos: Position {
-                                                    n_char: 32,
+                                                    n_char: 33,
                                                     n_line: 0,
                                                 },
                                             },
@@ -123,32 +108,39 @@ ConvProgram {
                                             ),
                                         ),
                                         pos: Position {
-                                            n_char: 23,
+                                            n_char: 32,
                                             n_line: 0,
                                         },
                                     },
                                 ),
-                            },
-                            ConvStmt {
-                                kind: Return(
-                                    ConvExpr {
-                                        kind: Num(
-                                            0,
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        pos: Position {
-                                            n_char: 43,
-                                            n_line: 0,
-                                        },
-                                    },
-                                    "main",
+                                ty: Ptr(
+                                    Base(
+                                        Int,
+                                    ),
                                 ),
+                                pos: Position {
+                                    n_char: 23,
+                                    n_line: 0,
+                                },
                             },
-                        ],
-                    ),
-                },
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Num(
+                                    0,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 43,
+                                    n_line: 0,
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
                 stack_size: 12,
             },
         ),

@@ -14,55 +14,37 @@ ConvProgram {
                 ),
                 name: "main",
                 args: [],
-                body: ConvStmt {
-                    kind: Block(
-                        [
-                            ConvStmt {
-                                kind: Block(
+                body: Block(
+                    [
+                        Block(
+                            [],
+                        ),
+                        Block(
+                            [
+                                Block(
                                     [],
                                 ),
-                            },
-                            ConvStmt {
-                                kind: Block(
-                                    [
-                                        ConvStmt {
-                                            kind: Block(
-                                                [],
-                                            ),
-                                        },
-                                    ],
-                                ),
-                            },
-                            ConvStmt {
-                                kind: Block(
-                                    [
-                                        ConvStmt {
-                                            kind: Block(
-                                                [],
-                                            ),
-                                        },
-                                        ConvStmt {
-                                            kind: Block(
-                                                [
-                                                    ConvStmt {
-                                                        kind: Block(
-                                                            [],
-                                                        ),
-                                                    },
-                                                ],
-                                            ),
-                                        },
-                                    ],
-                                ),
-                            },
-                            ConvStmt {
-                                kind: Block(
+                            ],
+                        ),
+                        Block(
+                            [
+                                Block(
                                     [],
                                 ),
-                            },
-                        ],
-                    ),
-                },
+                                Block(
+                                    [
+                                        Block(
+                                            [],
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                        Block(
+                            [],
+                        ),
+                    ],
+                ),
                 stack_size: 16,
             },
         ),
