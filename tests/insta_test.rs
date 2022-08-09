@@ -124,3 +124,15 @@ fn string_literal2() {
     let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
+
+#[test]
+fn tilde() {
+    let src = "
+    int main() {
+        char a = 4; // -> -5
+        return ~a;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}

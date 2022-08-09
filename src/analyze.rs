@@ -464,15 +464,7 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_gvar(gvar, pos))
             }
             // substitute `-x` into `0-x`
-            ExprKind::Unary(UnaryOp::Minus, operand) => self.traverse_binary(
-                Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
-                pos,
-            ),
-            // do nothing
-            ExprKind::Unary(UnaryOp::Plus, operand) => {
-                self.traverse_expr(*operand, BTreeSet::new())
-            }
-            // do nothing
+            ExprKind::Unary(unary_op, operand) => self.traverse_unary(&unary_op, operand, pos),
             ExprKind::Assign(lhs, rhs) => {
                 let lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
                 let rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
@@ -783,6 +775,43 @@ impl<'a> Analyzer<'a> {
         }
     }
 
+    pub fn traverse_unary(
+        &mut self,
+        unary_op: &UnaryOp,
+        operand: Box<Expr>,
+        pos: Position,
+    ) -> Result<ConvExpr, CompileError> {
+        match unary_op {
+            UnaryOp::Plus => self.traverse_expr(*operand, BTreeSet::new()),
+            UnaryOp::Minus => self.traverse_binary(
+                Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
+                pos,
+            ),
+            UnaryOp::BitInvert => {
+                let mut operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                if operand.ty != Type::Base(BaseType::Int) {
+                    if let Some(base_ty) = operand.ty.clone().get_base() {
+                        operand = ConvExpr::new_cast(
+                            operand,
+                            Type::Base(BaseType::Int),
+                            CastKind::Base2Base(*base_ty, BaseType::Int),
+                        );
+                    } else {
+                        return Err(CompileError::new_type_error_types(
+                            self.input,
+                            operand.pos,
+                            operand.pos,
+                            operand.ty,
+                            Type::Base(BaseType::Int),
+                            Some("Type Conversion failed at BitInvert `~`."),
+                        ));
+                    }
+                }
+                Ok(ConvExpr::new_unary(ConvUnaryOp::BitInvert, operand))
+            }
+        }
+    }
+
     pub fn new_init_expr(
         &mut self,
         init: Initializer,
@@ -1060,11 +1089,6 @@ impl ConvExpr {
         }
     }
 
-    // #[must_use]
-    // pub fn as_map_ty(&mut self, f: impl FnOnce(Type) -> Type) {
-    //     self.ty = f(self.ty);
-    // }
-
     #[must_use]
     pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
         self.ty = f(self.ty);
@@ -1080,6 +1104,16 @@ impl ConvExpr {
     ) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
+            ty,
+            pos,
+        }
+    }
+
+    pub fn new_unary(unary_op: ConvUnaryOp, expr: ConvExpr) -> Self {
+        let ty = expr.ty.clone();
+        let pos = expr.pos;
+        Self {
+            kind: ConvExprKind::Unary(unary_op, Box::new(expr)),
             ty,
             pos,
         }
@@ -1163,6 +1197,7 @@ pub enum CastContext {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
     Binary(ConvBinary),
+    Unary(ConvUnaryOp, Box<ConvExpr>),
     Num(isize),
     LVar(LVar),
     GVar(GVar),
@@ -1171,6 +1206,11 @@ pub enum ConvExprKind {
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
     Cast(Box<ConvExpr>, CastKind),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ConvUnaryOp {
+    BitInvert,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1419,9 +1459,25 @@ pub struct ConstExpr {
 }
 
 impl ConstExpr {
+    pub const fn new_int(n: i32, pos: Position) -> Self {
+        Self {
+            kind: ConstExprKind::Int(n),
+            ty: Type::Base(BaseType::Int),
+            pos,
+        }
+    }
+
+    pub const fn new_char(n: i8, pos: Position) -> Self {
+        Self {
+            kind: ConstExprKind::Char(n),
+            ty: Type::Base(BaseType::Int),
+            pos,
+        }
+    }
+
     pub fn display_literal(&self) -> String {
         match &self.kind {
-            ConstExprKind::Num(n) => n.to_string(),
+            ConstExprKind::Int(n) => n.to_string(),
             ConstExprKind::Char(n) => n.to_string(),
             ConstExprKind::Addr(gvar) => gvar.name.clone(),
         }
@@ -1429,7 +1485,7 @@ impl ConstExpr {
 
     pub fn get_num_lit(&self) -> Result<isize, CompileError> {
         Ok(match &self.kind {
-            ConstExprKind::Num(n) => *n,
+            ConstExprKind::Int(n) => *n as isize,
             ConstExprKind::Char(n) => *n as isize,
             ConstExprKind::Addr(_) => {
                 return Err(unimplemented_err!(format!(
@@ -1437,6 +1493,22 @@ impl ConstExpr {
                     self
                 )))
             }
+        })
+    }
+
+    pub fn apply_unary_op(&self, unary_op: &ConvUnaryOp) -> Result<ConstExpr, CompileError> {
+        let pos = self.pos;
+        Ok(match unary_op {
+            ConvUnaryOp::BitInvert => match &self.kind {
+                ConstExprKind::Int(n) => ConstExpr::new_int(!*n, pos),
+                ConstExprKind::Char(n) => ConstExpr::new_char(!*n, pos),
+                ConstExprKind::Addr(_) => {
+                    return Err(unimplemented_err!(format!(
+                        "Const Expr which will be applied `~` unary op ({:?}) should be Literal.",
+                        self
+                    )))
+                }
+            },
         })
     }
 
@@ -1449,7 +1521,7 @@ impl ConstExpr {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ConstExprKind {
-    Num(isize),
+    Int(i32),
     Char(i8),
     Addr(Box<GVar>),
 }
@@ -1457,16 +1529,12 @@ pub enum ConstExprKind {
 impl ConstExpr {
     #[allow(clippy::too_many_lines)]
     fn try_eval_as_const(src: &str, expr: ConvExpr) -> Result<Self, CompileError> {
-        // fn to_num(
-        //     src: &str,
-        //     ConvExpr { kind, ty: _, pos }: ConvExpr,
-        // ) -> Result<isize, CompileError> {
         let pos = expr.pos;
         let ty = expr.ty.clone();
         let kind = expr.kind;
         let bool_to_isize = |b| if b { 1 } else { 0 };
-        let num_expr = |num| ConstExpr {
-            kind: ConstExprKind::Num(num),
+        let num_expr = |num: isize| ConstExpr {
+            kind: ConstExprKind::Int(num as i32),
             ty,
             pos,
         };
@@ -1565,6 +1633,9 @@ impl ConstExpr {
                     ty: Type::Ptr(Box::new(expr_ty)),
                     pos: expr_pos,
                 }
+            }
+            ConvExprKind::Unary(unary_op, expr) => {
+                Self::try_eval_as_const(src, *expr)?.apply_unary_op(&unary_op)?
             }
         })
     }

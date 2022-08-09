@@ -34,6 +34,8 @@ int test28();
 int test29();
 int test30();
 int test31();
+int test32();
+int test33();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -91,6 +93,8 @@ int main()
     assert(29, 0, test29());
     assert(30, 0, test30());
     assert(31, 0, test31());
+    assert(32, 0, test32());
+    assert(33, 0, test33());
 
     print_ok();
     return 0;
@@ -595,6 +599,20 @@ int test31()
     // char str_lit[] = "123456789";
     assert(30, 10, sizeof("123456789") / sizeof(char));
     // assert(30, 10, sizeof(str_lit) / sizeof(str_lit[0]));
+    return 0;
+}
+
+int test32()
+{
+    int a = 4;
+    assert(32, -5, ~a);
+    assert(32, -10, ~9);
+    assert(32, 2, ~(-3));
+    return 0;
+}
+
+int test33()
+{
     return 0;
 }
 

@@ -42,6 +42,7 @@
 <unary>                     := <postfix>
                                 | "+" <mul>
                                 | "-" <mul>
+                                | "~" <mul>
                                 | "*" <mul>
                                 | "&" <mul>
                                 | "sizeof" <unary>

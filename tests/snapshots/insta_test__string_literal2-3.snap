@@ -17,7 +17,7 @@ ConvProgram {
                     Array(
                         [
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     72,
                                 ),
                                 ty: Base(
@@ -29,7 +29,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     101,
                                 ),
                                 ty: Base(
@@ -41,7 +41,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     108,
                                 ),
                                 ty: Base(
@@ -53,7 +53,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     108,
                                 ),
                                 ty: Base(
@@ -65,7 +65,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     111,
                                 ),
                                 ty: Base(
@@ -77,7 +77,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     32,
                                 ),
                                 ty: Base(
@@ -89,7 +89,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     87,
                                 ),
                                 ty: Base(
@@ -101,7 +101,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     111,
                                 ),
                                 ty: Base(
@@ -113,7 +113,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     114,
                                 ),
                                 ty: Base(
@@ -125,7 +125,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     108,
                                 ),
                                 ty: Base(
@@ -137,7 +137,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     100,
                                 ),
                                 ty: Base(
@@ -149,7 +149,7 @@ ConvProgram {
                                 },
                             },
                             ConstExpr {
-                                kind: Num(
+                                kind: Int(
                                     0,
                                 ),
                                 ty: Base(
@@ -220,7 +220,7 @@ ConvProgram {
                                                             Array(
                                                                 [
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             72,
                                                                         ),
                                                                         ty: Base(
@@ -232,7 +232,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             101,
                                                                         ),
                                                                         ty: Base(
@@ -244,7 +244,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             108,
                                                                         ),
                                                                         ty: Base(
@@ -256,7 +256,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             108,
                                                                         ),
                                                                         ty: Base(
@@ -268,7 +268,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             111,
                                                                         ),
                                                                         ty: Base(
@@ -280,7 +280,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             32,
                                                                         ),
                                                                         ty: Base(
@@ -292,7 +292,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             87,
                                                                         ),
                                                                         ty: Base(
@@ -304,7 +304,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             111,
                                                                         ),
                                                                         ty: Base(
@@ -316,7 +316,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             114,
                                                                         ),
                                                                         ty: Base(
@@ -328,7 +328,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             108,
                                                                         ),
                                                                         ty: Base(
@@ -340,7 +340,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             100,
                                                                         ),
                                                                         ty: Base(
@@ -352,7 +352,7 @@ ConvProgram {
                                                                         },
                                                                     },
                                                                     ConstExpr {
-                                                                        kind: Num(
+                                                                        kind: Int(
                                                                             0,
                                                                         ),
                                                                         ty: Base(

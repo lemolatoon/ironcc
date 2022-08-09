@@ -405,6 +405,10 @@ impl<'a> Parser<'a> {
                 tokens.next();
                 Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
             }
+            TokenKind::Tilde => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+            }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
                 Expr::new_deref(self.parse_mul(tokens)?, pos)
@@ -850,6 +854,7 @@ pub enum SizeOfOperandKind {
 pub enum UnaryOp {
     Plus,
     Minus,
+    BitInvert,
 }
 
 impl Expr {

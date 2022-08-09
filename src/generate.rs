@@ -3,8 +3,8 @@ use std::io::{BufWriter, Write};
 use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
-        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, GVar, LVar,
-        Type,
+        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
+        GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     unimplemented_err,
@@ -163,7 +163,7 @@ impl<'a> Generator<'a> {
                                     let size_of = ty.size_of();
                                     let size_explanation = size_hint(*ty)?;
                                     for i in 0..size {
-                                        if let Some(ConstExpr { kind: ConstExprKind::Num(val), ty: _, pos: _ }) = vec.get(i) {
+                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, pos: _ }) = vec.get(i) {
                                             writeln!(f, ".{} {}", size_explanation, val)?;
                                         } else {
                                             writeln!(f, ".zero {}", size_of)?;
@@ -358,6 +358,26 @@ impl<'a> Generator<'a> {
                 self.push(f, format_args!("rax"))?;
             }
             ConvExprKind::Cast(expr, cast_kind) => self.gen_cast(f, *expr, &cast_kind)?,
+            ConvExprKind::Unary(unary_op, operand) => self.gen_unary(f, *operand, &unary_op)?,
+        }
+        Ok(())
+    }
+
+    pub fn gen_unary<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        operand: ConvExpr,
+        unary_op: &ConvUnaryOp,
+    ) -> Result<(), CompileError> {
+        let operand_ty = operand.ty.clone();
+        self.gen_expr(f, operand)?;
+        match unary_op {
+            ConvUnaryOp::BitInvert => {
+                assert!(operand_ty == Type::Base(BaseType::Int));
+                self.pop(f, format_args!("rax"))?;
+                writeln!(f, "not eax")?;
+                self.push(f, format_args!("rax"))?;
+            }
         }
         Ok(())
     }
