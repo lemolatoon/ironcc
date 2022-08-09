@@ -621,7 +621,7 @@ int test30()
 int test31()
 {
     // char str_lit[] = "123456789";
-    assert(30, 10, sizeof("123456789") / sizeof(char));
+    assert(31, 10, sizeof("123456789") / sizeof(char));
     // assert(30, 10, sizeof(str_lit) / sizeof(str_lit[0]));
     return 0;
 }

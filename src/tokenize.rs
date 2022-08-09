@@ -141,9 +141,12 @@ impl<'a> Tokenizer<'a> {
                 ));
                 input = &input[len_token..];
                 continue;
-            } else if input
-                .starts_with(&('a'..='z').chain(vec!['_'].into_iter()).collect::<Vec<_>>()[..])
-            {
+            } else if input.starts_with(
+                &('a'..='z')
+                    .chain('A'..='Z')
+                    .chain(vec!['_'].into_iter())
+                    .collect::<Vec<_>>()[..],
+            ) {
                 // Ident or reserved token
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
