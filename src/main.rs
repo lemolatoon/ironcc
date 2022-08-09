@@ -39,7 +39,7 @@ fn compile() -> Result<(), CompileError> {
     let program = parser.parse_program(&mut token_stream)?;
 
     let mut analyzer = Analyzer::new(&input);
-    let converted_program = analyzer.down_program(program)?;
+    let converted_program = analyzer.traverse_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);
     let mut generater = Generator::new(&input);
@@ -60,7 +60,7 @@ fn get_io_file(args: Vec<String>) -> Result<(File, File), std::io::Error> {
     buffer.push(
         input_file_path
             .file_stem()
-            .expect("File name doesn't exsit"),
+            .expect("File name starts with `.`."),
     );
     buffer.push(".s");
     let output_file_path = Path::new(buffer.as_os_str());

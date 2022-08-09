@@ -20,7 +20,7 @@ impl<'a> Tokenizer<'a> {
         'tokenize_loop: while !input.is_empty() {
             // skip white spaces
             if input.starts_with(' ') || input.starts_with('\t') {
-                pos.advance_char();
+                pos.advance(1);
                 input = &input[1..];
                 continue;
             } else if input.starts_with('\n') {
@@ -40,10 +40,10 @@ impl<'a> Tokenizer<'a> {
 
             // reserved token
             let two_word_tokens = vec![
-                ("<=", TokenKind::Le),
-                (">=", TokenKind::Ge),
-                ("==", TokenKind::EqEq),
-                ("!=", TokenKind::Ne),
+                ("<=", TokenKind::BinOp(BinOpToken::Le)),
+                (">=", TokenKind::BinOp(BinOpToken::Ge)),
+                ("==", TokenKind::BinOp(BinOpToken::EqEq)),
+                ("!=", TokenKind::BinOp(BinOpToken::Ne)),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -57,8 +57,8 @@ impl<'a> Tokenizer<'a> {
                 ("}", TokenKind::CloseDelim(DelimToken::Brace)),
                 ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
                 (",", TokenKind::Comma),
-                ("<", TokenKind::Lt),
-                (">", TokenKind::Gt),
+                ("<", TokenKind::BinOp(BinOpToken::Lt)),
+                (">", TokenKind::BinOp(BinOpToken::Gt)),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
             ];
@@ -197,7 +197,7 @@ pub enum TokenKind {
     OpenDelim(DelimToken),
     /// An closing delimiter (e.g., `}`)
     CloseDelim(DelimToken),
-    /// Semicoron `;`
+    /// Semicolon `;`
     Semi,
     /// An ident
     Ident(String),
@@ -215,18 +215,6 @@ pub enum TokenKind {
     For,
     /// `SizeOf`, reserved word
     SizeOf,
-    /// `<` Less than
-    Lt,
-    /// `<=` Less equal
-    Le,
-    /// `>` Greater than
-    Gt,
-    /// `>=` Greater equal
-    Ge,
-    /// `==` Equal equal
-    EqEq,
-    /// `!=` Not equal
-    Ne,
     /// `=` assign
     Eq,
     /// `,`
@@ -265,6 +253,18 @@ pub enum BinOpToken {
     Percent,
     /// `&`
     And,
+    /// `<` Less than
+    Lt,
+    /// `<=` Less equal
+    Le,
+    /// `>` Greater than
+    Gt,
+    /// `>=` Greater equal
+    Ge,
+    /// `==` Equal equal
+    EqEq,
+    /// `!=` Not equal
+    Ne,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -306,11 +306,6 @@ impl Position {
     pub fn advance_line(&mut self) {
         self.n_char = 0;
         self.n_line += 1;
-    }
-
-    /// increment `self.n_char` and return incremented `self`
-    pub fn advance_char(&mut self) {
-        self.n_char += 1;
     }
 
     #[must_use]

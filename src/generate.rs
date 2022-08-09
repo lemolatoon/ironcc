@@ -3,8 +3,8 @@ use std::io::{BufWriter, Write};
 use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
-        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvStmtKind,
-        GVar, LVar, Type,
+        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, GVar, LVar,
+        Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     unimplemented_err,
@@ -186,17 +186,17 @@ impl<'a> Generator<'a> {
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
     ) -> Result<(), CompileError> {
-        match stmt.kind {
-            ConvStmtKind::Expr(expr) => {
+        match stmt {
+            ConvStmt::Expr(expr) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
             }
-            ConvStmtKind::Return(expr, name) => {
+            ConvStmt::Return(expr, name) => {
                 self.gen_expr(f, expr)?;
                 self.pop(f, format_args!("rax"))?;
                 writeln!(f, "  jmp .L{}_ret", name)?;
             }
-            ConvStmtKind::If(cond, then, Some(els)) => {
+            ConvStmt::If(cond, then, Some(els)) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
                 self.pop(f, format_args!("rax"))?; // conditional expr
@@ -208,7 +208,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *els)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::If(cond, then, None) => {
+            ConvStmt::If(cond, then, None) => {
                 let label_index = self.label();
                 self.gen_expr(f, cond)?;
                 self.pop(f, format_args!("rax"))?;
@@ -217,7 +217,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *then)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::While(cond, then) => {
+            ConvStmt::While(cond, then) => {
                 let label_index = self.label();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
@@ -228,7 +228,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::For(init, cond, inc, then) => {
+            ConvStmt::For(init, cond, inc, then) => {
                 let label_index = self.label();
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
@@ -248,7 +248,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
-            ConvStmtKind::Block(stmts) => {
+            ConvStmt::Block(stmts) => {
                 for stmt in stmts {
                     self.gen_stmt(f, stmt)?;
                 }

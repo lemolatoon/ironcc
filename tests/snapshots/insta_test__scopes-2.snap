@@ -9,7 +9,7 @@ Program {
                 Int,
                 Declarator {
                     n_star: 0,
-                    d_declrtr: Func(
+                    direct_declarator: Func(
                         Ident(
                             "main",
                         ),
@@ -23,9 +23,9 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declrtr: Declarator {
+                                        declarator: Declarator {
                                             n_star: 0,
-                                            d_declrtr: Ident(
+                                            direct_declarator: Ident(
                                                 "a",
                                             ),
                                         },
@@ -44,9 +44,9 @@ Program {
                                             kind: Declare(
                                                 Declaration {
                                                     ty_spec: Int,
-                                                    declrtr: Declarator {
+                                                    declarator: Declarator {
                                                         n_star: 1,
-                                                        d_declrtr: Ident(
+                                                        direct_declarator: Ident(
                                                             "k",
                                                         ),
                                                     },
@@ -68,9 +68,9 @@ Program {
                                             kind: Declare(
                                                 Declaration {
                                                     ty_spec: Int,
-                                                    declrtr: Declarator {
+                                                    declarator: Declarator {
                                                         n_star: 1,
-                                                        d_declrtr: Ident(
+                                                        direct_declarator: Ident(
                                                             "i",
                                                         ),
                                                     },
@@ -89,9 +89,9 @@ Program {
                                                         kind: Declare(
                                                             Declaration {
                                                                 ty_spec: Int,
-                                                                declrtr: Declarator {
+                                                                declarator: Declarator {
                                                                     n_star: 0,
-                                                                    d_declrtr: Ident(
+                                                                    direct_declarator: Ident(
                                                                         "k",
                                                                     ),
                                                                 },
@@ -113,9 +113,9 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declrtr: Declarator {
+                                        declarator: Declarator {
                                             n_star: 0,
-                                            d_declrtr: Array(
+                                            direct_declarator: Array(
                                                 Ident(
                                                     "c",
                                                 ),

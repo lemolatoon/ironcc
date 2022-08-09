@@ -211,7 +211,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
             BinOpKind::Add,
             bin(
                 BinOpKind::Div,
-                bin(BinOpKind::Sub, num(1), unary(UnOp::Minus, num(2))),
+                bin(BinOpKind::Sub, num(1), unary(UnaryOp::Minus, num(2))),
                 bin(BinOpKind::Mul, num(31), num(4))
             ),
             num(5)
@@ -229,7 +229,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
     let expr = parser
         .parse_expr(&mut TokenStream::new(tokens.into_iter(), &input))
         .unwrap();
-    assert_eq!(expr.kind, unary(UnOp::Plus, num(1)).kind);
+    assert_eq!(expr.kind, unary(UnaryOp::Plus, num(1)).kind);
 
     let input = String::new();
     let parser = Parser::new(&input);
@@ -247,7 +247,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
         .unwrap();
     assert_eq!(
         expr.kind,
-        unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22))).kind
+        unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22))).kind
     );
 
     Ok(())

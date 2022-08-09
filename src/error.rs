@@ -113,14 +113,14 @@ impl CompileError {
 
     pub fn new_type_error<T: Into<String>>(
         src: &str,
-        expr0: ConvExpr,
-        expr1: ConvExpr,
+        lhs: ConvExpr,
+        rhs: ConvExpr,
         msg: Option<T>,
     ) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-                TypeErrorKind::Expr(expr0, expr1),
+                TypeErrorKind::Expr { lhs, rhs },
                 msg.map(std::convert::Into::into),
             )),
         )
@@ -302,7 +302,7 @@ impl Debug for CompileError {
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
                 error_at(&self.src, vec![expr.pos], f)?;
-                writeln!(f, "{:?} cannot be derefered.", expr.ty)?;
+                writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
             }
             GenerateError(GenerateErrorKind::LeftValueError(expr)) => {
                 error_at(&self.src, vec![expr.pos], f)?;
@@ -365,7 +365,7 @@ pub enum AnalyzeErrorKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TypeErrorKind {
-    Expr(ConvExpr, ConvExpr),
+    Expr { lhs: ConvExpr, rhs: ConvExpr },
     ConstExpr(ConstExpr, ConstExpr),
     Type(Position, Position, Type, Type),
 }
@@ -373,7 +373,7 @@ pub enum TypeErrorKind {
 impl TypeErrorKind {
     pub const fn positions(&self) -> (Position, Position) {
         match self {
-            TypeErrorKind::Expr(expr0, expr1) => (expr0.pos, expr1.pos),
+            TypeErrorKind::Expr { lhs, rhs } => (lhs.pos, rhs.pos),
             TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),
             TypeErrorKind::Type(pos0, pos1, _, _) => (*pos0, *pos1),
         }
@@ -381,7 +381,7 @@ impl TypeErrorKind {
 
     pub fn types(&self) -> (Type, Type) {
         match self {
-            TypeErrorKind::Expr(expr0, expr1) => (expr0.ty.clone(), expr1.ty.clone()),
+            TypeErrorKind::Expr { lhs, rhs } => (lhs.ty.clone(), rhs.ty.clone()),
             TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.ty.clone(), expr1.ty.clone()),
             TypeErrorKind::Type(_, _, ty0, ty1) => (ty0.clone(), ty1.clone()),
         }

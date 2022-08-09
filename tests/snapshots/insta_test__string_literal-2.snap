@@ -8,18 +8,18 @@ Program {
             kind: Declaration(
                 Declaration {
                     ty_spec: Int,
-                    declrtr: Declarator {
+                    declarator: Declarator {
                         n_star: 0,
-                        d_declrtr: Func(
+                        direct_declarator: Func(
                             Ident(
                                 "printf",
                             ),
                             [
                                 Declaration {
                                     ty_spec: Char,
-                                    declrtr: Declarator {
+                                    declarator: Declarator {
                                         n_star: 1,
-                                        d_declrtr: Ident(
+                                        direct_declarator: Ident(
                                             "msg",
                                         ),
                                     },
@@ -49,7 +49,7 @@ Program {
                 Int,
                 Declarator {
                     n_star: 0,
-                    d_declrtr: Func(
+                    direct_declarator: Func(
                         Ident(
                             "main",
                         ),
@@ -63,9 +63,9 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Char,
-                                        declrtr: Declarator {
+                                        declarator: Declarator {
                                             n_star: 1,
-                                            d_declrtr: Ident(
+                                            direct_declarator: Ident(
                                                 "msg",
                                             ),
                                         },

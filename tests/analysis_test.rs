@@ -13,8 +13,8 @@ use test_utils::ast::*;
 fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
-    let expr = unary(UnOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
-    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
+    let expr = unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
+    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -34,7 +34,7 @@ fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Ge, num(1), num(2));
-    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -49,7 +49,7 @@ fn analysis_test() -> Result<(), CompileError> {
     let input = String::new();
     let mut analyzer = Analyzer::new(&input);
     let expr = bin(BinOpKind::Gt, num(1), num(2));
-    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -82,7 +82,7 @@ fn analysis_ident_test() -> Result<(), CompileError> {
         )
         .unwrap();
     // dummy fucn defining end
-    let converted_expr = analyzer.down_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     analyzer.scope.pop_scope(&mut offset);
     assert_eq!(offset, 0);
     assert_eq!(
@@ -121,7 +121,7 @@ fn analysis_program_test() -> Result<(), CompileError> {
         ]),
         Position::default(),
     )]);
-    let converted_program = analyzer.down_program(program).unwrap();
+    let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -183,7 +183,7 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
         ]),
         Position::default(),
     )]);
-    let converted_program = analyzer.down_program(program).unwrap();
+    let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -243,7 +243,7 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
         ]),
         Position::default(),
     )]);
-    let converted_program = analyzer.down_program(program).unwrap();
+    let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -328,7 +328,7 @@ fn analysis_declaration() -> Result<(), CompileError> {
         ]),
         Position::default(),
     )]);
-    let converted_program = analyzer.down_program(program).unwrap();
+    let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -391,7 +391,7 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
         ]),
         Position::default(),
     )]);
-    let converted_program = analyzer.down_program(program).unwrap();
+    let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
@@ -488,16 +488,10 @@ fn extract_ty(src: &str) -> Type {
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
     let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new(src);
-    let conv_stmt = analyzer.down_stmt(ast, "main".to_string()).unwrap();
-    if let ConvStmt {
-        kind: ConvStmtKind::Block(vec),
-    } = conv_stmt
-    {
+    let conv_stmt = analyzer.traverse_stmt(ast, "main".to_string()).unwrap();
+    if let ConvStmt::Block(vec) = conv_stmt {
         let second_stmt = vec.get(1).unwrap();
-        if let ConvStmt {
-            kind: ConvStmtKind::Return(expr, _),
-        } = second_stmt
-        {
+        if let ConvStmt::Return(expr, _) = second_stmt {
             expr.ty.clone()
         } else {
             panic!("Return expected.")
@@ -521,11 +515,11 @@ fn extract_func_ty(src: &str) -> Type {
         panic!("ProgramKind::Func expected.")
     };
     let mut analyzer = Analyzer::new(src);
-    // return Declaration::new(ty_spec, declarator.n_star, declarator.d_declrtr, None, pos)
+    // return Declaration::new(ty_spec, declarator.n_star, declarator.direct_declarator, None, pos)
     //     .ty(&analyzer)
     //     .unwrap();
     let conv_program = analyzer
-        .down_func_def(&ty_spec, &declarator, body, pos)
+        .traverse_func_def(&ty_spec, &declarator, body, pos)
         .unwrap();
 
     match conv_program {
