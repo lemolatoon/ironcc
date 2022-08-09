@@ -474,7 +474,70 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">ParseErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -495,7 +558,7 @@
         <span class="lifetime">&#39;tokenize_loop</span>: <span class="kw">while</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// skip white spaces</span>
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39; &#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;\t&#39;</span>) {
-                <span class="ident">pos</span>.<span class="ident">advance_char</span>();
+                <span class="ident">pos</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..];
                 <span class="kw">continue</span>;
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;\n&#39;</span>) {
@@ -513,12 +576,11 @@
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// reserved token</span>
-            <span class="kw">let</span> <span class="ident">two_word_tokens</span> <span class="op">=</span> <span class="macro">vec!</span>[
-                (<span class="string">&quot;&lt;=&quot;</span>, <span class="ident">TokenKind::Le</span>),
-                (<span class="string">&quot;&gt;=&quot;</span>, <span class="ident">TokenKind::Ge</span>),
-                (<span class="string">&quot;==&quot;</span>, <span class="ident">TokenKind::EqEq</span>),
-                (<span class="string">&quot;!=&quot;</span>, <span class="ident">TokenKind::Ne</span>),
+            <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="macro">vec!</span>[
+                (<span class="string">&quot;&lt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Le</span>)),
+                (<span class="string">&quot;&gt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Ge</span>)),
+                (<span class="string">&quot;==&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::EqEq</span>)),
+                (<span class="string">&quot;!=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Ne</span>)),
                 (<span class="string">&quot;+&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Plus</span>)),
                 (<span class="string">&quot;-&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Minus</span>)),
                 (<span class="string">&quot;*&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Star</span>)),
@@ -532,19 +594,71 @@
                 (<span class="string">&quot;}&quot;</span>, <span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Brace</span>)),
                 (<span class="string">&quot;]&quot;</span>, <span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Bracket</span>)),
                 (<span class="string">&quot;,&quot;</span>, <span class="ident">TokenKind::Comma</span>),
-                (<span class="string">&quot;&lt;&quot;</span>, <span class="ident">TokenKind::Lt</span>),
-                (<span class="string">&quot;&gt;&quot;</span>, <span class="ident">TokenKind::Gt</span>),
+                (<span class="string">&quot;&lt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Lt</span>)),
+                (<span class="string">&quot;&gt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Gt</span>)),
+                (<span class="string">&quot;~&quot;</span>, <span class="ident">TokenKind::Tilde</span>),
+                (<span class="string">&quot;!&quot;</span>, <span class="ident">TokenKind::Exclamation</span>),
                 (<span class="string">&quot;;&quot;</span>, <span class="ident">TokenKind::Semi</span>),
                 (<span class="string">&quot;=&quot;</span>, <span class="ident">TokenKind::Eq</span>),
             ];
 
-            <span class="comment">// &lt;, &lt;=, &gt;, &gt;=, ==, !=</span>
-            <span class="kw">for</span> (<span class="ident">literal</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">two_word_tokens</span> {
+            <span class="kw">for</span> (<span class="ident">literal</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">symbols</span> {
                 <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="ident">literal</span>) {
-                    <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">kind</span>, <span class="ident">pos</span>.<span class="ident">advance_and_get_token</span>(<span class="ident">literal</span>.<span class="ident">len</span>())));
+                    <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">kind</span>, <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">literal</span>.<span class="ident">len</span>())));
                     <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">literal</span>.<span class="ident">len</span>()..];
                     <span class="kw">continue</span> <span class="lifetime">&#39;tokenize_loop</span>;
                 }
+            }
+
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;&quot;&#39;</span>) {
+                <span class="comment">// string literal</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
+                <span class="ident">chars</span>.<span class="ident">next</span>(); <span class="comment">// -&gt; &quot;</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">str_lit</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="number">2</span>;
+                <span class="kw">loop</span> {
+                    <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
+                        <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) =&gt; {
+                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                            <span class="ident">chars</span>.<span class="ident">next</span>();
+                            <span class="kw">break</span>;
+                        }
+                        <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; {
+                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                            <span class="ident">chars</span>.<span class="ident">next</span>();
+                            <span class="comment">// In the future, this pattern would have multiple arms.</span>
+                            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::single_match_else</span>)]</span>
+                            <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
+                                <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) =&gt; {
+                                    <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                    <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                                }
+                                <span class="kw">_</span> =&gt; {
+                                    <span class="ident">pos</span>.<span class="ident">advance</span>(<span class="ident">len_token</span>);
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
+                                        <span class="self">self</span>.<span class="ident">input</span>,
+                                        <span class="ident">pos</span>,
+                                        <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;</span>
+                                    ));
+                                }
+                            }
+                        }
+                        <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; {
+                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                            <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">c</span>);
+                            <span class="ident">chars</span>.<span class="ident">next</span>();
+                        }
+                        <span class="prelude-val">None</span> =&gt; {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof_tokenize</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">pos</span>))
+                        }
+                    }
+                }
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
+                    <span class="ident">TokenKind::Str</span>(<span class="ident">str_lit</span>),
+                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
+                ));
+                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
+                <span class="kw">continue</span>;
             }
 
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>([<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>, <span class="string">&#39;4&#39;</span>, <span class="string">&#39;5&#39;</span>, <span class="string">&#39;6&#39;</span>, <span class="string">&#39;7&#39;</span>, <span class="string">&#39;8&#39;</span>, <span class="string">&#39;9&#39;</span>]) {
@@ -561,14 +675,17 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Currently support only a number literal.&quot;</span>);
                 <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
                     <span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>),
-                    <span class="ident">pos</span>.<span class="ident">advance_and_get_token</span>(<span class="ident">len_token</span>),
+                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
                 ));
                 <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>
-                .<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>).<span class="ident">chain</span>(<span class="macro">vec!</span>[<span class="string">&#39;_&#39;</span>].<span class="ident">into_iter</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()[..])
-            {
-                <span class="comment">// Ident or reserved Token</span>
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(
+                <span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>)
+                    .<span class="ident">chain</span>(<span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span>)
+                    .<span class="ident">chain</span>(<span class="macro">vec!</span>[<span class="string">&#39;_&#39;</span>].<span class="ident">into_iter</span>())
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()[..],
+            ) {
+                <span class="comment">// Ident or reserved token</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(
@@ -590,14 +707,14 @@
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
                     },
-                    <span class="ident">pos</span>.<span class="ident">advance_and_get_token</span>(<span class="ident">len_token</span>),
+                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
                 ));
                 <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
                 <span class="kw">continue</span>;
             }
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_char</span>(<span class="ident">pos</span>, <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()));
         }
-        <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Eof</span>, <span class="ident">pos</span>.<span class="ident">advance_and_get_token</span>(<span class="number">0</span>)));
+        <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Eof</span>, <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="number">0</span>)));
 
         <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>)
     }
@@ -613,12 +730,15 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenKind</span> {
     <span class="ident">BinOp</span>(<span class="ident">BinOpToken</span>),
+    <span class="doccomment">/// string literal</span>
+    <span class="ident">Str</span>(<span class="ident">String</span>),
+    <span class="doccomment">/// number literal</span>
     <span class="ident">Num</span>(<span class="ident">isize</span>),
     <span class="doccomment">/// An opening delimiter (e.g., `{`)</span>
     <span class="ident">OpenDelim</span>(<span class="ident">DelimToken</span>),
     <span class="doccomment">/// An closing delimiter (e.g., `}`)</span>
     <span class="ident">CloseDelim</span>(<span class="ident">DelimToken</span>),
-    <span class="doccomment">/// Semicoron `;`</span>
+    <span class="doccomment">/// Semicolon `;`</span>
     <span class="ident">Semi</span>,
     <span class="doccomment">/// An ident</span>
     <span class="ident">Ident</span>(<span class="ident">String</span>),
@@ -636,22 +756,14 @@
     <span class="ident">For</span>,
     <span class="doccomment">/// `SizeOf`, reserved word</span>
     <span class="ident">SizeOf</span>,
-    <span class="doccomment">/// `&lt;` Less than</span>
-    <span class="ident">Lt</span>,
-    <span class="doccomment">/// `&lt;=` Less equal</span>
-    <span class="ident">Le</span>,
-    <span class="doccomment">/// `&gt;` Greater than</span>
-    <span class="ident">Gt</span>,
-    <span class="doccomment">/// `&gt;=` Greater equal</span>
-    <span class="ident">Ge</span>,
-    <span class="doccomment">/// `==` Equal equal</span>
-    <span class="ident">EqEq</span>,
-    <span class="doccomment">/// `!=` Not equal</span>
-    <span class="ident">Ne</span>,
     <span class="doccomment">/// `=` assign</span>
     <span class="ident">Eq</span>,
     <span class="doccomment">/// `,`</span>
     <span class="ident">Comma</span>,
+    <span class="doccomment">/// `~`</span>
+    <span class="ident">Tilde</span>,
+    <span class="doccomment">/// `!`</span>
+    <span class="ident">Exclamation</span>,
     <span class="ident">Eof</span>,
 }
 
@@ -686,6 +798,18 @@
     <span class="ident">Percent</span>,
     <span class="doccomment">/// `&amp;`</span>
     <span class="ident">And</span>,
+    <span class="doccomment">/// `&lt;` Less than</span>
+    <span class="ident">Lt</span>,
+    <span class="doccomment">/// `&lt;=` Less equal</span>
+    <span class="ident">Le</span>,
+    <span class="doccomment">/// `&gt;` Greater than</span>
+    <span class="ident">Gt</span>,
+    <span class="doccomment">/// `&gt;=` Greater equal</span>
+    <span class="ident">Ge</span>,
+    <span class="doccomment">/// `==` Equal equal</span>
+    <span class="ident">EqEq</span>,
+    <span class="doccomment">/// `!=` Not equal</span>
+    <span class="ident">Ne</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
@@ -729,16 +853,16 @@
         <span class="self">self</span>.<span class="ident">n_line</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// increment `self.n_char`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-    }
-
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance_and_get_token</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len_token</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pos_and_advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len_token</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">return_struct</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
         <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
         <span class="ident">return_struct</span>
+    }
+
+    <span class="doccomment">/// just advance `self.n_char` by `len_token`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len_token</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
     }
 }
 
