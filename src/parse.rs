@@ -138,9 +138,14 @@ impl<'a> Parser<'a> {
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                 }
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-                let expr = self.parse_assign(tokens)?;
-                direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), expr);
-                tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                if !tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
+                    let expr = self.parse_assign(tokens)?;
+                    direct_declarator =
+                        DirectDeclarator::Array(Box::new(direct_declarator), Some(expr));
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                } else {
+                    direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), None);
+                }
             } else {
                 break;
             }
@@ -438,7 +443,6 @@ impl<'a> Parser<'a> {
         let mut pos = expr.pos;
 
         while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-            //
             expr = Expr::new_array(expr, self.parse_primary(tokens)?, pos);
             pos = expr.pos;
             tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
@@ -623,7 +627,7 @@ impl Declarator {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum DirectDeclarator {
     Ident(String),
-    Array(Box<DirectDeclarator>, Expr),
+    Array(Box<DirectDeclarator>, Option<Expr>),
     Func(Box<DirectDeclarator>, Vec<Declaration>),
     Declarator(Box<Declarator>),
 }

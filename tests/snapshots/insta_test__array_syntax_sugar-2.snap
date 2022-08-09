@@ -29,15 +29,17 @@ Program {
                                                 Ident(
                                                     "array",
                                                 ),
-                                                Expr {
-                                                    kind: Num(
-                                                        5,
-                                                    ),
-                                                    pos: Position {
-                                                        n_char: 11,
-                                                        n_line: 2,
+                                                Some(
+                                                    Expr {
+                                                        kind: Num(
+                                                            5,
+                                                        ),
+                                                        pos: Position {
+                                                            n_char: 11,
+                                                            n_line: 2,
+                                                        },
                                                     },
-                                                },
+                                                ),
                                             ),
                                         },
                                         initializer: None,

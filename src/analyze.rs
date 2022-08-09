@@ -827,7 +827,8 @@ impl<'a> Analyzer<'a> {
                     #[allow(clippy::cast_sign_loss)]
                     let size = ConstExpr::try_eval_as_const(
                         self.input,
-                        self.down_expr(expr.clone(), BTreeSet::new())?,
+                        // TODO: not unwrap, but check has init or not.
+                        self.down_expr(expr.clone().unwrap(), BTreeSet::new())?,
                     )?
                     .get_num_lit()? as usize;
                     ty = Type::Array(Box::new(ty), size);

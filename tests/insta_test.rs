@@ -95,21 +95,20 @@ fn add_char() {
     let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
-// #[test]
-// fn string_literal() {
-//     let mut tester = CachedProcessor::new(src);
-//     all!(tester);
-//     let src = r#"
-//     int printf(char *msg);
 
-//     int main() {
-//         char *msg = "Hello World";
-//         printf(msg);
-//     }
-//     "#;
-//     let mut tester = CachedProcessor::new(src);
-//     all!(tester);
-// }
+#[test]
+fn string_literal() {
+    let src = r#"
+    int printf(char *msg);
+
+    int main() {
+        char *msg = "Hello World";
+        printf(msg);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
 
 #[test]
 fn string_literal2() {

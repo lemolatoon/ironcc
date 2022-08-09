@@ -33,6 +33,7 @@ int test27();
 int test28();
 int test29();
 int test30();
+int test31();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -89,6 +90,7 @@ int main()
     assert(28, 0, test28());
     assert(29, 0, test29());
     assert(30, 0, test30());
+    assert(31, 0, test31());
 
     print_ok();
     return 0;
@@ -574,7 +576,6 @@ int ret3(int dummy1, int dummy2, int this)
     return this;
 }
 
-int exit(int status);
 int test30()
 {
     char char_var = -1;
@@ -584,9 +585,16 @@ int test30()
     assert(30, 3, ret3(0, 0, int_var + char_var));
     assert(30, -1, char_var);
     assert(30, 4, int_var);
-    // exit(int_var + char_var);
     assert(30, 3, int_var + char_var);
     assert(30, 3, char_var + int_var);
+    return 0;
+}
+
+int test31()
+{
+    // char str_lit[] = "123456789";
+    assert(30, 10, sizeof("123456789") / sizeof(char));
+    // assert(30, 10, sizeof(str_lit) / sizeof(str_lit[0]));
     return 0;
 }
 

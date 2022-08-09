@@ -11,7 +11,7 @@
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
                                 | "(" <declarator> ")"
-                                | <direct-declarator> "[" <assign> "]"                                  # array
+                                | <direct-declarator> "[" <assign>? "]"                                  # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 <initializer>               := <assign>
                                 | { <assign> ("," <assign>)* }

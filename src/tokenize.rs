@@ -88,11 +88,22 @@ impl<'a> Tokenizer<'a> {
                         Some('\\') => {
                             len_token += 1;
                             chars.next();
-                            return Err(unimplemented_err!(
-                                self.input,
-                                pos,
-                                "Escape Sequences are not currently implemented."
-                            ));
+                            // In the future, this pattern would have multiple arms.
+                            #[allow(clippy::single_match_else)]
+                            match chars.next() {
+                                Some('n') => {
+                                    len_token += 1;
+                                    str_lit.push('\n');
+                                }
+                                _ => {
+                                    pos.advance(len_token);
+                                    return Err(unimplemented_err!(
+                                        self.input,
+                                        pos,
+                                        "This type of escape Sequences are not currently implemented."
+                                    ));
+                                }
+                            }
                         }
                         Some(c) => {
                             len_token += 1;
@@ -166,8 +177,6 @@ impl<'a> Tokenizer<'a> {
 
         Ok(tokens)
     }
-
-    pub fn tokenize_ident() {}
 
     pub fn new_unexpected_char(&self, pos: Position, c: char) -> CompileError {
         CompileError::new(
@@ -299,7 +308,7 @@ impl Position {
         self.n_line += 1;
     }
 
-    /// increment `self.n_char`
+    /// increment `self.n_char` and return incremented `self`
     pub fn advance_char(&mut self) {
         self.n_char += 1;
     }
@@ -309,6 +318,11 @@ impl Position {
         let return_struct = *self;
         self.n_char += len_token;
         return_struct
+    }
+
+    /// just advance `self.n_char` by `len_token`
+    pub fn advance(&mut self, len_token: usize) {
+        self.n_char += len_token;
     }
 }
 

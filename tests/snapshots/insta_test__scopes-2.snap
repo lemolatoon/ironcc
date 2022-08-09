@@ -119,15 +119,17 @@ Program {
                                                 Ident(
                                                     "c",
                                                 ),
-                                                Expr {
-                                                    kind: Num(
-                                                        2,
-                                                    ),
-                                                    pos: Position {
-                                                        n_char: 14,
-                                                        n_line: 5,
+                                                Some(
+                                                    Expr {
+                                                        kind: Num(
+                                                            2,
+                                                        ),
+                                                        pos: Position {
+                                                            n_char: 14,
+                                                            n_line: 5,
+                                                        },
                                                     },
-                                                },
+                                                ),
                                             ),
                                         },
                                         initializer: None,
