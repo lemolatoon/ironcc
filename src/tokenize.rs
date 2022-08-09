@@ -59,6 +59,7 @@ impl<'a> Tokenizer<'a> {
                 ("<", TokenKind::BinOp(BinOpToken::Lt)),
                 (">", TokenKind::BinOp(BinOpToken::Gt)),
                 ("~", TokenKind::Tilde),
+                ("!", TokenKind::Exclamation),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
             ];
@@ -220,6 +221,8 @@ pub enum TokenKind {
     Comma,
     /// `~`
     Tilde,
+    /// `!`
+    Exclamation,
     Eof,
 }
 

@@ -409,6 +409,9 @@ impl<'a> Parser<'a> {
                 tokens.next();
                 Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
             }
+            TokenKind::Exclamation => {
+                todo!()
+            }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
                 Expr::new_deref(self.parse_mul(tokens)?, pos)

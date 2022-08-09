@@ -136,3 +136,15 @@ fn tilde() {
     let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
+
+#[test]
+fn exclamation() {
+    let src = "
+    int main() {
+        int a = 1;
+        return !a;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
