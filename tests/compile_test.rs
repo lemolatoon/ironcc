@@ -192,6 +192,20 @@ fn type_error() {
         "{:?}",
         tester.conv_program()
     );
+
+    let src = "char char_global = 1;int main() {int *int_ptr = &char_global;  return 0; }";
+    let mut tester = CachedProcesser::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _)),
+                src: _,
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
 }
 
 #[test]

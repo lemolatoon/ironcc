@@ -5,7 +5,8 @@
     clippy::missing_panics_doc,
     clippy::use_self,
     clippy::module_name_repetitions,
-    clippy::vec_init_then_push
+    clippy::vec_init_then_push,
+    clippy::large_enum_variant
 )]
 pub mod analyze;
 pub mod common;

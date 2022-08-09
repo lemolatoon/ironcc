@@ -77,7 +77,7 @@ fn analysis_ident_test() -> Result<(), CompileError> {
             &input,
             Position::default(),
             &mut offset,
-            &"a".to_string(),
+            "a",
             Type::Base(BaseType::Int),
         )
         .unwrap();

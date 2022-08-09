@@ -355,7 +355,7 @@ pub enum TypeErrorKind {
 }
 
 impl TypeErrorKind {
-    pub fn positions(&self) -> (Position, Position) {
+    pub const fn positions(&self) -> (Position, Position) {
         match self {
             TypeErrorKind::Expr(expr0, expr1) => (expr0.pos, expr1.pos),
             TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),

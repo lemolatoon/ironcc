@@ -26,6 +26,13 @@ int test20();
 int test21();
 int test22();
 int test23();
+int test24();
+int test25();
+int test26();
+int test27();
+int test28();
+int test29();
+int test30();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -75,6 +82,13 @@ int main()
     assert(21, 0, test21());
     assert(22, 0, test22());
     assert(23, 0, test23());
+    assert(24, 0, test24());
+    assert(25, 0, test25());
+    assert(26, 0, test26());
+    assert(27, 0, test27());
+    assert(28, 0, test28());
+    assert(29, 0, test29());
+    assert(30, 0, test30());
 
     print_ok();
     return 0;
@@ -157,6 +171,16 @@ int test4(int i)
 }
 
 int test5(int i) { return add(i, 1000000) + sub(i, 1000000); }
+
+int add(int x, int y)
+{
+    return x + y;
+}
+
+int sub(int x, int y)
+{
+    return x - y;
+}
 
 int test6(int i)
 {
@@ -456,6 +480,7 @@ int test22()
     assert(22, 3, test22_global_with_init[2]);
     test22_global_with_init[0] = 9;
     assert(22, 9, *test22_global_with_init);
+    return 0;
 }
 
 int test23_global = 3;
@@ -465,14 +490,107 @@ int test23()
     int *p = &test23_global;
     *p = 4;
     assert(23, 4, test23_global);
+    return 0;
 }
 
-int add(int x, int y)
+char test24_char_global = 9;
+int test24_int_global = -1;
+int test24()
 {
-    return x + y;
+    assert(24, 9, test24_char_global);
+    test24_char_global = 98;
+    assert(24, 98, test24_char_global);
+    assert(24, -1, test24_int_global);
+    test24_char_global = test24_int_global;
+    assert(24, -1, test24_char_global);
+    test24_int_global = 999;
+    assert(24, 999, test24_int_global);
+    test24_int_global = test24_char_global;
+    assert(24, -1, test24_int_global);
+    return 0;
 }
 
-int sub(int x, int y)
+int test25()
 {
-    return x - y;
+    int int_var = -1;
+    char char_var;
+    char_var = int_var;
+    assert(25, -1, char_var);
+    char char_var2 = int_var;
+    assert(25, -1, char_var2);
+    int int_var2 = char_var2;
+    assert(25, -1, int_var2);
+    return 0;
+}
+
+int test26()
+{
+    int array[1 * 0 + 8 * 2];
+    assert(26, 16, sizeof(array) / sizeof(array[0]));
+    return 0;
+}
+
+int test27()
+{
+    int array_with_init[1 + 2 + 1] = {1, 2, 3};
+    assert(27, 1, array_with_init[0]);
+    assert(27, 2, array_with_init[1]);
+    assert(27, 3, array_with_init[2]);
+    array_with_init[3] = 4;
+    assert(27, 4, array_with_init[3]);
+    return 0;
+}
+
+int test28_var = 3;
+int *test28_var_ptr = &test28_var;
+int test28()
+{
+    assert(28, 3, test28_var);
+    *test28_var_ptr = 89;
+    assert(28, 89, test28_var);
+    return 0;
+}
+
+char add_chars(char a, char b, char c);
+
+int test29()
+{
+    assert(29, 12, add_chars(9, 6, 3));
+    return 0;
+}
+
+int ret1(int this)
+{
+    return this;
+}
+
+int ret2(int dummy1, int this)
+{
+    return this;
+}
+
+int ret3(int dummy1, int dummy2, int this)
+{
+    return this;
+}
+
+int exit(int status);
+int test30()
+{
+    char char_var = -1;
+    int int_var = 4;
+    assert(30, 3, ret1(int_var + char_var));
+    assert(30, 3, ret2(0, int_var + char_var));
+    assert(30, 3, ret3(0, 0, int_var + char_var));
+    assert(30, -1, char_var);
+    assert(30, 4, int_var);
+    // exit(int_var + char_var);
+    assert(30, 3, int_var + char_var);
+    assert(30, 3, char_var + int_var);
+    return 0;
+}
+
+char add_chars(char a, char b, char c)
+{
+    return a + b - c;
 }

@@ -2,9 +2,9 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        BaseType, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary, ConvExpr,
-        ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvStmtKind, GVar,
-        LVar, Type,
+        BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
+        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvStmtKind,
+        GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     unimplemented_err,
@@ -56,6 +56,7 @@ impl<'a> Generator<'a> {
         status: UnexpectedTypeSizeStatus,
     ) -> Result<(), CompileError> {
         let (prefix, lhs, rhs) = match ty.size_of() {
+            1 => ("BYTE PTR", lhs.qword(), rhs.byte()),
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             _ => return Err(CompileError::new_type_size_error(self.input, status)),
@@ -74,6 +75,7 @@ impl<'a> Generator<'a> {
         status: UnexpectedTypeSizeStatus,
     ) -> Result<(), CompileError> {
         let (prefix, lhs, rhs) = match ty.size_of() {
+            1 => ("BYTE PTR", lhs.byte(), rhs.qword()),
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
             _ => return Err(CompileError::new_type_size_error(self.input, status)),
@@ -140,6 +142,8 @@ impl<'a> Generator<'a> {
                         init: init.clone(),
                     };
                     let size_hint = |ty: Type| match ty.base_type().size_of() {
+                        // TODO: byte or string
+                        1 => Ok(".string"),
                         4 => Ok("long"),
                         8 => Ok("quad"),
                         _ => Err(CompileError::new_type_size_error(
@@ -149,10 +153,11 @@ impl<'a> Generator<'a> {
                     };
                     match init {
                         Some(init) => match ty {
-                            Type::Base(BaseType::Int) => writeln!(f, ".long {}", if let ConstInitializer::Expr(ConstExpr { kind: ConstExprKind::Num(num), ty: _, pos:_ }) = init {num} else {unreachable!()})?,
+                            Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
+                            Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
-                            Type::Ptr(_) => writeln!(f, ".quad 0")?,
-                            Type::Func(_, _) => panic!("Unreacheable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
+                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_pos(), "Ptr Initializer should not be array."))?)?,
+                            Type::Func(_, _) => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
                                     let size_of = ty.size_of();
@@ -164,7 +169,7 @@ impl<'a> Generator<'a> {
                                             writeln!(f, ".zero {}", size_of)?;
                                         }
                                 }},
-                                _ => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
+                                ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
                         },
                         None => writeln!(f, ".zero {}", ty.size_of())?,
@@ -340,6 +345,7 @@ impl<'a> Generator<'a> {
             }
             ConvExprKind::GVar(GVar { name, ty, init }) => {
                 match ty.size_of() {
+                    1 => writeln!(f, "  mov al, BYTE PTR {}[rip]", name)?,
                     4 => writeln!(f, "  mov eax, DWORD PTR {}[rip]", name)?,
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
@@ -350,6 +356,37 @@ impl<'a> Generator<'a> {
                     }
                 };
                 self.push(f, format_args!("rax"))?;
+            }
+            ConvExprKind::Cast(expr, cast_kind) => self.gen_cast(f, *expr, &cast_kind)?,
+        }
+        Ok(())
+    }
+
+    pub fn gen_cast<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        expr: ConvExpr,
+        kind: &CastKind,
+    ) -> Result<(), CompileError> {
+        match kind {
+            CastKind::Base2Base(from, to) => {
+                // e.g) char -> int
+                if from.bytes() < to.bytes() {
+                    let from: RegSize = from.into();
+                    let to: RegSize = to.into();
+                    self.gen_expr(f, expr)?;
+                    self.pop(f, format_args!("rax"))?;
+                    // e.g) `movsx eax, al`
+                    writeln!(
+                        f,
+                        "  movsx {}, {}",
+                        RegKind::Rax.size_to_reg_name(to),
+                        RegKind::Rax.size_to_reg_name(from)
+                    )?;
+                    self.push(f, format_args!("rax"))?;
+                } else {
+                    self.gen_expr(f, expr)?;
+                }
             }
         }
         Ok(())
@@ -508,7 +545,74 @@ impl TryFrom<&str> for RegKind {
     }
 }
 
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum RegSize {
+    Byte,
+    Dword,
+    Qword,
+}
+
+impl RegSize {
+    pub const fn try_new(size: usize) -> Option<Self> {
+        Some(match size {
+            1 => Self::Byte,
+            4 => Self::Dword,
+            8 => Self::Qword,
+            _ => return None,
+        })
+    }
+}
+
+impl AsRef<str> for RegSize {
+    fn as_ref(&self) -> &str {
+        match self {
+            RegSize::Byte => "BYTE",
+            RegSize::Dword => "DWORD",
+            RegSize::Qword => "QWORD",
+        }
+    }
+}
+
+impl RegSize {
+    pub const fn size_to_name(size: usize) -> Option<RegSize> {
+        match size {
+            1 => Some(Self::Byte),
+            4 => Some(Self::Dword),
+            8 => Some(Self::Qword),
+            _ => None,
+        }
+    }
+}
+
 impl RegKind {
+    pub const fn size_to_reg_name(&self, size: RegSize) -> &str {
+        match size {
+            RegSize::Byte => self.byte(),
+            RegSize::Dword => self.dword(),
+            RegSize::Qword => self.qword(),
+        }
+    }
+
+    pub const fn byte(&self) -> &str {
+        match self {
+            RegKind::Rax => "al",
+            RegKind::Rdi => "dil",
+            RegKind::Rsi => "sil",
+            RegKind::Rdx => "dl",
+            RegKind::Rcx => "cl",
+            RegKind::Rbp => "bpl",
+            RegKind::Rsp => "spl",
+            RegKind::R8 => "r8b",
+            RegKind::R9 => "r9b",
+            RegKind::R10 => "r10b",
+            RegKind::R11 => "r11b",
+            RegKind::R12 => "r12b",
+            RegKind::R13 => "r13b",
+            RegKind::R14 => "r14b",
+            RegKind::R15 => "r15b",
+        }
+    }
+
     pub const fn dword(&self) -> &str {
         match self {
             RegKind::Rax => "eax",
