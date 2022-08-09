@@ -60,6 +60,13 @@ impl From<io::Error> for CompileError {
 }
 
 impl CompileError {
+    pub fn new_unexpected_eof_tokenize(src: &str, pos: Position) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)),
+        )
+    }
+
     pub fn new_redefined_variable(
         src: &str,
         name: String,
@@ -190,6 +197,7 @@ impl CompileError {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TokenizeErrorKind {
     UnexpectedChar(Position, char),
+    UnexpectedEof(Position),
 }
 
 #[derive(Debug)]
@@ -227,6 +235,10 @@ impl Debug for CompileError {
             AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
         };
         match &self.kind {
+            TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "Got Unexpected Eof while tokenizing")?;
+            }
             TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "Got Unexpected char while tokenizing: `{}`", c)?;
@@ -255,7 +267,11 @@ impl Debug for CompileError {
                 let poses = error.positions();
                 error_at(&self.src, vec![poses.0, poses.1], f)?;
                 let types = error.types();
-                writeln!(f, "{:?} and {:?} is not allowed.", types.0, types.1)?;
+                writeln!(
+                    f,
+                    "Type conversion from {:?} into {:?} is not allowed.",
+                    types.1, types.0
+                )?;
                 if let Some(msg) = msg {
                     writeln!(f, "{}", msg)?;
                 }

@@ -456,6 +456,7 @@ impl<'a> Parser<'a> {
         match tokens.next() {
             Some(Token { kind, pos }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, pos),
+                TokenKind::Str(letters) => Expr::new_str_lit(letters, pos),
                 TokenKind::OpenDelim(DelimToken::Paran) => {
                     let expr = self.parse_expr(tokens)?;
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
@@ -817,6 +818,7 @@ pub struct Expr {
 pub enum ExprKind {
     Binary(Binary),
     Num(isize),
+    StrLit(String),
     Unary(UnOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
     LVar(String),
@@ -858,6 +860,13 @@ impl Expr {
     pub const fn new_num(num: isize, pos: Position) -> Self {
         Self {
             kind: ExprKind::Num(num),
+            pos,
+        }
+    }
+
+    pub const fn new_str_lit(letters: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::StrLit(letters),
             pos,
         }
     }

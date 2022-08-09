@@ -143,7 +143,7 @@ impl<'a> Generator<'a> {
                     };
                     let size_hint = |ty: Type| match ty.base_type().size_of() {
                         // TODO: byte or string
-                        1 => Ok(".string"),
+                        1 => Ok("byte"),
                         4 => Ok("long"),
                         8 => Ok("quad"),
                         _ => Err(CompileError::new_type_size_error(

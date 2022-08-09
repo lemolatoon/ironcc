@@ -57,13 +57,13 @@ macro_rules! token_kinds {
     }};
 }
 
-pub struct CachedProcesser<'a> {
+pub struct CachedProcessor<'a> {
     tokenizer: CachedTokenizer<'a>,
     parser: CachedParser<'a>,
     analyzer: CachedAnalyzer<'a>,
 }
 
-impl<'a> CachedProcesser<'a> {
+impl<'a> CachedProcessor<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             tokenizer: CachedTokenizer::new(src),
@@ -73,7 +73,7 @@ impl<'a> CachedProcesser<'a> {
     }
 }
 
-impl<'a> CachedProcesser<'a> {
+impl<'a> CachedProcessor<'a> {
     pub fn program(&mut self) -> Result<&Program, CompileError> {
         let stream = self.tokenizer.stream()?;
         self.parser.program(stream)

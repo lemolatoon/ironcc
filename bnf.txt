@@ -39,7 +39,7 @@
 <relational>                := <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
-<unary>                     := <postix>
+<unary>                     := <postfix>
                                 | "+" <mul>
                                 | "-" <mul>
                                 | "*" <mul>
@@ -49,6 +49,7 @@
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
 <primary>                   := <num> 
+                                | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"
                                 | <ident> 
                                 | "(" <expr> ")"  

@@ -1,4 +1,5 @@
 use crate::error::{CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind};
+use crate::unimplemented_err;
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -65,10 +66,50 @@ impl<'a> Tokenizer<'a> {
             // <, <=, >, >=, ==, !=
             for (literal, kind) in two_word_tokens {
                 if input.starts_with(literal) {
-                    tokens.push(Token::new(kind, pos.advance_and_get_token(literal.len())));
+                    tokens.push(Token::new(kind, pos.get_pos_and_advance(literal.len())));
                     input = &input[literal.len()..];
                     continue 'tokenize_loop;
                 }
+            }
+
+            if input.starts_with('"') {
+                // string literal
+                let mut chars = input.chars().peekable();
+                chars.next(); // -> "
+                let mut str_lit = String::from(chars.next().unwrap());
+                let mut len_token = 2;
+                loop {
+                    match chars.peek() {
+                        Some('"') => {
+                            len_token += 1;
+                            chars.next();
+                            break;
+                        }
+                        Some('\\') => {
+                            len_token += 1;
+                            chars.next();
+                            return Err(unimplemented_err!(
+                                self.input,
+                                pos,
+                                "Escape Sequences are not currently implemented."
+                            ));
+                        }
+                        Some(c) => {
+                            len_token += 1;
+                            str_lit.push(*c);
+                            chars.next();
+                        }
+                        None => {
+                            return Err(CompileError::new_unexpected_eof_tokenize(self.input, pos))
+                        }
+                    }
+                }
+                tokens.push(Token::new(
+                    TokenKind::Str(str_lit),
+                    pos.get_pos_and_advance(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
             }
 
             if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
@@ -85,7 +126,7 @@ impl<'a> Tokenizer<'a> {
                     .expect("Currently support only a number literal.");
                 tokens.push(Token::new(
                     TokenKind::Num(num as isize),
-                    pos.advance_and_get_token(len_token),
+                    pos.get_pos_and_advance(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
@@ -114,17 +155,19 @@ impl<'a> Tokenizer<'a> {
                         "sizeof" => TokenKind::SizeOf,
                         _ => TokenKind::Ident(ident),
                     },
-                    pos.advance_and_get_token(len_token),
+                    pos.get_pos_and_advance(len_token),
                 ));
                 input = &input[len_token..];
                 continue;
             }
             return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
         }
-        tokens.push(Token::new(TokenKind::Eof, pos.advance_and_get_token(0)));
+        tokens.push(Token::new(TokenKind::Eof, pos.get_pos_and_advance(0)));
 
         Ok(tokens)
     }
+
+    pub fn tokenize_ident() {}
 
     pub fn new_unexpected_char(&self, pos: Position, c: char) -> CompileError {
         CompileError::new(
@@ -137,6 +180,9 @@ impl<'a> Tokenizer<'a> {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenKind {
     BinOp(BinOpToken),
+    /// string literal
+    Str(String),
+    /// number literal
     Num(isize),
     /// An opening delimiter (e.g., `{`)
     OpenDelim(DelimToken),
@@ -259,7 +305,7 @@ impl Position {
     }
 
     #[must_use]
-    pub fn advance_and_get_token(&mut self, len_token: usize) -> Self {
+    pub fn get_pos_and_advance(&mut self, len_token: usize) -> Self {
         let return_struct = *self;
         self.n_char += len_token;
         return_struct

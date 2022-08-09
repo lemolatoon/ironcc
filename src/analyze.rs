@@ -20,6 +20,8 @@ pub struct Analyzer<'a> {
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
+    pub conv_program: ConvProgram,
+    lc_label: usize,
 }
 
 impl<'a> Analyzer<'a> {
@@ -30,11 +32,18 @@ impl<'a> Analyzer<'a> {
             offset: 0,
             func_map,
             scope: Scope::new(),
+            conv_program: ConvProgram::new(),
+            lc_label: 0,
         }
     }
 
+    pub fn get_lc_label(&mut self) -> usize {
+        let lc_label = self.lc_label;
+        self.lc_label += 1;
+        lc_label
+    }
+
     pub fn down_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
-        let mut conv_program = ConvProgram::new();
         for component in program {
             match component {
                 ProgramComponent {
@@ -43,7 +52,8 @@ impl<'a> Analyzer<'a> {
                     pos,
                 } => {
                     assert_eq!(self.offset, 0);
-                    conv_program.push(self.down_func_def(&type_spec, &declrtr, body, pos)?);
+                    let func_def = self.down_func_def(&type_spec, &declrtr, body, pos)?;
+                    self.conv_program.push(func_def);
                     self.scope.reset_stack();
                 }
                 ProgramComponent {
@@ -55,60 +65,8 @@ impl<'a> Analyzer<'a> {
                     let pos = declaration.pos;
                     match declaration.ty(self)? {
                         ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            let init = init
-                                .as_ref()
-                                .map(|expr| {
-                                    expr.clone().map(|expr| {
-                                        ConstExpr::try_eval_as_const(
-                                            self.input,
-                                            self.down_expr(expr, BTreeSet::new())?,
-                                        )
-                                    })
-                                })
-                                .transpose()?;
-                            let init_pos_ty = match &init {
-                                Some(ConstInitializer::Array(exprs)) => {
-                                    // array initializer's items have the same types each or not.
-                                    if !exprs.get(0).map_or(true, |first| {
-                                        exprs.iter().map(|expr| &expr.ty).all(|ty| *ty == first.ty)
-                                    }) {
-                                        return Err(CompileError::new_type_error_const(
-                                            self.input,
-                                            exprs[0].clone(),
-                                            exprs[1].clone(),
-                                            Some("Array Initializer has incompatible types"),
-                                        ));
-                                    }
-                                    Some((exprs[0].pos, exprs[0].ty.clone()))
-                                }
-                                Some(ConstInitializer::Expr(expr)) => {
-                                    Some((expr.pos, expr.ty.clone()))
-                                }
-                                None => None,
-                            };
-                            if let Some((init_pos, init_ty)) = init_pos_ty {
-                                let type_incompatible = match ty.clone() {
-                                    Type::Base(_) | Type::Ptr(_) => ty != init_ty,
-                                    Type::Func(_, _) => unreachable!(),
-                                    Type::Array(base, _) => *base != init_ty,
-                                };
-                                if type_incompatible {
-                                    if ty.is_base() && init_ty.is_base() {
-                                    } else {
-                                        return Err(CompileError::new_type_error_types(
-                                            self.input,
-                                            pos,
-                                            init_pos,
-                                            ty,
-                                            init_ty,
-                                            Some("Incompatible type at initializer"),
-                                        ));
-                                    }
-                                }
-                            }
-
-                            let gvar = self.scope.register_gvar(self.input, pos, name, ty, init)?;
-                            conv_program.push(ConvProgramKind::Global(gvar));
+                            let gvar = self.new_global_variable(init, name, ty, pos)?;
+                            self.conv_program.push(ConvProgramKind::Global(gvar));
                         }
                         Type::Func(ret_ty, args) => {
                             if self.func_map.get(&name.to_string()).is_some() {
@@ -128,7 +86,82 @@ impl<'a> Analyzer<'a> {
                 }
             }
         }
-        Ok(conv_program)
+        Ok(self.conv_program.clone())
+    }
+
+    /// Construct Global Variable and register it to `self.scope`
+    pub fn new_global_variable(
+        &mut self,
+        init: &Option<Initializer>,
+        name: &str,
+        // global variable's type
+        ty: Type,
+        pos: Position,
+    ) -> Result<GVar, CompileError> {
+        let init = init
+            .as_ref()
+            .map(|expr| {
+                expr.clone().map(|expr| {
+                    ConstExpr::try_eval_as_const(self.input, self.down_expr(expr, BTreeSet::new())?)
+                })
+            })
+            .transpose()?;
+        let init_pos_ty = match &init {
+            Some(ConstInitializer::Array(exprs)) => {
+                // array initializer's items have the same types each or not.
+                if !exprs.get(0).map_or(true, |first| {
+                    exprs.iter().map(|expr| &expr.ty).all(|ty| *ty == first.ty)
+                }) {
+                    return Err(CompileError::new_type_error_const(
+                        self.input,
+                        exprs[0].clone(),
+                        exprs[1].clone(),
+                        Some("Array Initializer has incompatible types"),
+                    ));
+                }
+                Some((exprs[0].pos, exprs[0].ty.clone()))
+            }
+            Some(ConstInitializer::Expr(expr)) => Some((expr.pos, expr.ty.clone())),
+            None => None,
+        };
+        if let Some((init_pos, init_ty)) = init_pos_ty {
+            // type check
+            match ty.clone() {
+                Type::Base(_) | Type::Ptr(_) => {
+                    if ty != init_ty {
+                        if ty.is_base() && init_ty.is_base() {
+                        } else {
+                            return Err(CompileError::new_type_error_types(
+                                self.input,
+                                pos,
+                                init_pos,
+                                ty,
+                                init_ty,
+                                Some("Incompatible type at expr initializer"),
+                            ));
+                        }
+                    }
+                }
+                Type::Func(_, _) => unreachable!(),
+                Type::Array(base, _) => {
+                    if *base != init_ty {
+                        if base.is_base() && init_ty.is_base() {
+                        } else {
+                            return Err(CompileError::new_type_error_types(
+                                self.input,
+                                pos,
+                                init_pos,
+                                *base,
+                                init_ty,
+                                Some("Incompatible type at array initializer"),
+                            ));
+                        }
+                    }
+                }
+            };
+        }
+
+        self.scope.register_gvar(self.input, pos, name, ty, init)
     }
 
     pub fn down_func_def(
@@ -397,6 +430,28 @@ impl<'a> Analyzer<'a> {
             // do nothing
             ExprKind::Binary(binary) => self.down_binary(binary, pos), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
+            // TODO: convert to global variable
+            ExprKind::StrLit(mut letters) => {
+                let name = format!(".LC{}", self.get_lc_label());
+                let len = letters.len();
+                letters.push('\0');
+                let init = Some(Initializer::Array(
+                    letters
+                        .chars()
+                        .map(|c| Expr::new_num(u8::try_from(c).unwrap() as isize, pos))
+                        .collect(),
+                ));
+                let gvar = self.new_global_variable(
+                    &init,
+                    &name,
+                    Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
+                    pos,
+                )?;
+                self.conv_program
+                    .push(ConvProgramKind::Global(gvar.clone()));
+                // This gvar is initialized with `self.new_global_variable`, that's why this is ok.
+                Ok(ConvExpr::new_gvar(gvar, pos))
+            }
             // substitute `-x` into `0-x`
             ExprKind::Unary(UnOp::Minus, operand) => self.down_binary(
                 Binary::new(BinOpKind::Sub, Box::new(Expr::new_num(0, pos)), operand),
@@ -453,9 +508,9 @@ impl<'a> Analyzer<'a> {
             ExprKind::Array(expr, index) => {
                 let pos = expr.pos;
                 // `a[i]` := `*(a + i)`
-                let desugered =
+                let desugared =
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
-                self.down_expr(desugered, BTreeSet::new())
+                self.down_expr(desugared, BTreeSet::new())
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -1526,6 +1581,12 @@ pub enum Type {
     Ptr(Box<Type>),
     Func(Box<Type>, Vec<Type>),
     Array(Box<Type>, usize),
+}
+
+impl Type {
+    pub fn ptr(ty: Type) -> Self {
+        Type::Ptr(Box::new(ty))
+    }
 }
 
 impl From<&TypeSpec> for Type {

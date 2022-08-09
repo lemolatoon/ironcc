@@ -29,7 +29,7 @@ macro_rules! unimplemented_err {
             "",
             $crate::error::CompileErrorKind::Unimplemented(
                 None,
-                format!("{} Not yet unimplemented.", $crate::meta!()),
+                format!("{} Not yet implemented.", $crate::meta!()),
             ),
         )
     };
