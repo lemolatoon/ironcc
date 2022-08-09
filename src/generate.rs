@@ -142,6 +142,7 @@ impl<'a> Generator<'a> {
                         init: init.clone(),
                     };
                     let size_hint = |ty: Type| match ty.base_type().size_of() {
+                        // TODO: byte or string
                         1 => Ok(".string"),
                         4 => Ok("long"),
                         8 => Ok("quad"),

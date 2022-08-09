@@ -546,11 +546,29 @@ impl<'a> Analyzer<'a> {
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
                 (Type::Base(lhs_ty), Type::Base(rhs_ty)) => {
+                    let cast_needed = lhs_ty.bytes() != rhs_ty.bytes();
                     let base_ty = if lhs_ty.bytes() >= rhs_ty.bytes() {
                         *lhs_ty
                     } else {
                         *rhs_ty
                     };
+                    if cast_needed {
+                        let lhs_ty = *lhs_ty;
+                        let rhs_ty = *rhs_ty;
+                        if lhs_ty.bytes() > rhs_ty.bytes() {
+                            rhs = ConvExpr::new_cast(
+                                rhs,
+                                Type::Base(lhs_ty),
+                                CastKind::Base2Base(rhs_ty, lhs_ty),
+                            );
+                        } else {
+                            lhs = ConvExpr::new_cast(
+                                lhs,
+                                Type::Base(rhs_ty),
+                                CastKind::Base2Base(lhs_ty, rhs_ty),
+                            );
+                        }
+                    }
                     Ok(ConvExpr::new_binary(
                         kind,
                         lhs,

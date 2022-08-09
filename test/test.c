@@ -32,6 +32,7 @@ int test26();
 int test27();
 int test28();
 int test29();
+int test30();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -87,6 +88,7 @@ int main()
     assert(27, 0, test27());
     assert(28, 0, test28());
     assert(29, 0, test29());
+    assert(30, 0, test30());
 
     print_ok();
     return 0;
@@ -554,6 +556,37 @@ char add_chars(char a, char b, char c);
 int test29()
 {
     assert(29, 12, add_chars(9, 6, 3));
+    return 0;
+}
+
+int ret1(int this)
+{
+    return this;
+}
+
+int ret2(int dummy1, int this)
+{
+    return this;
+}
+
+int ret3(int dummy1, int dummy2, int this)
+{
+    return this;
+}
+
+int exit(int status);
+int test30()
+{
+    char char_var = -1;
+    int int_var = 4;
+    assert(30, 3, ret1(int_var + char_var));
+    assert(30, 3, ret2(0, int_var + char_var));
+    assert(30, 3, ret3(0, 0, int_var + char_var));
+    assert(30, -1, char_var);
+    assert(30, 4, int_var);
+    // exit(int_var + char_var);
+    assert(30, 3, int_var + char_var);
+    assert(30, 3, char_var + int_var);
     return 0;
 }
 

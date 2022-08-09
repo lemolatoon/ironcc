@@ -81,3 +81,17 @@ fn implicit_cast() {
     let mut tester = CachedProcesser::new(src);
     all!(tester);
 }
+
+#[test]
+fn add_char() {
+    let src = "
+    int main() {
+        int a = 2;
+        char b = a;
+        a + b;
+        b + a;
+    }
+    ";
+    let mut tester = CachedProcesser::new(src);
+    all!(tester);
+}

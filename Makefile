@@ -10,7 +10,7 @@ tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
 a.out: tmp.s link.c
-	$(CC) tmp.s link.c -o a.out $(CFLAGS)
+	$(CC) tmp.s tmp_linked.c -o a.out $(CFLAGS)
 
 run: a.out 
 	./a.out

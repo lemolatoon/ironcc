@@ -1,6 +1,7 @@
 /target
 /tmp.s
 /tmp.c
+/tmp_linked.c
 /tmp
 /test/tmp.c
 /test/tmp.s
