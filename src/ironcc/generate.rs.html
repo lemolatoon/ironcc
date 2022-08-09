@@ -554,13 +554,117 @@
 <span id="549">549</span>
 <span id="550">550</span>
 <span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">analyze</span>::{
-        <span class="ident">BaseType</span>, <span class="ident">ConstExpr</span>, <span class="ident">ConstExprKind</span>, <span class="ident">ConstInitializer</span>, <span class="ident">ConvBinOpKind</span>, <span class="ident">ConvBinary</span>, <span class="ident">ConvExpr</span>,
-        <span class="ident">ConvExprKind</span>, <span class="ident">ConvFuncDef</span>, <span class="ident">ConvProgram</span>, <span class="ident">ConvProgramKind</span>, <span class="ident">ConvStmt</span>, <span class="ident">ConvStmtKind</span>, <span class="ident">GVar</span>,
-        <span class="ident">LVar</span>, <span class="ident">Type</span>,
+        <span class="ident">BaseType</span>, <span class="ident">CastKind</span>, <span class="ident">ConstExpr</span>, <span class="ident">ConstExprKind</span>, <span class="ident">ConstInitializer</span>, <span class="ident">ConvBinOpKind</span>, <span class="ident">ConvBinary</span>,
+        <span class="ident">ConvExpr</span>, <span class="ident">ConvExprKind</span>, <span class="ident">ConvFuncDef</span>, <span class="ident">ConvProgram</span>, <span class="ident">ConvProgramKind</span>, <span class="ident">ConvStmt</span>, <span class="ident">ConvStmtKind</span>,
+        <span class="ident">GVar</span>, <span class="ident">LVar</span>, <span class="ident">Type</span>,
     },
     <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">UnexpectedTypeSizeStatus</span>},
     <span class="ident">unimplemented_err</span>,
@@ -612,6 +716,7 @@
         <span class="ident">status</span>: <span class="ident">UnexpectedTypeSizeStatus</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
+            <span class="number">1</span> =&gt; (<span class="string">&quot;BYTE PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">byte</span>()),
             <span class="number">4</span> =&gt; (<span class="string">&quot;DWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">dword</span>()),
             <span class="number">8</span> =&gt; (<span class="string">&quot;QWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">status</span>)),
@@ -630,6 +735,7 @@
         <span class="ident">status</span>: <span class="ident">UnexpectedTypeSizeStatus</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
+            <span class="number">1</span> =&gt; (<span class="string">&quot;BYTE PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">byte</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
             <span class="number">4</span> =&gt; (<span class="string">&quot;DWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">dword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
             <span class="number">8</span> =&gt; (<span class="string">&quot;QWORD PTR&quot;</span>, <span class="ident">lhs</span>.<span class="ident">qword</span>(), <span class="ident">rhs</span>.<span class="ident">qword</span>()),
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">status</span>)),
@@ -696,6 +802,8 @@
                         <span class="ident">init</span>: <span class="ident">init</span>.<span class="ident">clone</span>(),
                     };
                     <span class="kw">let</span> <span class="ident">size_hint</span> <span class="op">=</span> <span class="op">|</span><span class="ident">ty</span>: <span class="ident">Type</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">base_type</span>().<span class="ident">size_of</span>() {
+                        <span class="comment">// TODO: byte or string</span>
+                        <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;.string&quot;</span>),
                         <span class="number">4</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;long&quot;</span>),
                         <span class="number">8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;quad&quot;</span>),
                         <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_type_size_error</span>(
@@ -705,10 +813,11 @@
                     };
                     <span class="kw">match</span> <span class="ident">init</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">init</span>) =&gt; <span class="kw">match</span> <span class="ident">ty</span> {
-                            <span class="ident">Type::Base</span>(<span class="ident">BaseType::Int</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.long {}&quot;</span>, <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ConstInitializer::Expr</span>(<span class="ident">ConstExpr</span> { <span class="ident">kind</span>: <span class="ident">ConstExprKind::Num</span>(<span class="ident">num</span>), <span class="ident">ty</span>: <span class="kw">_</span>, <span class="ident">pos</span>:<span class="kw">_</span> }) <span class="op">=</span> <span class="ident">init</span> {<span class="ident">num</span>} <span class="kw">else</span> {<span class="macro">unreachable!</span>()})<span class="question-mark">?</span>,
+                            <span class="ident">Type::Base</span>(<span class="ident">BaseType::Int</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.long {}&quot;</span>, <span class="ident">init</span>.<span class="ident">get_num_lit</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>,
+                            <span class="ident">Type::Base</span>(<span class="ident">BaseType::Char</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.byte {}&quot;</span>, <span class="ident">init</span>.<span class="ident">get_num_lit</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>,
                             <span class="comment">// TODO : ptr init</span>
-                            <span class="ident">Type::Ptr</span>(<span class="kw">_</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.quad 0&quot;</span>)<span class="question-mark">?</span>,
-                            <span class="ident">Type::Func</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unreacheable. `Type::Func` has to be analyzed as FuncDeclaration not global variable.&quot;</span>),
+                            <span class="ident">Type::Ptr</span>(<span class="kw">_</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.quad {}&quot;</span>, <span class="ident">init</span>.<span class="ident">display_content</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">unimplemented_err!</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">init</span>.<span class="ident">get_pos</span>(), <span class="string">&quot;Ptr Initializer should not be array.&quot;</span>))<span class="question-mark">?</span>)<span class="question-mark">?</span>,
+                            <span class="ident">Type::Func</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable.&quot;</span>),
                             <span class="ident">Type::Array</span>(<span class="ident">ty</span>, <span class="ident">size</span>) =&gt; {<span class="kw">match</span> <span class="ident">init</span> {
                                 <span class="ident">ConstInitializer::Array</span>(<span class="ident">vec</span>) =&gt; {
                                     <span class="kw">let</span> <span class="ident">size_of</span> <span class="op">=</span> <span class="ident">ty</span>.<span class="ident">size_of</span>();
@@ -720,7 +829,7 @@
                                             <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.zero {}&quot;</span>, <span class="ident">size_of</span>)<span class="question-mark">?</span>;
                                         }
                                 }},
-                                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(<span class="string">&quot;Num literal initializer should not be used for array global variable.&quot;</span>)),
+                                <span class="ident">ConstInitializer::Expr</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(<span class="string">&quot;Num literal initializer should not be used for array global variable.&quot;</span>)),
                             }},
                         },
                         <span class="prelude-val">None</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.zero {}&quot;</span>, <span class="ident">ty</span>.<span class="ident">size_of</span>())<span class="question-mark">?</span>,
@@ -896,6 +1005,7 @@
             }
             <span class="ident">ConvExprKind::GVar</span>(<span class="ident">GVar</span> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">init</span> }) =&gt; {
                 <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">size_of</span>() {
+                    <span class="number">1</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov al, BYTE PTR {}[rip]&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>,
                     <span class="number">4</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov eax, DWORD PTR {}[rip]&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>,
                     <span class="number">8</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rax, QWORD PTR {}[rip]&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>,
                     <span class="kw">_</span> =&gt; {
@@ -906,6 +1016,37 @@
                     }
                 };
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
+            }
+            <span class="ident">ConvExprKind::Cast</span>(<span class="ident">expr</span>, <span class="ident">cast_kind</span>) =&gt; <span class="self">self</span>.<span class="ident">gen_cast</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">expr</span>, <span class="kw-2">&amp;</span><span class="ident">cast_kind</span>)<span class="question-mark">?</span>,
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_cast</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+        <span class="ident">expr</span>: <span class="ident">ConvExpr</span>,
+        <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">CastKind</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">kind</span> {
+            <span class="ident">CastKind::Base2Base</span>(<span class="ident">from</span>, <span class="ident">to</span>) =&gt; {
+                <span class="comment">// e.g) char -&gt; int</span>
+                <span class="kw">if</span> <span class="ident">from</span>.<span class="ident">bytes</span>() <span class="op">&lt;</span> <span class="ident">to</span>.<span class="ident">bytes</span>() {
+                    <span class="kw">let</span> <span class="ident">from</span>: <span class="ident">RegSize</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">into</span>();
+                    <span class="kw">let</span> <span class="ident">to</span>: <span class="ident">RegSize</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
+                    <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
+                    <span class="comment">// e.g) `movsx eax, al`</span>
+                    <span class="macro">writeln!</span>(
+                        <span class="ident">f</span>,
+                        <span class="string">&quot;  movsx {}, {}&quot;</span>,
+                        <span class="ident">RegKind::Rax</span>.<span class="ident">size_to_reg_name</span>(<span class="ident">to</span>),
+                        <span class="ident">RegKind::Rax</span>.<span class="ident">size_to_reg_name</span>(<span class="ident">from</span>)
+                    )<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>;
+                }
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -1064,7 +1205,74 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RegSize</span> {
+    <span class="ident">Byte</span>,
+    <span class="ident">Dword</span>,
+    <span class="ident">Qword</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">RegSize</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">size</span> {
+            <span class="number">1</span> =&gt; <span class="ident"><span class="self">Self</span>::Byte</span>,
+            <span class="number">4</span> =&gt; <span class="ident"><span class="self">Self</span>::Dword</span>,
+            <span class="number">8</span> =&gt; <span class="ident"><span class="self">Self</span>::Qword</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+        })
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegSize</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">RegSize::Byte</span> =&gt; <span class="string">&quot;BYTE&quot;</span>,
+            <span class="ident">RegSize::Dword</span> =&gt; <span class="string">&quot;DWORD&quot;</span>,
+            <span class="ident">RegSize::Qword</span> =&gt; <span class="string">&quot;QWORD&quot;</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">RegSize</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">size_to_name</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RegSize</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">size</span> {
+            <span class="number">1</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::Byte</span>),
+            <span class="number">4</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::Dword</span>),
+            <span class="number">8</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::Qword</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">RegKind</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">size_to_reg_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">RegSize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw">match</span> <span class="ident">size</span> {
+            <span class="ident">RegSize::Byte</span> =&gt; <span class="self">self</span>.<span class="ident">byte</span>(),
+            <span class="ident">RegSize::Dword</span> =&gt; <span class="self">self</span>.<span class="ident">dword</span>(),
+            <span class="ident">RegSize::Qword</span> =&gt; <span class="self">self</span>.<span class="ident">qword</span>(),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">RegKind::Rax</span> =&gt; <span class="string">&quot;al&quot;</span>,
+            <span class="ident">RegKind::Rdi</span> =&gt; <span class="string">&quot;dil&quot;</span>,
+            <span class="ident">RegKind::Rsi</span> =&gt; <span class="string">&quot;sil&quot;</span>,
+            <span class="ident">RegKind::Rdx</span> =&gt; <span class="string">&quot;dl&quot;</span>,
+            <span class="ident">RegKind::Rcx</span> =&gt; <span class="string">&quot;cl&quot;</span>,
+            <span class="ident">RegKind::Rbp</span> =&gt; <span class="string">&quot;bpl&quot;</span>,
+            <span class="ident">RegKind::Rsp</span> =&gt; <span class="string">&quot;spl&quot;</span>,
+            <span class="ident">RegKind::R8</span> =&gt; <span class="string">&quot;r8b&quot;</span>,
+            <span class="ident">RegKind::R9</span> =&gt; <span class="string">&quot;r9b&quot;</span>,
+            <span class="ident">RegKind::R10</span> =&gt; <span class="string">&quot;r10b&quot;</span>,
+            <span class="ident">RegKind::R11</span> =&gt; <span class="string">&quot;r11b&quot;</span>,
+            <span class="ident">RegKind::R12</span> =&gt; <span class="string">&quot;r12b&quot;</span>,
+            <span class="ident">RegKind::R13</span> =&gt; <span class="string">&quot;r13b&quot;</span>,
+            <span class="ident">RegKind::R14</span> =&gt; <span class="string">&quot;r14b&quot;</span>,
+            <span class="ident">RegKind::R15</span> =&gt; <span class="string">&quot;r15b&quot;</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">dword</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">RegKind::Rax</span> =&gt; <span class="string">&quot;eax&quot;</span>,

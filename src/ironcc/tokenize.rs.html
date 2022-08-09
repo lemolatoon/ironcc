@@ -471,6 +471,9 @@
 <span id="466">466</span>
 <span id="467">467</span>
 <span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">ParseErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
@@ -583,6 +586,7 @@
                         <span class="string">&quot;while&quot;</span> =&gt; <span class="ident">TokenKind::While</span>,
                         <span class="string">&quot;for&quot;</span> =&gt; <span class="ident">TokenKind::For</span>,
                         <span class="string">&quot;int&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Int</span>),
+                        <span class="string">&quot;char&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Char</span>),
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
                     },
@@ -655,6 +659,8 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeToken</span> {
     <span class="doccomment">/// `int`, type specifier</span>
     <span class="ident">Int</span>,
+    <span class="doccomment">/// `char`, type specifier</span>
+    <span class="ident">Char</span>,
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DelimToken</span> {
