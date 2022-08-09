@@ -809,6 +809,11 @@ impl<'a> Analyzer<'a> {
                 }
                 Ok(ConvExpr::new_unary(ConvUnaryOp::BitInvert, operand))
             }
+            UnaryOp::LogicalNot => {
+                let eq_with_0 =
+                    Binary::new(BinOpKind::Eq, operand, Box::new(Expr::new_num(0, pos)));
+                Ok(self.traverse_binary(eq_with_0, pos)?)
+            }
         }
     }
 
