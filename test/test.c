@@ -100,6 +100,30 @@ int main()
     return 0;
 }
 
+int exit(int status);
+int printf2(char *msg, int arg0, int arg1);
+int assertion_failed(int index, int expected, int got)
+{
+    printf2("Assertion_failed At test%d\n", index, 0);
+    printf2("Expected %d, but got %d\n", expected, got);
+    exit(1);
+}
+
+int passed(int index) { printf2("Test %d passed\n", index, 0); }
+
+int assert(int index, int expected, int got)
+{
+    if (expected != got)
+    {
+        assertion_failed(index, expected, got);
+    }
+    else
+    {
+        passed(index);
+    }
+    return 0;
+}
+
 int test0() { return 3; }
 
 int test0_2() { return g(2); }
@@ -608,6 +632,10 @@ int test32()
     assert(32, -5, ~a);
     assert(32, -10, ~9);
     assert(32, 2, ~(-3));
+    char c = 3;
+    assert(32, -4, ~c);
+    char *hello_world = "Hello World";
+    assert(32, 108, hello_world[3]);
     return 0;
 }
 

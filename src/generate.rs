@@ -375,7 +375,7 @@ impl<'a> Generator<'a> {
             ConvUnaryOp::BitInvert => {
                 assert!(operand_ty == Type::Base(BaseType::Int));
                 self.pop(f, format_args!("rax"))?;
-                writeln!(f, "not eax")?;
+                writeln!(f, "  not eax")?;
                 self.push(f, format_args!("rax"))?;
             }
         }
