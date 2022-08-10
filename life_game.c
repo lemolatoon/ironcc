@@ -7,17 +7,16 @@
 int printf(char *msg);
 int usleep(int time);
 
-#define SIZE 20
 
-int count_nbr(int (*grid)[SIZE], int i, int j, int size);
+int count_nbr(int (*grid)[20], int i, int j, int size);
 
 int main()
 {
-  int neighbour_count[SIZE][SIZE];
-  int grid[SIZE][SIZE];
-  for (int i = 0; i < SIZE; i = i + 1)
+  int neighbour_count[20][20];
+  int grid[20][20];
+  for (int i = 0; i < 20; i = i + 1)
   {
-    for (int j = 0; j < SIZE; j = j + 1)
+    for (int j = 0; j < 20; j = j + 1)
     {
       grid[i][j] = 0;
     }
@@ -43,22 +42,22 @@ int main()
   for (steps = 0; steps < 50; steps = steps + 1)
   {
     printf("\e[0;0H");
-    for (i = 0; i < SIZE; i = i + 1)
+    for (i = 0; i < 20; i = i + 1)
     {
       printf("\n");
-      for (j = 0; j < SIZE; j = j + 1)
+      for (j = 0; j < 20; j = j + 1)
       {
         if (grid[i][j] == 1)
           printf("\e[42m  \e[m");
         else
           printf("\e[47m  \e[m");
-        neighbour_count[i][j] = count_nbr(grid, i, j, SIZE);
+        neighbour_count[i][j] = count_nbr(grid, i, j, 20);
       }
     }
 
-    for (i = 0; i < SIZE; i = i + 1)
+    for (i = 0; i < 20; i = i + 1)
     {
-      for (j = 0; j < SIZE; j = j + 1)
+      for (j = 0; j < 20; j = j + 1)
       {
         if (grid[i][j] >= 1)
         {
@@ -80,7 +79,7 @@ int main()
   return 0;
 }
 
-int count_nbr(int (*grid)[SIZE], int i, int j, int size)
+int count_nbr(int (*grid)[20], int i, int j, int size)
 {
   int n_count = 0;
   if (i - 1 >= 0)
