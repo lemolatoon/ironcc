@@ -6,6 +6,12 @@
 <declaration>               := <declaration-specifiers> <init-declarator>* ";"
 <declaration-specifiers>    := <type-specifiers>
 <type-specifiers>           := "int"
+                                | "char"
+                                | <struct-or-union-specifier>
+
+<struct-or-union-specifier> := struct <ident>? "{" <struct-declaration-list> "}"
+                                | struct <ident>
+<struct-declaration-list>   := <struct-declaration-list> <type-specifier> <declarator>
 
 <init-declarator>           := <declarator> ("=" <initializer>)?
 <declarator>                := "*"* <direct-declarator>
@@ -34,15 +40,18 @@
 
 
 <expr>                      := <assign>
-<assign>                    := <equality> ("=" assign)?
+<assign>                    := <bit-wise-and> ("=" <assign>)?
+<bit-wise-and>              := <equality> ("&" <equality>)*
 <equality>                  := <relational> ("==" <relational> | "!=" <relational>)*
-<relational>                := <add> ("<" <add> | "<=" <add> | ">" <add> | ">=" <add>)*
+<relational>                := <shift> ("<" <shift> | "<=" <shift> | ">" <shift> | ">=" <shift>)*
+<shift>                     := <add> ("<<" <add> | ">>" <add>)*
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
 <unary>                     := <postfix>
                                 | "+" <mul>
                                 | "-" <mul>
                                 | "~" <mul>
+                                | "!" <mul>
                                 | "*" <mul>
                                 | "&" <mul>
                                 | "sizeof" <unary>

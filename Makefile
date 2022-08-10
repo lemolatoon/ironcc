@@ -25,6 +25,15 @@ testc: $(COMPILER) test/test.c
 	$(CC) test.s test_utils.c $(CFLAGS) -o tmp && \
 	./tmp
 
+life_game.s: $(COMPILER) life_game.c
+	cargo run life_game.c
+
+life: life_game.s
+	clang -g3 life_game.s
+	./a.out
+
+	
+
 
 cargo_test: FORCE
 	cargo test

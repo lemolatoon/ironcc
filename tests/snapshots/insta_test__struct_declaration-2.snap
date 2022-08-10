@@ -1,0 +1,100 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: Declaration(
+                Declaration {
+                    ty_spec: StructOrUnion(
+                        WithList(
+                            Some(
+                                "my_struct_tag",
+                            ),
+                            [
+                                StructDeclaration {
+                                    ty_spec: Int,
+                                    declarator: Declarator {
+                                        n_star: 0,
+                                        direct_declarator: Ident(
+                                            "a",
+                                        ),
+                                    },
+                                },
+                                StructDeclaration {
+                                    ty_spec: Char,
+                                    declarator: Declarator {
+                                        n_star: 0,
+                                        direct_declarator: Ident(
+                                            "b",
+                                        ),
+                                    },
+                                },
+                            ],
+                        ),
+                    ),
+                    init_declarator: None,
+                    pos: Position {
+                        n_char: 0,
+                        n_line: 0,
+                    },
+                },
+            ),
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
+        },
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        ty_spec: StructOrUnion(
+                                            WithTag(
+                                                "my_struct_tag",
+                                            ),
+                                        ),
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "my_struct",
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 4,
+                                            n_line: 8,
+                                        },
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+            pos: Position {
+                n_char: 0,
+                n_line: 6,
+            },
+        },
+    ],
+}

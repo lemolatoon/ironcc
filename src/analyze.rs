@@ -21,6 +21,7 @@ pub struct Analyzer<'a> {
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
+    pub tag_scope: Vec<BTreeMap<String, Taged>>,
     pub conv_program: ConvProgram,
     lc_label: usize,
 }
@@ -32,6 +33,7 @@ impl<'a> Analyzer<'a> {
             input,
             offset: 0,
             func_map,
+            tag_scope: Vec::new(),
             scope: Scope::new(),
             conv_program: ConvProgram::new(),
             lc_label: 0,
@@ -61,28 +63,33 @@ impl<'a> Analyzer<'a> {
                     kind: ProgramKind::Declaration(declaration),
                     pos: _,
                 } => {
-                    let name = declaration.ident_name();
-                    let init = &declaration.initializer;
-                    let pos = declaration.pos;
-                    match declaration.ty(self)? {
-                        ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            let gvar = self.new_global_variable(init, name, ty, pos)?;
-                            self.conv_program.push(ConvProgramKind::Global(gvar));
-                        }
-                        Type::Func(ret_ty, args) => {
-                            if self.func_map.get(&name.to_string()).is_some() {
-                                return Err(CompileError::new_redefined_variable(
-                                    self.input,
-                                    name.to_string(),
-                                    pos,
-                                    VariableKind::Func,
-                                ));
+                    if let Some(init_declarator) = declaration.init_declarator {
+                        let name = init_declarator.ident_name();
+                        let init = &init_declarator.initializer.as_ref();
+                        let pos = declaration.pos;
+                        match self.get_type(&declaration.ty_spec, &init_declarator.declarator)? {
+                            ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
+                                let gvar = self.new_global_variable(init, name, ty, pos)?;
+                                self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
-                            self.func_map.insert(
-                                name.to_string(),
-                                Func::new_raw(name.to_string(), args, *ret_ty, pos),
-                            );
+                            Type::Func(ret_ty, args) => {
+                                if self.func_map.get(&name.to_string()).is_some() {
+                                    return Err(CompileError::new_redefined_variable(
+                                        self.input,
+                                        name.to_string(),
+                                        pos,
+                                        VariableKind::Func,
+                                    ));
+                                }
+                                self.func_map.insert(
+                                    name.to_string(),
+                                    Func::new_raw(name.to_string(), args, *ret_ty, pos),
+                                );
+                            }
                         }
+                    } else {
+                        // struct declaration
+                        todo!()
                     }
                 }
             }
@@ -93,14 +100,14 @@ impl<'a> Analyzer<'a> {
     /// Construct Global Variable and register it to `self.scope`
     pub fn new_global_variable(
         &mut self,
-        init: &Option<Initializer>,
+        init: &Option<&Initializer>,
         name: &str,
         // global variable's type
         ty: Type,
         pos: Position,
     ) -> Result<GVar, CompileError> {
         let init = init
-            .as_ref()
+            // .as_ref()
             .map(|expr| {
                 expr.clone().map(|expr| {
                     ConstExpr::try_eval_as_const(
@@ -214,8 +221,15 @@ impl<'a> Analyzer<'a> {
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
-                let ty = self.get_type(&arg.ty_spec, &arg.declarator)?;
+                let ty = self.get_type(
+                    &arg.ty_spec,
+                    &arg.init_declarator
+                        .as_ref()
+                        .unwrap_or_else(|| todo!("struct"))
+                        .declarator,
+                )?;
                 let name = arg.ident_name();
+                let name = name.as_ref().expect("struct");
                 let lvar =
                     self.scope
                         .register_lvar(self.input, arg.pos, &mut self.offset, name, ty)?;
@@ -279,11 +293,14 @@ impl<'a> Analyzer<'a> {
                                 self.input,
                                 declaration.pos,
                                 &mut self.offset,
-                                declaration.ident_name(),
+                                declaration.ident_name().unwrap_or_else(|| todo!("struct")),
                                 ty.clone(),
                             )?;
                             // lvar_map.insert(declaration.ident_name().to_string(), lvar.clone());
-                            if let Some(init) = declaration.initializer {
+                            if let Some(init) = declaration
+                                .init_declarator
+                                .map_or(None, |init_declarator| init_declarator.initializer)
+                            {
                                 Ok(Some(self.new_init_expr(
                                     init,
                                     lvar,
@@ -316,26 +333,29 @@ impl<'a> Analyzer<'a> {
                 self.scope.pop_scope(&mut self.offset);
                 block
             }
-            StmtKind::Declare(declare) => {
-                let ty = declare.ty(self)?;
+            StmtKind::Declare(declaration) => {
+                let ty = declaration.ty(self)?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
-                let name = declare.ident_name();
+                let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
                 let lvar = self.scope.register_lvar(
                     self.input,
-                    declare.pos,
+                    declaration.pos,
                     &mut self.offset,
                     name,
                     ty.clone(),
                 )?;
-                match declare.initializer {
+                match declaration
+                    .init_declarator
+                    .map_or(None, |init_declarator| init_declarator.initializer)
+                {
                     Some(Initializer::Expr(init)) => {
                         let rhs = self.traverse_expr(init, BTreeSet::new())?;
                         ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                             // Safety:
                             // the lvar is generated by `register_lvar` which initializes lvar_map
-                            ConvExpr::new_lvar_raw(lvar, ty, declare.pos),
+                            ConvExpr::new_lvar_raw(lvar, ty, declaration.pos),
                             rhs,
-                            declare.pos,
+                            declaration.pos,
                         )?)
                     }
                     Some(Initializer::Array(vec)) => {
@@ -362,16 +382,16 @@ impl<'a> Analyzer<'a> {
                                                 ),
                                                 ConvExpr::new_num(
                                                     (ty.base_type().size_of() * idx) as isize,
-                                                    declare.pos,
+                                                    declaration.pos,
                                                 ),
                                                 ty.base_type().clone(),
                                                 expr_pos,
                                             ),
                                             ty.base_type().clone(),
-                                            declare.pos,
+                                            declaration.pos,
                                         ),
                                         rhs,
-                                        declare.pos,
+                                        declaration.pos,
                                     )?))
                                 })
                                 .collect::<Result<Vec<_>, CompileError>>()?,
@@ -453,7 +473,7 @@ impl<'a> Analyzer<'a> {
                         .collect(),
                 ));
                 let gvar = self.new_global_variable(
-                    &init,
+                    &init.as_ref(),
                     &name,
                     Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
                     pos,
@@ -726,6 +746,32 @@ impl<'a> Analyzer<'a> {
                     )
                 }
             },
+            op @ (ConvBinOpKind::LShift | ConvBinOpKind::RShift) => {
+                if lhs.ty != rhs.ty {
+                    // TODO: char -> int
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type on lshift or rshift is not allowed".to_string()),
+                    ));
+                }
+                let lhs_ty = lhs.ty.clone();
+                Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
+            }
+            op @ ConvBinOpKind::BitWiseAnd => {
+                if lhs.ty != rhs.ty {
+                    // TODO: char -> int
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type on bit wise and is not allowed".to_string()),
+                    ));
+                }
+                let lhs_ty = lhs.ty.clone();
+                Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
+            }
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
                     return Err(CompileError::new_type_error(
@@ -862,7 +908,14 @@ impl<'a> Analyzer<'a> {
                         Box::new(ty),
                         args.iter()
                             .map(|declaration| {
-                                self.get_type(&declaration.ty_spec, &declaration.declarator)
+                                self.get_type(
+                                    &declaration.ty_spec,
+                                    &declaration
+                                        .init_declarator
+                                        .as_ref()
+                                        .expect("get type for struct is not yet implemented.")
+                                        .declarator,
+                                )
                             })
                             .collect::<Result<Vec<_>, CompileError>>()?,
                     );
@@ -1241,6 +1294,7 @@ pub struct Scope {
     global: BTreeMap<String, GVar>,
     pub scopes: Vec<BTreeMap<String, LVar>>,
     max_stack_size: usize,
+    diff: Vec<usize>,
 }
 
 impl Scope {
@@ -1249,20 +1303,18 @@ impl Scope {
             global: BTreeMap::new(),
             scopes: Vec::new(),
             max_stack_size: 0,
+            diff: Vec::new(),
         }
     }
     pub fn push_scope(&mut self) {
+        self.diff.push(0);
         self.scopes.push(BTreeMap::new());
     }
 
     pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
-        let poped = self.scopes.pop();
-        *offset -= poped.map_or(0, |scope_map| {
-            scope_map
-                .values()
-                .fold(0, |acc, lvar| acc + lvar.ty.size_of())
-        });
+        self.scopes.pop();
+        *offset -= self.diff.pop().expect("diff has to exist.");
     }
 
     pub const fn get_stack_size(&self) -> usize {
@@ -1361,7 +1413,9 @@ impl Scope {
                 VariableKind::Global,
             ));
         }
-        *new_offset += ty.size_of();
+        *self.diff.last_mut().expect("this has to exist.") +=
+            align_to(*new_offset, &ty) - *new_offset;
+        *new_offset = align_to(*new_offset, &ty);
         let lvar = LVar::new_raw(*new_offset, ty);
         self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
@@ -1369,10 +1423,42 @@ impl Scope {
     }
 }
 
+/// calculate aligned next offset
+pub const fn align_to(current_offset: usize, ty: &Type) -> usize {
+    if (current_offset + ty.size_of()) % ty.align_of() == 0 {
+        return current_offset + ty.size_of();
+    }
+    current_offset + ty.size_of() + ty.align_of() - current_offset % ty.align_of()
+}
+
 impl Default for Scope {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum Taged {
+    Struct(Struct),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Struct {
+    members: Vec<StructMember>,
+}
+
+impl Struct {
+    pub fn new(members: Vec<(String, Type)>) -> Self {
+        for (_name, _ty) in members {}
+        todo!()
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct StructMember {
+    name: String,
+    offset: usize,
+    ty: Type,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1616,6 +1702,30 @@ impl ConstExpr {
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     <= Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
             )),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::LShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    << Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::RShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    >> Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::BitWiseAnd,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    & Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
             ConvExprKind::Num(num) => num_expr(num),
             ConvExprKind::LVar(_)
             | ConvExprKind::GVar(_)
@@ -1665,6 +1775,7 @@ impl From<&TypeSpec> for Type {
         match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
             TypeSpec::Char => Type::Base(BaseType::Char),
+            TypeSpec::StructOrUnion(_) => todo!(),
         }
     }
 }
@@ -1674,8 +1785,19 @@ impl Type {
         match self {
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
-            Type::Ptr(_) | Type::Func(_, _) => 8,
+            Type::Ptr(_) => 8,
+            Type::Func(_, _) => 1,
             Type::Array(ty, size) => ty.size_of() * *size,
+        }
+    }
+
+    pub const fn align_of(&self) -> usize {
+        match self {
+            Type::Base(BaseType::Int) => 4,
+            Type::Base(BaseType::Char) => 1,
+            Type::Ptr(_) => 8,
+            Type::Func(_, _) => todo!(),
+            Type::Array(base_ty, _) => base_ty.align_of(),
         }
     }
 
@@ -1757,6 +1879,12 @@ pub enum ConvBinOpKind {
     Lt,
     /// The `!=` operator (Not equal to)
     Ne,
+    /// The `<<` operator
+    LShift,
+    /// The `>>` operator
+    RShift,
+    /// The `&` operator
+    BitWiseAnd,
 }
 
 impl ConvBinOpKind {
@@ -1772,6 +1900,9 @@ impl ConvBinOpKind {
             BinOpKind::Lt => Some(ConvBinOpKind::Lt),
             BinOpKind::Ge | BinOpKind::Gt => None,
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
+            BinOpKind::LShift => Some(ConvBinOpKind::LShift),
+            BinOpKind::RShift => Some(ConvBinOpKind::RShift),
+            BinOpKind::BitWiseAnd => Some(ConvBinOpKind::BitWiseAnd),
         }
     }
 }

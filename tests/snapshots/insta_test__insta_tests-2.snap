@@ -23,13 +23,17 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 0,
-                                            direct_declarator: Ident(
-                                                "i",
-                                            ),
-                                        },
-                                        initializer: None,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "i",
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
                                         pos: Position {
                                             n_char: 0,
                                             n_line: 2,
@@ -71,13 +75,17 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 1,
-                                            direct_declarator: Ident(
-                                                "p",
-                                            ),
-                                        },
-                                        initializer: None,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 1,
+                                                    direct_declarator: Ident(
+                                                        "p",
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
                                         pos: Position {
                                             n_char: 0,
                                             n_line: 4,
@@ -127,13 +135,17 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 1,
-                                            direct_declarator: Ident(
-                                                "p2",
-                                            ),
-                                        },
-                                        initializer: None,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 1,
+                                                    direct_declarator: Ident(
+                                                        "p2",
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
                                         pos: Position {
                                             n_char: 0,
                                             n_line: 5,

@@ -148,3 +148,32 @@ fn exclamation() {
     let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
+
+#[test]
+fn binary_literal() {
+    let src = "
+    int main() {
+        int a = 0b1111;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn bit_wise_and() {
+    let src = "
+    int main() {
+        return 0b111 & 0b101;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+// #[test]
+// fn struct_declaration() {
+//     let src = include_str!("insta_srcs/struct_declaration.c");
+//     let mut tester = CachedProcessor::new(src);
+//     all!(tester);
+// }

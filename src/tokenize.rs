@@ -1,4 +1,4 @@
-use crate::error::{CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind};
+use crate::error::{CompileError, CompileErrorKind, TokenizeErrorKind};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
@@ -37,8 +37,20 @@ impl<'a> Tokenizer<'a> {
                 input = &input[num_this_line_char..];
                 continue;
             }
+            if input.starts_with("#") {
+                let mut input_iter = input.chars();
+                let mut num_this_line_char = 1;
+                while !matches!(input_iter.next(), Some('\n')) {
+                    num_this_line_char += 1;
+                }
+                pos.advance_line();
+                input = &input[num_this_line_char..];
+                continue;
+            }
 
             let symbols = vec![
+                ("<<", TokenKind::BinOp(BinOpToken::LShift)),
+                (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
@@ -76,8 +88,8 @@ impl<'a> Tokenizer<'a> {
                 // string literal
                 let mut chars = input.chars().peekable();
                 chars.next(); // -> "
-                let mut str_lit = String::from(chars.next().unwrap());
-                let mut len_token = 2;
+                let mut str_lit = String::new();
+                let mut len_token = 1;
                 loop {
                     match chars.peek() {
                         Some('"') => {
@@ -88,12 +100,14 @@ impl<'a> Tokenizer<'a> {
                         Some('\\') => {
                             len_token += 1;
                             chars.next();
-                            // In the future, this pattern would have multiple arms.
-                            #[allow(clippy::single_match_else)]
                             match chars.next() {
                                 Some('n') => {
                                     len_token += 1;
                                     str_lit.push('\n');
+                                }
+                                Some('e') => {
+                                    len_token += 1;
+                                    str_lit.push(0x1bu8.into());
                                 }
                                 _ => {
                                     pos.advance(len_token);
@@ -117,6 +131,42 @@ impl<'a> Tokenizer<'a> {
                 }
                 tokens.push(Token::new(
                     TokenKind::Str(str_lit),
+                    pos.get_pos_and_advance(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
+            }
+
+            if input.starts_with("0b") {
+                input = &input[2..];
+                let mut chars = input.chars().peekable();
+                let mut number = String::new();
+                while let Some(&('0' | '1')) = chars.peek() {
+                    number.push(chars.next().unwrap());
+                }
+                let len_token = number.len();
+                let mut num = 0;
+                for c in number.chars() {
+                    num *= 2;
+                    match c {
+                        '0' => {}
+                        '1' => {
+                            num += 1;
+                        }
+                        _ => {
+                            return Err(CompileError::new_expected_failed(
+                                self.input,
+                                Box::new("'0' | '1'"),
+                                Token {
+                                    kind: Box::new(TokenKind::Ident(c.to_string())),
+                                    pos,
+                                },
+                            ));
+                        }
+                    }
+                }
+                tokens.push(Token::new(
+                    TokenKind::Num(num as isize),
                     pos.get_pos_and_advance(len_token),
                 ));
                 input = &input[len_token..];
@@ -151,7 +201,19 @@ impl<'a> Tokenizer<'a> {
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
                 while let Some(
-                    &('a'..='z') | '_' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9',
+                    &('a'..='z')
+                    | &('A'..='Z')
+                    | '_'
+                    | '0'
+                    | '1'
+                    | '2'
+                    | '3'
+                    | '4'
+                    | '5'
+                    | '6'
+                    | '7'
+                    | '8'
+                    | '9',
                 ) = chars.peek()
                 {
                     ident.push(chars.next().unwrap());
@@ -167,6 +229,7 @@ impl<'a> Tokenizer<'a> {
                         "int" => TokenKind::Type(TypeToken::Int),
                         "char" => TokenKind::Type(TypeToken::Char),
                         "sizeof" => TokenKind::SizeOf,
+                        "struct" => TokenKind::Struct,
                         _ => TokenKind::Ident(ident),
                     },
                     pos.get_pos_and_advance(len_token),
@@ -216,8 +279,10 @@ pub enum TokenKind {
     While,
     /// `for`, reserved word
     For,
-    /// `SizeOf`, reserved word
+    /// `sizeof`, reserved word
     SizeOf,
+    /// `struct`, reserved word
+    Struct,
     /// `=` assign
     Eq,
     /// `,`
@@ -272,6 +337,10 @@ pub enum BinOpToken {
     EqEq,
     /// `!=` Not equal
     Ne,
+    /// `<<`
+    LShift,
+    /// `>>`
+    RShift,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -384,7 +453,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     /// Return next token is `TokenKind::Type` or not.(Not consume)
     pub fn is_type(&mut self) -> bool {
         if let Some(token) = self.peek() {
-            return matches!(*token.kind, TokenKind::Type(_));
+            return matches!(*token.kind, TokenKind::Type(_) | TokenKind::Struct);
         }
         false
     }
@@ -395,23 +464,35 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         match token {
             Some(Token { kind, pos }) => match *kind {
                 TokenKind::Num(num) => Ok(num),
-                _ => {
-                    Err(self
-                        .new_expected_failed(Box::new("TokenKind::Num(_)"), Token::new(*kind, pos)))
-                }
+                _ => Err(CompileError::new_expected_failed(
+                    self.input,
+                    Box::new("TokenKind::Num(_)"),
+                    Token::new(*kind, pos),
+                )),
             },
-            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Num(_)"))),
+            _ => Err(CompileError::new_unexpected_eof(
+                self.input,
+                Box::new("TokenKind::Num(_)"),
+            )),
         }
     }
 
+    /// if next token is ident, then return its name, otherwise return Err(_)
     pub fn consume_ident(&mut self) -> Result<String, CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
                 TokenKind::Ident(name) => Ok(name),
-                _ => Err(self.new_expected_failed(Box::new("TokenKind::Ident(_)"), token)),
+                _ => Err(CompileError::new_expected_failed(
+                    self.input,
+                    Box::new("TokenKind::Ident(_)"),
+                    token,
+                )),
             },
-            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Ident(_)"))),
+            _ => Err(CompileError::new_unexpected_eof(
+                self.input,
+                Box::new("TokenKind::Ident(_)"),
+            )),
         }
     }
 
@@ -422,12 +503,16 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(Token { kind: got, pos: _ })
                 if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof =>
             {
-                Err(self.new_unexpected_eof(Box::new(kind)))
+                Err(CompileError::new_unexpected_eof(self.input, Box::new(kind)))
             }
-            None => Err(self.new_unexpected_eof(Box::new(kind))),
+            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
-                    return Err(self.new_expected_failed(Box::new(kind), token));
+                    return Err(CompileError::new_expected_failed(
+                        self.input,
+                        Box::new(kind),
+                        token,
+                    ));
                 }
                 Ok(())
             }
@@ -453,20 +538,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(token) => matches!(token, TokenKind::Eof),
             None => panic!("This stream is already used."),
         }
-    }
-
-    pub fn new_unexpected_eof(&self, kind: Box<dyn Debug>) -> CompileError {
-        CompileError::new(
-            self.input,
-            CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
-        )
-    }
-
-    pub fn new_expected_failed(&self, expect: Box<dyn Debug>, got: Token) -> CompileError {
-        CompileError::new(
-            self.input,
-            CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
-        )
     }
 }
 

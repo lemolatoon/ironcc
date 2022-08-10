@@ -534,6 +534,13 @@ fn extract_func_ty(src: &str) -> Type {
     }
 }
 
+#[test]
+fn align_to_test() {
+    assert_eq!(8, align_to(1, &Type::Base(BaseType::Int)));
+    assert_eq!(8, align_to(4, &Type::Base(BaseType::Int)));
+    assert_eq!(16, align_to(10, &Type::Base(BaseType::Int)));
+}
+
 fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
     ConvProgram::with_vec(components)
 }

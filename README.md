@@ -63,3 +63,8 @@ make testall
 
 # ChangeLog を見る
 各 [pull requests](https://github.com/lemolatoon/ironcc/pulls) ごとに ChangeLog を書いています。
+
+# Life Game を動かす
+```
+make life
+```

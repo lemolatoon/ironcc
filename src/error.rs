@@ -60,6 +60,19 @@ impl From<io::Error> for CompileError {
 }
 
 impl CompileError {
+    pub fn new_unexpected_eof(input: &str, kind: Box<dyn Debug>) -> CompileError {
+        CompileError::new(
+            input,
+            CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
+        )
+    }
+
+    pub fn new_expected_failed(input: &str, expect: Box<dyn Debug>, got: Token) -> CompileError {
+        CompileError::new(
+            input,
+            CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
+        )
+    }
     pub fn new_unexpected_eof_tokenize(src: &str, pos: Position) -> Self {
         CompileError::new(
             src,

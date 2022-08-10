@@ -1,11 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_ok()
-{
-    printf("\033[32mALL TESTS PASSED\033[0m\n");
-}
-
 int printf2(char *msg, int arg0, int arg1)
 {
     printf(msg, arg0, arg1);

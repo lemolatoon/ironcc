@@ -108,7 +108,14 @@ impl<'a> Generator<'a> {
                     writeln!(f, "{}:", name)?;
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
-                    writeln!(f, "  sub rsp, {}", stack_size)?;
+                    let align_to_16 = |rsp| {
+                        if rsp % 16 == 0 {
+                            rsp
+                        } else {
+                            rsp + 16 - rsp % 16
+                        }
+                    };
+                    writeln!(f, "  sub rsp, {}", align_to_16(stack_size))?;
 
                     // assign args
                     let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
@@ -244,6 +251,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *then)?;
                 if let Some(inc) = inc {
                     self.gen_expr(f, inc)?;
+                    self.pop(f, format_args!("rax"))?;
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
@@ -314,11 +322,11 @@ impl<'a> Generator<'a> {
 
                 // 16bit align
                 if self.depth % 2 == 0 {
-                    writeln!(f, "  call {}", name)?;
-                } else {
                     writeln!(f, "  sub rsp, 8")?; // align
                     writeln!(f, "  call {}", name)?;
                     writeln!(f, "  add rsp, 8")?; // revert
+                } else {
+                    writeln!(f, "  call {}", name)?;
                 }
                 self.push(f, format_args!("rax"))?;
             }
@@ -455,6 +463,17 @@ impl<'a> Generator<'a> {
             ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
             ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
             ConvBinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
+            ConvBinOpKind::LShift => {
+                writeln!(f, "  mov rcx, rdi")?;
+                writeln!(f, "  sal rax, cl")?;
+            }
+            ConvBinOpKind::RShift => {
+                writeln!(f, "  mov rcx, rdi")?;
+                writeln!(f, "  sar rax, cl")?;
+            }
+            ConvBinOpKind::BitWiseAnd => {
+                writeln!(f, "  and rax, rdi")?;
+            }
             ConvBinOpKind::Div => {
                 // rdx-rax = rax
                 writeln!(f, "  cqo")?;

@@ -45,7 +45,7 @@ ConvProgram {
                         ),
                     ],
                 ),
-                stack_size: 16,
+                stack_size: 20,
             },
         ),
     ],

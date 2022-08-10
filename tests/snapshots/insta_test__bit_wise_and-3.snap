@@ -1,0 +1,66 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func(
+                    Base(
+                        Int,
+                    ),
+                    [],
+                ),
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Return(
+                            ConvExpr {
+                                kind: Binary(
+                                    ConvBinary {
+                                        kind: BitWiseAnd,
+                                        lhs: ConvExpr {
+                                            kind: Num(
+                                                7,
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 2,
+                                            },
+                                        },
+                                        rhs: ConvExpr {
+                                            kind: Num(
+                                                5,
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            pos: Position {
+                                                n_char: 21,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 19,
+                                    n_line: 2,
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 0,
+            },
+        ),
+    ],
+}
