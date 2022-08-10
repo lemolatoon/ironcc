@@ -1268,6 +1268,7 @@ pub struct Scope {
     global: BTreeMap<String, GVar>,
     pub scopes: Vec<BTreeMap<String, LVar>>,
     max_stack_size: usize,
+    diff: Vec<usize>,
 }
 
 impl Scope {
@@ -1276,20 +1277,23 @@ impl Scope {
             global: BTreeMap::new(),
             scopes: Vec::new(),
             max_stack_size: 0,
+            diff: Vec::new(),
         }
     }
     pub fn push_scope(&mut self) {
+        self.diff.push(0);
         self.scopes.push(BTreeMap::new());
     }
 
     pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
         let poped = self.scopes.pop();
-        *offset -= poped.map_or(0, |scope_map| {
-            scope_map
-                .values()
-                .fold(0, |acc, lvar| acc + lvar.ty.size_of())
-        });
+        // *offset -= poped.map_or(0, |scope_map| {
+        //     scope_map
+        //         .values()
+        //         .fold(0, |acc, lvar| acc + lvar.ty.size_of())
+        // });
+        *offset -= self.diff.pop().expect("diff has to exist.");
     }
 
     pub const fn get_stack_size(&self) -> usize {
@@ -1388,9 +1392,12 @@ impl Scope {
                 VariableKind::Global,
             ));
         }
+        *self.diff.last_mut().expect("this has to exist.") +=
+            align_to(*new_offset, &ty) - *new_offset;
         *new_offset = align_to(*new_offset, &ty);
         let lvar = LVar::new_raw(*new_offset, ty);
         self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
+        dbg!(*new_offset);
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
         Ok(lvar)
     }
