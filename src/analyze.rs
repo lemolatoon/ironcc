@@ -1388,12 +1388,20 @@ impl Scope {
                 VariableKind::Global,
             ));
         }
-        *new_offset += ty.size_of();
+        *new_offset = align_to(*new_offset, &ty);
         let lvar = LVar::new_raw(*new_offset, ty);
         self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
         Ok(lvar)
     }
+}
+
+/// calculate aligned next offset
+pub const fn align_to(current_offset: usize, ty: &Type) -> usize {
+    if (current_offset + ty.size_of()) % ty.align_of() == 0 {
+        return current_offset + ty.size_of();
+    }
+    current_offset + ty.size_of() + ty.align_of() - current_offset % ty.align_of()
 }
 
 impl Default for Scope {
@@ -1726,8 +1734,19 @@ impl Type {
         match self {
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
-            Type::Ptr(_) | Type::Func(_, _) => 8,
+            Type::Ptr(_) => 8,
+            Type::Func(_, _) => 1,
             Type::Array(ty, size) => ty.size_of() * *size,
+        }
+    }
+
+    pub const fn align_of(&self) -> usize {
+        match self {
+            Type::Base(BaseType::Int) => 4,
+            Type::Base(BaseType::Char) => 1,
+            Type::Ptr(_) => 8,
+            Type::Func(_, _) => todo!(),
+            Type::Array(base_ty, _) => base_ty.align_of(),
         }
     }
 

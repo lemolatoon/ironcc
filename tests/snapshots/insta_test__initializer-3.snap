@@ -64,7 +64,7 @@ ConvProgram {
                                     ConvExpr {
                                         kind: LVar(
                                             LVar {
-                                                offset: 12,
+                                                offset: 16,
                                                 ty: Ptr(
                                                     Base(
                                                         Int,
@@ -141,7 +141,7 @@ ConvProgram {
                         ),
                     ],
                 ),
-                stack_size: 12,
+                stack_size: 16,
             },
         ),
     ],
