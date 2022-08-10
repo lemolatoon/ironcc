@@ -113,6 +113,11 @@ int assertion_failed(int index, int expected, int got)
 
 int passed(int index) { printf2("Test %d passed\n", index, 0); }
 
+int print_ok()
+{
+    printf2("\e[32mALL TESTS PASSED\e[0m\n", 0, 0);
+}
+
 int assert(int index, int expected, int got)
 {
     if (expected != got)
