@@ -51,7 +51,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
+        let (type_spec, pos) = self.parse_type_specifier(tokens)?;
         let n_star = Self::parse_pointer(tokens)?;
         let direct_declarator = self.parse_direct_declarator(tokens)?;
         // have to be block stmt
@@ -74,7 +74,7 @@ impl<'a> Parser<'a> {
     {
         // <declaration-specifiers> := <type-specifiers>
         // first element of direct diclarator is Ident
-        let (type_spec, pos) = Self::parse_type_specifier(tokens)?;
+        let (type_spec, pos) = self.parse_type_specifier(tokens)?;
         // <pointer>*
         let n_star = Self::parse_pointer(tokens)?;
         let direct_declarator = self.parse_direct_declarator(tokens)?;
@@ -178,20 +178,82 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse_type_specifier<I>(
+        &self,
         tokens: &mut TokenStream<I>,
     ) -> Result<(TypeSpec, Position), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        match tokens.next() {
+        let peeked = tokens.peek().map(|token| token.clone());
+        let result = match peeked {
             Some(Token { kind, pos }) => match *kind {
                 TokenKind::Type(TypeToken::Int) => Ok((TypeSpec::Int, pos)),
                 TokenKind::Type(TypeToken::Char) => Ok((TypeSpec::Char, pos)),
-                _ => Err(tokens
-                    .new_expected_failed(Box::new("TokenKind::Type(_)"), Token::new(*kind, pos))),
+                TokenKind::Struct => Ok((
+                    TypeSpec::StructOrUnion(self.parse_struct_or_union_specifier(tokens)?),
+                    pos,
+                )),
+                _ => {
+                    return Err(CompileError::new_expected_failed(
+                        self.input,
+                        Box::new("TokenKind::Type(_)"),
+                        Token::new(*kind.clone(), pos),
+                    ))
+                }
             },
-            None => Err(tokens.new_unexpected_eof(Box::new("ToKenKind::Type(_)"))),
+            None => {
+                return Err(CompileError::new_unexpected_eof(
+                    self.input,
+                    Box::new("ToKenKind::Type(_)"),
+                ))
+            }
+        };
+        tokens.next();
+        result
+    }
+
+    pub fn parse_struct_or_union_specifier<I>(
+        &self,
+        tokens: &mut TokenStream<I>,
+    ) -> Result<StructOrUnionSpec, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        if let Ok(name) = tokens.consume_ident() {
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
+                // <struct-declaration-list>
+                dbg!(tokens.clone().collect::<Vec<_>>());
+                let list = self.parse_struct_declaration_list(tokens)?;
+                dbg!(list);
+                dbg!(tokens.clone().collect::<Vec<_>>());
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Brace))?;
+            }
         }
+        todo!()
+    }
+    pub fn parse_struct_declaration_list<I>(
+        &self,
+        tokens: &mut TokenStream<I>,
+    ) -> Result<Vec<StructDeclaration>, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
+        let declarator = self.parse_declarator(tokens)?;
+        let mut list = vec![StructDeclaration {
+            ty_spec,
+            declarator,
+        }];
+        tokens.expect(TokenKind::Semi)?;
+        while let Ok((ty_spec, _)) = self.parse_type_specifier(tokens) {
+            let declarator = self.parse_declarator(tokens)?;
+            list.push(StructDeclaration {
+                ty_spec,
+                declarator,
+            });
+            tokens.expect(TokenKind::Semi)?;
+        }
+        Ok(list)
     }
 
     pub fn parse_pointer<I>(tokens: &mut TokenStream<I>) -> Result<usize, CompileError>
@@ -293,7 +355,12 @@ impl<'a> Parser<'a> {
         let lhs = self.parse_equality(tokens)?;
         let (kind, &pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos),
-            None => return Err(tokens.new_unexpected_eof(Box::new("Token"))),
+            None => {
+                return Err(CompileError::new_unexpected_eof(
+                    self.input,
+                    Box::new("Token"),
+                ))
+            }
         };
         match **kind {
             TokenKind::Eq => {
@@ -393,7 +460,12 @@ impl<'a> Parser<'a> {
     {
         let (kind, pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos),
-            None => return Err(tokens.new_unexpected_eof(Box::new("Token"))),
+            None => {
+                return Err(CompileError::new_unexpected_eof(
+                    self.input,
+                    Box::new("Token"),
+                ))
+            }
         };
         let pos = *pos;
         Ok(match **kind {
@@ -430,7 +502,7 @@ impl<'a> Parser<'a> {
                 ) {
                     // e.g) sizeof(int)
                     tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-                    let expr = Expr::new_type_sizeof(Self::parse_type_name(tokens)?, pos);
+                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                     expr
                 } else {
@@ -492,20 +564,20 @@ impl<'a> Parser<'a> {
                     // local variable
                     Expr::new_lvar(name, pos)
                 }
-                TokenKind::Eof => return Err(tokens.new_unexpected_eof(Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
-                _ => return Err(tokens.new_expected_failed(Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, pos))),
+                TokenKind::Eof => return Err(CompileError::new_unexpected_eof(self.input, Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
+                _ => return Err(CompileError::new_expected_failed(self.input, Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, pos))),
             }),
-            None => Err(tokens.new_unexpected_eof(Box::new(
+            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",
             ))),
         }
     }
 
-    pub fn parse_type_name<I>(tokens: &mut TokenStream<I>) -> Result<TypeName, CompileError>
+    pub fn parse_type_name<I>(&self, tokens: &mut TokenStream<I>) -> Result<TypeName, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (ty_spec, pos) = Self::parse_type_specifier(tokens)?;
+        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         let n_star = Self::parse_pointer(tokens)?;
         // TODO: support DirectAbstractDeclarator
         let abs_declarator = if n_star == 0 {
@@ -588,10 +660,7 @@ pub struct Declaration {
     // type-specifier
     pub ty_spec: TypeSpec,
     // init-declarator
-    // declarator
-    pub declarator: Declarator,
-    // initializer
-    pub initializer: Option<Initializer>,
+    pub init_declarator: Option<InitDeclarator>,
     pub pos: Position,
 }
 
@@ -606,21 +675,37 @@ impl Declaration {
     ) -> Self {
         Self {
             ty_spec,
-            declarator: Declarator::new(n_star, direct_declarator),
-            initializer,
+            init_declarator: Some(InitDeclarator {
+                declarator: Declarator::new(n_star, direct_declarator),
+                initializer,
+            }),
             pos,
         }
     }
 
-    pub fn ident_name(&self) -> &str {
-        self.declarator.direct_declarator.ident_name()
+    pub fn ident_name(&self) -> Option<&str> {
+        self.init_declarator
+            .as_ref()
+            .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
     pub fn ty(&self, analyzer: &mut Analyzer) -> Result<Type, CompileError> {
-        analyzer.get_type(&self.ty_spec, &self.declarator)
+        analyzer.get_type(
+            &self.ty_spec,
+            &self
+                .init_declarator
+                .as_ref()
+                .expect("get_type for struct is not yet implemented.")
+                .declarator,
+        )
     }
 }
 
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct InitDeclarator {
+    pub declarator: Declarator,
+    pub initializer: Option<Initializer>,
+}
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Declarator {
     pub n_star: usize,
@@ -690,6 +775,19 @@ impl Initializer {
 pub enum TypeSpec {
     Int,
     Char,
+    StructOrUnion(StructOrUnionSpec),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum StructOrUnionSpec {
+    WithList(Option<String>, Vec<StructDeclaration>),
+    WithTag(String),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct StructDeclaration {
+    ty_spec: TypeSpec,
+    declarator: Declarator,
 }
 
 impl Stmt {
@@ -768,6 +866,7 @@ impl TypeName {
         let base = match self.spec_quals.0 {
             TypeSpec::Int => BaseType::Int,
             TypeSpec::Char => BaseType::Char,
+            TypeSpec::StructOrUnion(_) => todo!(),
         };
         let mut ty = Type::Base(base);
         if let Some(ref abstract_declarator) = self.abstract_declarator {

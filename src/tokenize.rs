@@ -167,6 +167,7 @@ impl<'a> Tokenizer<'a> {
                         "int" => TokenKind::Type(TypeToken::Int),
                         "char" => TokenKind::Type(TypeToken::Char),
                         "sizeof" => TokenKind::SizeOf,
+                        "struct" => TokenKind::Struct,
                         _ => TokenKind::Ident(ident),
                     },
                     pos.get_pos_and_advance(len_token),
@@ -216,8 +217,10 @@ pub enum TokenKind {
     While,
     /// `for`, reserved word
     For,
-    /// `SizeOf`, reserved word
+    /// `sizeof`, reserved word
     SizeOf,
+    /// `struct`, reserved word
+    Struct,
     /// `=` assign
     Eq,
     /// `,`
@@ -364,7 +367,8 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     pub fn consume(&mut self, kind: &TokenKind) -> bool {
         if let Some(token) = self.peek() {
             if *token.kind == *kind {
-                self.next();
+                // dbg
+                println!("consume {:?}", self.next());
                 return true;
             }
         }
@@ -395,23 +399,35 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         match token {
             Some(Token { kind, pos }) => match *kind {
                 TokenKind::Num(num) => Ok(num),
-                _ => {
-                    Err(self
-                        .new_expected_failed(Box::new("TokenKind::Num(_)"), Token::new(*kind, pos)))
-                }
+                _ => Err(CompileError::new_expected_failed(
+                    self.input,
+                    Box::new("TokenKind::Num(_)"),
+                    Token::new(*kind, pos),
+                )),
             },
-            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Num(_)"))),
+            _ => Err(CompileError::new_unexpected_eof(
+                self.input,
+                Box::new("TokenKind::Num(_)"),
+            )),
         }
     }
 
+    /// if next token is ident, then return its name, otherwise return Err(_)
     pub fn consume_ident(&mut self) -> Result<String, CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
                 TokenKind::Ident(name) => Ok(name),
-                _ => Err(self.new_expected_failed(Box::new("TokenKind::Ident(_)"), token)),
+                _ => Err(CompileError::new_expected_failed(
+                    self.input,
+                    Box::new("TokenKind::Ident(_)"),
+                    token,
+                )),
             },
-            _ => Err(self.new_unexpected_eof(Box::new("TokenKind::Ident(_)"))),
+            _ => Err(CompileError::new_unexpected_eof(
+                self.input,
+                Box::new("TokenKind::Ident(_)"),
+            )),
         }
     }
 
@@ -422,12 +438,16 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(Token { kind: got, pos: _ })
                 if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof =>
             {
-                Err(self.new_unexpected_eof(Box::new(kind)))
+                Err(CompileError::new_unexpected_eof(self.input, Box::new(kind)))
             }
-            None => Err(self.new_unexpected_eof(Box::new(kind))),
+            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
-                    return Err(self.new_expected_failed(Box::new(kind), token));
+                    return Err(CompileError::new_expected_failed(
+                        self.input,
+                        Box::new(kind),
+                        token,
+                    ));
                 }
                 Ok(())
             }
@@ -453,20 +473,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(token) => matches!(token, TokenKind::Eof),
             None => panic!("This stream is already used."),
         }
-    }
-
-    pub fn new_unexpected_eof(&self, kind: Box<dyn Debug>) -> CompileError {
-        CompileError::new(
-            self.input,
-            CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
-        )
-    }
-
-    pub fn new_expected_failed(&self, expect: Box<dyn Debug>, got: Token) -> CompileError {
-        CompileError::new(
-            self.input,
-            CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
-        )
     }
 }
 

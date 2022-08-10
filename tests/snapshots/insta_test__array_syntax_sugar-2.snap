@@ -23,26 +23,30 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 0,
-                                            direct_declarator: Array(
-                                                Ident(
-                                                    "array",
-                                                ),
-                                                Some(
-                                                    Expr {
-                                                        kind: Num(
-                                                            5,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Array(
+                                                        Ident(
+                                                            "array",
                                                         ),
-                                                        pos: Position {
-                                                            n_char: 11,
-                                                            n_line: 2,
-                                                        },
-                                                    },
-                                                ),
-                                            ),
-                                        },
-                                        initializer: None,
+                                                        Some(
+                                                            Expr {
+                                                                kind: Num(
+                                                                    5,
+                                                                ),
+                                                                pos: Position {
+                                                                    n_char: 11,
+                                                                    n_line: 2,
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
                                         pos: Position {
                                             n_char: 1,
                                             n_line: 2,

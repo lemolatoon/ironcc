@@ -8,31 +8,39 @@ Program {
             kind: Declaration(
                 Declaration {
                     ty_spec: Int,
-                    declarator: Declarator {
-                        n_star: 0,
-                        direct_declarator: Func(
-                            Ident(
-                                "printf",
-                            ),
-                            [
-                                Declaration {
-                                    ty_spec: Char,
-                                    declarator: Declarator {
-                                        n_star: 1,
-                                        direct_declarator: Ident(
-                                            "msg",
-                                        ),
-                                    },
-                                    initializer: None,
-                                    pos: Position {
-                                        n_char: 15,
-                                        n_line: 1,
-                                    },
-                                },
-                            ],
-                        ),
-                    },
-                    initializer: None,
+                    init_declarator: Some(
+                        InitDeclarator {
+                            declarator: Declarator {
+                                n_star: 0,
+                                direct_declarator: Func(
+                                    Ident(
+                                        "printf",
+                                    ),
+                                    [
+                                        Declaration {
+                                            ty_spec: Char,
+                                            init_declarator: Some(
+                                                InitDeclarator {
+                                                    declarator: Declarator {
+                                                        n_star: 1,
+                                                        direct_declarator: Ident(
+                                                            "msg",
+                                                        ),
+                                                    },
+                                                    initializer: None,
+                                                },
+                                            ),
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 1,
+                                            },
+                                        },
+                                    ],
+                                ),
+                            },
+                            initializer: None,
+                        },
+                    ),
                     pos: Position {
                         n_char: 4,
                         n_line: 1,
@@ -63,24 +71,28 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Char,
-                                        declarator: Declarator {
-                                            n_star: 1,
-                                            direct_declarator: Ident(
-                                                "msg",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: StrLit(
-                                                        "Hello World",
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 1,
+                                                    direct_declarator: Ident(
+                                                        "msg",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 20,
-                                                        n_line: 4,
-                                                    },
                                                 },
-                                            ),
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: StrLit(
+                                                                "Hello World",
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 20,
+                                                                n_line: 4,
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
                                         ),
                                         pos: Position {
                                             n_char: 8,

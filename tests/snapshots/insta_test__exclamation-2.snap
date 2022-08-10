@@ -23,24 +23,28 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 0,
-                                            direct_declarator: Ident(
-                                                "a",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: Num(
-                                                        1,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "a",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 16,
-                                                        n_line: 2,
-                                                    },
                                                 },
-                                            ),
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: Num(
+                                                                1,
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 16,
+                                                                n_line: 2,
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
                                         ),
                                         pos: Position {
                                             n_char: 8,

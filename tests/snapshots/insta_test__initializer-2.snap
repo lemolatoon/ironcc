@@ -23,24 +23,28 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 0,
-                                            direct_declarator: Ident(
-                                                "a",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: Num(
-                                                        5,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "a",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 20,
-                                                        n_line: 0,
-                                                    },
                                                 },
-                                            ),
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: Num(
+                                                                5,
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 20,
+                                                                n_line: 0,
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
                                         ),
                                         pos: Position {
                                             n_char: 12,
@@ -53,32 +57,36 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         ty_spec: Int,
-                                        declarator: Declarator {
-                                            n_star: 1,
-                                            direct_declarator: Ident(
-                                                "p",
-                                            ),
-                                        },
-                                        initializer: Some(
-                                            Expr(
-                                                Expr {
-                                                    kind: Addr(
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 1,
+                                                    direct_declarator: Ident(
+                                                        "p",
+                                                    ),
+                                                },
+                                                initializer: Some(
+                                                    Expr(
                                                         Expr {
-                                                            kind: LVar(
-                                                                "a",
+                                                            kind: Addr(
+                                                                Expr {
+                                                                    kind: LVar(
+                                                                        "a",
+                                                                    ),
+                                                                    pos: Position {
+                                                                        n_char: 33,
+                                                                        n_line: 0,
+                                                                    },
+                                                                },
                                                             ),
                                                             pos: Position {
-                                                                n_char: 33,
+                                                                n_char: 32,
                                                                 n_line: 0,
                                                             },
                                                         },
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 32,
-                                                        n_line: 0,
-                                                    },
-                                                },
-                                            ),
+                                                ),
+                                            },
                                         ),
                                         pos: Position {
                                             n_char: 23,

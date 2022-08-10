@@ -6,6 +6,12 @@
 <declaration>               := <declaration-specifiers> <init-declarator>* ";"
 <declaration-specifiers>    := <type-specifiers>
 <type-specifiers>           := "int"
+                                | "char"
+                                | <struct-or-union-specifier>
+
+<struct-or-union-specifier> := struct <ident>? "{" <struct-declaration-list> "}"
+                                | struct <ident>
+<struct-declaration-list>   := <struct-declaration-list> <type-specifier> <declarator>
 
 <init-declarator>           := <declarator> ("=" <initializer>)?
 <declarator>                := "*"* <direct-declarator>
@@ -43,6 +49,7 @@
                                 | "+" <mul>
                                 | "-" <mul>
                                 | "~" <mul>
+                                | "!" <mul>
                                 | "*" <mul>
                                 | "&" <mul>
                                 | "sizeof" <unary>

@@ -148,3 +148,10 @@ fn exclamation() {
     let mut tester = CachedProcessor::new(src);
     all!(tester);
 }
+
+#[test]
+fn struct_declaration() {
+    let src = include_str!("insta_srcs/struct_declaration.c");
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
