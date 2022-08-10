@@ -135,6 +135,42 @@ impl<'a> Tokenizer<'a> {
                 continue;
             }
 
+            if input.starts_with("0b") {
+                input = &input[2..];
+                let mut chars = input.chars().peekable();
+                let mut number = String::new();
+                while let Some(&('0' | '1')) = chars.peek() {
+                    number.push(chars.next().unwrap());
+                }
+                let len_token = number.len();
+                let mut num = 0;
+                for c in number.chars() {
+                    num *= 2;
+                    match c {
+                        '0' => {}
+                        '1' => {
+                            num += 1;
+                        }
+                        _ => {
+                            return Err(CompileError::new_expected_failed(
+                                self.input,
+                                Box::new("'0' | '1'"),
+                                Token {
+                                    kind: Box::new(TokenKind::Ident(c.to_string())),
+                                    pos,
+                                },
+                            ));
+                        }
+                    }
+                }
+                tokens.push(Token::new(
+                    TokenKind::Num(num as isize),
+                    pos.get_pos_and_advance(len_token),
+                ));
+                input = &input[len_token..];
+                continue;
+            }
+
             if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
                 let mut chars = input.chars().peekable();
                 let mut number = String::from(chars.next().unwrap());

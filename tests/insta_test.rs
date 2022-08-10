@@ -149,6 +149,17 @@ fn exclamation() {
     all!(tester);
 }
 
+#[test]
+fn binary_literal() {
+    let src = "
+    int main() {
+        int a = 0b1111;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 // #[test]
 // fn struct_declaration() {
 //     let src = include_str!("insta_srcs/struct_declaration.c");
