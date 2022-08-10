@@ -73,13 +73,10 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         // <declaration-specifiers> := <type-specifiers>
-        // first element of direct diclarator is Ident
+        // first element of direct declarator is Ident
         let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         // <pointer>*
         let n_star = Self::parse_pointer(tokens)?;
-        // dbg
-        println!("before parse_direct_declarator");
-        dbg!(tokens.peek());
         if tokens.peek_expect(&TokenKind::Semi) {
             // InitDeclarator is None
             return Ok(Declaration {
@@ -236,21 +233,14 @@ impl<'a> Parser<'a> {
         if let Ok(name) = tokens.consume_ident() {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
                 // <struct-declaration-list>
-                dbg!(tokens.clone().collect::<Vec<_>>());
                 let list = self.parse_struct_declaration_list(tokens)?;
-                dbg!(&list);
-                dbg!(tokens.clone().collect::<Vec<_>>());
                 tokens.expect(TokenKind::CloseDelim(DelimToken::Brace))?;
-                dbg!(tokens.peek());
                 return Ok(StructOrUnionSpec::WithList(Some(name), list));
             }
             return Ok(StructOrUnionSpec::WithTag(name));
         } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             // <struct-declaration-list>
-            dbg!(tokens.clone().collect::<Vec<_>>());
             let list = self.parse_struct_declaration_list(tokens)?;
-            dbg!(&list);
-            dbg!(tokens.clone().collect::<Vec<_>>());
             tokens.expect(TokenKind::CloseDelim(DelimToken::Brace))?;
             return Ok(StructOrUnionSpec::WithList(None, list));
         }
@@ -274,7 +264,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, _) = self.parse_type_specifier(tokens)?;
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
             ty_spec,

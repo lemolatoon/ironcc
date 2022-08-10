@@ -2,9 +2,9 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        align_to, BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind,
-        ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt,
-        ConvUnaryOp, GVar, LVar, Type,
+        BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
+        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
+        GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     unimplemented_err,
@@ -109,12 +109,11 @@ impl<'a> Generator<'a> {
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
                     let align_to_16 = |rsp| {
-                        dbg!(rsp);
-                        dbg!(if rsp % 16 == 0 {
+                        if rsp % 16 == 0 {
                             rsp
                         } else {
                             rsp + 16 - rsp % 16
-                        })
+                        }
                     };
                     writeln!(f, "  sub rsp, {}", align_to_16(stack_size))?;
 

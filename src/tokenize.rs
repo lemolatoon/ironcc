@@ -1,4 +1,4 @@
-use crate::error::{CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind};
+use crate::error::{CompileError, CompileErrorKind, TokenizeErrorKind};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
@@ -433,8 +433,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     pub fn consume(&mut self, kind: &TokenKind) -> bool {
         if let Some(token) = self.peek() {
             if *token.kind == *kind {
-                // dbg
-                println!("consume {:?}", self.next());
+                self.next();
                 return true;
             }
         }

@@ -1313,12 +1313,7 @@ impl Scope {
 
     pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
-        let poped = self.scopes.pop();
-        // *offset -= poped.map_or(0, |scope_map| {
-        //     scope_map
-        //         .values()
-        //         .fold(0, |acc, lvar| acc + lvar.ty.size_of())
-        // });
+        self.scopes.pop();
         *offset -= self.diff.pop().expect("diff has to exist.");
     }
 
@@ -1423,7 +1418,6 @@ impl Scope {
         *new_offset = align_to(*new_offset, &ty);
         let lvar = LVar::new_raw(*new_offset, ty);
         self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
-        dbg!(*new_offset);
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
         Ok(lvar)
     }
@@ -1455,7 +1449,7 @@ pub struct Struct {
 
 impl Struct {
     pub fn new(members: Vec<(String, Type)>) -> Self {
-        for (name, ty) in members {}
+        for (_name, _ty) in members {}
         todo!()
     }
 }
