@@ -2,9 +2,9 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
-        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        GVar, LVar, Type,
+        align_to, BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind,
+        ConvBinary, ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt,
+        ConvUnaryOp, GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     unimplemented_err,
@@ -108,7 +108,15 @@ impl<'a> Generator<'a> {
                     writeln!(f, "{}:", name)?;
                     self.push(f, format_args!("rbp"))?;
                     writeln!(f, "  mov rbp, rsp")?;
-                    writeln!(f, "  sub rsp, {}", stack_size)?;
+                    let align_to_16 = |rsp| {
+                        dbg!(rsp);
+                        dbg!(if rsp % 16 == 0 {
+                            rsp
+                        } else {
+                            rsp + 16 - rsp % 16
+                        })
+                    };
+                    writeln!(f, "  sub rsp, {}", align_to_16(stack_size))?;
 
                     // assign args
                     let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
@@ -244,6 +252,7 @@ impl<'a> Generator<'a> {
                 self.gen_stmt(f, *then)?;
                 if let Some(inc) = inc {
                     self.gen_expr(f, inc)?;
+                    self.pop(f, format_args!("rax"))?;
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
