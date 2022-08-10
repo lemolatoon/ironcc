@@ -678,6 +678,25 @@
 <span id="673">673</span>
 <span id="674">674</span>
 <span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -788,7 +807,14 @@
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rbp&quot;</span>))<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rbp, rsp&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rsp, {}&quot;</span>, <span class="ident">stack_size</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">align_to_16</span> <span class="op">=</span> <span class="op">|</span><span class="ident">rsp</span><span class="op">|</span> {
+                        <span class="kw">if</span> <span class="ident">rsp</span> <span class="op">%</span> <span class="number">16</span> <span class="op">==</span> <span class="number">0</span> {
+                            <span class="ident">rsp</span>
+                        } <span class="kw">else</span> {
+                            <span class="ident">rsp</span> <span class="op">+</span> <span class="number">16</span> <span class="op">-</span> <span class="ident">rsp</span> <span class="op">%</span> <span class="number">16</span>
+                        }
+                    };
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rsp, {}&quot;</span>, <span class="ident">align_to_16</span>(<span class="ident">stack_size</span>))<span class="question-mark">?</span>;
 
                     <span class="comment">// assign args</span>
                     <span class="kw">let</span> <span class="ident">arg_reg</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">RegKind</span><span class="op">&gt;</span> <span class="op">=</span> [<span class="string">&quot;rdi&quot;</span>, <span class="string">&quot;rsi&quot;</span>, <span class="string">&quot;rdx&quot;</span>, <span class="string">&quot;rcx&quot;</span>, <span class="string">&quot;r8&quot;</span>, <span class="string">&quot;r9&quot;</span>]
@@ -924,6 +950,7 @@
                 <span class="self">self</span>.<span class="ident">gen_stmt</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">then</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inc</span>) <span class="op">=</span> <span class="ident">inc</span> {
                     <span class="self">self</span>.<span class="ident">gen_expr</span>(<span class="ident">f</span>, <span class="ident">inc</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
                 }
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  jmp .Lbegin{}&quot;</span>, <span class="ident">label_index</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;.Lend{}:&quot;</span>, <span class="ident">label_index</span>)<span class="question-mark">?</span>;
@@ -994,11 +1021,11 @@
 
                 <span class="comment">// 16bit align</span>
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">depth</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  call {}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// align</span>
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  call {}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  add rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// revert</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  call {}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                 }
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">f</span>, <span class="macro">format_args!</span>(<span class="string">&quot;rax&quot;</span>))<span class="question-mark">?</span>;
             }
@@ -1135,6 +1162,17 @@
             <span class="ident">ConvBinOpKind::Add</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  add rax, rdi&quot;</span>)<span class="question-mark">?</span>,
             <span class="ident">ConvBinOpKind::Sub</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sub rax, rdi&quot;</span>)<span class="question-mark">?</span>,
             <span class="ident">ConvBinOpKind::Mul</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  imul rax, rdi&quot;</span>)<span class="question-mark">?</span>,
+            <span class="ident">ConvBinOpKind::LShift</span> =&gt; {
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rcx, rdi&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sal rax, cl&quot;</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">ConvBinOpKind::RShift</span> =&gt; {
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  mov rcx, rdi&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  sar rax, cl&quot;</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">ConvBinOpKind::BitWiseAnd</span> =&gt; {
+                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  and rax, rdi&quot;</span>)<span class="question-mark">?</span>;
+            }
             <span class="ident">ConvBinOpKind::Div</span> =&gt; {
                 <span class="comment">// rdx-rax = rax</span>
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  cqo&quot;</span>)<span class="question-mark">?</span>;

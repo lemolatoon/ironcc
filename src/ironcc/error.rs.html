@@ -523,6 +523,19 @@
 <span id="518">518</span>
 <span id="519">519</span>
 <span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConstExpr</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExpr</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExprKind</span>;
@@ -585,6 +598,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">CompileError</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unexpected_eof</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">kind</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span> {
+        <span class="ident">CompileError::new</span>(
+            <span class="ident">input</span>,
+            <span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::UnexpectedEof</span>(<span class="ident">kind</span>)),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_expected_failed</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expect</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>, <span class="ident">got</span>: <span class="ident">Token</span>) -&gt; <span class="ident">CompileError</span> {
+        <span class="ident">CompileError::new</span>(
+            <span class="ident">input</span>,
+            <span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> { <span class="ident">expect</span>, <span class="ident">got</span> }),
+        )
+    }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unexpected_eof_tokenize</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">CompileError::new</span>(
             <span class="ident">src</span>,

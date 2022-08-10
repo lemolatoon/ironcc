@@ -536,7 +536,78 @@
 <span id="531">531</span>
 <span id="532">532</span>
 <span id="533">533</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">ParseErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
@@ -575,8 +646,20 @@
                 <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">num_this_line_char</span>..];
                 <span class="kw">continue</span>;
             }
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;#&quot;</span>) {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_iter</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_this_line_char</span> <span class="op">=</span> <span class="number">1</span>;
+                <span class="kw">while</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">input_iter</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>)) {
+                    <span class="ident">num_this_line_char</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                }
+                <span class="ident">pos</span>.<span class="ident">advance_line</span>();
+                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">num_this_line_char</span>..];
+                <span class="kw">continue</span>;
+            }
 
             <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="macro">vec!</span>[
+                (<span class="string">&quot;&lt;&lt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::LShift</span>)),
+                (<span class="string">&quot;&gt;&gt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::RShift</span>)),
                 (<span class="string">&quot;&lt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Le</span>)),
                 (<span class="string">&quot;&gt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Ge</span>)),
                 (<span class="string">&quot;==&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::EqEq</span>)),
@@ -614,8 +697,8 @@
                 <span class="comment">// string literal</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
                 <span class="ident">chars</span>.<span class="ident">next</span>(); <span class="comment">// -&gt; &quot;</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">str_lit</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="number">2</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">str_lit</span> <span class="op">=</span> <span class="ident">String::new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">loop</span> {
                     <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
                         <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) =&gt; {
@@ -626,12 +709,14 @@
                         <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; {
                             <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                             <span class="ident">chars</span>.<span class="ident">next</span>();
-                            <span class="comment">// In the future, this pattern would have multiple arms.</span>
-                            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::single_match_else</span>)]</span>
                             <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
                                 <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) =&gt; {
                                     <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                                     <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                                }
+                                <span class="prelude-val">Some</span>(<span class="string">&#39;e&#39;</span>) =&gt; {
+                                    <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                    <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="number">0x1bu8</span>.<span class="ident">into</span>());
                                 }
                                 <span class="kw">_</span> =&gt; {
                                     <span class="ident">pos</span>.<span class="ident">advance</span>(<span class="ident">len_token</span>);
@@ -655,6 +740,42 @@
                 }
                 <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
                     <span class="ident">TokenKind::Str</span>(<span class="ident">str_lit</span>),
+                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
+                ));
+                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
+                <span class="kw">continue</span>;
+            }
+
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) {
+                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span>..];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">String::new</span>();
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;0&#39;</span> <span class="op">|</span> <span class="string">&#39;1&#39;</span>)) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
+                    <span class="ident">number</span>.<span class="ident">push</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+                }
+                <span class="kw">let</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">number</span>.<span class="ident">chars</span>() {
+                    <span class="ident">num</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>;
+                    <span class="kw">match</span> <span class="ident">c</span> {
+                        <span class="string">&#39;0&#39;</span> =&gt; {}
+                        <span class="string">&#39;1&#39;</span> =&gt; {
+                            <span class="ident">num</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        }
+                        <span class="kw">_</span> =&gt; {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                                <span class="self">self</span>.<span class="ident">input</span>,
+                                <span class="ident">Box::new</span>(<span class="string">&quot;&#39;0&#39; | &#39;1&#39;&quot;</span>),
+                                <span class="ident">Token</span> {
+                                    <span class="ident">kind</span>: <span class="ident">Box::new</span>(<span class="ident">TokenKind::Ident</span>(<span class="ident">c</span>.<span class="ident">to_string</span>())),
+                                    <span class="ident">pos</span>,
+                                },
+                            ));
+                        }
+                    }
+                }
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
+                    <span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>),
                     <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
                 ));
                 <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
@@ -689,7 +810,19 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(
-                    <span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>) <span class="op">|</span> <span class="string">&#39;_&#39;</span> <span class="op">|</span> <span class="string">&#39;0&#39;</span> <span class="op">|</span> <span class="string">&#39;1&#39;</span> <span class="op">|</span> <span class="string">&#39;2&#39;</span> <span class="op">|</span> <span class="string">&#39;3&#39;</span> <span class="op">|</span> <span class="string">&#39;4&#39;</span> <span class="op">|</span> <span class="string">&#39;5&#39;</span> <span class="op">|</span> <span class="string">&#39;6&#39;</span> <span class="op">|</span> <span class="string">&#39;7&#39;</span> <span class="op">|</span> <span class="string">&#39;8&#39;</span> <span class="op">|</span> <span class="string">&#39;9&#39;</span>,
+                    <span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>)
+                    <span class="op">|</span> <span class="kw-2">&amp;</span>(<span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span>)
+                    <span class="op">|</span> <span class="string">&#39;_&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;0&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;1&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;2&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;3&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;4&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;5&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;6&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;7&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;8&#39;</span>
+                    <span class="op">|</span> <span class="string">&#39;9&#39;</span>,
                 ) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>()
                 {
                     <span class="ident">ident</span>.<span class="ident">push</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
@@ -705,6 +838,7 @@
                         <span class="string">&quot;int&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Int</span>),
                         <span class="string">&quot;char&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Char</span>),
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
+                        <span class="string">&quot;struct&quot;</span> =&gt; <span class="ident">TokenKind::Struct</span>,
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
                     },
                     <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
@@ -754,8 +888,10 @@
     <span class="ident">While</span>,
     <span class="doccomment">/// `for`, reserved word</span>
     <span class="ident">For</span>,
-    <span class="doccomment">/// `SizeOf`, reserved word</span>
+    <span class="doccomment">/// `sizeof`, reserved word</span>
     <span class="ident">SizeOf</span>,
+    <span class="doccomment">/// `struct`, reserved word</span>
+    <span class="ident">Struct</span>,
     <span class="doccomment">/// `=` assign</span>
     <span class="ident">Eq</span>,
     <span class="doccomment">/// `,`</span>
@@ -810,6 +946,10 @@
     <span class="ident">EqEq</span>,
     <span class="doccomment">/// `!=` Not equal</span>
     <span class="ident">Ne</span>,
+    <span class="doccomment">/// `&lt;&lt;`</span>
+    <span class="ident">LShift</span>,
+    <span class="doccomment">/// `&gt;&gt;`</span>
+    <span class="ident">RShift</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
@@ -922,7 +1062,7 @@
     <span class="doccomment">/// Return next token is `TokenKind::Type` or not.(Not consume)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
-            <span class="kw">return</span> <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>, <span class="ident">TokenKind::Type</span>(<span class="kw">_</span>));
+            <span class="kw">return</span> <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>, <span class="ident">TokenKind::Type</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Struct</span>);
         }
         <span class="bool-val">false</span>
     }
@@ -933,23 +1073,35 @@
         <span class="kw">match</span> <span class="ident">token</span> {
             <span class="prelude-val">Some</span>(<span class="ident">Token</span> { <span class="ident">kind</span>, <span class="ident">pos</span> }) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kind</span> {
                 <span class="ident">TokenKind::Num</span>(<span class="ident">num</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">num</span>),
-                <span class="kw">_</span> =&gt; {
-                    <span class="prelude-val">Err</span>(<span class="self">self</span>
-                        .<span class="ident">new_expected_failed</span>(<span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>), <span class="ident">Token::new</span>(<span class="kw-2">*</span><span class="ident">kind</span>, <span class="ident">pos</span>)))
-                }
+                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                    <span class="self">self</span>.<span class="ident">input</span>,
+                    <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>),
+                    <span class="ident">Token::new</span>(<span class="kw-2">*</span><span class="ident">kind</span>, <span class="ident">pos</span>),
+                )),
             },
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_eof</span>(<span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>))),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
+                <span class="self">self</span>.<span class="ident">input</span>,
+                <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>),
+            )),
         }
     }
 
+    <span class="doccomment">/// if next token is ident, then return its name, otherwise return Err(_)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
         <span class="kw">match</span> <span class="ident">token</span> {
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
                 <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">name</span>),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_expected_failed</span>(<span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>), <span class="ident">token</span>)),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                    <span class="self">self</span>.<span class="ident">input</span>,
+                    <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
+                    <span class="ident">token</span>,
+                )),
             },
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_eof</span>(<span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>))),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
+                <span class="self">self</span>.<span class="ident">input</span>,
+                <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
+            )),
         }
     }
 
@@ -960,12 +1112,16 @@
             <span class="prelude-val">Some</span>(<span class="ident">Token</span> { <span class="ident">kind</span>: <span class="ident">got</span>, <span class="ident">pos</span>: <span class="kw">_</span> })
                 <span class="kw">if</span> <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="ident">got</span>, <span class="ident">TokenKind::Eof</span>) <span class="op">&amp;&amp;</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TokenKind::Eof</span> =&gt;
             {
-                <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_eof</span>(<span class="ident">Box::new</span>(<span class="ident">kind</span>)))
+                <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">Box::new</span>(<span class="ident">kind</span>)))
             }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_eof</span>(<span class="ident">Box::new</span>(<span class="ident">kind</span>))),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">Box::new</span>(<span class="ident">kind</span>))),
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_expected_failed</span>(<span class="ident">Box::new</span>(<span class="ident">kind</span>), <span class="ident">token</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                        <span class="self">self</span>.<span class="ident">input</span>,
+                        <span class="ident">Box::new</span>(<span class="ident">kind</span>),
+                        <span class="ident">token</span>,
+                    ));
                 }
                 <span class="prelude-val">Ok</span>(())
             }
@@ -991,20 +1147,6 @@
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="macro">matches!</span>(<span class="ident">token</span>, <span class="ident">TokenKind::Eof</span>),
             <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;This stream is already used.&quot;</span>),
         }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unexpected_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span> {
-        <span class="ident">CompileError::new</span>(
-            <span class="self">self</span>.<span class="ident">input</span>,
-            <span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::UnexpectedEof</span>(<span class="ident">kind</span>)),
-        )
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_expected_failed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">expect</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>, <span class="ident">got</span>: <span class="ident">Token</span>) -&gt; <span class="ident">CompileError</span> {
-        <span class="ident">CompileError::new</span>(
-            <span class="self">self</span>.<span class="ident">input</span>,
-            <span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> { <span class="ident">expect</span>, <span class="ident">got</span> }),
-        )
     }
 }
 
