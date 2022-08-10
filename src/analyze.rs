@@ -746,6 +746,19 @@ impl<'a> Analyzer<'a> {
                     )
                 }
             },
+            op @ (ConvBinOpKind::LShift | ConvBinOpKind::RShift) => {
+                if lhs.ty != rhs.ty {
+                    // TODO: char -> int
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type on lshift or rshift is not allowed".to_string()),
+                    ));
+                }
+                let lhs_ty = lhs.ty.clone();
+                Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
+            }
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
                     return Err(CompileError::new_type_error(
@@ -1682,6 +1695,22 @@ impl ConstExpr {
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     <= Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
             )),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::LShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    << Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::RShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    >> Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
             ConvExprKind::Num(num) => num_expr(num),
             ConvExprKind::LVar(_)
             | ConvExprKind::GVar(_)
@@ -1835,6 +1864,10 @@ pub enum ConvBinOpKind {
     Lt,
     /// The `!=` operator (Not equal to)
     Ne,
+    /// The `<<` operator
+    LShift,
+    /// The `>>` operator
+    RShift,
 }
 
 impl ConvBinOpKind {
@@ -1850,6 +1883,8 @@ impl ConvBinOpKind {
             BinOpKind::Lt => Some(ConvBinOpKind::Lt),
             BinOpKind::Ge | BinOpKind::Gt => None,
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
+            BinOpKind::LShift => Some(ConvBinOpKind::LShift),
+            BinOpKind::RShift => Some(ConvBinOpKind::RShift),
         }
     }
 }

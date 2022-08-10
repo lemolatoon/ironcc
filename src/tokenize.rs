@@ -49,6 +49,8 @@ impl<'a> Tokenizer<'a> {
             }
 
             let symbols = vec![
+                ("<<", TokenKind::BinOp(BinOpToken::LShift)),
+                (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
@@ -335,6 +337,10 @@ pub enum BinOpToken {
     EqEq,
     /// `!=` Not equal
     Ne,
+    /// `<<`
+    LShift,
+    /// `>>`
+    RShift,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

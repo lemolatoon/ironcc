@@ -464,6 +464,14 @@ impl<'a> Generator<'a> {
             ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
             ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
             ConvBinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
+            ConvBinOpKind::LShift => {
+                writeln!(f, "  mov rcx, rdi")?;
+                writeln!(f, "  sal rax, cl")?;
+            }
+            ConvBinOpKind::RShift => {
+                writeln!(f, "  mov rcx, rdi")?;
+                writeln!(f, "  sar rax, cl")?;
+            }
             ConvBinOpKind::Div => {
                 // rdx-rax = rax
                 writeln!(f, "  cqo")?;

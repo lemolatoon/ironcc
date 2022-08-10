@@ -435,7 +435,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let mut lhs = self.parse_add(tokens)?;
+        let mut lhs = self.parse_shift(tokens)?;
         while let Some(Token { kind, pos }) = tokens.peek() {
             let pos = *pos;
             let op = match &**kind {
@@ -443,6 +443,25 @@ impl<'a> Parser<'a> {
                 TokenKind::BinOp(BinOpToken::Le) => BinOpKind::Le,
                 TokenKind::BinOp(BinOpToken::Gt) => BinOpKind::Gt,
                 TokenKind::BinOp(BinOpToken::Ge) => BinOpKind::Ge,
+                _ => break,
+            };
+            let pos = pos;
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_shift(tokens)?, pos);
+        }
+        Ok(lhs)
+    }
+
+    pub fn parse_shift<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_add(tokens)?;
+        while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
+            let op = match &**kind {
+                TokenKind::BinOp(BinOpToken::LShift) => BinOpKind::LShift,
+                TokenKind::BinOp(BinOpToken::RShift) => BinOpKind::RShift,
                 _ => break,
             };
             let pos = pos;
@@ -1133,4 +1152,8 @@ pub enum BinOpKind {
     Gt,
     /// The `!=` operator (Not equal to)
     Ne,
+    /// Ths `<<` operator
+    LShift,
+    /// Ths `>>` operator
+    RShift,
 }

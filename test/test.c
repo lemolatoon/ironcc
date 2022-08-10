@@ -641,6 +641,8 @@ int test32()
 
 int test33()
 {
+    assert(33, 4, 1 << 2);
+    assert(33, 1, 4 >> 2);
     return 0;
 }
 
