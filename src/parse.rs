@@ -560,7 +560,7 @@ impl<'a> Parser<'a> {
         let mut pos = expr.pos;
 
         while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-            expr = Expr::new_array(expr, self.parse_primary(tokens)?, pos);
+            expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
             pos = expr.pos;
             tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
         }

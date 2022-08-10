@@ -37,6 +37,16 @@ impl<'a> Tokenizer<'a> {
                 input = &input[num_this_line_char..];
                 continue;
             }
+            if input.starts_with("#") {
+                let mut input_iter = input.chars();
+                let mut num_this_line_char = 1;
+                while !matches!(input_iter.next(), Some('\n')) {
+                    num_this_line_char += 1;
+                }
+                pos.advance_line();
+                input = &input[num_this_line_char..];
+                continue;
+            }
 
             let symbols = vec![
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
@@ -76,8 +86,8 @@ impl<'a> Tokenizer<'a> {
                 // string literal
                 let mut chars = input.chars().peekable();
                 chars.next(); // -> "
-                let mut str_lit = String::from(chars.next().unwrap());
-                let mut len_token = 2;
+                let mut str_lit = String::new();
+                let mut len_token = 1;
                 loop {
                     match chars.peek() {
                         Some('"') => {
@@ -88,12 +98,14 @@ impl<'a> Tokenizer<'a> {
                         Some('\\') => {
                             len_token += 1;
                             chars.next();
-                            // In the future, this pattern would have multiple arms.
-                            #[allow(clippy::single_match_else)]
                             match chars.next() {
                                 Some('n') => {
                                     len_token += 1;
                                     str_lit.push('\n');
+                                }
+                                Some('e') => {
+                                    len_token += 1;
+                                    str_lit.push(0x1bu8.into());
                                 }
                                 _ => {
                                     pos.advance(len_token);
@@ -151,7 +163,19 @@ impl<'a> Tokenizer<'a> {
                 let mut chars = input.chars().peekable();
                 let mut ident = String::from(chars.next().unwrap());
                 while let Some(
-                    &('a'..='z') | '_' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9',
+                    &('a'..='z')
+                    | &('A'..='Z')
+                    | '_'
+                    | '0'
+                    | '1'
+                    | '2'
+                    | '3'
+                    | '4'
+                    | '5'
+                    | '6'
+                    | '7'
+                    | '8'
+                    | '9',
                 ) = chars.peek()
                 {
                     ident.push(chars.next().unwrap());

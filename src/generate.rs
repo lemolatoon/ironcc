@@ -314,11 +314,11 @@ impl<'a> Generator<'a> {
 
                 // 16bit align
                 if self.depth % 2 == 0 {
-                    writeln!(f, "  call {}", name)?;
-                } else {
                     writeln!(f, "  sub rsp, 8")?; // align
                     writeln!(f, "  call {}", name)?;
                     writeln!(f, "  add rsp, 8")?; // revert
+                } else {
+                    writeln!(f, "  call {}", name)?;
                 }
                 self.push(f, format_args!("rax"))?;
             }
