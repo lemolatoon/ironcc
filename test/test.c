@@ -36,6 +36,7 @@ int test30();
 int test31();
 int test32();
 int test33();
+int test34();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -95,6 +96,7 @@ int main()
     assert(31, 0, test31());
     assert(32, 0, test32());
     assert(33, 0, test33());
+    assert(34, 0, test34());
 
     print_ok();
     return 0;
@@ -643,6 +645,15 @@ int test33()
 {
     assert(33, 4, 1 << 2);
     assert(33, 1, 4 >> 2);
+    return 0;
+}
+
+int test34()
+{
+    assert(34, 0b101, 0b101 & 0b111);
+    assert(34, 0b10100, 0b10110 & 0b11100);
+    assert(34, 2, 2 & 3);
+    assert(34, 1026, 1098 & 1335);
     return 0;
 }
 

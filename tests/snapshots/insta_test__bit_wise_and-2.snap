@@ -1,0 +1,65 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Return(
+                                    Expr {
+                                        kind: Binary(
+                                            Binary {
+                                                kind: BitWiseAnd,
+                                                lhs: Expr {
+                                                    kind: Num(
+                                                        7,
+                                                    ),
+                                                    pos: Position {
+                                                        n_char: 15,
+                                                        n_line: 2,
+                                                    },
+                                                },
+                                                rhs: Expr {
+                                                    kind: Num(
+                                                        5,
+                                                    ),
+                                                    pos: Position {
+                                                        n_char: 21,
+                                                        n_line: 2,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 19,
+                                            n_line: 2,
+                                        },
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
+        },
+    ],
+}

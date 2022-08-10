@@ -759,6 +759,19 @@ impl<'a> Analyzer<'a> {
                 let lhs_ty = lhs.ty.clone();
                 Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
             }
+            op @ ConvBinOpKind::BitWiseAnd => {
+                if lhs.ty != rhs.ty {
+                    // TODO: char -> int
+                    return Err(CompileError::new_type_error(
+                        self.input,
+                        lhs,
+                        rhs,
+                        Some("incompatible type on bit wise and is not allowed".to_string()),
+                    ));
+                }
+                let lhs_ty = lhs.ty.clone();
+                Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
+            }
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
                 if lhs.ty != rhs.ty {
                     return Err(CompileError::new_type_error(
@@ -1711,6 +1724,14 @@ impl ConstExpr {
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     >> Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
             ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::BitWiseAnd,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                    & Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+            ),
             ConvExprKind::Num(num) => num_expr(num),
             ConvExprKind::LVar(_)
             | ConvExprKind::GVar(_)
@@ -1868,6 +1889,8 @@ pub enum ConvBinOpKind {
     LShift,
     /// The `>>` operator
     RShift,
+    /// The `&` operator
+    BitWiseAnd,
 }
 
 impl ConvBinOpKind {
@@ -1885,6 +1908,7 @@ impl ConvBinOpKind {
             BinOpKind::Ne => Some(ConvBinOpKind::Ne),
             BinOpKind::LShift => Some(ConvBinOpKind::LShift),
             BinOpKind::RShift => Some(ConvBinOpKind::RShift),
+            BinOpKind::BitWiseAnd => Some(ConvBinOpKind::BitWiseAnd),
         }
     }
 }

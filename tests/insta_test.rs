@@ -160,6 +160,17 @@ fn binary_literal() {
     all!(tester);
 }
 
+#[test]
+fn bit_wise_and() {
+    let src = "
+    int main() {
+        return 0b111 & 0b101;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 // #[test]
 // fn struct_declaration() {
 //     let src = include_str!("insta_srcs/struct_declaration.c");

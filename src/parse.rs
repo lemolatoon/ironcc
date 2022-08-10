@@ -388,7 +388,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let lhs = self.parse_equality(tokens)?;
+        let lhs = self.parse_bit_wise_and(tokens)?;
         let (kind, &pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos),
             None => {
@@ -405,6 +405,25 @@ impl<'a> Parser<'a> {
             }
             _ => Ok(lhs),
         }
+    }
+    pub fn parse_bit_wise_and<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_equality(tokens)?;
+        while let Some(Token { kind, pos }) = tokens.peek() {
+            let pos = *pos;
+            let op = match &**kind {
+                TokenKind::BinOp(BinOpToken::And) => BinOpKind::BitWiseAnd,
+                _ => break,
+            };
+            tokens.next();
+            lhs = Expr::new_binary(op, lhs, self.parse_equality(tokens)?, pos);
+        }
+        Ok(lhs)
     }
 
     pub fn parse_equality<'b, I>(
@@ -1152,8 +1171,10 @@ pub enum BinOpKind {
     Gt,
     /// The `!=` operator (Not equal to)
     Ne,
-    /// Ths `<<` operator
+    /// The `<<` operator
     LShift,
-    /// Ths `>>` operator
+    /// The `>>` operator
     RShift,
+    /// The `&` operator (bit wise and)
+    BitWiseAnd,
 }

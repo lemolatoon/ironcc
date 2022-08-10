@@ -472,6 +472,9 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  mov rcx, rdi")?;
                 writeln!(f, "  sar rax, cl")?;
             }
+            ConvBinOpKind::BitWiseAnd => {
+                writeln!(f, "  and rax, rdi")?;
+            }
             ConvBinOpKind::Div => {
                 // rdx-rax = rax
                 writeln!(f, "  cqo")?;
