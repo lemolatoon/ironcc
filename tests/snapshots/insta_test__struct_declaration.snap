@@ -95,10 +95,96 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eof,
+        kind: Type(
+            Int,
+        ),
         pos: Position {
             n_char: 0,
-            n_line: 5,
+            n_line: 6,
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 6,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paran,
+        ),
+        pos: Position {
+            n_char: 8,
+            n_line: 6,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paran,
+        ),
+        pos: Position {
+            n_char: 9,
+            n_line: 6,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 0,
+            n_line: 7,
+        },
+    },
+    Token {
+        kind: Struct,
+        pos: Position {
+            n_char: 4,
+            n_line: 8,
+        },
+    },
+    Token {
+        kind: Ident(
+            "my_struct_tag",
+        ),
+        pos: Position {
+            n_char: 11,
+            n_line: 8,
+        },
+    },
+    Token {
+        kind: Ident(
+            "my_struct",
+        ),
+        pos: Position {
+            n_char: 25,
+            n_line: 8,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 34,
+            n_line: 8,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 0,
+            n_line: 9,
+        },
+    },
+    Token {
+        kind: Eof,
+        pos: Position {
+            n_char: 1,
+            n_line: 9,
         },
     },
 ]

@@ -388,7 +388,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     /// Return next token is `TokenKind::Type` or not.(Not consume)
     pub fn is_type(&mut self) -> bool {
         if let Some(token) = self.peek() {
-            return matches!(*token.kind, TokenKind::Type(_));
+            return matches!(*token.kind, TokenKind::Type(_) | TokenKind::Struct);
         }
         false
     }

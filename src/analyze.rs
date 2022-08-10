@@ -21,6 +21,7 @@ pub struct Analyzer<'a> {
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
+    pub tag_scope: Vec<BTreeMap<String, Taged>>,
     pub conv_program: ConvProgram,
     lc_label: usize,
 }
@@ -32,6 +33,7 @@ impl<'a> Analyzer<'a> {
             input,
             offset: 0,
             func_map,
+            tag_scope: Vec::new(),
             scope: Scope::new(),
             conv_program: ConvProgram::new(),
             lc_label: 0,
@@ -61,31 +63,33 @@ impl<'a> Analyzer<'a> {
                     kind: ProgramKind::Declaration(declaration),
                     pos: _,
                 } => {
-                    let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
-                    let init = &declaration
-                        .init_declarator
-                        .as_ref()
-                        .map_or(None, |init_declarator| init_declarator.initializer.as_ref());
-                    let pos = declaration.pos;
-                    match declaration.ty(self)? {
-                        ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
-                            let gvar = self.new_global_variable(init, name, ty, pos)?;
-                            self.conv_program.push(ConvProgramKind::Global(gvar));
-                        }
-                        Type::Func(ret_ty, args) => {
-                            if self.func_map.get(&name.to_string()).is_some() {
-                                return Err(CompileError::new_redefined_variable(
-                                    self.input,
-                                    name.to_string(),
-                                    pos,
-                                    VariableKind::Func,
-                                ));
+                    if let Some(init_declarator) = declaration.init_declarator {
+                        let name = init_declarator.ident_name();
+                        let init = &init_declarator.initializer.as_ref();
+                        let pos = declaration.pos;
+                        match self.get_type(&declaration.ty_spec, &init_declarator.declarator)? {
+                            ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
+                                let gvar = self.new_global_variable(init, name, ty, pos)?;
+                                self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
-                            self.func_map.insert(
-                                name.to_string(),
-                                Func::new_raw(name.to_string(), args, *ret_ty, pos),
-                            );
+                            Type::Func(ret_ty, args) => {
+                                if self.func_map.get(&name.to_string()).is_some() {
+                                    return Err(CompileError::new_redefined_variable(
+                                        self.input,
+                                        name.to_string(),
+                                        pos,
+                                        VariableKind::Func,
+                                    ));
+                                }
+                                self.func_map.insert(
+                                    name.to_string(),
+                                    Func::new_raw(name.to_string(), args, *ret_ty, pos),
+                                );
+                            }
                         }
+                    } else {
+                        // struct declaration
+                        todo!()
                     }
                 }
             }
@@ -1396,6 +1400,30 @@ impl Default for Scope {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum Taged {
+    Struct(Struct),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Struct {
+    members: Vec<StructMember>,
+}
+
+impl Struct {
+    pub fn new(members: Vec<(String, Type)>) -> Self {
+        for (name, ty) in members {}
+        todo!()
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct StructMember {
+    name: String,
+    offset: usize,
+    ty: Type,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
