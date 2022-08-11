@@ -264,16 +264,18 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (ty_spec, _) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
+            pos,
             ty_spec,
             declarator,
         }];
         tokens.expect(TokenKind::Semi)?;
-        while let Ok((ty_spec, _)) = self.parse_type_specifier(tokens) {
+        while let Ok((ty_spec, pos)) = self.parse_type_specifier(tokens) {
             let declarator = self.parse_declarator(tokens)?;
             list.push(StructDeclaration {
+                pos,
                 ty_spec,
                 declarator,
             });
@@ -753,9 +755,10 @@ impl Declaration {
             .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
-    pub fn ty(&self, analyzer: &mut Analyzer) -> Result<Type, CompileError> {
+    pub fn ty(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
         analyzer.get_type(
-            &self.ty_spec,
+            conveted_type,
             &self
                 .init_declarator
                 .as_ref()
@@ -857,8 +860,20 @@ pub enum StructOrUnionSpec {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct StructDeclaration {
+    pub pos: Position,
     ty_spec: TypeSpec,
     declarator: Declarator,
+}
+
+impl StructDeclaration {
+    pub fn ident_name(&self) -> &str {
+        self.declarator.direct_declarator.ident_name()
+    }
+
+    pub fn get_type(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
+        analyzer.get_type(conveted_type, &self.declarator)
+    }
 }
 
 impl Stmt {

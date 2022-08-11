@@ -37,6 +37,7 @@ int test31();
 int test32();
 int test33();
 int test34();
+int test35();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -97,6 +98,7 @@ int main()
     assert(32, 0, test32());
     assert(33, 0, test33());
     assert(34, 0, test34());
+    assert(35, 0, test35());
 
     print_ok();
     return 0;
@@ -659,6 +661,18 @@ int test34()
     assert(34, 0b10100, 0b10110 & 0b11100);
     assert(34, 2, 2 & 3);
     assert(34, 1026, 1098 & 1335);
+    return 0;
+}
+
+int test35()
+{
+    struct A
+    {
+        char a;
+        int b;
+        char c;
+    } struct_a;
+    assert(35, 12, sizeof(struct_a));
     return 0;
 }
 

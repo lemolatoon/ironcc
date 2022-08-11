@@ -14,6 +14,10 @@ Program {
                             ),
                             [
                                 StructDeclaration {
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 2,
+                                    },
                                     ty_spec: Int,
                                     declarator: Declarator {
                                         n_star: 0,
@@ -23,6 +27,10 @@ Program {
                                     },
                                 },
                                 StructDeclaration {
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 3,
+                                    },
                                     ty_spec: Char,
                                     declarator: Declarator {
                                         n_star: 0,

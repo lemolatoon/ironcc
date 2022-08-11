@@ -1,3 +1,5 @@
+use std::{fs::File, io::Read, path::Path};
+
 use insta::assert_debug_snapshot;
 pub mod test_utils;
 use ironcc::error::CompileError;
@@ -9,6 +11,31 @@ macro_rules! all {
         assert_debug_snapshot!($self.program().as_ref().unwrap());
         assert_debug_snapshot!($self.conv_program().as_ref().unwrap());
     };
+}
+
+macro_rules! gen_test {
+    ($file_name: ident) => {
+        #[test]
+        fn $file_name() {
+            let path = format!("tests/insta_srcs/{}.c", stringify!($file_name));
+            eprintln!("{}", path);
+            let src = read_file(path).unwrap();
+
+            let mut tester = CachedProcessor::new(&src);
+            all!(tester);
+        }
+    };
+}
+
+fn read_file(path: String) -> Result<String, std::io::Error> {
+    let input_file_path = Path::new(&path);
+    let mut input_file = File::open(input_file_path)?;
+
+    let mut input = String::new();
+    input_file
+        .read_to_string(&mut input)
+        .expect("This source is not valid UTF8");
+    Ok(input)
 }
 
 #[test]
@@ -171,9 +198,11 @@ fn bit_wise_and() {
     all!(tester);
 }
 
-// #[test]
-// fn struct_declaration() {
-//     let src = include_str!("insta_srcs/struct_declaration.c");
-//     let mut tester = CachedProcessor::new(src);
-//     all!(tester);
-// }
+#[test]
+fn struct_declaration() {
+    let src = include_str!("insta_srcs/struct_declaration.c");
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+gen_test!(struct_declaration2);
