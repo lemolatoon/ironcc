@@ -79,6 +79,15 @@ fn array_syntax_sugar() -> Result<(), CompileError> {
     ";
     let mut tester = CachedProcessor::new(src);
     all!(tester);
+
+    let src = "\n\
+    int main() {\n \
+        int array[5];
+        return array[3];
+    }\n\
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
     Ok(())
 }
 

@@ -9,7 +9,7 @@ use crate::{
     parse::{
         BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, ForInitKind, Initializer,
         Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
-        StructDeclaration, StructOrUnionSpec, TypeSpec, UnaryOp,
+        StructOrUnionSpec, TypeSpec, UnaryOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -17,7 +17,7 @@ use crate::{
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Analyzer<'a> {
-    input: &'a str,
+    pub input: &'a str,
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
@@ -122,7 +122,10 @@ impl<'a> Analyzer<'a> {
                                 self.tag_scope
                                     .last_mut()
                                     .expect("INTERNAL COMPILER ERROR.")
-                                    .insert(name, Taged::new_struct_tag(names, types));
+                                    .insert(
+                                        name.clone(),
+                                        Taged::new_struct_tag(name, names, types),
+                                    );
                             }
                             _ => {
                                 return Err(unimplemented_err!(
@@ -390,6 +393,43 @@ impl<'a> Analyzer<'a> {
                 block
             }
             StmtKind::Declare(declaration) => {
+                if declaration.init_declarator.is_none() {
+                    match declaration.ty_spec {
+                        TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(Some(name), vec)) => {
+                            let types = vec
+                                .iter()
+                                .map(|struct_declaration| {
+                                    struct_declaration.get_type(self, struct_declaration.pos)
+                                })
+                                .collect::<Result<_, CompileError>>()?;
+                            let names = vec
+                                .iter()
+                                .map(|struct_declaration| {
+                                    struct_declaration.ident_name().to_string()
+                                })
+                                .collect::<Vec<String>>();
+                            self.tag_scope
+                                .last_mut()
+                                .expect("INTERNAL COMPILER ERROR.")
+                                .insert(name.clone(), Taged::new_struct_tag(name, names, types));
+                            return Ok(ConvStmt::new_block(vec![]));
+                        }
+                        TypeSpec::StructOrUnion(_) => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                declaration.pos,
+                                "Expected struct declaration with name and list."
+                            ))
+                        }
+                        _ => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                declaration.pos,
+                                "Not struct declaration has to have init declarator."
+                            ))
+                        }
+                    };
+                }
                 let ty = declaration.ty(self, declaration.pos)?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
@@ -495,6 +535,7 @@ impl<'a> Analyzer<'a> {
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn traverse_expr(
         &mut self,
         expr: Expr,
@@ -592,7 +633,42 @@ impl<'a> Analyzer<'a> {
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
                 self.traverse_expr(desugared, BTreeSet::new())
             }
-            ExprKind::Member(_, _) => todo!(),
+            ExprKind::Member(expr, ident_name) => {
+                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let member = if let Type::Struct(Struct { tag, members }) = expr.ty {
+                    members
+                        .into_iter()
+                        .find(|struct_member| struct_member.name == ident_name)
+                        .ok_or_else(|| {
+                            CompileError::new_no_such_member(self.input, tag, pos, ident_name)
+                        })?
+                } else {
+                    return Err(CompileError::new_type_expect_failed_with_str(
+                        self.input,
+                        pos,
+                        "Type::Struct(_)".to_string(),
+                        expr.ty,
+                    ));
+                };
+
+                Ok(match expr.kind {
+                    ConvExprKind::LVar(LVar { offset, ty: _ }) => {
+                        let stack_offset_of_member = offset + member.ty.size_of() - member.offset;
+                        ConvExpr::new_lvar_raw(
+                            LVar {
+                                offset: stack_offset_of_member,
+                                ty: member.ty.clone(),
+                            },
+                            member.ty,
+                            expr.pos,
+                        )
+                    }
+                    ConvExprKind::GVar(_) => todo!(),
+                    _ => unreachable!(
+                        "Any expr of type struct must be local variable or global variable."
+                    ),
+                })
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -938,7 +1014,7 @@ impl<'a> Analyzer<'a> {
                 let rhs = self.traverse_expr(init, attrs)?;
                 self.new_assign_expr_with_type_check(
                     // Safety:
-                    // the lvar is generated by `Self::new_lvar` which initializes lvar_map
+                    // the lvar is generated by `Self::register_lvar` which initializes lvar_map
                     ConvExpr::new_lvar_raw(lvar, ty, pos),
                     rhs,
                     pos,
@@ -1030,30 +1106,6 @@ impl<'a> Analyzer<'a> {
                 ConvExpr::new_lvar_raw(local, ty, pos)
             }
         })
-    }
-
-    /// create first defined variable
-    pub fn new_lvar(
-        src: &str,
-        name: String,
-        pos: Position,
-        new_offset: &mut usize,
-        ty: Type,
-        lvar_map: &mut BTreeMap<String, LVar>,
-    ) -> Result<LVar, CompileError> {
-        let offset = if lvar_map.get(&name).is_some() {
-            return Err(CompileError::new_redefined_variable(
-                src,
-                name,
-                pos,
-                VariableKind::Local,
-            ));
-        } else {
-            *new_offset += ty.size_of();
-            lvar_map.insert(name, LVar::new_raw(*new_offset, ty.clone()));
-            *new_offset
-        };
-        Ok(LVar::new_raw(offset, ty))
     }
 }
 
@@ -1517,28 +1569,32 @@ pub enum Taged {
 }
 
 impl Taged {
-    pub fn new_struct_tag(names: Vec<String>, types: Vec<Type>) -> Self {
-        Self::Struct(Struct::new(names, types))
+    pub fn new_struct_tag(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
+        Self::Struct(Struct::new(tag, names, types))
     }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Struct {
+    tag: Option<String>,
     members: Vec<StructMember>,
 }
 
 impl Struct {
-    pub fn new(names: Vec<String>, types: Vec<Type>) -> Self {
+    pub fn construct_members(names: Vec<String>, types: Vec<Type>) -> Vec<StructMember> {
         let mut struct_members = Vec::with_capacity(names.len());
         let mut offset = 0;
         for (name, ty) in names.into_iter().zip(types.into_iter()) {
-            dbg!(offset, &ty);
             offset = aligned_offset(offset, &ty);
             struct_members.push(StructMember { name, offset, ty });
         }
-        dbg!(offset);
+        return struct_members;
+    }
+
+    pub fn new(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
         Self {
-            members: struct_members,
+            tag: Some(tag),
+            members: Self::construct_members(names, types),
         }
     }
 
@@ -1888,7 +1944,7 @@ impl<'a> Analyzer<'a> {
             TypeSpec::Int => Type::Base(BaseType::Int),
             TypeSpec::Char => Type::Base(BaseType::Char),
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithTag(tag)) => {
-                let members = if let Some(Taged::Struct(Struct { members })) =
+                let members = if let Some(Taged::Struct(Struct { tag: _, members })) =
                     self.look_up_struct_tag(tag.as_str())
                 {
                     members
@@ -1900,6 +1956,7 @@ impl<'a> Analyzer<'a> {
                     ));
                 };
                 Type::Struct(Struct {
+                    tag: Some(tag.clone()),
                     members: members.clone(),
                 })
             }
@@ -1914,25 +1971,29 @@ impl<'a> Analyzer<'a> {
                     .iter()
                     .map(|struct_declaration| struct_declaration.ident_name().to_string())
                     .collect::<Vec<String>>();
-                let struct_struct = Struct::new(names, types);
+                let constructed_members = Struct::construct_members(names, types);
                 // tag compatibility check
                 if let Some(name) = name {
-                    if let Some(Taged::Struct(Struct { members })) =
-                        self.look_up_struct_tag(name.as_str())
+                    if let Some(Taged::Struct(Struct {
+                        tag: _,
+                        members: looked_up_members,
+                    })) = self.look_up_struct_tag(name.as_str())
                     {
-                        if *members != struct_struct.members {
+                        if *looked_up_members != constructed_members {
                             return Err(unimplemented_err!(self.input, pos, "this declaration's tag is incompatible with another tag whose tag-name is same."));
                         }
                     } else {
                         self.tag_scope.last_mut().expect(
                             "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
-                        ).insert(name.clone(), Taged::Struct(struct_struct.clone()));
+                        ).insert(name.clone(), Taged::Struct(Struct {tag: Some(name.clone()), members: constructed_members.clone()}));
                     }
                 }
 
-                Type::Struct(struct_struct)
+                Type::Struct(Struct {
+                    tag: name.clone(),
+                    members: constructed_members,
+                })
             }
-            _ => todo!(),
         })
     }
 }

@@ -2,6 +2,7 @@ use crate::{
     analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+    unimplemented_err,
 };
 use std::fmt::Debug;
 
@@ -767,13 +768,19 @@ impl Declaration {
     }
 
     pub fn ty(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
-        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
+        let converted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
         analyzer.get_type(
-            conveted_type,
+            converted_type,
             &self
                 .init_declarator
                 .as_ref()
-                .expect("get_type for struct is not yet implemented.")
+                .ok_or_else(|| {
+                    unimplemented_err!(
+                        analyzer.input,
+                        pos,
+                        "get_type for struct is not yet implemented."
+                    )
+                })?
                 .declarator,
         )
     }

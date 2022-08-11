@@ -38,6 +38,8 @@ int test32();
 int test33();
 int test34();
 int test35();
+int test36();
+int test37();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -99,6 +101,8 @@ int main()
     assert(33, 0, test33());
     assert(34, 0, test34());
     assert(35, 0, test35());
+    assert(36, 0, test36());
+    assert(37, 0, test37());
 
     print_ok();
     return 0;
@@ -675,6 +679,52 @@ int test35()
     struct A struct_a2;
     assert(35, 12, sizeof(struct_a));
     assert(35, 12, sizeof(struct_a2));
+    return 0;
+}
+
+int test36()
+{
+    int arr[2] = {1, 2};
+    struct A
+    {
+        char a;
+        int b;
+        char c;
+    } struct_a;
+    int arr2[2] = {1, 2};
+    struct_a.a = 3;
+    assert(36, 3, struct_a.a);
+    struct_a.c = struct_a.a;
+    assert(36, 3, struct_a.c);
+    assert(36, 2, arr[1]);
+    assert(36, 1, arr2[0]);
+    return 0;
+}
+
+int test37()
+{
+    struct A
+    {
+        int a[2];
+        char b;
+        int c;
+    };
+
+    int arr[2] = {1, 2};
+    struct A a;
+    int arr2[2] = {1, 2};
+    a.b = 2;
+    assert(37, 2, a.b);
+    a.a[1] = 22;
+    assert(37, 22, a.a[1]);
+    a.c = 9;
+    assert(37, 9, a.c);
+    a.a[1] = 22;
+    assert(37, 9, a.c);
+    assert(37, 1, arr[0]);
+    assert(37, 2, arr[1]);
+    assert(37, 1, arr2[0]);
+    assert(37, 2, arr2[1]);
     return 0;
 }
 

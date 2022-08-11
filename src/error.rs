@@ -92,6 +92,22 @@ impl CompileError {
         )
     }
 
+    pub fn new_no_such_member(
+        src: &str,
+        tag_name: Option<String>,
+        pos: Position,
+        got_member_name: String,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
+                tag_name,
+                pos,
+                got_member_name,
+            }),
+        )
+    }
+
     pub fn new_undeclared_error(
         src: &str,
         name: String,
@@ -174,7 +190,23 @@ impl CompileError {
     pub fn new_type_expect_failed(src: &str, pos: Position, expected: Type, got: Type) -> Self {
         CompileError::new(
             src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)),
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::Type { pos, expected, got },
+            )),
+        )
+    }
+
+    pub fn new_type_expect_failed_with_str(
+        src: &str,
+        pos: Position,
+        expected: String,
+        got: Type,
+    ) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
+            )),
         )
     }
 
@@ -272,7 +304,37 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
             }
-            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(pos, expected, got)) => {
+            AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
+                tag_name,
+                pos,
+                got_member_name,
+            }) => {
+                error_at(&self.src, vec![*pos], f)?;
+                if let Some(tag_name) = tag_name {
+                    writeln!(
+                        f,
+                        "`struct {}` 's members do not contain `{}`.",
+                        tag_name, got_member_name
+                    )?;
+                } else {
+                    writeln!(
+                        f,
+                        "this struct 's members do not contain `{}`.",
+                        got_member_name
+                    )?;
+                }
+            }
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type {
+                pos,
+                expected,
+                got,
+            })) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
+            }
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
+            )) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
@@ -370,10 +432,29 @@ impl Debug for CompileError {
 pub enum AnalyzeErrorKind {
     RedefinedError(String, Position, VariableKind),
     UndeclaredError(String, Position, VariableKind),
+    NoSuchMemberError {
+        tag_name: Option<String>,
+        pos: Position,
+        got_member_name: String,
+    },
     FuncArgsError(String, Position, usize, usize, Position),
     TypeError(TypeErrorKind, Option<String>),
-    TypeExpectFailed(Position, Type, Type),
+    TypeExpectFailed(TypeExpectedFailedKind),
     ConstExprError(Position, ConvExprKind),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum TypeExpectedFailedKind {
+    Type {
+        pos: Position,
+        expected: Type,
+        got: Type,
+    },
+    TypeWithPatternStr {
+        pos: Position,
+        expected: String,
+        got: Type,
+    },
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
