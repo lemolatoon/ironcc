@@ -77,9 +77,9 @@ impl<'a> Analyzer<'a> {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
                         let pos = declaration.pos;
-                        let conveted_type =
+                        let converted_type =
                             self.resolve_name_and_convert_to_type(&declaration.ty_spec, pos)?;
-                        match self.get_type(conveted_type, &init_declarator.declarator)? {
+                        match self.get_type(converted_type, &init_declarator.declarator)? {
                             ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
                                 let gvar = self.new_global_variable(init, name, ty, pos)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
@@ -592,6 +592,7 @@ impl<'a> Analyzer<'a> {
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
                 self.traverse_expr(desugared, BTreeSet::new())
             }
+            ExprKind::Member(_, _) => todo!(),
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -1922,6 +1923,10 @@ impl<'a> Analyzer<'a> {
                         if *members != struct_struct.members {
                             return Err(unimplemented_err!(self.input, pos, "this declaration's tag is incompatible with another tag whose tag-name is same."));
                         }
+                    } else {
+                        self.tag_scope.last_mut().expect(
+                            "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
+                        ).insert(name.clone(), Taged::Struct(struct_struct.clone()));
                     }
                 }
 

@@ -128,7 +128,7 @@ impl<'a> Parser<'a> {
             direct_declarator
         } else {
             // <ident>
-            DirectDeclarator::Ident(tokens.consume_ident()?)
+            DirectDeclarator::Ident(tokens.consume_ident()?.0)
         };
         loop {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
@@ -230,7 +230,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        if let Ok(name) = tokens.consume_ident() {
+        if let Ok((name, _)) = tokens.consume_ident() {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
                 // <struct-declaration-list>
                 let list = self.parse_struct_declaration_list(tokens)?;
@@ -589,10 +589,21 @@ impl<'a> Parser<'a> {
         let mut expr = self.parse_primary(tokens)?;
         let mut pos = expr.pos;
 
-        while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-            expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
-            pos = expr.pos;
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+        loop {
+            match tokens.peek_kind() {
+                Some(TokenKind::OpenDelim(DelimToken::Bracket)) => {
+                    tokens.next();
+                    expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
+                    pos = expr.pos;
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                }
+                Some(TokenKind::Dot) => {
+                    tokens.next();
+                    let (member, pos) = tokens.consume_ident()?;
+                    expr = Expr::new_member(expr, member, pos);
+                }
+                _ => break,
+            };
         }
         Ok(expr)
     }
@@ -1031,6 +1042,7 @@ pub enum ExprKind {
     Addr(Box<Expr>),
     SizeOf(SizeOfOperandKind),
     Array(Box<Expr>, Box<Expr>),
+    Member(Box<Expr>, String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1048,6 +1060,12 @@ pub enum UnaryOp {
 }
 
 impl Expr {
+    pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Member(Box::new(expr), ident),
+            pos,
+        }
+    }
     pub fn new_array(expr: Expr, index: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Array(Box::new(expr), Box::new(index)),

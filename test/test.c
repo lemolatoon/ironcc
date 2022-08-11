@@ -672,7 +672,9 @@ int test35()
         int b;
         char c;
     } struct_a;
+    struct A struct_a2;
     assert(35, 12, sizeof(struct_a));
+    assert(35, 12, sizeof(struct_a2));
     return 0;
 }
 

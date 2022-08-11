@@ -58,6 +58,7 @@
                                 | "sizeof" "(" <type-name> ")"
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
+                                | <postfix> "." <ident>
 <primary>                   := <num> 
                                 | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"

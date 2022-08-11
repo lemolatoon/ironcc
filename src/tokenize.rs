@@ -74,6 +74,7 @@ impl<'a> Tokenizer<'a> {
                 ("!", TokenKind::Exclamation),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
+                (".", TokenKind::Dot),
             ];
 
             for (literal, kind) in symbols {
@@ -291,6 +292,8 @@ pub enum TokenKind {
     Tilde,
     /// `!`
     Exclamation,
+    /// `.`
+    Dot,
     Eof,
 }
 
@@ -477,12 +480,12 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         }
     }
 
-    /// if next token is ident, then return its name, otherwise return Err(_)
-    pub fn consume_ident(&mut self) -> Result<String, CompileError> {
+    /// if next token is ident, then return its name and Position, otherwise return Err(_)
+    pub fn consume_ident(&mut self) -> Result<(String, Position), CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
-                TokenKind::Ident(name) => Ok(name),
+                TokenKind::Ident(name) => Ok((name, token.pos)),
                 _ => Err(CompileError::new_expected_failed(
                     self.input,
                     Box::new("TokenKind::Ident(_)"),
