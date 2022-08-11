@@ -41,6 +41,10 @@ int test35();
 int test36();
 int test37();
 int test38();
+int test39();
+int test40();
+int test41();
+int test42();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -105,6 +109,8 @@ int main()
     assert(36, 0, test36());
     assert(37, 0, test37());
     assert(38, 0, test38());
+    assert(39, 0, test39());
+    assert(40, 0, test40());
 
     print_ok();
     return 0;
@@ -730,13 +736,55 @@ int test37()
     return 0;
 }
 
-int test38()
-{
-
-    return 0;
-}
-
 char add_chars(char a, char b, char c)
 {
     return a + b - c;
+}
+
+void test38_void_func(int *n) { *n = *n + 1; }
+
+char test38_take_void(void *char_array) { return *char_array; }
+
+int test38()
+{
+    int a = 2;
+    test38_void_func(&a);
+    assert(38, 3, a);
+    char char_array[2] = {22, 33};
+    assert(38, 22, test38_take_void(char_array));
+    return 0;
+}
+
+int test39()
+{
+    char *char_array = "0123456789";
+    assert(39, 48, *char_array);
+    assert(39, 49, char_array[1]);
+    assert(39, 50, char_array[2]);
+    assert(39, 51, char_array[3]);
+    assert(39, 52, char_array[4]);
+    assert(39, 53, char_array[5]);
+    assert(39, 54, char_array[6]);
+    assert(39, 48, "0123456789"[0]);
+    int n = 9;
+    assert(39, 48 + 9, "0123456789"[9]);
+    assert(39, 48 + 9, "0123456789"[n]);
+    return 0;
+}
+
+int test40()
+{
+    // int n = -1600;
+    int n = -200;
+    assert(40, -200, n);
+    assert(40, -199, n + 1);
+    assert(40, -400, n * 2);
+    assert(40, -100, n / 2);
+    int calced = -1600 / 10000;
+    int calced2 = n / 10000;
+    assert(40, 0, -1600 / 10000);
+    assert(40, 0, -1 >= 1);
+    int N = -1;
+    assert(40, 0, N >= 1);
+    return 0;
 }

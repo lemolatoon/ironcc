@@ -1,7 +1,7 @@
 void *memset(void *a, int b, int c);
-int printf(char *msg);
-int usleep(int time);
-int putchar(char c);
+void printf(char *msg);
+void usleep(int time);
+void putchar(char c);
 int m(int a, int b) { return (a * b + 5000) / 10000; }
 void a(int *c, int *s, int d, int t)
 {
@@ -71,15 +71,17 @@ int main()
         {
             if (k % 80)
             {
-                putchar(b[k]);
             }
             else
             {
                 putchar(10);
             }
+            putchar(b[k]);
         }
         a(&q, &r, 9992, 400);
         a(&u, &v, 9998, 200);
+        printf("Author: @a1k0n. Rewritten by @hsjoihs so that it works without flo");
+        printf("ating types.\nNote that rounding errors gradually reduce the donut's size.\n");
         usleep(50000);
     }
     return 0;

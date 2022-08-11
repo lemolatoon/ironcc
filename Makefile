@@ -32,6 +32,11 @@ life: life_game.s
 	clang -g3 life_game.s
 	./a.out
 
+donut: rotate.c
+	cargo run rotate.c
+	clang rotate.s
+	./a.out
+
 tetris.s: $(COMPILER) tetris.c
 	gcc -E tetris.c > prpr_tetris.c
 	cargo run prpr_tetris.c

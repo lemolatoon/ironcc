@@ -64,7 +64,16 @@ make testall
 # ChangeLog を見る
 各 [pull requests](https://github.com/lemolatoon/ironcc/pulls) ごとに ChangeLog を書いています。
 
-# Life Game を動かす
+# コンパイルできるサンプルプログラム
+
+## Life Game を動かす
 ```
 make life
 ```
+Thanks to @uint256_t
+
+## ドーナツを動かす
+```
+make donut
+```
+Thanks to @a1k0n, @hsjoihs

@@ -430,6 +430,11 @@ impl Debug for CompileError {
                     "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}", name, ty, ty.size_of()
                 )?;
             }
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Size(size),
+            )) => {
+                writeln!(f, "this type size is unexpected. size: {}", size)?;
+            }
             Unimplemented(Some(pos), msg) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{}", msg)?;
@@ -514,6 +519,7 @@ pub enum GenerateErrorKind {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum UnexpectedTypeSizeStatus {
+    Size(usize),
     Expr(ConvExpr),
     FuncArgs(String, Type),
     Global(GVar),
