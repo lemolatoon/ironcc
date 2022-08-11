@@ -179,6 +179,7 @@ impl<'a> Generator<'a> {
                                 ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
                             Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_pos(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
+                            Type::Void => unreachable!("void type initializer cannot be written."),
                         },
                         None => writeln!(f, ".zero {}", ty.size_of())?,
                     }
@@ -333,9 +334,11 @@ impl<'a> Generator<'a> {
             }
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
-                    Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) => {
-                        return Err(CompileError::new_deref_error(self.input, *expr))
-                    }
+                    Type::Base(_)
+                    | Type::Func(_, _)
+                    | Type::Array(_, _)
+                    | Type::Struct(_)
+                    | Type::Void => return Err(CompileError::new_deref_error(self.input, *expr)),
                     Type::Ptr(base) => *base,
                 };
                 self.gen_expr(f, *expr.clone())?;
@@ -416,6 +419,9 @@ impl<'a> Generator<'a> {
                 } else {
                     self.gen_expr(f, expr)?;
                 }
+            }
+            CastKind::ToVoidPtr { ptr_to } | CastKind::FromVoidPtr { ptr_to } => {
+                self.gen_expr(f, expr)?;
             }
         }
         Ok(())

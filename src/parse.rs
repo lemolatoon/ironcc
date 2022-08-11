@@ -204,6 +204,10 @@ impl<'a> Parser<'a> {
                     tokens.next();
                     Ok((TypeSpec::Char, pos))
                 }
+                TokenKind::Type(TypeToken::Void) => {
+                    tokens.next();
+                    Ok((TypeSpec::Void, pos))
+                }
                 TokenKind::Struct => {
                     tokens.next();
                     Ok((
@@ -867,6 +871,7 @@ impl Initializer {
 pub enum TypeSpec {
     Int,
     Char,
+    Void,
     StructOrUnion(StructOrUnionSpec),
 }
 
@@ -967,12 +972,12 @@ impl TypeName {
 
     pub fn ty(&self) -> Type {
         // TODO: also consider array
-        let base = match self.spec_quals.0 {
-            TypeSpec::Int => BaseType::Int,
-            TypeSpec::Char => BaseType::Char,
+        let mut ty = match self.spec_quals.0 {
+            TypeSpec::Int => Type::Base(BaseType::Int),
+            TypeSpec::Char => Type::Base(BaseType::Char),
+            TypeSpec::Void => Type::Void,
             TypeSpec::StructOrUnion(_) => todo!(),
         };
-        let mut ty = Type::Base(base);
         if let Some(ref abstract_declarator) = self.abstract_declarator {
             for _ in 0..abstract_declarator.n_star {
                 ty = Type::Ptr(Box::new(ty));

@@ -80,7 +80,10 @@ impl<'a> Analyzer<'a> {
                         let converted_type =
                             self.resolve_name_and_convert_to_type(&declaration.ty_spec, pos)?;
                         match self.get_type(converted_type, &init_declarator.declarator)? {
-                            ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
+                            ty @ (Type::Base(_)
+                            | Type::Ptr(_)
+                            | Type::Array(_, _)
+                            | Type::Struct(_)) => {
                                 let gvar = self.new_global_variable(init, name, ty, pos)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
@@ -98,7 +101,13 @@ impl<'a> Analyzer<'a> {
                                     Func::new_raw(name.to_string(), args, *ret_ty, pos),
                                 );
                             }
-                            Type::Struct(_) => todo!(),
+                            Type::Void => {
+                                return Err(CompileError::new_unexpected_void(
+                                    self.input,
+                                    pos,
+                                    "void type declaration found.".to_string(),
+                                ));
+                            }
                         }
                     } else {
                         // struct declaration
@@ -231,6 +240,7 @@ impl<'a> Analyzer<'a> {
                         }
                     }
                 }
+                Type::Void => todo!(),
             };
         }
 
@@ -513,6 +523,26 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
         if lhs.ty != rhs.ty {
+            let lhs_ptr_to = lhs.ty.get_ptr_to();
+            let rhs_ptr_to = rhs.ty.get_ptr_to();
+            if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
+                let ptr_to = rhs_ptr_to.unwrap().clone();
+                rhs = ConvExpr::new_cast(
+                    rhs,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::ToVoidPtr { ptr_to },
+                );
+                return Ok(ConvExpr::new_assign(lhs, rhs, pos));
+            } else if lhs_ptr_to.is_some() && rhs.ty.is_void_ptr() {
+                rhs = ConvExpr::new_cast(
+                    rhs,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::FromVoidPtr {
+                        ptr_to: lhs_ptr_to.unwrap().clone(),
+                    },
+                );
+                return Ok(ConvExpr::new_assign(lhs, rhs, pos));
+            }
             match (lhs.ty.get_base(), rhs.ty.get_base()) {
                 (Some(lhs_base), Some(rhs_base)) => {
                     let rhs_base = *rhs_base;
@@ -595,12 +625,12 @@ impl<'a> Analyzer<'a> {
                 // type check
                 let conv_expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
-                    ty @ (Type::Base(_) | Type::Func(_, _) | Type::Struct(_)) => {
-                        Err(CompileError::new_type_expect_failed(
+                    ty @ (Type::Base(_) | Type::Func(_, _) | Type::Struct(_) | Type::Void) => {
+                        Err(CompileError::new_type_expect_failed_with_str(
                             self.input,
                             conv_expr.pos,
                             // TODO: base type is not a problem of this error
-                            Type::Ptr(Box::new(Type::Base(BaseType::Int))),
+                            "Type::Ptr(_))".to_string(),
                             ty,
                         ))
                     }
@@ -724,6 +754,22 @@ impl<'a> Analyzer<'a> {
                         got_expr.clone(),
                         expected_ty.clone(),
                         CastKind::Base2Base(from, to),
+                    );
+                } else if expected_ty.is_void_ptr() && got_expr.ty.get_ptr_to().is_some() {
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::ToVoidPtr {
+                            ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
+                        },
+                    );
+                } else if got_expr.ty.is_void_ptr() && expected_ty.get_ptr_to().is_some() {
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::FromVoidPtr {
+                            ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
+                        },
                     );
                 } else {
                     return Err(CompileError::new_type_expect_failed(
@@ -883,6 +929,11 @@ impl<'a> Analyzer<'a> {
                         "binary expr's operands(one of which is array) must be casted to ptr."
                     )
                 }
+                (_, Type::Void) | (Type::Void, _) => Err(unimplemented_err!(
+                    self.input,
+                    pos,
+                    "binary expr of void is illegal operation."
+                )),
             },
             op @ (ConvBinOpKind::LShift | ConvBinOpKind::RShift) => {
                 if lhs.ty != rhs.ty {
@@ -1392,6 +1443,8 @@ pub enum ConvUnaryOp {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum CastKind {
     Base2Base(BaseType, BaseType),
+    ToVoidPtr { ptr_to: Type },
+    FromVoidPtr { ptr_to: Type },
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1921,6 +1974,7 @@ impl ConstExpr {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
+    Void,
     Base(BaseType),
     Ptr(Box<Type>),
     Func(Box<Type>, Vec<Type>),
@@ -1931,6 +1985,27 @@ pub enum Type {
 impl Type {
     pub fn ptr(ty: Type) -> Self {
         Type::Ptr(Box::new(ty))
+    }
+
+    pub const fn is_void(&self) -> bool {
+        matches!(self, Type::Void)
+    }
+
+    pub const fn is_void_ptr(&self) -> bool {
+        if let Type::Ptr(ptr_to) = self {
+            ptr_to.is_void()
+        } else {
+            false
+        }
+    }
+
+    pub const fn get_ptr_to(&self) -> Option<&Type> {
+        match self {
+            Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+            Type::Ptr(ptr_to) => Some(ptr_to),
+            Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
+        }
     }
 }
 
@@ -1943,6 +2018,7 @@ impl<'a> Analyzer<'a> {
         Ok(match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
             TypeSpec::Char => Type::Base(BaseType::Char),
+            TypeSpec::Void => Type::Void,
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithTag(tag)) => {
                 let members = if let Some(Taged::Struct(Struct { tag: _, members })) =
                     self.look_up_struct_tag(tag.as_str())
@@ -2001,6 +2077,7 @@ impl<'a> Analyzer<'a> {
 impl Type {
     pub fn size_of(&self) -> usize {
         match self {
+            Type::Void => 1,
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
@@ -2012,6 +2089,7 @@ impl Type {
 
     pub fn align_of(&self) -> usize {
         match self {
+            Type::Void => todo!("return appropriate error"),
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
@@ -2026,6 +2104,7 @@ impl Type {
             ty @ Type::Base(_) => ty,
             Type::Ptr(base) | Type::Func(base, _) | Type::Array(base, _) => base,
             Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
         }
     }
 
@@ -2034,13 +2113,16 @@ impl Type {
             Type::Base(base) => Some(base),
             Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => None,
             Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
         }
     }
 
     pub const fn is_base(&self) -> bool {
         match self {
             Type::Base(_) => true,
-            Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) => false,
+            Type::Void | Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) => {
+                false
+            }
         }
     }
 }

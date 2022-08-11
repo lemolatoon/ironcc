@@ -55,6 +55,7 @@ impl<'a> Tokenizer<'a> {
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
+                ("->", TokenKind::Arrow),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -229,6 +230,7 @@ impl<'a> Tokenizer<'a> {
                         "for" => TokenKind::For,
                         "int" => TokenKind::Type(TypeToken::Int),
                         "char" => TokenKind::Type(TypeToken::Char),
+                        "void" => TokenKind::Type(TypeToken::Void),
                         "sizeof" => TokenKind::SizeOf,
                         "struct" => TokenKind::Struct,
                         _ => TokenKind::Ident(ident),
@@ -294,6 +296,8 @@ pub enum TokenKind {
     Exclamation,
     /// `.`
     Dot,
+    /// `->`
+    Arrow,
     Eof,
 }
 
@@ -303,6 +307,8 @@ pub enum TypeToken {
     Int,
     /// `char`, type specifier
     Char,
+    /// `void`, type specifier
+    Void,
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {

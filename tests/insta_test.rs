@@ -214,5 +214,17 @@ fn struct_declaration() {
     all!(tester);
 }
 
+#[test]
+fn void_type() {
+    let src = "int main() {
+        void *p;
+        int ****a;
+        p = &a;
+    }";
+
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);

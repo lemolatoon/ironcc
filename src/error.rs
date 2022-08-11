@@ -80,6 +80,15 @@ impl CompileError {
         )
     }
 
+    pub fn new_unexpected_void(src: &str, pos: Position, msg: String) -> Self {
+        CompileError::new(
+            src,
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::UnexpectedVoid(pos, msg),
+            )),
+        )
+    }
+
     pub fn new_redefined_variable(
         src: &str,
         name: String,
@@ -296,6 +305,12 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![got.pos], f)?;
                 writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
             }
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::UnexpectedVoid(pos, msg),
+            )) => {
+                error_at(&self.src, vec![*pos], f)?;
+                writeln!(f, "{:?}", msg)?;
+            }
             AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)) => {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
@@ -455,6 +470,7 @@ pub enum TypeExpectedFailedKind {
         expected: String,
         got: Type,
     },
+    UnexpectedVoid(Position, String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

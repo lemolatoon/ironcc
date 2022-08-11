@@ -40,6 +40,7 @@ int test34();
 int test35();
 int test36();
 int test37();
+int test38();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -103,6 +104,7 @@ int main()
     assert(35, 0, test35());
     assert(36, 0, test36());
     assert(37, 0, test37());
+    assert(38, 0, test38());
 
     print_ok();
     return 0;
@@ -725,6 +727,12 @@ int test37()
     assert(37, 2, arr[1]);
     assert(37, 1, arr2[0]);
     assert(37, 2, arr2[1]);
+    return 0;
+}
+
+int test38()
+{
+
     return 0;
 }
 

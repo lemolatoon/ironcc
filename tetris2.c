@@ -30,41 +30,41 @@
 #include <time.h>
 #include <unistd.h>
 
-#define clrscr() puts("\e[2J\e[1;1H")
-#define gotoxy(x, y) printf("\e[%d;%dH", y, x)
-#define hidecursor() puts("\e[?25l")
-#define showcursor() puts("\e[?25h")
-#define bgcolor(c, s) printf("\e[%dm" s, c ? c + 40 : 0);
+#define clrscr()       puts ("\e[2J\e[1;1H")
+#define gotoxy(x,y)    printf("\e[%d;%dH", y, x)
+#define hidecursor()   puts ("\e[?25l")
+#define showcursor()   puts ("\e[?25h")
+#define bgcolor(c,s)   printf("\e[%dm" s, c ? c + 40 : 0);
 
-#define SIGNAL(signo, cb)          \
-	sigemptyset(&sa.sa_mask);      \
-	sigaddset(&sa.sa_mask, signo); \
-	sa.sa_flags = 0;               \
-	sa.sa_handler = cb;            \
+#define SIGNAL(signo, cb)			\
+	sigemptyset(&sa.sa_mask);		\
+	sigaddset(&sa.sa_mask, signo);		\
+	sa.sa_flags = 0;			\
+	sa.sa_handler = cb;			\
 	sigaction(signo, &sa, NULL);
 
 /* the board */
-#define B_COLS 12
-#define B_ROWS 23
-#define B_SIZE (B_ROWS * B_COLS)
+#define      B_COLS 12
+#define      B_ROWS 23
+#define      B_SIZE (B_ROWS * B_COLS)
 
-#define TL -B_COLS - 1 /* top left */
-#define TC -B_COLS	   /* top center */
-#define TR -B_COLS + 1 /* top right */
-#define ML -1		   /* middle left */
-#define MR 1		   /* middle right */
-#define BL B_COLS - 1  /* bottom left */
-#define BC B_COLS	   /* bottom center */
-#define BR B_COLS + 1  /* bottom right */
+#define TL     -B_COLS-1	/* top left */
+#define TC     -B_COLS		/* top center */
+#define TR     -B_COLS+1	/* top right */
+#define ML     -1		/* middle left */
+#define MR     1		/* middle right */
+#define BL     B_COLS-1		/* bottom left */
+#define BC     B_COLS		/* bottom center */
+#define BR     B_COLS+1		/* bottom right */
 
 /* These can be overridden by the user. */
 #define DEFAULT_KEYS "jkl pq"
-#define KEY_LEFT 0
-#define KEY_RIGHT 2
+#define KEY_LEFT   0
+#define KEY_RIGHT  2
 #define KEY_ROTATE 1
-#define KEY_DROP 3
-#define KEY_PAUSE 4
-#define KEY_QUIT 5
+#define KEY_DROP   3
+#define KEY_PAUSE  4
+#define KEY_QUIT   5
 
 #define HIGH_SCORE_FILE "/var/games/tetris.scores"
 #define TEMP_SCORE_FILE "/tmp/tetris-tmp.scores"
@@ -78,31 +78,31 @@ int points = 0;
 int lines_cleared = 0;
 int board[B_SIZE], shadow[B_SIZE];
 
-int *peek_shape; /* peek preview of next shape */
-int pcolor;
+int *peek_shape;		/* peek preview of next shape */
+int  pcolor;
 int *shape;
-int color;
+int  color;
 
 int shapes[] = {
-	7, TL, TC, MR, 2,		  /* ""__   */
-	8, TR, TC, ML, 3,		  /* __""   */
-	9, ML, MR, BC, 1,		  /* "|"    */
-	3, TL, TC, ML, 4,		  /* square */
-	12, ML, BL, MR, 5,		  /* |"""   */
-	15, ML, BR, MR, 6,		  /* """|   */
-	18, ML, MR, 2, 7,		  /* ---- sticks out */
-	0, TC, ML, BL, 2,		  /* /    */
-	1, TC, MR, BR, 3,		  /* \    */
-	10, TC, MR, BC, 1,		  /* |-   */
-	11, TC, ML, MR, 1,		  /* _|_  */
-	2, TC, ML, BC, 1,		  /* -|   */
-	13, TC, BC, BR, 5,		  /* |_   */
-	14, TR, ML, MR, 5,		  /* ___| */
-	4, TL, TC, BC, 5,		  /* "|   */
-	16, TR, TC, BC, 6,		  /* |"   */
-	17, TL, MR, ML, 6,		  /* |___ */
-	5, TC, BC, BL, 6,		  /* _| */
-	6, TC, BC, 2 * B_COLS, 7, /* | sticks out */
+	 7, TL, TC, MR, 2,	/* ""__   */
+	 8, TR, TC, ML, 3,	/* __""   */
+	 9, ML, MR, BC, 1,	/* "|"    */
+	 3, TL, TC, ML, 4,	/* square */
+	12, ML, BL, MR, 5,	/* |"""   */
+	15, ML, BR, MR, 6,	/* """|   */
+	18, ML, MR,  2, 7,	/* ---- sticks out */
+	 0, TC, ML, BL, 2,	/* /    */
+	 1, TC, MR, BR, 3,	/* \    */
+	10, TC, MR, BC, 1,	/* |-   */
+	11, TC, ML, MR, 1,	/* _|_  */
+	 2, TC, ML, BC, 1,	/* -|   */
+	13, TC, BC, BR, 5,	/* |_   */
+	14, TR, ML, MR, 5,	/* ___| */
+	 4, TL, TC, BC, 5,	/* "|   */
+	16, TR, TC, BC, 6,	/* |"   */
+	17, TL, MR, ML, 6,	/* |___ */
+	 5, TC, BC, BL, 6,	/* _| */
+	 6, TC, BC,  2 * B_COLS, 7, /* | sticks out */
 };
 
 void draw(int x, int y, int color)
@@ -116,8 +116,8 @@ int update(void)
 	int x, y;
 
 #ifdef ENABLE_PREVIEW
-	static int shadow_preview[B_COLS * 10] = {0};
-	int preview[B_COLS * 10] = {0};
+	static int shadow_preview[B_COLS * 10] = { 0 };
+	int preview[B_COLS * 10] = { 0 };
 	const int start = 5;
 
 	preview[2 * B_COLS + 1] = pcolor;
@@ -125,12 +125,9 @@ int update(void)
 	preview[2 * B_COLS + 1 + peek_shape[2]] = pcolor;
 	preview[2 * B_COLS + 1 + peek_shape[3]] = pcolor;
 
-	for (y = 0; y < 4; y++)
-	{
-		for (x = 0; x < B_COLS; x++)
-		{
-			if (preview[y * B_COLS + x] - shadow_preview[y * B_COLS + x])
-			{
+	for (y = 0; y < 4; y++) {
+		for (x = 0; x < B_COLS; x++) {
+			if (preview[y * B_COLS + x] - shadow_preview[y * B_COLS + x]) {
 				int color = preview[y * B_COLS + x];
 
 				shadow_preview[y * B_COLS + x] = color;
@@ -141,12 +138,9 @@ int update(void)
 #endif
 
 	/* Display board. */
-	for (y = 1; y < B_ROWS - 1; y++)
-	{
-		for (x = 0; x < B_COLS; x++)
-		{
-			if (board[y * B_COLS + x] - shadow[y * B_COLS + x])
-			{
+	for (y = 1; y < B_ROWS - 1; y++) {
+		for (x = 0; x < B_COLS; x++) {
+			if (board[y * B_COLS + x] - shadow[y * B_COLS + x]) {
 				int color = board[y * B_COLS + x];
 
 				shadow[y * B_COLS + x] = color;
@@ -156,8 +150,7 @@ int update(void)
 	}
 
 	/* Update points and level */
-	while (lines_cleared >= 10)
-	{
+	while (lines_cleared >= 10) {
 		lines_cleared -= 10;
 		level++;
 	}
@@ -198,7 +191,7 @@ void place(int *shape, int pos, int color)
 
 int *next_shape(void)
 {
-	int pos = rand() % 7 * 5;
+	int  pos  = rand() % 7 * 5;
 	int *next = peek_shape;
 
 	peek_shape = &shapes[pos];
@@ -215,8 +208,7 @@ void show_high_score(void)
 #ifdef ENABLE_HIGH_SCORE
 	FILE *tmpscore;
 
-	if ((tmpscore = fopen(HIGH_SCORE_FILE, "a")))
-	{
+	if ((tmpscore = fopen(HIGH_SCORE_FILE, "a"))) {
 		char *name = getenv("LOGNAME");
 
 		if (!name)
@@ -226,13 +218,12 @@ void show_high_score(void)
 		fclose(tmpscore);
 
 		system("cat " HIGH_SCORE_FILE "| sort -rn | head -10 >" TEMP_SCORE_FILE
-			   "&& cp " TEMP_SCORE_FILE " " HIGH_SCORE_FILE);
+		       "&& cp " TEMP_SCORE_FILE " " HIGH_SCORE_FILE);
 		remove(TEMP_SCORE_FILE);
 	}
 
-	if (!access(HIGH_SCORE_FILE, R_OK))
-	{
-		//		puts("\nHit RETURN to see high scores, ^C to skip.");
+	if (!access(HIGH_SCORE_FILE, R_OK)) {
+//		puts("\nHit RETURN to see high scores, ^C to skip.");
 		fprintf(stderr, "  Score\tPoints\tLevel\tName\n");
 		system("cat " HIGH_SCORE_FILE);
 	}
@@ -352,32 +343,24 @@ int main(int argc, char *argv[])
 	show_online_help();
 
 	shape = next_shape();
-	while (1)
-	{
-		if (c < 0)
-		{
-			if (fits_in(shape, pos + B_COLS))
-			{
+	while (1) {
+		if (c < 0) {
+			if (fits_in(shape, pos + B_COLS)) {
 				pos += B_COLS;
-			}
-			else
-			{
+			} else {
 				place(shape, pos, color);
 				++points;
-				for (j = 0; j < 252; j = B_COLS * (j / B_COLS + 1))
-				{
-					for (; board[++j];)
-					{
-						if (j % B_COLS == 10)
-						{
+				for (j = 0; j < 252; j = B_COLS * (j / B_COLS + 1)) {
+					for (; board[++j];) {
+						if (j % B_COLS == 10) {
 							lines_cleared++;
 
 							for (; j % B_COLS; board[j--] = 0)
-								;
+							   ;
 							c = update();
 
 							for (; --j; board[j + B_COLS] = board[j])
-								;
+							   ;
 							c = update();
 						}
 					}
@@ -388,39 +371,33 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if (c == keys[KEY_LEFT])
-		{
+		if (c == keys[KEY_LEFT]) {
 			if (!fits_in(shape, --pos))
 				++pos;
 		}
 
-		if (c == keys[KEY_ROTATE])
-		{
+		if (c == keys[KEY_ROTATE]) {
 			backup = shape;
-			shape = &shapes[5 * *shape]; /* Rotate */
+			shape = &shapes[5 * *shape];	/* Rotate */
 			/* Check if it fits, if not restore shape from backup */
 			if (!fits_in(shape, pos))
 				shape = backup;
 		}
 
-		if (c == keys[KEY_RIGHT])
-		{
+		if (c == keys[KEY_RIGHT]) {
 			if (!fits_in(shape, ++pos))
 				--pos;
 		}
 
-		if (c == keys[KEY_DROP])
-		{
+		if (c == keys[KEY_DROP]) {
 			for (; fits_in(shape, pos + B_COLS); ++points)
 				pos += B_COLS;
 		}
 
-		if (c == keys[KEY_PAUSE] || c == keys[KEY_QUIT])
-		{
+		if (c == keys[KEY_PAUSE] || c == keys[KEY_QUIT]) {
 			freeze(1);
 
-			if (c == keys[KEY_QUIT])
-			{
+			if (c == keys[KEY_QUIT]) {
 				clrscr();
 				gotoxy(0, 0);
 
@@ -430,12 +407,12 @@ int main(int argc, char *argv[])
 			}
 
 			for (j = B_SIZE; j--; shadow[j] = 0)
-				;
+			   ;
 
 			while (getchar() - keys[KEY_PAUSE])
-				;
+			   ;
 
-			//			puts("\e[H\e[J\e[7m");
+//			puts("\e[H\e[J\e[7m");
 			freeze(0);
 		}
 
