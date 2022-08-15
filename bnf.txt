@@ -64,6 +64,7 @@
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
                                 | <postfix> "." <ident>
+                                | <postfix> "->" <ident>
 <primary>                   := <num> 
                                 | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"

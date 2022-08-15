@@ -610,6 +610,11 @@ impl<'a> Parser<'a> {
                     let (member, pos) = tokens.consume_ident()?;
                     expr = Expr::new_member(expr, member, pos);
                 }
+                Some(TokenKind::Arrow) => {
+                    tokens.next();
+                    let (member, pos) = tokens.consume_ident()?;
+                    expr = Expr::new_arrow(expr, member, pos);
+                }
                 _ => break,
             };
         }
@@ -1163,6 +1168,7 @@ pub enum ExprKind {
     SizeOf(SizeOfOperandKind),
     Array(Box<Expr>, Box<Expr>),
     Member(Box<Expr>, String),
+    Arrow(Box<Expr>, String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1183,6 +1189,12 @@ impl Expr {
     pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::Member(Box::new(expr), ident),
+            pos,
+        }
+    }
+    pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Arrow(Box::new(expr), ident),
             pos,
         }
     }

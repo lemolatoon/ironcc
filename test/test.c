@@ -843,7 +843,58 @@ int test42() {
     return 0;
 }
 
-int test43() {
+// struct ListNode {
+// 	void *data;
+//     int sz;
 
+// 	struct ListNode *next;
+// } ;
+
+// struct List {
+// 	struct ListNode *head;
+// 	struct ListNode *tail;
+// };
+
+// struct ListNode *AddNode(struct List * list, void * data, int sz);
+// void DeleteNode(struct List * list, struct ListNode * node);
+// struct ListNode *FindNodeByRef(struct List * list, void * data);
+// struct ListNode *FindNodeByValue(struct List * list, void * data, int sz);
+// void FreeNodes(struct List * list, int free_parameter_as_well);
+// void FreeList(struct List * list);
+
+int test43() {
+    struct Doubly {
+        struct Doubly *before;
+        struct Doubly *after;
+        int value;
+    };
+    struct Doubly head;
+    struct Doubly tail;
+    struct Doubly *node = malloc(sizeof(struct Doubly));
+    node->value = 0;
+    node->before = &head;
+    head.after = node;
+    for (int i = 1; i < 10; i = i + 1) {
+        node->after = malloc(sizeof(struct Doubly));
+        node->after->value = i;
+        struct Doubly *next = node->after;
+        next->before = node;
+        node = next;
+    }
+    node->after = &tail;
+    tail.before = node;
+
+    node = head.after;
+    for (int i = 0; i < 10; i = i + 1) {
+        assert(43, i, node->value);
+        node = node->after;
+    }
+    assert(43, 0, node->after == &tail);
+    node = tail.before;
+    for (int i = 9; i >= 0; i = i - 1) {
+        assert(43, i, node->value);
+        node = node->before;
+    }
+    assert(43, 0, node->before == &head);
     return 0; 
 }

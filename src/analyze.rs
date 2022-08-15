@@ -723,6 +723,11 @@ impl<'a> Analyzer<'a> {
                 //     ),
                 // })
             }
+            ExprKind::Arrow(expr, ident_name) => {
+                let pos = expr.pos;
+                let converted_expr = Expr::new_member(Expr::new_deref(*expr, pos), ident_name, pos);
+                self.traverse_expr(converted_expr, BTreeSet::new())
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
