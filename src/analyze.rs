@@ -673,8 +673,9 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_num(size, pos))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
-                let size = type_name.ty().size_of() as isize;
-                Ok(ConvExpr::new_num(size, pos))
+                let mut ty = type_name.ty();
+                ty = self.resolve_incomplete_type(ty, pos)?;
+                Ok(ConvExpr::new_num(ty.size_of() as isize, pos))
             }
             ExprKind::Array(expr, index) => {
                 let pos = expr.pos;

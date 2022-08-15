@@ -45,6 +45,7 @@ int test39();
 int test40();
 int test41();
 int test42();
+int test43();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -112,6 +113,8 @@ int main()
     assert(39, 0, test39());
     assert(40, 0, test40());
     assert(41, 0, test41());
+    assert(42, 0, test42());
+    assert(43, 0, test43());
 
     print_ok();
     return 0;
@@ -825,4 +828,22 @@ int test41()
         watching = (*watching).next;
     }
     return 0;
+}
+
+int test42() {
+    struct A {
+        struct A* before;
+        struct A* after;
+        int value;
+    };
+    // TODO: support struct type name
+    assert(42, 4, sizeof(int));
+    assert(42, 8, sizeof(int*));
+    assert(42, 24, sizeof(struct A));
+    return 0;
+}
+
+int test43() {
+
+    return 0; 
 }
