@@ -23,19 +23,91 @@ ConvProgram {
                             ConvExpr {
                                 kind: Assign(
                                     ConvExpr {
-                                        kind: LVar(
-                                            LVar {
-                                                offset: 8,
-                                                ty: Base(
-                                                    Char,
+                                        kind: Member {
+                                            struct_expr: ConvExpr {
+                                                kind: LVar(
+                                                    LVar {
+                                                        offset: 16,
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "a",
+                                                                        offset: 8,
+                                                                        ty: Array(
+                                                                            Base(
+                                                                                Int,
+                                                                            ),
+                                                                            2,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "b",
+                                                                        offset: 9,
+                                                                        ty: Base(
+                                                                            Char,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "c",
+                                                                        offset: 16,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                    },
                                                 ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "a",
+                                                                offset: 8,
+                                                                ty: Array(
+                                                                    Base(
+                                                                        Int,
+                                                                    ),
+                                                                    2,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "b",
+                                                                offset: 9,
+                                                                ty: Base(
+                                                                    Char,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "c",
+                                                                offset: 16,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 10,
+                                                },
                                             },
-                                        ),
+                                            minus_offset: 8,
+                                        },
                                         ty: Base(
                                             Char,
                                         ),
                                         pos: Position {
-                                            n_char: 4,
+                                            n_char: 6,
                                             n_line: 10,
                                         },
                                     },
@@ -88,22 +160,91 @@ ConvProgram {
                                                         lhs: ConvExpr {
                                                             kind: Addr(
                                                                 ConvExpr {
-                                                                    kind: LVar(
-                                                                        LVar {
-                                                                            offset: 16,
-                                                                            ty: Array(
-                                                                                Base(
-                                                                                    Int,
-                                                                                ),
-                                                                                2,
+                                                                    kind: Member {
+                                                                        struct_expr: ConvExpr {
+                                                                            kind: LVar(
+                                                                                LVar {
+                                                                                    offset: 16,
+                                                                                    ty: Struct(
+                                                                                        Struct {
+                                                                                            tag: Some(
+                                                                                                "A",
+                                                                                            ),
+                                                                                            members: [
+                                                                                                StructMember {
+                                                                                                    name: "a",
+                                                                                                    offset: 8,
+                                                                                                    ty: Array(
+                                                                                                        Base(
+                                                                                                            Int,
+                                                                                                        ),
+                                                                                                        2,
+                                                                                                    ),
+                                                                                                },
+                                                                                                StructMember {
+                                                                                                    name: "b",
+                                                                                                    offset: 9,
+                                                                                                    ty: Base(
+                                                                                                        Char,
+                                                                                                    ),
+                                                                                                },
+                                                                                                StructMember {
+                                                                                                    name: "c",
+                                                                                                    offset: 16,
+                                                                                                    ty: Base(
+                                                                                                        Int,
+                                                                                                    ),
+                                                                                                },
+                                                                                            ],
+                                                                                        },
+                                                                                    ),
+                                                                                },
                                                                             ),
+                                                                            ty: Struct(
+                                                                                Struct {
+                                                                                    tag: Some(
+                                                                                        "A",
+                                                                                    ),
+                                                                                    members: [
+                                                                                        StructMember {
+                                                                                            name: "a",
+                                                                                            offset: 8,
+                                                                                            ty: Array(
+                                                                                                Base(
+                                                                                                    Int,
+                                                                                                ),
+                                                                                                2,
+                                                                                            ),
+                                                                                        },
+                                                                                        StructMember {
+                                                                                            name: "b",
+                                                                                            offset: 9,
+                                                                                            ty: Base(
+                                                                                                Char,
+                                                                                            ),
+                                                                                        },
+                                                                                        StructMember {
+                                                                                            name: "c",
+                                                                                            offset: 16,
+                                                                                            ty: Base(
+                                                                                                Int,
+                                                                                            ),
+                                                                                        },
+                                                                                    ],
+                                                                                },
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 4,
+                                                                                n_line: 11,
+                                                                            },
                                                                         },
-                                                                    ),
+                                                                        minus_offset: 0,
+                                                                    },
                                                                     ty: Base(
                                                                         Int,
                                                                     ),
                                                                     pos: Position {
-                                                                        n_char: 4,
+                                                                        n_char: 6,
                                                                         n_line: 11,
                                                                     },
                                                                 },
@@ -114,7 +255,7 @@ ConvProgram {
                                                                 ),
                                                             ),
                                                             pos: Position {
-                                                                n_char: 4,
+                                                                n_char: 6,
                                                                 n_line: 11,
                                                             },
                                                         },
@@ -201,19 +342,91 @@ ConvProgram {
                         ),
                         Return(
                             ConvExpr {
-                                kind: LVar(
-                                    LVar {
-                                        offset: 4,
-                                        ty: Base(
-                                            Int,
+                                kind: Member {
+                                    struct_expr: ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 16,
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "a",
+                                                                offset: 8,
+                                                                ty: Array(
+                                                                    Base(
+                                                                        Int,
+                                                                    ),
+                                                                    2,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "b",
+                                                                offset: 9,
+                                                                ty: Base(
+                                                                    Char,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "c",
+                                                                offset: 16,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                            },
                                         ),
+                                        ty: Struct(
+                                            Struct {
+                                                tag: Some(
+                                                    "A",
+                                                ),
+                                                members: [
+                                                    StructMember {
+                                                        name: "a",
+                                                        offset: 8,
+                                                        ty: Array(
+                                                            Base(
+                                                                Int,
+                                                            ),
+                                                            2,
+                                                        ),
+                                                    },
+                                                    StructMember {
+                                                        name: "b",
+                                                        offset: 9,
+                                                        ty: Base(
+                                                            Char,
+                                                        ),
+                                                    },
+                                                    StructMember {
+                                                        name: "c",
+                                                        offset: 16,
+                                                        ty: Base(
+                                                            Int,
+                                                        ),
+                                                    },
+                                                ],
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 11,
+                                            n_line: 12,
+                                        },
                                     },
-                                ),
+                                    minus_offset: 12,
+                                },
                                 ty: Base(
                                     Int,
                                 ),
                                 pos: Position {
-                                    n_char: 11,
+                                    n_char: 13,
                                     n_line: 12,
                                 },
                             },

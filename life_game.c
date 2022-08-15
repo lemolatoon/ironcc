@@ -20,6 +20,8 @@ int init_grid(int (*grid)[20], int *grid_binaries)
   }
 }
 
+int N_STEP = 30000;
+
 int main()
 {
   int neighbour_count[20][20];
@@ -50,7 +52,7 @@ int main()
   int j;
   int steps;
 
-  for (steps = 0; steps < 50; steps = steps + 1)
+  for (steps = 0; steps < N_STEP; steps = steps + 1)
   {
     printf("\e[0;0H");
     for (i = 0; i < 20; i = i + 1)

@@ -213,6 +213,7 @@ impl<'a> Generator<'a> {
                             }},
                             Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_pos(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
+                            Type::InComplete(_) => todo!(),
                         },
                         None => writeln!(f, ".zero {}", ty.size_of())?,
                     }
@@ -340,6 +341,7 @@ impl<'a> Generator<'a> {
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
+        let ty = expr.ty.clone();
         match expr.kind {
             ConvExprKind::Num(val) => self.push_lit(f, val)?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, expr.ty)?,
@@ -414,6 +416,7 @@ impl<'a> Generator<'a> {
                     | Type::Func(_, _)
                     | Type::Array(_, _)
                     | Type::Struct(_)
+                    | Type::InComplete(_)
                     | Type::Void => return Err(CompileError::new_deref_error(self.input, *expr)),
                     Type::Ptr(base) => *base,
                 };
@@ -455,6 +458,26 @@ impl<'a> Generator<'a> {
             }
             ConvExprKind::Cast(expr, cast_kind) => self.gen_cast(f, *expr, &cast_kind)?,
             ConvExprKind::Unary(unary_op, operand) => self.gen_unary(f, *operand, &unary_op)?,
+            ConvExprKind::Member {
+                struct_expr,
+                minus_offset,
+            } => {
+                self.gen_lvalue(f, *struct_expr.clone())?;
+                self.pop(f, RegKind::Rax)?;
+                writeln!(f, "  add rax, {}", minus_offset)?;
+                self.deref(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*struct_expr.clone()),
+                )?; // rax = *rax
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rax,
+                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *struct_expr)?,
+                )?;
+            }
         }
         Ok(())
     }
@@ -534,6 +557,15 @@ impl<'a> Generator<'a> {
                 init: _,
             }) => {
                 writeln!(f, "  mov rax, offset {}", name)?;
+                self.push(f, RegKind::Rax)?;
+            }
+            ConvExprKind::Member {
+                struct_expr,
+                minus_offset,
+            } => {
+                self.gen_lvalue(f, *struct_expr)?;
+                self.pop(f, RegKind::Rax)?;
+                writeln!(f, "  add rax, {}", minus_offset)?;
                 self.push(f, RegKind::Rax)?;
             }
             _ => return Err(CompileError::new_lvalue_error(self.input, expr)),

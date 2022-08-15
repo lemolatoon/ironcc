@@ -803,7 +803,6 @@ int test41()
         struct List *next;
     };
     struct List head;
-    // head.next = malloc(sizeof(struct List));
     head.next = malloc(sizeof(head));
     struct List *watching = head.next;
     (*head.next).a = 0;
@@ -813,11 +812,9 @@ int test41()
         (*(*watching).next).a = i;
         watching = (*watching).next;
     }
-    // (*watching).next = 0;
     int i = 0;
     for (watching = head.next; watching; watching = (*watching).next)
     {
-        printf("%d\n", (*watching).a);
         assert(41, i, (*watching).a);
         i = i + 1;
     }

@@ -228,3 +228,4 @@ fn void_type() {
 
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
+gen_test!(struct_incomplete_member);

@@ -508,6 +508,7 @@ pub enum VariableKind {
     Local,
     Global,
     Func,
+    Struct,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
