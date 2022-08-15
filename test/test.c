@@ -111,6 +111,7 @@ int main()
     assert(38, 0, test38());
     assert(39, 0, test39());
     assert(40, 0, test40());
+    assert(41, 0, test41());
 
     print_ok();
     return 0;
@@ -743,7 +744,11 @@ char add_chars(char a, char b, char c)
 
 void test38_void_func(int *n) { *n = *n + 1; }
 
-char test38_take_void(void *char_array) { return *char_array; }
+char test38_take_void(void *char_array)
+{
+    char *char_ptr = char_array;
+    return *char_ptr;
+}
 
 int test38()
 {
@@ -786,5 +791,41 @@ int test40()
     assert(40, 0, -1 >= 1);
     int N = -1;
     assert(40, 0, N >= 1);
+    return 0;
+}
+
+void *malloc(int size);
+int test41()
+{
+    struct List
+    {
+        int a;
+        struct List *next;
+    };
+    struct List head;
+    // head.next = malloc(sizeof(struct List));
+    head.next = malloc(sizeof(head));
+    struct List *watching = head.next;
+    (*head.next).a = 0;
+    for (int i = 1; i < 10; i = i + 1)
+    {
+        (*watching).next = malloc(sizeof(head));
+        (*(*watching).next).a = i;
+        watching = (*watching).next;
+    }
+    // (*watching).next = 0;
+    int i = 0;
+    for (watching = head.next; watching; watching = (*watching).next)
+    {
+        printf("%d\n", (*watching).a);
+        assert(41, i, (*watching).a);
+        i = i + 1;
+    }
+    watching = head.next;
+    for (int i2 = 0; i2 < 10; i2 = i2 + 1)
+    {
+        assert(41, i2, (*watching).a);
+        watching = (*watching).next;
+    }
     return 0;
 }
