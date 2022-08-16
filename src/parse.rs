@@ -1,7 +1,8 @@
 use crate::{
-    analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, Type},
+    analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, InCompleteKind, Type},
     error::CompileError,
     tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+    unimplemented_err,
 };
 use std::fmt::Debug;
 
@@ -128,7 +129,7 @@ impl<'a> Parser<'a> {
             direct_declarator
         } else {
             // <ident>
-            DirectDeclarator::Ident(tokens.consume_ident()?)
+            DirectDeclarator::Ident(tokens.consume_ident()?.0)
         };
         loop {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
@@ -203,6 +204,10 @@ impl<'a> Parser<'a> {
                     tokens.next();
                     Ok((TypeSpec::Char, pos))
                 }
+                TokenKind::Type(TypeToken::Void) => {
+                    tokens.next();
+                    Ok((TypeSpec::Void, pos))
+                }
                 TokenKind::Struct => {
                     tokens.next();
                     Ok((
@@ -230,7 +235,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        if let Ok(name) = tokens.consume_ident() {
+        if let Ok((name, _)) = tokens.consume_ident() {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
                 // <struct-declaration-list>
                 let list = self.parse_struct_declaration_list(tokens)?;
@@ -264,16 +269,18 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let (ty_spec, _) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
+            pos,
             ty_spec,
             declarator,
         }];
         tokens.expect(TokenKind::Semi)?;
-        while let Ok((ty_spec, _)) = self.parse_type_specifier(tokens) {
+        while let Ok((ty_spec, pos)) = self.parse_type_specifier(tokens) {
             let declarator = self.parse_declarator(tokens)?;
             list.push(StructDeclaration {
+                pos,
                 ty_spec,
                 declarator,
             });
@@ -560,7 +567,10 @@ impl<'a> Parser<'a> {
             TokenKind::SizeOf => {
                 tokens.next();
                 let mut tmp_tokens = tokens.clone();
-                if let (Some(TokenKind::OpenDelim(DelimToken::Paran)), Some(TokenKind::Type(_))) = (
+                if let (
+                    Some(TokenKind::OpenDelim(DelimToken::Paran)),
+                    Some(TokenKind::Type(_) | TokenKind::Struct),
+                ) = (
                     tmp_tokens.next().map(|token| *token.kind()),
                     tmp_tokens.next().map(|token| *token.kind()),
                 ) {
@@ -587,10 +597,26 @@ impl<'a> Parser<'a> {
         let mut expr = self.parse_primary(tokens)?;
         let mut pos = expr.pos;
 
-        while tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
-            expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
-            pos = expr.pos;
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+        loop {
+            match tokens.peek_kind() {
+                Some(TokenKind::OpenDelim(DelimToken::Bracket)) => {
+                    tokens.next();
+                    expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
+                    pos = expr.pos;
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                }
+                Some(TokenKind::Dot) => {
+                    tokens.next();
+                    let (member, pos) = tokens.consume_ident()?;
+                    expr = Expr::new_member(expr, member, pos);
+                }
+                Some(TokenKind::Arrow) => {
+                    tokens.next();
+                    let (member, pos) = tokens.consume_ident()?;
+                    expr = Expr::new_arrow(expr, member, pos);
+                }
+                _ => break,
+            };
         }
         Ok(expr)
     }
@@ -641,15 +667,113 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
+        dbg!("type_name");
         let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
-        let n_star = Self::parse_pointer(tokens)?;
         // TODO: support DirectAbstractDeclarator
-        let abs_declarator = if n_star == 0 {
-            None
-        } else {
-            Some(AbstractDeclarator::new(n_star, None))
-        };
-        Ok(TypeName::new(SpecQual(ty_spec), abs_declarator, pos))
+        let abstract_declarator = self.parse_abstract_declarator(tokens)?;
+        dbg!(&abstract_declarator);
+        Ok(TypeName::new(SpecQual(ty_spec), abstract_declarator, pos))
+    }
+
+    pub fn parse_abstract_declarator<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Option<AbstractDeclarator>, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let n_star = Self::parse_pointer(tokens)?;
+        let direct_abstract_declarator =
+            if let Some(TokenKind::OpenDelim(DelimToken::Bracket | DelimToken::Paran)) =
+                tokens.peek_kind()
+            {
+                self.parse_direct_abstract_declarator(tokens)?
+            } else {
+                None
+            };
+        Ok(Some(AbstractDeclarator::new(
+            n_star,
+            direct_abstract_declarator,
+        )))
+    }
+
+    pub fn parse_direct_abstract_declarator<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Option<DirectAbstractDeclarator>, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut direct_abstract_declarator =
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+                // "(" <abstract-declarator> ")"
+                let mut tmp_tokens = tokens.clone();
+                let abstract_declarator = self.parse_abstract_declarator(&mut tmp_tokens);
+                if abstract_declarator.is_err()
+                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Bracket))
+                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Paran))
+                {
+                    // [ <assign> ]
+                    // | ( <parameter-type-list>? )
+                    todo!()
+                } else {
+                    let abstract_declarator = abstract_declarator?;
+                    if abstract_declarator.is_none() {
+                        return Ok(None);
+                    }
+                    let direct_abstract_declarator = DirectAbstractDeclarator::AbstractDeclarator(
+                        Box::new(abstract_declarator.unwrap()),
+                    );
+                    *tokens = tmp_tokens;
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                    direct_abstract_declarator
+                }
+            } else {
+                // [ <assign> ]
+                // | ( <parameter-type-list>? )
+                // TODO: support above
+                todo!();
+            };
+        loop {
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+                // function declaration
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                    // e.g) `main()`
+                    // direct_abstract_declarator = DirectAbstractDeclarator::Func(
+                    //     Box::new(direct_abstract_declarator),
+                    //     Vec::new(),
+                    // );
+                    // TODO: support function type direct_abstract_declarator
+                    todo!()
+                } else {
+                    // let mut args = Vec::new();
+                    // args.push(self.parse_declaration(tokens)?);
+                    // while tokens.consume(&TokenKind::Comma) {
+                    //     args.push(self.parse_declaration(tokens)?);
+                    // }
+                    // direct_declarator = DirectDeclarator::Func(Box::new(direct_declarator), args);
+                    // tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                    // TODO: support function type direct_abstract_declarator
+                }
+            } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
+                    // direct_abstract_declarator =
+                    //     DirectAbstractDeclarator::Array(Box::new(direct_declarator), None);
+                    // TODO: support array type direct_abstract_declarator
+                    todo!()
+                } else {
+                    // let expr = self.parse_assign(tokens)?;
+                    // direct_declarator =
+                    //     DirectDeclarator::Array(Box::new(direct_declarator), Some(expr));
+                    // tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
+                    // TODO: support array type direct_abstract_declarator
+                    todo!()
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(Some(direct_abstract_declarator))
     }
 }
 
@@ -753,13 +877,20 @@ impl Declaration {
             .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
-    pub fn ty(&self, analyzer: &mut Analyzer) -> Result<Type, CompileError> {
+    pub fn ty(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+        let converted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
         analyzer.get_type(
-            &self.ty_spec,
+            converted_type,
             &self
                 .init_declarator
                 .as_ref()
-                .expect("get_type for struct is not yet implemented.")
+                .ok_or_else(|| {
+                    unimplemented_err!(
+                        analyzer.input,
+                        pos,
+                        "get_type for struct is not yet implemented."
+                    )
+                })?
                 .declarator,
         )
     }
@@ -846,6 +977,7 @@ impl Initializer {
 pub enum TypeSpec {
     Int,
     Char,
+    Void,
     StructOrUnion(StructOrUnionSpec),
 }
 
@@ -857,8 +989,20 @@ pub enum StructOrUnionSpec {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct StructDeclaration {
+    pub pos: Position,
     ty_spec: TypeSpec,
     declarator: Declarator,
+}
+
+impl StructDeclaration {
+    pub fn ident_name(&self) -> &str {
+        self.declarator.direct_declarator.ident_name()
+    }
+
+    pub fn get_type(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
+        analyzer.get_type(conveted_type, &self.declarator)
+    }
 }
 
 impl Stmt {
@@ -934,12 +1078,17 @@ impl TypeName {
 
     pub fn ty(&self) -> Type {
         // TODO: also consider array
-        let base = match self.spec_quals.0 {
-            TypeSpec::Int => BaseType::Int,
-            TypeSpec::Char => BaseType::Char,
-            TypeSpec::StructOrUnion(_) => todo!(),
+        let mut ty = match &self.spec_quals.0 {
+            TypeSpec::Int => Type::Base(BaseType::Int),
+            TypeSpec::Char => Type::Base(BaseType::Char),
+            TypeSpec::Void => Type::Void,
+            TypeSpec::StructOrUnion(
+                StructOrUnionSpec::WithTag(name) | StructOrUnionSpec::WithList(Some(name), _),
+            ) => Type::InComplete(InCompleteKind::Struct(name.clone())),
+            TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {
+                todo!()
+            }
         };
-        let mut ty = Type::Base(base);
         if let Some(ref abstract_declarator) = self.abstract_declarator {
             for _ in 0..abstract_declarator.n_star {
                 ty = Type::Ptr(Box::new(ty));
@@ -978,6 +1127,8 @@ impl AbstractDeclarator {
 pub enum DirectAbstractDeclarator {
     /// <direct-abstract-declarator>? "[]"
     Array(Option<Box<DirectAbstractDeclarator>>),
+    /// "(" <abstract-declarator> ")"
+    AbstractDeclarator(Box<AbstractDeclarator>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1016,6 +1167,8 @@ pub enum ExprKind {
     Addr(Box<Expr>),
     SizeOf(SizeOfOperandKind),
     Array(Box<Expr>, Box<Expr>),
+    Member(Box<Expr>, String),
+    Arrow(Box<Expr>, String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1033,6 +1186,18 @@ pub enum UnaryOp {
 }
 
 impl Expr {
+    pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Member(Box::new(expr), ident),
+            pos,
+        }
+    }
+    pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Arrow(Box::new(expr), ident),
+            pos,
+        }
+    }
     pub fn new_array(expr: Expr, index: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::Array(Box::new(expr), Box::new(index)),

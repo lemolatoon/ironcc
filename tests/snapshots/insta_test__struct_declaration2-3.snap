@@ -1,0 +1,43 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func(
+                    Base(
+                        Int,
+                    ),
+                    [],
+                ),
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Block(
+                            [],
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Num(
+                                    12,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 11,
+                                    n_line: 8,
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 12,
+            },
+        ),
+    ],
+}

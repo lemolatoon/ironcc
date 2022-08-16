@@ -37,6 +37,15 @@ int test31();
 int test32();
 int test33();
 int test34();
+int test35();
+int test36();
+int test37();
+int test38();
+int test39();
+int test40();
+int test41();
+int test42();
+int test43();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -97,6 +106,15 @@ int main()
     assert(32, 0, test32());
     assert(33, 0, test33());
     assert(34, 0, test34());
+    assert(35, 0, test35());
+    assert(36, 0, test36());
+    assert(37, 0, test37());
+    assert(38, 0, test38());
+    assert(39, 0, test39());
+    assert(40, 0, test40());
+    assert(41, 0, test41());
+    assert(42, 0, test42());
+    assert(43, 0, test43());
 
     print_ok();
     return 0;
@@ -662,7 +680,221 @@ int test34()
     return 0;
 }
 
+int test35()
+{
+    struct A
+    {
+        char a;
+        int b;
+        char c;
+    } struct_a;
+    struct A struct_a2;
+    assert(35, 12, sizeof(struct_a));
+    assert(35, 12, sizeof(struct_a2));
+    return 0;
+}
+
+int test36()
+{
+    int arr[2] = {1, 2};
+    struct A
+    {
+        char a;
+        int b;
+        char c;
+    } struct_a;
+    int arr2[2] = {1, 2};
+    struct_a.a = 3;
+    assert(36, 3, struct_a.a);
+    struct_a.c = struct_a.a;
+    assert(36, 3, struct_a.c);
+    assert(36, 2, arr[1]);
+    assert(36, 1, arr2[0]);
+    return 0;
+}
+
+int test37()
+{
+    struct A
+    {
+        int a[2];
+        char b;
+        int c;
+    };
+
+    int arr[2] = {1, 2};
+    struct A a;
+    int arr2[2] = {1, 2};
+    a.b = 2;
+    assert(37, 2, a.b);
+    a.a[1] = 22;
+    assert(37, 22, a.a[1]);
+    a.c = 9;
+    assert(37, 9, a.c);
+    a.a[1] = 22;
+    assert(37, 9, a.c);
+    assert(37, 1, arr[0]);
+    assert(37, 2, arr[1]);
+    assert(37, 1, arr2[0]);
+    assert(37, 2, arr2[1]);
+    return 0;
+}
+
 char add_chars(char a, char b, char c)
 {
     return a + b - c;
+}
+
+void test38_void_func(int *n) { *n = *n + 1; }
+
+char test38_take_void(void *char_array)
+{
+    char *char_ptr = char_array;
+    return *char_ptr;
+}
+
+int test38()
+{
+    int a = 2;
+    test38_void_func(&a);
+    assert(38, 3, a);
+    char char_array[2] = {22, 33};
+    assert(38, 22, test38_take_void(char_array));
+    return 0;
+}
+
+int test39()
+{
+    char *char_array = "0123456789";
+    assert(39, 48, *char_array);
+    assert(39, 49, char_array[1]);
+    assert(39, 50, char_array[2]);
+    assert(39, 51, char_array[3]);
+    assert(39, 52, char_array[4]);
+    assert(39, 53, char_array[5]);
+    assert(39, 54, char_array[6]);
+    assert(39, 48, "0123456789"[0]);
+    int n = 9;
+    assert(39, 48 + 9, "0123456789"[9]);
+    assert(39, 48 + 9, "0123456789"[n]);
+    return 0;
+}
+
+int test40()
+{
+    // int n = -1600;
+    int n = -200;
+    assert(40, -200, n);
+    assert(40, -199, n + 1);
+    assert(40, -400, n * 2);
+    assert(40, -100, n / 2);
+    int calced = -1600 / 10000;
+    int calced2 = n / 10000;
+    assert(40, 0, -1600 / 10000);
+    assert(40, 0, -1 >= 1);
+    int N = -1;
+    assert(40, 0, N >= 1);
+    return 0;
+}
+
+void *malloc(int size);
+int test41()
+{
+    struct List
+    {
+        int a;
+        struct List *next;
+    };
+    struct List head;
+    head.next = malloc(sizeof(head));
+    struct List *watching = head.next;
+    (*head.next).a = 0;
+    for (int i = 1; i < 10; i = i + 1)
+    {
+        (*watching).next = malloc(sizeof(head));
+        (*(*watching).next).a = i;
+        watching = (*watching).next;
+    }
+    int i = 0;
+    for (watching = head.next; watching; watching = (*watching).next)
+    {
+        assert(41, i, (*watching).a);
+        i = i + 1;
+    }
+    watching = head.next;
+    for (int i2 = 0; i2 < 10; i2 = i2 + 1)
+    {
+        assert(41, i2, (*watching).a);
+        watching = (*watching).next;
+    }
+    return 0;
+}
+
+int test42() {
+    struct A {
+        struct A* before;
+        struct A* after;
+        int value;
+    };
+    // TODO: support struct type name
+    assert(42, 4, sizeof(int));
+    assert(42, 8, sizeof(int*));
+    assert(42, 24, sizeof(struct A));
+    return 0;
+}
+
+// struct ListNode {
+// 	void *data;
+//     int sz;
+
+// 	struct ListNode *next;
+// } ;
+
+// struct List {
+// 	struct ListNode *head;
+// 	struct ListNode *tail;
+// };
+
+// struct ListNode *AddNode(struct List * list, void * data, int sz);
+// void DeleteNode(struct List * list, struct ListNode * node);
+// struct ListNode *FindNodeByRef(struct List * list, void * data);
+// struct ListNode *FindNodeByValue(struct List * list, void * data, int sz);
+// void FreeNodes(struct List * list, int free_parameter_as_well);
+// void FreeList(struct List * list);
+
+int test43() {
+    struct Doubly {
+        struct Doubly *before;
+        struct Doubly *after;
+        int value;
+    };
+    struct Doubly head;
+    struct Doubly tail;
+    struct Doubly *node = malloc(sizeof(struct Doubly));
+    node->value = 0;
+    node->before = &head;
+    head.after = node;
+    for (int i = 1; i < 10; i = i + 1) {
+        node->after = malloc(sizeof(struct Doubly));
+        node->after->value = i;
+        struct Doubly *next = node->after;
+        next->before = node;
+        node = next;
+    }
+    node->after = &tail;
+    tail.before = node;
+
+    node = head.after;
+    for (int i = 0; i < 10; i = i + 1) {
+        assert(43, i, node->value);
+        node = node->after;
+    }
+    assert(43, 0, node->after == &tail);
+    node = tail.before;
+    for (int i = 9; i >= 0; i = i - 1) {
+        assert(43, i, node->value);
+        node = node->before;
+    }
+    assert(43, 0, node->before == &head);
+    return 0; 
 }

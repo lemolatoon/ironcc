@@ -13,3 +13,8 @@
 /src.s
 a.out
 link.c
+
+/tetris.c
+/tetris2.c
+/tmp2.c
+/prpr_tetris.c

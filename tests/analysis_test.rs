@@ -1,7 +1,7 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
@@ -536,9 +536,9 @@ fn extract_func_ty(src: &str) -> Type {
 
 #[test]
 fn align_to_test() {
-    assert_eq!(8, align_to(1, &Type::Base(BaseType::Int)));
-    assert_eq!(8, align_to(4, &Type::Base(BaseType::Int)));
-    assert_eq!(16, align_to(10, &Type::Base(BaseType::Int)));
+    assert_eq!(8, aligned_offset(1, &Type::Base(BaseType::Int)));
+    assert_eq!(8, aligned_offset(4, &Type::Base(BaseType::Int)));
+    assert_eq!(16, aligned_offset(10, &Type::Base(BaseType::Int)));
 }
 
 fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
@@ -566,38 +566,27 @@ fn cblock(stmts: Vec<ConvStmt>) -> ConvStmt {
 }
 
 fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
-    let mut lvar_map = BTreeMap::new();
     let offset = &mut offset;
-    Analyzer::new_lvar(
-        "",
-        name.to_string(),
-        Position::default(),
-        offset,
-        ty,
-        &mut lvar_map,
-    )
-    .unwrap();
+    let mut analyzer = Analyzer::new("");
+    analyzer.scope.push_scope();
+    let lvar = analyzer
+        .scope
+        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .unwrap();
 
-    let lvar = match &mut lvar_map.get(name) {
-        Some(lvar) => lvar.clone(),
-        None => panic!("Illegal func args"),
-    };
+    analyzer.scope.pop_scope(offset);
     let ty = lvar.ty.clone();
     ConvExpr::new_lvar_raw(lvar, ty, Position::default())
 }
 
 fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> LVar {
     let offset = &mut offset;
-    let mut empty = BTreeMap::new();
-    Analyzer::new_lvar(
-        "",
-        name.to_string(),
-        Position::default(),
-        offset,
-        ty,
-        &mut empty,
-    )
-    .unwrap()
+    let mut analyzer = Analyzer::new("");
+    analyzer.scope.push_scope();
+    analyzer
+        .scope
+        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .unwrap()
 }
 
 fn cexpr_stmt(expr: ConvExpr) -> ConvStmt {

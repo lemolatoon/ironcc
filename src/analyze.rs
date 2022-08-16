@@ -8,8 +8,8 @@ use crate::{
     generate::RegSize,
     parse::{
         BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, ForInitKind, Initializer,
-        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, TypeSpec,
-        UnaryOp,
+        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
+        StructOrUnionSpec, TypeSpec, UnaryOp,
     },
     tokenize::Position,
     unimplemented_err,
@@ -17,7 +17,7 @@ use crate::{
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Analyzer<'a> {
-    input: &'a str,
+    pub input: &'a str,
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
@@ -46,7 +46,18 @@ impl<'a> Analyzer<'a> {
         lc_label
     }
 
+    pub fn look_up_struct_tag(&self, name: &str) -> Option<&Taged> {
+        for map in self.tag_scope.iter().rev() {
+            if let Some(taged) = map.get(name) {
+                return Some(taged);
+            }
+        }
+        None
+    }
+
+    #[allow(clippy::too_many_lines)]
     pub fn traverse_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
+        self.tag_scope.push(BTreeMap::new());
         for component in program {
             match component {
                 ProgramComponent {
@@ -61,14 +72,20 @@ impl<'a> Analyzer<'a> {
                 }
                 ProgramComponent {
                     kind: ProgramKind::Declaration(declaration),
-                    pos: _,
+                    pos,
                 } => {
                     if let Some(init_declarator) = declaration.init_declarator {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
                         let pos = declaration.pos;
-                        match self.get_type(&declaration.ty_spec, &init_declarator.declarator)? {
-                            ty @ (Type::Base(_) | Type::Ptr(_) | Type::Array(_, _)) => {
+                        self.register_struct_tag_from_type_specifier(&declaration.ty_spec);
+                        let converted_type =
+                            self.resolve_name_and_convert_to_type(&declaration.ty_spec, pos)?;
+                        match self.get_type(converted_type, &init_declarator.declarator)? {
+                            ty @ (Type::Base(_)
+                            | Type::Ptr(_)
+                            | Type::Array(_, _)
+                            | Type::Struct(_)) => {
                                 let gvar = self.new_global_variable(init, name, ty, pos)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
@@ -86,14 +103,66 @@ impl<'a> Analyzer<'a> {
                                     Func::new_raw(name.to_string(), args, *ret_ty, pos),
                                 );
                             }
+                            Type::Void => {
+                                return Err(CompileError::new_unexpected_void(
+                                    self.input,
+                                    pos,
+                                    "void type declaration found.".to_string(),
+                                ));
+                            }
+                            Type::InComplete(InCompleteKind::Struct(tag_name)) => {
+                                let gvar = self.new_global_variable(
+                                    init,
+                                    name,
+                                    Type::InComplete(InCompleteKind::Struct(tag_name.clone())),
+                                    pos,
+                                )?;
+                                self.conv_program.push(ConvProgramKind::Global(gvar));
+                            }
                         }
                     } else {
                         // struct declaration
-                        todo!()
+
+                        self.register_struct_tag_from_type_specifier(&declaration.ty_spec);
+                        match declaration.ty_spec {
+                            TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(
+                                Some(name),
+                                vec,
+                            )) => {
+                                let types = vec
+                                    .iter()
+                                    .map(|struct_declaration| {
+                                        struct_declaration.get_type(self, struct_declaration.pos)
+                                    })
+                                    .collect::<Result<_, CompileError>>()?;
+                                let names = vec
+                                    .iter()
+                                    .map(|struct_declaration| {
+                                        struct_declaration.ident_name().to_string()
+                                    })
+                                    .collect::<Vec<String>>();
+                                self.tag_scope
+                                    .last_mut()
+                                    .expect("INTERNAL COMPILER ERROR.")
+                                    .insert(
+                                        name.clone(),
+                                        Taged::new_struct_tag(name, names, types),
+                                    );
+                            }
+                            _ => {
+                                return Err(unimplemented_err!(
+                                    self.input,
+                                    pos,
+                                    "Expected struct declaration with name and list."
+                                ))
+                            }
+                        }
                     }
                 }
             }
         }
+        self.tag_scope.pop();
+        assert!(self.tag_scope.is_empty());
         Ok(self.conv_program.clone())
     }
 
@@ -107,7 +176,6 @@ impl<'a> Analyzer<'a> {
         pos: Position,
     ) -> Result<GVar, CompileError> {
         let init = init
-            // .as_ref()
             .map(|expr| {
                 expr.clone().map(|expr| {
                     ConstExpr::try_eval_as_const(
@@ -128,7 +196,7 @@ impl<'a> Analyzer<'a> {
                         .enumerate()
                         .all(|(idx, ty)| {
                             unequal_type_index = idx;
-                            *ty == first.ty
+                            ty.ty_eq(&first.ty)
                         })
                 }) {
                     return Err(CompileError::new_type_error_const(
@@ -147,7 +215,7 @@ impl<'a> Analyzer<'a> {
             // type check
             match ty.clone() {
                 Type::Base(_) | Type::Ptr(_) => {
-                    if ty != init_ty {
+                    if !ty.ty_eq(&init_ty) {
                         if ty.is_base() && init_ty.is_base() {
                         } else {
                             return Err(CompileError::new_type_error_types(
@@ -162,8 +230,15 @@ impl<'a> Analyzer<'a> {
                     }
                 }
                 Type::Func(_, _) => unreachable!(),
+                Type::Struct(_) => {
+                    return Err(unimplemented_err!(
+                        self.input,
+                        pos,
+                        "Global Variable Initialization with struct is not currently supported."
+                    ))
+                }
                 Type::Array(base, _) => {
-                    if *base != init_ty {
+                    if !base.ty_eq(&init_ty) {
                         if base.is_base() && init_ty.is_base() {
                         } else {
                             return Err(CompileError::new_type_error_types(
@@ -177,6 +252,8 @@ impl<'a> Analyzer<'a> {
                         }
                     }
                 }
+                Type::Void => todo!(),
+                Type::InComplete(_) => todo!(),
             };
         }
 
@@ -192,7 +269,8 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
         let ident = declarator.direct_declarator.ident_name();
-        let ty = self.get_type(ty_spec, declarator)?;
+        let converted_type = self.resolve_name_and_convert_to_type(ty_spec, pos)?;
+        let ty = self.get_type(converted_type, declarator)?;
 
         let (ret_ty, args_ty);
         if let Type::Func(this_ret_ty, this_args) = ty.clone() {
@@ -218,11 +296,14 @@ impl<'a> Analyzer<'a> {
             ));
         };
         self.scope.push_scope();
+        self.tag_scope.push(BTreeMap::new());
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
+                let converted_type =
+                    self.resolve_name_and_convert_to_type(&arg.ty_spec, arg.pos)?;
                 let ty = self.get_type(
-                    &arg.ty_spec,
+                    converted_type,
                     &arg.init_declarator
                         .as_ref()
                         .unwrap_or_else(|| todo!("struct"))
@@ -253,6 +334,7 @@ impl<'a> Analyzer<'a> {
             ));
         };
         self.scope.pop_scope(&mut self.offset);
+        self.tag_scope.pop();
         let stack_size = self.scope.get_stack_size(); // this_func_map.into_values().collect::<BTreeSet<_>>(),
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
@@ -288,7 +370,7 @@ impl<'a> Analyzer<'a> {
                             self.traverse_expr(expr, BTreeSet::new()).map(Some)
                         }
                         ForInitKind::Declaration(declaration) => {
-                            let ty = declaration.ty(self)?;
+                            let ty = declaration.ty(self, declaration.pos)?;
                             let lvar = self.scope.register_lvar(
                                 self.input,
                                 declaration.pos,
@@ -334,9 +416,48 @@ impl<'a> Analyzer<'a> {
                 block
             }
             StmtKind::Declare(declaration) => {
-                let ty = declaration.ty(self)?;
+                if declaration.init_declarator.is_none() {
+                    match declaration.ty_spec {
+                        TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(Some(name), vec)) => {
+                            self.register_struct_tag(name.clone());
+                            let types = vec
+                                .iter()
+                                .map(|struct_declaration| {
+                                    struct_declaration.get_type(self, struct_declaration.pos)
+                                })
+                                .collect::<Result<_, CompileError>>()?;
+                            let names = vec
+                                .iter()
+                                .map(|struct_declaration| {
+                                    struct_declaration.ident_name().to_string()
+                                })
+                                .collect::<Vec<String>>();
+                            self.tag_scope
+                                .last_mut()
+                                .expect("INTERNAL COMPILER ERROR.")
+                                .insert(name.clone(), Taged::new_struct_tag(name, names, types));
+                            return Ok(ConvStmt::new_block(vec![]));
+                        }
+                        TypeSpec::StructOrUnion(_) => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                declaration.pos,
+                                "Expected struct declaration with name and list."
+                            ))
+                        }
+                        _ => {
+                            return Err(unimplemented_err!(
+                                self.input,
+                                declaration.pos,
+                                "Not struct declaration has to have init declarator."
+                            ))
+                        }
+                    };
+                }
+                let ty = declaration.ty(self, declaration.pos)?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
+                let ty = self.resolve_incomplete_type(ty, declaration.pos)?;
                 let lvar = self.scope.register_lvar(
                     self.input,
                     declaration.pos,
@@ -416,7 +537,27 @@ impl<'a> Analyzer<'a> {
         pos: Position,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
-        if lhs.ty != rhs.ty {
+        if !lhs.ty.ty_eq(&rhs.ty) {
+            let lhs_ptr_to = lhs.ty.get_ptr_to();
+            let rhs_ptr_to = rhs.ty.get_ptr_to();
+            if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
+                let ptr_to = rhs_ptr_to.unwrap().clone();
+                rhs = ConvExpr::new_cast(
+                    rhs,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::ToVoidPtr { ptr_to },
+                );
+                return Ok(ConvExpr::new_assign(lhs, rhs, pos));
+            } else if lhs_ptr_to.is_some() && rhs.ty.is_void_ptr() {
+                rhs = ConvExpr::new_cast(
+                    rhs,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::FromVoidPtr {
+                        ptr_to: lhs_ptr_to.unwrap().clone(),
+                    },
+                );
+                return Ok(ConvExpr::new_assign(lhs, rhs, pos));
+            }
             match (lhs.ty.get_base(), rhs.ty.get_base()) {
                 (Some(lhs_base), Some(rhs_base)) => {
                     let rhs_base = *rhs_base;
@@ -439,6 +580,7 @@ impl<'a> Analyzer<'a> {
         Ok(ConvExpr::new_assign(lhs, rhs, pos))
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn traverse_expr(
         &mut self,
         expr: Expr,
@@ -498,12 +640,12 @@ impl<'a> Analyzer<'a> {
                 // type check
                 let conv_expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
-                    ty @ (Type::Base(_) | Type::Func(_, _)) => {
-                        Err(CompileError::new_type_expect_failed(
+                    ty @ (Type::Base(_) | Type::Func(_, _) | Type::Struct(_) | Type::Void) => {
+                        Err(CompileError::new_type_expect_failed_with_str(
                             self.input,
                             conv_expr.pos,
                             // TODO: base type is not a problem of this error
-                            Type::Ptr(Box::new(Type::Base(BaseType::Int))),
+                            "Type::Ptr(_))".to_string(),
                             ty,
                         ))
                     }
@@ -514,6 +656,11 @@ impl<'a> Analyzer<'a> {
                         pos,
                     )),
                     Type::Ptr(ptr_base) => Ok(ConvExpr::new_deref(conv_expr, *ptr_base, pos)),
+                    Type::Void => todo!(),
+                    Type::InComplete(_) => todo!(),
+                    Type::Base(_) => todo!(),
+                    Type::Func(_, _) => todo!(),
+                    Type::Struct(_) => todo!(),
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
@@ -526,8 +673,9 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_num(size, pos))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
-                let size = type_name.ty().size_of() as isize;
-                Ok(ConvExpr::new_num(size, pos))
+                let mut ty = type_name.ty();
+                ty = self.resolve_incomplete_type(ty, pos)?;
+                Ok(ConvExpr::new_num(ty.size_of() as isize, pos))
             }
             ExprKind::Array(expr, index) => {
                 let pos = expr.pos;
@@ -535,6 +683,50 @@ impl<'a> Analyzer<'a> {
                 let desugared =
                     Expr::new_deref(Expr::new_binary(BinOpKind::Add, *expr, *index, pos), pos);
                 self.traverse_expr(desugared, BTreeSet::new())
+            }
+            ExprKind::Member(expr, ident_name) => {
+                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let ty = self.resolve_incomplete_type(expr.ty.clone(), expr.pos)?;
+                let member = if let Type::Struct(Struct { tag, members }) = ty {
+                    members
+                        .into_iter()
+                        .find(|struct_member| struct_member.name == ident_name)
+                        .ok_or_else(|| {
+                            CompileError::new_no_such_member(self.input, tag, pos, ident_name)
+                        })?
+                } else {
+                    return Err(CompileError::new_type_expect_failed_with_str(
+                        self.input,
+                        pos,
+                        "Type::Struct(_)".to_string(),
+                        expr.ty,
+                    ));
+                };
+
+                let minus_offset = member.offset - member.ty.size_of();
+                Ok(ConvExpr::new_member(expr, member.ty, minus_offset, pos))
+                // Ok(match expr.kind {
+                //     ConvExprKind::LVar(LVar { offset, ty: _ }) => {
+                //         let stack_offset_of_member = offset + member.ty.size_of() - member.offset;
+                //         ConvExpr::new_lvar_raw(
+                //             LVar {
+                //                 offset: stack_offset_of_member,
+                //                 ty: member.ty.clone(),
+                //             },
+                //             member.ty,
+                //             expr.pos,
+                //         )
+                //     }
+                //     ConvExprKind::GVar(_) => todo!(),
+                //     _ => unreachable!(
+                //         "Any expr of type struct must be local variable or global variable."
+                //     ),
+                // })
+            }
+            ExprKind::Arrow(expr, ident_name) => {
+                let pos = expr.pos;
+                let converted_expr = Expr::new_member(Expr::new_deref(*expr, pos), ident_name, pos);
+                self.traverse_expr(converted_expr, BTreeSet::new())
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -583,7 +775,7 @@ impl<'a> Analyzer<'a> {
             ));
         }
         for (expected_ty, got_expr) in args_ty.iter().zip(args.iter_mut()) {
-            if *expected_ty != got_expr.ty {
+            if !expected_ty.ty_eq(&got_expr.ty) {
                 if expected_ty.is_base() && got_expr.ty.is_base() {
                     let to = *expected_ty.get_base().unwrap();
                     let from = *got_expr.ty.get_base().unwrap();
@@ -591,6 +783,22 @@ impl<'a> Analyzer<'a> {
                         got_expr.clone(),
                         expected_ty.clone(),
                         CastKind::Base2Base(from, to),
+                    );
+                } else if expected_ty.is_void_ptr() && got_expr.ty.get_ptr_to().is_some() {
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::ToVoidPtr {
+                            ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
+                        },
+                    );
+                } else if got_expr.ty.is_void_ptr() && expected_ty.get_ptr_to().is_some() {
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::FromVoidPtr {
+                            ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
+                        },
                     );
                 } else {
                     return Err(CompileError::new_type_expect_failed(
@@ -740,14 +948,29 @@ impl<'a> Analyzer<'a> {
                     pos,
                     "binary expr of function is not currently supported."
                 )),
+                (_, Type::Struct(_)) | (Type::Struct(_), _) => Err(unimplemented_err!(
+                    self.input,
+                    pos,
+                    "binary expr of function is illegal operation."
+                )),
                 (_, Type::Array(_, _)) | (Type::Array(_, _), _) => {
                     unreachable!(
                         "binary expr's operands(one of which is array) must be casted to ptr."
                     )
                 }
+                (_, Type::Void) | (Type::Void, _) => Err(unimplemented_err!(
+                    self.input,
+                    pos,
+                    "binary expr of void is illegal operation."
+                )),
+                (_, Type::InComplete(_)) | (Type::InComplete(_), _) => Err(unimplemented_err!(
+                    self.input,
+                    pos,
+                    "INTERNAL COMPILER ERROR, binary expr of incomplete type shouldnt be calculated."
+                )),
             },
             op @ (ConvBinOpKind::LShift | ConvBinOpKind::RShift) => {
-                if lhs.ty != rhs.ty {
+                if !lhs.ty.ty_eq(&rhs.ty) {
                     // TODO: char -> int
                     return Err(CompileError::new_type_error(
                         self.input,
@@ -760,7 +983,7 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
             }
             op @ ConvBinOpKind::BitWiseAnd => {
-                if lhs.ty != rhs.ty {
+                if !lhs.ty.ty_eq(&rhs.ty) {
                     // TODO: char -> int
                     return Err(CompileError::new_type_error(
                         self.input,
@@ -773,7 +996,7 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_binary(op, lhs, rhs, lhs_ty, pos))
             }
             ConvBinOpKind::Mul | ConvBinOpKind::Div => {
-                if lhs.ty != rhs.ty {
+                if !lhs.ty.ty_eq(&rhs.ty) {
                     return Err(CompileError::new_type_error(
                         self.input,
                         lhs,
@@ -788,7 +1011,7 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_binary(kind, lhs, rhs, lhs_ty, pos))
             }
             ConvBinOpKind::Rem => {
-                if lhs.ty != rhs.ty {
+                if !lhs.ty.ty_eq(&rhs.ty) {
                     return Err(CompileError::new_type_error(
                         self.input,
                         lhs,
@@ -801,7 +1024,7 @@ impl<'a> Analyzer<'a> {
                 Ok(ConvExpr::new_binary(kind, lhs, rhs, lhs_ty, pos))
             }
             ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
-                if lhs.ty != rhs.ty {
+                if !lhs.ty.ty_eq(&rhs.ty) {
                     return Err(CompileError::new_type_error(
                         self.input,
                         lhs,
@@ -835,7 +1058,7 @@ impl<'a> Analyzer<'a> {
             ),
             UnaryOp::BitInvert => {
                 let mut operand = self.traverse_expr(*operand, BTreeSet::new())?;
-                if operand.ty != Type::Base(BaseType::Int) {
+                if !operand.ty.ty_eq(&Type::Base(BaseType::Int)) {
                     if let Some(base_ty) = operand.ty.clone().get_base() {
                         operand = ConvExpr::new_cast(
                             operand,
@@ -876,7 +1099,7 @@ impl<'a> Analyzer<'a> {
                 let rhs = self.traverse_expr(init, attrs)?;
                 self.new_assign_expr_with_type_check(
                     // Safety:
-                    // the lvar is generated by `Self::new_lvar` which initializes lvar_map
+                    // the lvar is generated by `Self::register_lvar` which initializes lvar_map
                     ConvExpr::new_lvar_raw(lvar, ty, pos),
                     rhs,
                     pos,
@@ -890,12 +1113,11 @@ impl<'a> Analyzer<'a> {
         }
     }
 
-    pub fn get_type<T: Into<Type> + Clone>(
+    pub fn get_type(
         &mut self,
-        ty_spec: T,
+        mut ty: Type,
         declarator: &Declarator,
     ) -> Result<Type, CompileError> {
-        let mut ty = ty_spec.into();
         for _ in 0..declarator.n_star {
             ty = Type::Ptr(Box::new(ty));
         }
@@ -908,8 +1130,12 @@ impl<'a> Analyzer<'a> {
                         Box::new(ty),
                         args.iter()
                             .map(|declaration| {
-                                self.get_type(
+                                let converted_ty_spec = self.resolve_name_and_convert_to_type(
                                     &declaration.ty_spec,
+                                    declaration.pos,
+                                )?;
+                                self.get_type(
+                                    converted_ty_spec,
                                     &declaration
                                         .init_declarator
                                         .as_ref()
@@ -964,30 +1190,6 @@ impl<'a> Analyzer<'a> {
                 ConvExpr::new_lvar_raw(local, ty, pos)
             }
         })
-    }
-
-    /// create first defined variable
-    pub fn new_lvar(
-        src: &str,
-        name: String,
-        pos: Position,
-        new_offset: &mut usize,
-        ty: Type,
-        lvar_map: &mut BTreeMap<String, LVar>,
-    ) -> Result<LVar, CompileError> {
-        let offset = if lvar_map.get(&name).is_some() {
-            return Err(CompileError::new_redefined_variable(
-                src,
-                name,
-                pos,
-                VariableKind::Local,
-            ));
-        } else {
-            *new_offset += ty.size_of();
-            lvar_map.insert(name, LVar::new_raw(*new_offset, ty.clone()));
-            *new_offset
-        };
-        Ok(LVar::new_raw(offset, ty))
     }
 }
 
@@ -1202,6 +1404,17 @@ impl ConvExpr {
         }
     }
 
+    pub fn new_member(expr: ConvExpr, member_ty: Type, minus_offset: usize, pos: Position) -> Self {
+        ConvExpr {
+            kind: ConvExprKind::Member {
+                struct_expr: Box::new(expr),
+                minus_offset,
+            },
+            ty: member_ty,
+            pos,
+        }
+    }
+
     pub const fn new_lvar_raw(lvar: LVar, ty: Type, pos: Position) -> Self {
         ConvExpr {
             kind: ConvExprKind::LVar(lvar),
@@ -1254,6 +1467,10 @@ pub enum CastContext {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
+    Member {
+        struct_expr: Box<ConvExpr>,
+        minus_offset: usize,
+    },
     Binary(ConvBinary),
     Unary(ConvUnaryOp, Box<ConvExpr>),
     Num(isize),
@@ -1274,6 +1491,8 @@ pub enum ConvUnaryOp {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum CastKind {
     Base2Base(BaseType, BaseType),
+    ToVoidPtr { ptr_to: Type },
+    FromVoidPtr { ptr_to: Type },
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1414,8 +1633,8 @@ impl Scope {
             ));
         }
         *self.diff.last_mut().expect("this has to exist.") +=
-            align_to(*new_offset, &ty) - *new_offset;
-        *new_offset = align_to(*new_offset, &ty);
+            aligned_offset(*new_offset, &ty) - *new_offset;
+        *new_offset = aligned_offset(*new_offset, &ty);
         let lvar = LVar::new_raw(*new_offset, ty);
         self.insert_lvar_to_current_scope(name.to_string(), lvar.clone());
         self.max_stack_size = usize::max(self.max_stack_size, *new_offset);
@@ -1424,11 +1643,19 @@ impl Scope {
 }
 
 /// calculate aligned next offset
-pub const fn align_to(current_offset: usize, ty: &Type) -> usize {
+pub fn aligned_offset(current_offset: usize, ty: &Type) -> usize {
     if (current_offset + ty.size_of()) % ty.align_of() == 0 {
         return current_offset + ty.size_of();
     }
-    current_offset + ty.size_of() + ty.align_of() - current_offset % ty.align_of()
+    current_offset + ty.size_of() + ty.align_of() - (current_offset + ty.size_of()) % ty.align_of()
+}
+
+pub const fn align_to(current_offset: usize, alignment: usize) -> usize {
+    if current_offset % alignment == 0 {
+        current_offset
+    } else {
+        current_offset + alignment - current_offset % alignment
+    }
 }
 
 impl Default for Scope {
@@ -1439,18 +1666,61 @@ impl Default for Scope {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Taged {
+    Struct(StructTagKind),
+}
+
+impl Taged {
+    pub fn new_struct_tag(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
+        Self::Struct(StructTagKind::Struct(Struct::new(tag, names, types)))
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum StructTagKind {
     Struct(Struct),
+    OnlyTag(String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Struct {
+    tag: Option<String>,
     members: Vec<StructMember>,
 }
 
 impl Struct {
-    pub fn new(members: Vec<(String, Type)>) -> Self {
-        for (_name, _ty) in members {}
-        todo!()
+    pub fn construct_members(names: Vec<String>, types: Vec<Type>) -> Vec<StructMember> {
+        let mut struct_members = Vec::with_capacity(names.len());
+        let mut offset = 0;
+        for (name, ty) in names.into_iter().zip(types.into_iter()) {
+            offset = aligned_offset(offset, &ty);
+            struct_members.push(StructMember { name, offset, ty });
+        }
+        return struct_members;
+    }
+
+    pub fn new(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
+        Self {
+            tag: Some(tag),
+            members: Self::construct_members(names, types),
+        }
+    }
+
+    pub fn size_of(&self) -> usize {
+        align_to(
+            self.members
+                .last()
+                .expect("struct should have at least one member.")
+                .offset,
+            self.align_of(),
+        )
+    }
+
+    pub fn align_of(&self) -> usize {
+        self.members
+            .iter()
+            .map(|struct_member| struct_member.ty.align_of())
+            .max()
+            .expect("struct should have at least one member.")
     }
 }
 
@@ -1732,6 +2002,10 @@ impl ConstExpr {
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(_, _)
             | ConvExprKind::Deref(_)
+            | ConvExprKind::Member {
+                struct_expr: _,
+                minus_offset: _,
+            }
             | ConvExprKind::Cast(_, _) => {
                 return Err(CompileError::new_const_expr_error(src, pos, kind))
             }
@@ -1758,46 +2032,244 @@ impl ConstExpr {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Type {
+    Void,
+    /// Tag unresolved struct or union
+    InComplete(InCompleteKind),
     Base(BaseType),
     Ptr(Box<Type>),
     Func(Box<Type>, Vec<Type>),
     Array(Box<Type>, usize),
+    // Tag resolved struct
+    Struct(Struct),
+}
+
+impl Type {
+    pub fn ty_eq(&self, rhs: &Self) -> bool {
+        match (self, rhs) {
+            (Type::Void, Type::Void) => true,
+            (Type::InComplete(tag_name_lhs), Type::InComplete(tag_name_rhs)) => {
+                tag_name_lhs == tag_name_rhs
+            }
+            (Type::Base(base_ty_lhs), Type::Base(base_ty_rhs)) => base_ty_lhs == base_ty_rhs,
+            (Type::Ptr(ptr_to_lhs), Type::Ptr(ptr_to_rhs)) => ptr_to_lhs.ty_eq(ptr_to_rhs),
+            (Type::Func(return_ty_lhs, arg_ty_lhs), Type::Func(return_ty_rhs, arg_ty_rhs)) => {
+                return_ty_lhs.ty_eq(return_ty_rhs)
+                    && arg_ty_lhs
+                        .iter()
+                        .zip(arg_ty_rhs.iter())
+                        .all(|(lhs_ty, rhs_ty)| lhs_ty.ty_eq(rhs_ty))
+            }
+            (
+                Type::Array(array_base_ty_lhs, length_lhs),
+                Type::Array(array_base_ty_rhs, length_rhs),
+            ) => array_base_ty_lhs == array_base_ty_rhs && length_lhs == length_rhs,
+            (Type::Struct(struct_lhs), Type::Struct(struct_rhs)) => struct_lhs == struct_rhs,
+            (Type::Struct(struct_lhs), Type::InComplete(InCompleteKind::Struct(tag_name_rhs))) => {
+                struct_lhs.tag.as_ref() == Some(tag_name_rhs)
+            }
+            (Type::InComplete(InCompleteKind::Struct(tag_name_lhs)), Type::Struct(struct_rhs)) => {
+                Some(tag_name_lhs) == struct_rhs.tag.as_ref()
+            }
+            _ => false,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum InCompleteKind {
+    Struct(String),
 }
 
 impl Type {
     pub fn ptr(ty: Type) -> Self {
         Type::Ptr(Box::new(ty))
     }
-}
 
-impl From<&TypeSpec> for Type {
-    fn from(ty_spec: &TypeSpec) -> Self {
-        match ty_spec {
-            TypeSpec::Int => Type::Base(BaseType::Int),
-            TypeSpec::Char => Type::Base(BaseType::Char),
-            TypeSpec::StructOrUnion(_) => todo!(),
+    pub const fn is_void(&self) -> bool {
+        matches!(self, Type::Void)
+    }
+
+    pub const fn is_void_ptr(&self) -> bool {
+        if let Type::Ptr(ptr_to) = self {
+            ptr_to.is_void()
+        } else {
+            false
+        }
+    }
+
+    pub const fn get_ptr_to(&self) -> Option<&Type> {
+        match self {
+            Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+            Type::Ptr(ptr_to) => Some(ptr_to),
+            Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
+            Type::InComplete(_) => todo!(),
         }
     }
 }
 
+impl<'a> Analyzer<'a> {
+    pub fn resolve_name_and_convert_to_type(
+        &mut self,
+        ty_spec: &TypeSpec,
+        pos: Position,
+    ) -> Result<Type, CompileError> {
+        Ok(match ty_spec {
+            TypeSpec::Int => Type::Base(BaseType::Int),
+            TypeSpec::Char => Type::Base(BaseType::Char),
+            TypeSpec::Void => Type::Void,
+            TypeSpec::StructOrUnion(StructOrUnionSpec::WithTag(tag)) => {
+                match self.look_up_struct_tag(tag.as_str()) {
+                    Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members }))) => {
+                        // Type::Struct(Struct {
+                        //     tag: Some(tag.clone()),
+                        //     members: members.clone(),
+                        // })
+                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
+                    }
+                    Some(Taged::Struct(StructTagKind::OnlyTag(tag))) => {
+                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
+                    }
+                    None => {
+                        // TODO: support struct which has the self-type member
+                        return Err(unimplemented_err!(
+                            self.input,
+                            pos,
+                            "tag of struct declaration with should be declared before."
+                        ));
+                    }
+                }
+            }
+            TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(name, vec)) => {
+                // register tag for now
+                if let Some(name) = name {
+                    self.register_struct_tag(name.to_string());
+                }
+                let types = vec
+                    .iter()
+                    .map(|struct_declaration| {
+                        struct_declaration.get_type(self, struct_declaration.pos)
+                    })
+                    .collect::<Result<_, CompileError>>()?;
+                let names = vec
+                    .iter()
+                    .map(|struct_declaration| struct_declaration.ident_name().to_string())
+                    .collect::<Vec<String>>();
+                let constructed_members = Struct::construct_members(names, types);
+                // tag compatibility check
+                if let Some(name) = name {
+                    if let Some(Taged::Struct(StructTagKind::Struct(Struct {
+                        tag: _,
+                        members: looked_up_members,
+                    }))) = self.look_up_struct_tag(name.as_str())
+                    {
+                        if *looked_up_members != constructed_members {
+                            return Err(unimplemented_err!(self.input, pos, "this declaration's tag is incompatible with another tag whose tag-name is same."));
+                        }
+                    } else {
+                        self.tag_scope.last_mut().expect(
+                            "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
+                        ).insert(name.clone(), Taged::Struct(StructTagKind::Struct(Struct {tag: Some(name.clone()), members: constructed_members.clone()})));
+                    }
+                }
+
+                if let Some(name) = name {
+                    Type::InComplete(InCompleteKind::Struct(name.to_string()))
+                } else {
+                    Type::Struct(Struct {
+                        tag: name.clone(),
+                        members: constructed_members,
+                    })
+                }
+            }
+        })
+    }
+
+    pub fn resolve_incomplete_type(
+        &mut self,
+        ty: Type,
+        pos: Position,
+    ) -> Result<Type, CompileError> {
+        if let Type::InComplete(InCompleteKind::Struct(name)) = ty {
+            let got = self.resolve_tag_name(&name);
+            match got {
+                Some(Taged::Struct(StructTagKind::Struct(structure))) => {
+                    Ok(Type::Struct(structure.clone()))
+                }
+                Some(Taged::Struct(StructTagKind::OnlyTag(name))) => {
+                    Err(CompileError::new_undeclared_error(
+                        self.input,
+                        name.clone(),
+                        pos,
+                        VariableKind::Struct,
+                    ))
+                }
+                None => todo!(),
+            }
+        } else {
+            Ok(ty)
+        }
+    }
+
+    /// Register struct tag as just `StructTagKind::OnlyTag(name)`
+    pub fn register_struct_tag_from_type_specifier(&mut self, ty_spec: &TypeSpec) {
+        match ty_spec {
+            TypeSpec::Int
+            | TypeSpec::Char
+            | TypeSpec::Void
+            | TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {}
+            TypeSpec::StructOrUnion(
+                StructOrUnionSpec::WithList(Some(name), _) | StructOrUnionSpec::WithTag(name),
+            ) => {
+                self.register_struct_tag(name.to_string());
+            }
+        }
+    }
+
+    pub fn register_struct_tag(&mut self, tag_name: String) {
+        self.tag_scope
+            .last_mut()
+            .expect("INTERNAL COMPILER ERROR. tag_scope should have at least one scope.")
+            .insert(
+                tag_name.clone(),
+                Taged::Struct(StructTagKind::OnlyTag(tag_name)),
+            );
+    }
+
+    pub fn resolve_tag_name(&self, tag_name: &String) -> Option<&Taged> {
+        for map in self.tag_scope.iter().rev() {
+            if let Some(map) = map.get(tag_name) {
+                return Some(map);
+            }
+        }
+        None
+    }
+}
+
 impl Type {
-    pub const fn size_of(&self) -> usize {
+    pub fn size_of(&self) -> usize {
         match self {
+            Type::Void => 1,
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
             Type::Func(_, _) => 1,
             Type::Array(ty, size) => ty.size_of() * *size,
+            Type::Struct(struct_struct) => struct_struct.size_of(),
+            Type::InComplete(_) => todo!(),
         }
     }
 
-    pub const fn align_of(&self) -> usize {
+    pub fn align_of(&self) -> usize {
         match self {
+            Type::Void => todo!("return appropriate error"),
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
             Type::Func(_, _) => todo!(),
             Type::Array(base_ty, _) => base_ty.align_of(),
+            Type::Struct(struct_struct) => struct_struct.align_of(),
+            Type::InComplete(_) => todo!(),
         }
     }
 
@@ -1805,6 +2277,9 @@ impl Type {
         match self {
             ty @ Type::Base(_) => ty,
             Type::Ptr(base) | Type::Func(base, _) | Type::Array(base, _) => base,
+            Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
+            Type::InComplete(_) => todo!(),
         }
     }
 
@@ -1812,13 +2287,19 @@ impl Type {
         match self {
             Type::Base(base) => Some(base),
             Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+            Type::Struct(_) => todo!(),
+            Type::Void => todo!(),
+            Type::InComplete(_) => todo!(),
         }
     }
 
     pub const fn is_base(&self) -> bool {
         match self {
             Type::Base(_) => true,
-            Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => false,
+            Type::Void | Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) => {
+                false
+            }
+            Type::InComplete(_) => todo!(),
         }
     }
 }

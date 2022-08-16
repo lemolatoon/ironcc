@@ -64,7 +64,20 @@ make testall
 # ChangeLog を見る
 各 [pull requests](https://github.com/lemolatoon/ironcc/pulls) ごとに ChangeLog を書いています。
 
-# Life Game を動かす
+# コンパイルできるサンプルプログラム
+
+## Life Game を動かす
 ```
 make life
 ```
+Thanks to @uint256_t
+
+## ドーナツを動かす
+```
+make donut
+```
+Thanks to @a1k0n, @hsjoihs
+
+
+# 謝辞
+このコンパイラはセキュリティキャンプ2022のゼミで開発が始められ、その際には講師の uint256_t さん、 hsjoihs さん、チューターのみなさんによるレビュー、助言、そして同じCコンパイラ受講生のみんなとの切磋琢磨によって開発が進みました。この場を借りて感謝します。

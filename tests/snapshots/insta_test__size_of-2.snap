@@ -118,7 +118,12 @@ Program {
                                                                         spec_quals: SpecQual(
                                                                             Int,
                                                                         ),
-                                                                        abstract_declarator: None,
+                                                                        abstract_declarator: Some(
+                                                                            AbstractDeclarator {
+                                                                                n_star: 0,
+                                                                                direct_abstract_declarator: None,
+                                                                            },
+                                                                        ),
                                                                         pos: Position {
                                                                             n_char: 17,
                                                                             n_line: 4,

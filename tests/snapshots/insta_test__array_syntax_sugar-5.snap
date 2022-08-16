@@ -1,0 +1,97 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        ty_spec: Int,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Array(
+                                                        Ident(
+                                                            "array",
+                                                        ),
+                                                        Some(
+                                                            Expr {
+                                                                kind: Num(
+                                                                    5,
+                                                                ),
+                                                                pos: Position {
+                                                                    n_char: 11,
+                                                                    n_line: 2,
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 1,
+                                            n_line: 2,
+                                        },
+                                    },
+                                ),
+                            },
+                            Stmt {
+                                kind: Return(
+                                    Expr {
+                                        kind: Array(
+                                            Expr {
+                                                kind: LVar(
+                                                    "array",
+                                                ),
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                            Expr {
+                                                kind: Num(
+                                                    3,
+                                                ),
+                                                pos: Position {
+                                                    n_char: 21,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 15,
+                                            n_line: 3,
+                                        },
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+            pos: Position {
+                n_char: 0,
+                n_line: 1,
+            },
+        },
+    ],
+}

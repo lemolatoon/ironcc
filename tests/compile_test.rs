@@ -4,7 +4,7 @@ use ironcc::{
     analyze::{BaseType, Type},
     error::{
         AnalyzeErrorKind, CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind,
-        VariableKind,
+        TypeExpectedFailedKind, VariableKind,
     },
 };
 use test_utils::CachedProcessor;
@@ -182,9 +182,11 @@ fn type_error() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                    _,
-                    Type::Ptr(_),
-                    Type::Base(BaseType::Int),
+                    TypeExpectedFailedKind::Type {
+                        pos: _,
+                        expected: Type::Ptr(_),
+                        got: Type::Base(BaseType::Int),
+                    }
                 )),
                 src: _,
             })

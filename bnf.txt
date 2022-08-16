@@ -26,7 +26,12 @@
 <type-name>                 := <specifier-qualifier-list> <abstract-declarator>?
 <specifier-qualifier-list>  := <type-specifiers>
 <abstract-declarator>       := "*"* <direct-abstract-declarator>?
-<direct-abstract-declarator>:= <direct-abstract-declarator>? []
+<direct-abstract-declarator>:= <direct-abstract-declarator>? [ <assign> ]
+                                | <direct-abstract-declarator>? ( <parameter-type-list>? )
+<parameter-type-list>       := <parameter-list>
+<parameter-list>            := <parameter-declaration>
+<parameter-declaration>     := <declaration-specifiers> <declarator>
+                                | <declaration-specifiers> <abstract-declarator>
 
 
 <stmt>                      := <expr> ";"
@@ -58,6 +63,8 @@
                                 | "sizeof" "(" <type-name> ")"
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
+                                | <postfix> "." <ident>
+                                | <postfix> "->" <ident>
 <primary>                   := <num> 
                                 | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"

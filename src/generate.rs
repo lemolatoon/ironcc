@@ -26,23 +26,56 @@ impl<'a> Generator<'a> {
         }
     }
 
-    pub fn push<W: Write>(
+    /// this function has the same function as `push`, but in the future this function will have the function, cast(with sign extension) and push
+    pub fn push_with_sign_extension<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
-        arg: std::fmt::Arguments,
+        kind: RegKind,
+        size: RegSize,
     ) -> Result<(), CompileError> {
-        writeln!(f, "  push {}", arg)?;
+        // todo!();
+        // match size {
+        //     RegSize::Byte => writeln!(f, "  movsx {}, {}", kind.qword(), kind.byte())?,
+        //     RegSize::Dword => todo!(),
+        //     RegSize::Qword => todo!(),
+        // }
+        // writeln!(
+        //     f,
+        //     "  movsx {}, {}",
+        //     kind.qword(),
+        //     kind.size_to_reg_name(size)
+        // )?;
+        writeln!(f, "  push {}", kind.qword())?;
         self.depth += 1;
         Ok(())
     }
 
+    pub fn push<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        kind: RegKind,
+    ) -> Result<(), CompileError> {
+        writeln!(f, "  push {}", kind.qword())?;
+        self.depth += 1;
+        Ok(())
+    }
     pub fn pop<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
-        arg: std::fmt::Arguments,
+        kind: RegKind,
     ) -> Result<(), CompileError> {
-        writeln!(f, "  pop {}", arg)?;
+        writeln!(f, "  pop {}", kind.qword())?;
         self.depth -= 1;
+        Ok(())
+    }
+
+    pub fn push_lit<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        arg: isize,
+    ) -> Result<(), CompileError> {
+        writeln!(f, "  push {}", arg)?;
+        self.depth += 1;
         Ok(())
     }
 
@@ -106,7 +139,7 @@ impl<'a> Generator<'a> {
                     writeln!(f, ".text")?;
                     writeln!(f, ".global {}", name)?;
                     writeln!(f, "{}:", name)?;
-                    self.push(f, format_args!("rbp"))?;
+                    self.push(f, RegKind::Rbp)?;
                     writeln!(f, "  mov rbp, rsp")?;
                     let align_to_16 = |rsp| {
                         if rsp % 16 == 0 {
@@ -137,7 +170,7 @@ impl<'a> Generator<'a> {
                     self.gen_stmt(f, body)?;
                     writeln!(f, ".L{}_ret:", name)?;
                     writeln!(f, "  mov rsp, rbp")?;
-                    self.pop(f, format_args!("rbp"))?;
+                    self.pop(f, RegKind::Rbp)?;
                     writeln!(f, "  ret")?;
                 }
                 ConvProgramKind::Global(GVar { name, ty, init }) => {
@@ -178,6 +211,9 @@ impl<'a> Generator<'a> {
                                 }},
                                 ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
+                            Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_pos(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
+                            Type::Void => unreachable!("void type initializer cannot be written."),
+                            Type::InComplete(_) => todo!(),
                         },
                         None => writeln!(f, ".zero {}", ty.size_of())?,
                     }
@@ -196,18 +232,26 @@ impl<'a> Generator<'a> {
         match stmt {
             ConvStmt::Expr(expr) => {
                 self.gen_expr(f, expr)?;
-                self.pop(f, format_args!("rax"))?;
+                self.pop(f, RegKind::Rax)?;
             }
             ConvStmt::Return(expr, name) => {
                 self.gen_expr(f, expr)?;
-                self.pop(f, format_args!("rax"))?;
+                self.pop(f, RegKind::Rax)?;
                 writeln!(f, "  jmp .L{}_ret", name)?;
             }
             ConvStmt::If(cond, then, Some(els)) => {
                 let label_index = self.label();
+                let ty_size_of = cond.ty.size_of();
                 self.gen_expr(f, cond)?;
-                self.pop(f, format_args!("rax"))?; // conditional expr
-                writeln!(f, "  cmp rax, 0")?; // false
+                self.pop(f, RegKind::Rax)?; // conditional expr
+                                            // writeln!(f, "  cmp rax, 0")?; // false
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    ty_size_of,
+                    RegOrLit::Lit(0),
+                    4,
+                )?;
                 writeln!(f, "  je .Lelse{}", label_index)?;
                 self.gen_stmt(f, *then)?;
                 writeln!(f, "  jmp .Lend{}", label_index)?;
@@ -217,19 +261,35 @@ impl<'a> Generator<'a> {
             }
             ConvStmt::If(cond, then, None) => {
                 let label_index = self.label();
+                let ty_size_of = cond.ty.size_of();
                 self.gen_expr(f, cond)?;
-                self.pop(f, format_args!("rax"))?;
-                writeln!(f, "  cmp rax, 0")?;
+                self.pop(f, RegKind::Rax)?;
+                // writeln!(f, "  cmp rax, 0")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    ty_size_of,
+                    RegOrLit::Lit(0),
+                    4,
+                )?;
                 writeln!(f, "  je .Lend{}", label_index)?;
                 self.gen_stmt(f, *then)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
             ConvStmt::While(cond, then) => {
                 let label_index = self.label();
+                let ty_size_of = cond.ty.size_of();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
-                self.pop(f, format_args!("rax"))?;
-                writeln!(f, "  cmp rax, 0")?;
+                self.pop(f, RegKind::Rax)?;
+                // writeln!(f, "  cmp rax, 0")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    ty_size_of,
+                    RegOrLit::Lit(0),
+                    4,
+                )?;
                 writeln!(f, "  je .Lend{}", label_index)?;
                 self.gen_stmt(f, *then)?;
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
@@ -239,19 +299,27 @@ impl<'a> Generator<'a> {
                 let label_index = self.label();
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
-                    self.pop(f, format_args!("rax"))?;
+                    self.pop(f, RegKind::Rax)?;
                 }
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 if let Some(cond) = cond {
+                    let ty_size_of = cond.ty.size_of();
                     self.gen_expr(f, cond)?;
-                    self.pop(f, format_args!("rax"))?;
-                    writeln!(f, "  cmp rax, 0")?;
+                    self.pop(f, RegKind::Rax)?;
+                    // writeln!(f, "  cmp rax, 0")?;
+                    Self::gen_cmp(
+                        f,
+                        RegOrLit::Reg(RegKind::Rax),
+                        ty_size_of,
+                        RegOrLit::Lit(0),
+                        4,
+                    )?;
                     writeln!(f, "  je .Lend{}", label_index)?;
                 }
                 self.gen_stmt(f, *then)?;
                 if let Some(inc) = inc {
                     self.gen_expr(f, inc)?;
-                    self.pop(f, format_args!("rax"))?;
+                    self.pop(f, RegKind::Rax)?;
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
@@ -267,33 +335,39 @@ impl<'a> Generator<'a> {
 
     /// # Errors
     /// return errors when file IO failed or compilation falied
+    #[allow(clippy::too_many_lines)]
     pub fn gen_expr<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
+        let ty = expr.ty.clone();
         match expr.kind {
-            ConvExprKind::Num(val) => self.push(f, format_args!("{}", val))?,
-            ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary)?,
+            ConvExprKind::Num(val) => self.push_lit(f, val)?,
+            ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, expr.ty)?,
             ConvExprKind::LVar(_) => {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr.clone())?;
-                self.pop(f, format_args!("rax"))?; // rax = &expr
+                self.pop(f, RegKind::Rax)?; // rax = &expr
                 self.deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
                     &ty,
-                    UnexpectedTypeSizeStatus::Expr(expr),
+                    UnexpectedTypeSizeStatus::Expr(expr.clone()),
                 )?; // rax = *rax
-                self.push(f, format_args!("rax"))?;
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rax,
+                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, expr)?,
+                )?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
                 let ty = lhs.ty.clone();
                 self.gen_lvalue(f, *lhs.clone())?;
-                self.gen_expr(f, *rhs)?;
-                self.pop(f, format_args!("rdi"))?; // rhs; rdi = rhs
-                self.pop(f, format_args!("rax"))?; // lhs's addr; rax = &lhs
+                self.gen_expr(f, *rhs.clone())?;
+                self.pop(f, RegKind::Rdi)?; // rhs; rdi = rhs
+                self.pop(f, RegKind::Rax)?; // lhs's addr; rax = &lhs
                 self.assign(
                     f,
                     RegKind::Rax,
@@ -301,7 +375,13 @@ impl<'a> Generator<'a> {
                     &ty,
                     UnexpectedTypeSizeStatus::Expr(*lhs),
                 )?; // *rax = rdi
-                self.push(f, format_args!("rdi"))?; // evaluated value of assign expr is rhs's value
+
+                // evaluated value of assign expr is rhs's value
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rdi,
+                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *rhs)?,
+                )?;
             }
             ConvExprKind::Func(name, args) => {
                 let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
@@ -316,7 +396,7 @@ impl<'a> Generator<'a> {
                     self.gen_expr(f, arg)?;
                 } // push args
                 for i in (0..arg_len).rev() {
-                    self.pop(f, format_args!("{}", arg_reg[i].qword()))?;
+                    self.pop(f, arg_reg[i])?;
                 } // pop args
                   // e.g) if arg_len == 2, pop rsi, pop rdi
 
@@ -328,25 +408,32 @@ impl<'a> Generator<'a> {
                 } else {
                     writeln!(f, "  call {}", name)?;
                 }
-                self.push(f, format_args!("rax"))?;
+                self.push(f, RegKind::Rax)?;
             }
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
-                    Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) => {
-                        return Err(CompileError::new_deref_error(self.input, *expr))
-                    }
+                    Type::Base(_)
+                    | Type::Func(_, _)
+                    | Type::Array(_, _)
+                    | Type::Struct(_)
+                    | Type::InComplete(_)
+                    | Type::Void => return Err(CompileError::new_deref_error(self.input, *expr)),
                     Type::Ptr(base) => *base,
                 };
                 self.gen_expr(f, *expr.clone())?;
-                self.pop(f, format_args!("rax"))?; // rax = expr
+                self.pop(f, RegKind::Rax)?; // rax = expr
                 self.deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
                     &ty,
-                    UnexpectedTypeSizeStatus::Expr(*expr),
+                    UnexpectedTypeSizeStatus::Expr(*expr.clone()),
                 )?; // rax = *rax
-                self.push(f, format_args!("rax"))?;
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rax,
+                    RegSize::try_new_with_error(ty.size_of(), self.input, *expr)?,
+                )?;
             }
             ConvExprKind::Addr(expr) => {
                 self.gen_lvalue(f, *expr)?;
@@ -363,10 +450,34 @@ impl<'a> Generator<'a> {
                         ))
                     }
                 };
-                self.push(f, format_args!("rax"))?;
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rax,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                )?;
             }
             ConvExprKind::Cast(expr, cast_kind) => self.gen_cast(f, *expr, &cast_kind)?,
             ConvExprKind::Unary(unary_op, operand) => self.gen_unary(f, *operand, &unary_op)?,
+            ConvExprKind::Member {
+                struct_expr,
+                minus_offset,
+            } => {
+                self.gen_lvalue(f, *struct_expr.clone())?;
+                self.pop(f, RegKind::Rax)?;
+                writeln!(f, "  add rax, {}", minus_offset)?;
+                self.deref(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*struct_expr.clone()),
+                )?; // rax = *rax
+                self.push_with_sign_extension(
+                    f,
+                    RegKind::Rax,
+                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *struct_expr)?,
+                )?;
+            }
         }
         Ok(())
     }
@@ -382,9 +493,9 @@ impl<'a> Generator<'a> {
         match unary_op {
             ConvUnaryOp::BitInvert => {
                 assert!(operand_ty == Type::Base(BaseType::Int));
-                self.pop(f, format_args!("rax"))?;
+                self.pop(f, RegKind::Rax)?;
                 writeln!(f, "  not eax")?;
-                self.push(f, format_args!("rax"))?;
+                self.push(f, RegKind::Rax)?;
             }
         }
         Ok(())
@@ -403,7 +514,7 @@ impl<'a> Generator<'a> {
                     let from: RegSize = from.into();
                     let to: RegSize = to.into();
                     self.gen_expr(f, expr)?;
-                    self.pop(f, format_args!("rax"))?;
+                    self.pop(f, RegKind::Rax)?;
                     // e.g) `movsx eax, al`
                     writeln!(
                         f,
@@ -411,10 +522,13 @@ impl<'a> Generator<'a> {
                         RegKind::Rax.size_to_reg_name(to),
                         RegKind::Rax.size_to_reg_name(from)
                     )?;
-                    self.push(f, format_args!("rax"))?;
+                    self.push_with_sign_extension(f, RegKind::Rax, to)?;
                 } else {
                     self.gen_expr(f, expr)?;
                 }
+            }
+            CastKind::ToVoidPtr { ptr_to: _ } | CastKind::FromVoidPtr { ptr_to: _ } => {
+                self.gen_expr(f, expr)?;
             }
         }
         Ok(())
@@ -428,10 +542,11 @@ impl<'a> Generator<'a> {
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
         match expr.kind {
-            ConvExprKind::LVar(LVar { offset, ty: _ }) => {
+            ConvExprKind::LVar(LVar { offset, ty }) => {
                 writeln!(f, "  mov rax, rbp")?;
                 writeln!(f, "  sub rax, {}", offset)?;
-                self.push(f, format_args!("rax"))?;
+                // push ptr
+                self.push(f, RegKind::Rax)?;
             }
             ConvExprKind::Deref(expr) => {
                 self.gen_expr(f, *expr)?;
@@ -442,7 +557,16 @@ impl<'a> Generator<'a> {
                 init: _,
             }) => {
                 writeln!(f, "  mov rax, offset {}", name)?;
-                self.push(f, format_args!("rax"))?;
+                self.push(f, RegKind::Rax)?;
+            }
+            ConvExprKind::Member {
+                struct_expr,
+                minus_offset,
+            } => {
+                self.gen_lvalue(f, *struct_expr)?;
+                self.pop(f, RegKind::Rax)?;
+                writeln!(f, "  add rax, {}", minus_offset)?;
+                self.push(f, RegKind::Rax)?;
             }
             _ => return Err(CompileError::new_lvalue_error(self.input, expr)),
         }
@@ -453,12 +577,15 @@ impl<'a> Generator<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         c_binary: ConvBinary,
+        ty: Type,
     ) -> Result<(), CompileError> {
         let ConvBinary { kind: op, lhs, rhs } = c_binary;
-        self.gen_expr(f, *lhs)?;
-        self.gen_expr(f, *rhs)?;
-        self.pop(f, format_args!("rdi"))?;
-        self.pop(f, format_args!("rax"))?;
+        let lhs_ty_sizeof = lhs.ty.size_of();
+        let rhs_ty_sizeof = rhs.ty.size_of();
+        self.gen_expr(f, *lhs)?; // -> rax
+        self.gen_expr(f, *rhs)?; // -> rdi
+        self.pop(f, RegKind::Rdi)?;
+        self.pop(f, RegKind::Rax)?;
         match op {
             ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
             ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
@@ -475,11 +602,17 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  and rax, rdi")?;
             }
             ConvBinOpKind::Div => {
-                // rdx-rax = rax
-                writeln!(f, "  cqo")?;
+                // edx-eax = eax
+                writeln!(f, "  cdq")?;
+                // 0x0000ffff -> // 0xffffffff
+
+                // rdx-rax = rdx
+                // cqo
+                // 0x0000ffff -> // 0x0000ffff
+
                 // rax = rdx-rax / rdi
                 // rdx = rdx-rax % rdi
-                writeln!(f, "  idiv rdi")?;
+                writeln!(f, "  idiv edi")?;
             }
             ConvBinOpKind::Rem => {
                 // rdx-rax = rax
@@ -490,38 +623,128 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  mov rax, rdx")?;
             }
             ConvBinOpKind::Eq => {
-                writeln!(f, "  cmp rax, rdi")?;
+                // writeln!(f, "  cmp rax, rdi")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    lhs_ty_sizeof,
+                    RegOrLit::Reg(RegKind::Rdi),
+                    rhs_ty_sizeof,
+                )?;
                 // al : lowwer 8bit of rax
                 // al = flag-reg(eq)
                 writeln!(f, "  sete al")?;
                 writeln!(f, "  movzx rax, al")?;
             }
             ConvBinOpKind::Le => {
-                writeln!(f, "  cmp rax, rdi")?;
+                // writeln!(f, "  cmp rax, rdi")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    lhs_ty_sizeof,
+                    RegOrLit::Reg(RegKind::Rdi),
+                    rhs_ty_sizeof,
+                )?;
                 // al = flag-reg(less than or equal to)
                 writeln!(f, "  setle al")?;
                 writeln!(f, "  movzx rax, al")?;
             }
             ConvBinOpKind::Lt => {
-                writeln!(f, "  cmp rax, rdi")?;
+                // writeln!(f, "  cmp rax, rdi")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    lhs_ty_sizeof,
+                    RegOrLit::Reg(RegKind::Rdi),
+                    rhs_ty_sizeof,
+                )?;
                 // al = flag-reg(less than)
                 writeln!(f, "  setl al")?;
                 writeln!(f, "  movzx rax, al")?;
             }
             ConvBinOpKind::Ne => {
-                writeln!(f, "  cmp rax, rdi")?;
+                // writeln!(f, "  cmp rax, rdi")?;
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    lhs_ty_sizeof,
+                    RegOrLit::Reg(RegKind::Rdi),
+                    rhs_ty_sizeof,
+                )?;
                 // al = flag-reg(not equal to)
                 writeln!(f, "  setne al")?;
                 writeln!(f, "  movzx rax, al")?;
             }
         }
-        self.push(f, format_args!("rax"))?;
+        self.push_with_sign_extension(f, RegKind::Rax, RegSize::try_new(ty.size_of()).unwrap())?;
+        Ok(())
+    }
+
+    pub fn gen_cmp<W: Write>(
+        f: &mut BufWriter<W>,
+        lhs: RegOrLit,
+        lhs_ty_size: usize,
+        rhs: RegOrLit,
+        rhs_ty_size: usize,
+    ) -> Result<(), CompileError> {
+        writeln!(
+            f,
+            "  cmp {}, {}",
+            lhs.size_to_reg_name(RegSize::try_new(lhs_ty_size).unwrap()),
+            rhs.size_to_reg_name(RegSize::try_new(rhs_ty_size).unwrap()),
+        )?;
         Ok(())
     }
 
     pub fn label(&mut self) -> usize {
         self.label += 1;
         self.label
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum RegOrLit {
+    Reg(RegKind),
+    Lit(isize),
+}
+
+impl RegOrLit {
+    pub fn size_to_reg_name(&self, size: RegSize) -> String {
+        match size {
+            RegSize::Byte => self.byte(),
+            RegSize::Dword => self.dword(),
+            RegSize::Qword => self.qword(),
+        }
+    }
+
+    pub fn byte(&self) -> String {
+        match self {
+            RegOrLit::Reg(reg) => reg.byte().to_string(),
+            RegOrLit::Lit(num) => num.to_string(),
+        }
+    }
+
+    pub fn dword(&self) -> String {
+        match self {
+            RegOrLit::Reg(reg) => reg.dword().to_string(),
+            RegOrLit::Lit(num) => num.to_string(),
+        }
+    }
+
+    pub fn qword(&self) -> String {
+        match self {
+            RegOrLit::Reg(reg) => reg.qword().to_string(),
+            RegOrLit::Lit(num) => num.to_string(),
+        }
+    }
+}
+
+impl ToString for RegOrLit {
+    fn to_string(&self) -> String {
+        match self {
+            RegOrLit::Reg(reg) => reg.to_string(),
+            RegOrLit::Lit(num) => num.to_string(),
+        }
     }
 }
 
@@ -598,6 +821,23 @@ impl RegSize {
             4 => Self::Dword,
             8 => Self::Qword,
             _ => return None,
+        })
+    }
+    pub fn try_new_with_error(
+        size: usize,
+        src: &str,
+        expr: ConvExpr,
+    ) -> Result<Self, CompileError> {
+        Ok(match size {
+            1 => Self::Byte,
+            4 => Self::Dword,
+            8 => Self::Qword,
+            _ => {
+                return Err(CompileError::new_type_size_error(
+                    src,
+                    UnexpectedTypeSizeStatus::Expr(expr),
+                ));
+            }
         })
     }
 }

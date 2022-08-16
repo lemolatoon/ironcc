@@ -55,6 +55,7 @@ impl<'a> Tokenizer<'a> {
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
+                ("->", TokenKind::Arrow),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -74,6 +75,7 @@ impl<'a> Tokenizer<'a> {
                 ("!", TokenKind::Exclamation),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
+                (".", TokenKind::Dot),
             ];
 
             for (literal, kind) in symbols {
@@ -228,6 +230,7 @@ impl<'a> Tokenizer<'a> {
                         "for" => TokenKind::For,
                         "int" => TokenKind::Type(TypeToken::Int),
                         "char" => TokenKind::Type(TypeToken::Char),
+                        "void" => TokenKind::Type(TypeToken::Void),
                         "sizeof" => TokenKind::SizeOf,
                         "struct" => TokenKind::Struct,
                         _ => TokenKind::Ident(ident),
@@ -291,6 +294,10 @@ pub enum TokenKind {
     Tilde,
     /// `!`
     Exclamation,
+    /// `.`
+    Dot,
+    /// `->`
+    Arrow,
     Eof,
 }
 
@@ -300,6 +307,8 @@ pub enum TypeToken {
     Int,
     /// `char`, type specifier
     Char,
+    /// `void`, type specifier
+    Void,
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {
@@ -477,12 +486,12 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         }
     }
 
-    /// if next token is ident, then return its name, otherwise return Err(_)
-    pub fn consume_ident(&mut self) -> Result<String, CompileError> {
+    /// if next token is ident, then return its name and Position, otherwise return Err(_)
+    pub fn consume_ident(&mut self) -> Result<(String, Position), CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
-                TokenKind::Ident(name) => Ok(name),
+                TokenKind::Ident(name) => Ok((name, token.pos)),
                 _ => Err(CompileError::new_expected_failed(
                     self.input,
                     Box::new("TokenKind::Ident(_)"),

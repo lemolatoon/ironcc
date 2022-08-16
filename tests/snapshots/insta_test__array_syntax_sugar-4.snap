@@ -1,0 +1,169 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: Type(
+            Int,
+        ),
+        pos: Position {
+            n_char: 0,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paran,
+        ),
+        pos: Position {
+            n_char: 8,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paran,
+        ),
+        pos: Position {
+            n_char: 9,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 11,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        pos: Position {
+            n_char: 1,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: Ident(
+            "array",
+        ),
+        pos: Position {
+            n_char: 5,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Bracket,
+        ),
+        pos: Position {
+            n_char: 10,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: Num(
+            5,
+        ),
+        pos: Position {
+            n_char: 11,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Bracket,
+        ),
+        pos: Position {
+            n_char: 12,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 13,
+            n_line: 2,
+        },
+    },
+    Token {
+        kind: Return,
+        pos: Position {
+            n_char: 8,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: Ident(
+            "array",
+        ),
+        pos: Position {
+            n_char: 15,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Bracket,
+        ),
+        pos: Position {
+            n_char: 20,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: Num(
+            3,
+        ),
+        pos: Position {
+            n_char: 21,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Bracket,
+        ),
+        pos: Position {
+            n_char: 22,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 23,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Eof,
+        pos: Position {
+            n_char: 0,
+            n_line: 5,
+        },
+    },
+]
