@@ -55,6 +55,8 @@ impl<'a> Tokenizer<'a> {
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
+                ("||", TokenKind::BinOp(BinOpToken::VerticalVertical)),
+                ("&&", TokenKind::BinOp(BinOpToken::AndAnd)),
                 ("->", TokenKind::Arrow),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
@@ -356,6 +358,10 @@ pub enum BinOpToken {
     LShift,
     /// `>>`
     RShift,
+    /// `||` logical or
+    VerticalVertical,
+    /// `&&` logical and
+    AndAnd,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

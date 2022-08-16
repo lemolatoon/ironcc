@@ -608,6 +608,24 @@ impl<'a> Analyzer<'a> {
                 lhs,
                 rhs,
             }) => self.traverse_binary(Binary::new(BinOpKind::Lt, rhs, lhs), pos),
+            ExprKind::Binary(Binary {
+                kind: BinOpKind::LogicalOr,
+                lhs,
+                rhs,
+            }) => {
+                let pos = lhs.pos;
+                let conditional = Expr::new_conditional(*lhs, Expr::new_num(1, pos), *rhs, pos);
+                self.traverse_expr(conditional, attrs.clone())
+            }
+            ExprKind::Binary(Binary {
+                kind: BinOpKind::LogicalAnd,
+                lhs,
+                rhs,
+            }) => {
+                let pos = lhs.pos;
+                let conditional = Expr::new_conditional(*lhs, *rhs, Expr::new_num(0, pos), pos);
+                self.traverse_expr(conditional, attrs.clone())
+            }
             // do nothing
             ExprKind::Binary(binary) => self.traverse_binary(binary, pos), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, pos)),
@@ -2528,6 +2546,7 @@ impl ConvBinOpKind {
             BinOpKind::LShift => Some(ConvBinOpKind::LShift),
             BinOpKind::RShift => Some(ConvBinOpKind::RShift),
             BinOpKind::BitWiseAnd => Some(ConvBinOpKind::BitWiseAnd),
+            BinOpKind::LogicalOr | BinOpKind::LogicalAnd => None,
         }
     }
 }

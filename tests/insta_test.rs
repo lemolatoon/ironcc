@@ -237,6 +237,18 @@ fn conditional_expr() {
     all!(tester);
 }
 
+#[test]
+fn logical_or_and() {
+    let src = "int main() {
+        int a = 1;
+        int b = 0;
+        int c = a && b && 2; // -> 0
+        int d = a || b || 1; // -> 1 
+    }";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

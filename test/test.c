@@ -48,6 +48,7 @@ int test41();
 int test42();
 int test43();
 int test44();
+int test45();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -118,6 +119,7 @@ int main()
     assert(42, 0, test42());
     assert(43, 0, test43());
     assert(44, 0, test44());
+    assert(45, 0, test45());
 
     print_ok();
     return 0;
@@ -925,27 +927,27 @@ int test44() {
     return 0;
 }
 
-// int  test45_global_var;
-// int inc_45_global_var_and_return_true() {
-//     test45_global_var = test45_global_var + 1;
-//     return 1;
-// }
+int  test45_global_var;
+int inc_45_global_var_and_return_true() {
+    test45_global_var = test45_global_var + 1;
+    return 1;
+}
 
-// int inc_45_global_var_and_return_false() {
-//     test45_global_var = test45_global_var + 1;
-//     return 0;
-// }
+int inc_45_global_var_and_return_false() {
+    test45_global_var = test45_global_var + 1;
+    return 0;
+}
 
-// int test45() {
-//     assert(45, 1, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_true());
-//     assert(45, 2, test45_global_var);
-//     assert(45, 1, inc_45_global_var_and_return_true() || inc_45_global_var_and_return_true());
-//     assert(45, 3, test45_global_var);
-//     assert(45, 1, inc_45_global_var_and_return_false() || inc_45_global_var_and_return_true());
-//     assert(45, 5, test45_global_var);
-//     assert(45, 0, inc_45_global_var_and_return_false() && inc_45_global_var_and_return_true());
-//     assert(45, 6, test45_global_var);
-//     assert(45, 0, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_false());
-//     assert(45, 8, test45_global_var);
-//     return 0;
-// }
+int test45() {
+    assert(45, 1, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_true());
+    assert(45, 2, test45_global_var);
+    assert(45, 1, inc_45_global_var_and_return_true() || inc_45_global_var_and_return_true());
+    assert(45, 3, test45_global_var);
+    assert(45, 1, inc_45_global_var_and_return_false() || inc_45_global_var_and_return_true());
+    assert(45, 5, test45_global_var);
+    assert(45, 0, inc_45_global_var_and_return_false() && inc_45_global_var_and_return_true());
+    assert(45, 6, test45_global_var);
+    assert(45, 0, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_false());
+    assert(45, 8, test45_global_var);
+    return 0;
+}

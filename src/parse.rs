@@ -411,7 +411,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let cond = self.parse_bit_wise_and(tokens)?;
+        let cond = self.parse_logical_or(tokens)?;
         if tokens.consume(&TokenKind::Question) {
             let then_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::Colon)?;
@@ -421,6 +421,37 @@ impl<'a> Parser<'a> {
         } else {
             Ok(cond)
         }
+    }
+    pub fn parse_logical_or<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_logical_and(tokens)?;
+        while tokens.consume(&TokenKind::BinOp(BinOpToken::VerticalVertical)) {
+            let rhs = self.parse_logical_and(tokens)?;
+            let pos = lhs.pos;
+            lhs = Expr::new_binary(BinOpKind::LogicalOr, lhs, rhs, pos);
+        }
+        Ok(lhs)
+    }
+
+    pub fn parse_logical_and<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_bit_wise_and(tokens)?;
+        while tokens.consume(&TokenKind::BinOp(BinOpToken::AndAnd)) {
+            let rhs = self.parse_bit_wise_and(tokens)?;
+            let pos = lhs.pos;
+            lhs = Expr::new_binary(BinOpKind::LogicalAnd, lhs, rhs, pos);
+        }
+        Ok(lhs)
     }
 
     pub fn parse_bit_wise_and<'b, I>(
@@ -1367,4 +1398,8 @@ pub enum BinOpKind {
     RShift,
     /// The `&` operator (bit wise and)
     BitWiseAnd,
+    /// The `||` operator (logical or)
+    LogicalOr,
+    /// The `&&` operator (logical and)
+    LogicalAnd,
 }

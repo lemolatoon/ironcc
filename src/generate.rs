@@ -483,7 +483,6 @@ impl<'a> Generator<'a> {
                 let ty_size_of = cond.ty.size_of();
                 self.gen_expr(f, *cond)?;
                 self.pop(f, RegKind::Rax)?; // conditional expr
-                                            // writeln!(f, "  cmp rax, 0")?; // false
                 Self::gen_cmp(
                     f,
                     RegOrLit::Reg(RegKind::Rax),

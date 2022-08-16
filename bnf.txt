@@ -45,9 +45,13 @@
 
 
 <expr>                      := <assign>
-<assign>                    := <bit-wise-and> ("=" <assign>)?
-<conditional>               := <bit-wise-and> 
-                                | <bit-wise-and> "?" <expr> : <conditional>
+<assign>                    := <conditional> ("=" <assign>)?
+<conditional>               := <logical-or> 
+                                | <logical-or> "?" <expr> : <conditional>
+<logical-or>                := <logical-or>
+                                | <logical-or> || <logical-and>
+<logical-and>               := <bit-wise-and>
+                                | <logical-and> && <bit-wise-and>
 <bit-wise-and>              := <equality> ("&" <equality>)*
 <equality>                  := <relational> ("==" <relational> | "!=" <relational>)*
 <relational>                := <shift> ("<" <shift> | "<=" <shift> | ">" <shift> | ">=" <shift>)*
