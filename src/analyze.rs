@@ -89,7 +89,11 @@ impl<'a> Analyzer<'a> {
                                 let gvar = self.new_global_variable(*init, name, ty, pos)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
-                            Type::Func(ret_ty, args) => {
+                            Type::Func {
+                                ret_ty,
+                                args,
+                                is_flexible,
+                            } => {
                                 if self.func_map.get(&name.to_string()).is_some() {
                                     return Err(CompileError::new_redefined_variable(
                                         self.input,
@@ -100,7 +104,13 @@ impl<'a> Analyzer<'a> {
                                 }
                                 self.func_map.insert(
                                     name.to_string(),
-                                    Func::new_raw(name.to_string(), args, *ret_ty, pos),
+                                    Func::new_raw(
+                                        name.to_string(),
+                                        args,
+                                        is_flexible,
+                                        *ret_ty,
+                                        pos,
+                                    ),
                                 );
                             }
                             Type::Void => {
@@ -229,7 +239,11 @@ impl<'a> Analyzer<'a> {
                         }
                     }
                 }
-                Type::Func(_, _) => unreachable!(),
+                Type::Func {
+                    ret_ty: _,
+                    args: _,
+                    is_flexible: _,
+                } => unreachable!(),
                 Type::Struct(_) => {
                     return Err(unimplemented_err!(
                         self.input,
@@ -279,16 +293,18 @@ impl<'a> Analyzer<'a> {
         let ty = self.get_type(converted_type, declarator)?;
 
         let (ret_ty, args_ty);
-        if let Type::Func(this_ret_ty, this_args) = ty.clone() {
+        if let Type::Func {
+            ret_ty: this_ret_ty,
+            args: this_args,
+            is_flexible: _,
+        } = ty.clone()
+        {
             (ret_ty, args_ty) = (this_ret_ty, this_args);
         } else {
-            return Err(CompileError::new_type_expect_failed(
+            return Err(CompileError::new_type_expect_failed_with_str(
                 self.input,
                 pos,
-                Type::Func(
-                    Box::new(Type::Base(BaseType::Int)),
-                    vec![Type::Base(BaseType::Int)],
-                ),
+                "Type::Func(_)".to_string(),
                 ty,
             ));
         }
@@ -303,6 +319,7 @@ impl<'a> Analyzer<'a> {
         };
         self.scope.push_scope();
         self.tag_scope.push(BTreeMap::new());
+        let args_is_empty = args.is_empty();
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
@@ -324,7 +341,7 @@ impl<'a> Analyzer<'a> {
             }
             self.func_map.insert(
                 ident.to_string(),
-                Func::new_raw(ident.to_string(), args_ty, *ret_ty, pos),
+                Func::new_raw(ident.to_string(), args_ty, args_is_empty, *ret_ty, pos),
             );
             ConvStmt::new_block(
                 stmts
@@ -591,7 +608,6 @@ impl<'a> Analyzer<'a> {
     pub fn traverse_expr(
         &mut self,
         expr: Expr,
-        // lvar_map: &mut BTreeMap<String, Lvar>,
         mut attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         let pos = expr.pos;
@@ -665,7 +681,14 @@ impl<'a> Analyzer<'a> {
                 // type check
                 let conv_expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
-                    ty @ (Type::Base(_) | Type::Func(_, _) | Type::Struct(_) | Type::Void) => {
+                    ty @ (Type::Base(_)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
+                    | Type::Struct(_)
+                    | Type::Void) => {
                         Err(CompileError::new_type_expect_failed_with_str(
                             self.input,
                             conv_expr.pos,
@@ -777,7 +800,7 @@ impl<'a> Analyzer<'a> {
             .collect::<Result<Vec<_>, CompileError>>()?;
         let Func {
             name: _,
-            args: args_ty,
+            args: func_args,
             ret: ret_ty,
             pos: declared_pos,
         } = match self.func_map.get(&name) {
@@ -791,17 +814,20 @@ impl<'a> Analyzer<'a> {
                 ))
             }
         };
-        if args_ty.len() != args.len() {
+        let is_flexible_length = func_args.is_flexible_length();
+        if !is_flexible_length && func_args.args.len() != args.len() {
             return Err(CompileError::new_args_error(
                 self.input,
                 name,
                 pos,
-                args_ty.len(),
+                func_args.args.len(),
                 args.len(),
                 *declared_pos,
             ));
         }
-        for (expected_ty, got_expr) in args_ty.iter().zip(args.iter_mut()) {
+
+        // implicit cast
+        for (expected_ty, got_expr) in func_args.args.iter().zip(args.iter_mut()) {
             if !expected_ty.ty_eq(&got_expr.ty) {
                 if expected_ty.is_base() && got_expr.ty.is_base() {
                     let to = *expected_ty.get_base().unwrap();
@@ -995,7 +1021,7 @@ impl<'a> Analyzer<'a> {
                     rhs,
                     Some("ptr + ptr or ptr - ptr is not allowed. ".to_string()),
                 )),
-                (_, Type::Func(_, _)) | (Type::Func(_, _), _) => Err(unimplemented_err!(
+                (_, Type::Func { ret_ty: _, args:_, is_flexible :_}) | (Type::Func { ret_ty: _, args: _, is_flexible :_}, _) => Err(unimplemented_err!(
                     self.input,
                     pos,
                     "binary expr of function is not currently supported."
@@ -1178,9 +1204,10 @@ impl<'a> Analyzer<'a> {
             match watching_direct_declarator {
                 DirectDeclarator::Func(direct_declarator, args) => {
                     // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
-                    ty = Type::Func(
-                        Box::new(ty),
-                        args.iter()
+                    ty = Type::Func {
+                        ret_ty: Box::new(ty),
+                        args: args
+                            .iter()
                             .map(|declaration| {
                                 let converted_ty_spec = self.resolve_name_and_convert_to_type(
                                     &declaration.ty_spec,
@@ -1196,7 +1223,8 @@ impl<'a> Analyzer<'a> {
                                 )
                             })
                             .collect::<Result<Vec<_>, CompileError>>()?,
-                    );
+                        is_flexible: args.is_empty(),
+                    };
                     watching_direct_declarator = direct_declarator;
                 }
                 DirectDeclarator::Array(direct_declarator, expr) => {
@@ -1530,7 +1558,7 @@ impl ConvExpr {
 
     pub fn new_func(name: String, args: Vec<ConvExpr>, ret_ty: Type, pos: Position) -> Self {
         Self {
-            kind: ConvExprKind::Func(name, args),
+            kind: ConvExprKind::Func(name, args, 0),
             ty: ret_ty,
             pos,
         }
@@ -1631,7 +1659,7 @@ pub enum ConvExprKind {
     LVar(LVar),
     GVar(GVar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
-    Func(String, Vec<ConvExpr>),
+    Func(String, Vec<ConvExpr>, usize),
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
     Cast(Box<ConvExpr>, CastKind),
@@ -1920,19 +1948,44 @@ impl Var {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Func {
     pub name: String,
-    pub args: Vec<Type>,
+    pub args: FuncArgs,
     pub ret: Type,
     pub pos: Position,
 }
 
 impl Func {
-    pub const fn new_raw(name: String, args: Vec<Type>, ret: Type, pos: Position) -> Self {
+    pub const fn new_raw(
+        name: String,
+        args: Vec<Type>,
+        is_flexible_length_arg: bool,
+        ret: Type,
+        pos: Position,
+    ) -> Self {
         Self {
             name,
-            args,
+            args: FuncArgs::new(args, is_flexible_length_arg),
             ret,
             pos,
         }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct FuncArgs {
+    pub args: Vec<Type>,
+    is_flexible_length: bool,
+}
+
+impl FuncArgs {
+    pub const fn new(args: Vec<Type>, is_flexible_length: bool) -> Self {
+        Self {
+            args,
+            is_flexible_length,
+        }
+    }
+
+    pub const fn is_flexible_length(&self) -> bool {
+        self.is_flexible_length
     }
 }
 
@@ -2164,7 +2217,7 @@ impl ConstExpr {
             ConvExprKind::LVar(_)
             | ConvExprKind::GVar(_)
             | ConvExprKind::Assign(_, _)
-            | ConvExprKind::Func(_, _)
+            | ConvExprKind::Func(_, _, _)
             | ConvExprKind::Deref(_)
             | ConvExprKind::Member {
                 struct_expr: _,
@@ -2209,7 +2262,11 @@ pub enum Type {
     InComplete(InCompleteKind),
     Base(BaseType),
     Ptr(Box<Type>),
-    Func(Box<Type>, Vec<Type>),
+    Func {
+        ret_ty: Box<Type>,
+        args: Vec<Type>,
+        is_flexible: bool,
+    },
     Array(Box<Type>, usize),
     // Tag resolved struct
     Struct(Struct),
@@ -2224,8 +2281,20 @@ impl Type {
             }
             (Type::Base(base_ty_lhs), Type::Base(base_ty_rhs)) => base_ty_lhs == base_ty_rhs,
             (Type::Ptr(ptr_to_lhs), Type::Ptr(ptr_to_rhs)) => ptr_to_lhs.ty_eq(ptr_to_rhs),
-            (Type::Func(return_ty_lhs, arg_ty_lhs), Type::Func(return_ty_rhs, arg_ty_rhs)) => {
+            (
+                Type::Func {
+                    ret_ty: return_ty_lhs,
+                    args: arg_ty_lhs,
+                    is_flexible: is_flexible_lhs,
+                },
+                Type::Func {
+                    ret_ty: return_ty_rhs,
+                    args: arg_ty_rhs,
+                    is_flexible: is_flexible_rhs,
+                },
+            ) => {
                 return_ty_lhs.ty_eq(return_ty_rhs)
+                    && is_flexible_lhs == is_flexible_rhs
                     && arg_ty_lhs
                         .iter()
                         .zip(arg_ty_rhs.iter())
@@ -2271,9 +2340,15 @@ impl Type {
 
     pub const fn get_ptr_to(&self) -> Option<&Type> {
         match self {
-            Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) | Type::Void => {
-                None
+            Type::Base(_)
+            | Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
             }
+            | Type::Array(_, _)
+            | Type::Struct(_)
+            | Type::Void => None,
             Type::Ptr(ptr_to) => Some(ptr_to),
             Type::InComplete(_) => todo!(),
         }
@@ -2419,7 +2494,13 @@ impl Type {
     pub fn size_of(&self) -> usize {
         match self {
             Type::Base(BaseType::Int) => 4,
-            Type::Base(BaseType::Char) | Type::Func(_, _) | Type::Void => 1,
+            Type::Base(BaseType::Char)
+            | Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
+            }
+            | Type::Void => 1,
             Type::Ptr(_) => 8,
             Type::Array(ty, size) => ty.size_of() * *size,
             Type::Struct(struct_struct) => struct_struct.size_of(),
@@ -2433,7 +2514,12 @@ impl Type {
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
-            Type::Func(_, _) | Type::InComplete(_) => todo!(),
+            Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
+            }
+            | Type::InComplete(_) => todo!(),
             Type::Array(base_ty, _) => base_ty.align_of(),
             Type::Struct(struct_struct) => struct_struct.align_of(),
         }
@@ -2442,7 +2528,13 @@ impl Type {
     pub const fn base_type(&self) -> &Type {
         match self {
             ty @ Type::Base(_) => ty,
-            Type::Ptr(base) | Type::Func(base, _) | Type::Array(base, _) => base,
+            Type::Ptr(base)
+            | Type::Func {
+                ret_ty: base,
+                args: _,
+                is_flexible: _,
+            }
+            | Type::Array(base, _) => base,
             Type::Struct(_) | Type::Void | Type::InComplete(_) => todo!(),
         }
     }
@@ -2450,7 +2542,13 @@ impl Type {
     pub const fn get_base(&self) -> Option<&BaseType> {
         match self {
             Type::Base(base) => Some(base),
-            Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+            Type::Ptr(_)
+            | Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
+            }
+            | Type::Array(_, _) => None,
             Type::Struct(_) | Type::Void | Type::InComplete(_) => todo!(),
         }
     }
@@ -2458,9 +2556,15 @@ impl Type {
     pub const fn is_base(&self) -> bool {
         match self {
             Type::Base(_) => true,
-            Type::Void | Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) => {
-                false
+            Type::Void
+            | Type::Ptr(_)
+            | Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
             }
+            | Type::Array(_, _)
+            | Type::Struct(_) => false,
             Type::InComplete(_) => todo!(),
         }
     }

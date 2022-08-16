@@ -30,6 +30,7 @@
                                 | <direct-abstract-declarator>? ( <parameter-type-list>? )
 <parameter-type-list>       := <parameter-list>
 <parameter-list>            := <parameter-declaration>
+                                | <parameter-list> "," <parameter-declaration> "," "..."
 <parameter-declaration>     := <declaration-specifiers> <declarator>
                                 | <declaration-specifiers> <abstract-declarator>
 

@@ -1,4 +1,3 @@
-#include <stdio.h>
 int test0();
 int test0_2();
 int test0_3();
@@ -50,7 +49,7 @@ int test43();
 int test44();
 int test45();
 // actually `void`
-int assert(int index, int expected, int got);
+void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
 int f(int arg0);
@@ -63,7 +62,7 @@ int add(int arg0, int arg1);
 int **alloc4_ptr(int *a, int *b, int *c, int *d);
 int *alloc4(int a, int b, int c, int d);
 
-int print_ok();
+void print_ok();
 
 int main()
 {
@@ -126,22 +125,22 @@ int main()
 }
 
 int exit(int status);
-int printf2(char *msg, int arg0, int arg1);
+void printf();
 int assertion_failed(int index, int expected, int got)
 {
-    printf2("Assertion_failed At test%d\n", index, 0);
-    printf2("Expected %d, but got %d\n", expected, got);
+    printf("Assertion_failed At test%d\n", index, 0);
+    printf("Expected %d, but got %d\n", expected, got);
     exit(1);
 }
 
-int passed(int index) { printf2("Test %d passed\n", index, 0); }
+int passed(int index) { printf("Test %d passed\n", index); }
 
-int print_ok()
+void print_ok()
 {
-    printf2("\e[32mALL TESTS PASSED\e[0m\n", 0, 0);
+    printf("\e[32mALL TESTS PASSED\e[0m\n");
 }
 
-int assert(int index, int expected, int got)
+void assert(int index, int expected, int got)
 {
     if (expected != got)
     {
@@ -151,7 +150,6 @@ int assert(int index, int expected, int got)
     {
         passed(index);
     }
-    return 0;
 }
 
 int test0() { return 3; }

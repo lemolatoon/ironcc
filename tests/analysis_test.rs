@@ -125,7 +125,11 @@ fn analysis_program_test() -> Result<(), CompileError> {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
+            Type::Func {
+                ret_ty: Box::new(Type::Base(BaseType::Int)),
+                args: Vec::new(),
+                is_flexible: true
+            },
             "main",
             Vec::new(),
             cblock(vec![
@@ -187,7 +191,11 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
+            Type::Func {
+                ret_ty: Box::new(Type::Base(BaseType::Int)),
+                args: Vec::new(),
+                is_flexible: true
+            },
             "main",
             Vec::new(),
             cblock(vec![
@@ -247,14 +255,15 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Func(
-                Box::new(Type::Base(BaseType::Int)),
-                vec![
+            Type::Func {
+                ret_ty: Box::new(Type::Base(BaseType::Int)),
+                args: vec![
                     Type::Base(BaseType::Int),
                     Type::Base(BaseType::Int),
                     Type::Base(BaseType::Int)
-                ]
-            ),
+                ],
+                is_flexible: false
+            },
             "main",
             vec![
                 clvar_strct("a", Type::Base(BaseType::Int), 0),
@@ -332,7 +341,11 @@ fn analysis_declaration() -> Result<(), CompileError> {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
+            Type::Func {
+                ret_ty: Box::new(Type::Base(BaseType::Int)),
+                args: Vec::new(),
+                is_flexible: true
+            },
             "main",
             Vec::new(),
             cblock(vec![
@@ -395,7 +408,11 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
     assert_eq!(
         converted_program,
         cprog(vec![cfunc_def(
-            Type::Func(Box::new(Type::Base(BaseType::Int)), Vec::new()),
+            Type::Func {
+                ret_ty: Box::new(Type::Base(BaseType::Int)),
+                args: Vec::new(),
+                is_flexible: true
+            },
             "main",
             Vec::new(),
             cblock(vec![
@@ -444,7 +461,14 @@ fn parse_type_test() {
     let ty = extract_ty(declaration_src);
     let int = || Type::Base(BaseType::Int);
     let ptr = |ty| Type::Ptr(Box::new(ty));
-    let func = |ty, args| Type::Func(Box::new(ty), args);
+    let func = |ty, args: Vec<Type>| {
+        let is_empty = args.is_empty();
+        Type::Func {
+            ret_ty: Box::new(ty),
+            args,
+            is_flexible: is_empty,
+        }
+    };
     let arr = |ty, size| Type::Array(Box::new(ty), size);
     assert_eq!(
         ty,

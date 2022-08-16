@@ -167,12 +167,13 @@ ConvProgram {
         ),
         Func(
             ConvFuncDef {
-                ty: Func(
-                    Base(
+                ty: Func {
+                    ret_ty: Base(
                         Int,
                     ),
-                    [],
-                ),
+                    args: [],
+                    is_flexible: true,
+                },
                 name: "main",
                 args: [],
                 body: Block(
@@ -423,6 +424,7 @@ ConvProgram {
                                             },
                                         },
                                     ],
+                                    0,
                                 ),
                                 ty: Base(
                                     Int,

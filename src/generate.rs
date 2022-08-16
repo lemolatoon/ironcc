@@ -197,7 +197,7 @@ impl<'a> Generator<'a> {
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
                             Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_pos(), "Ptr Initializer should not be array."))?)?,
-                            Type::Func(_, _) => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
+                            Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
                                     let size_of = ty.size_of();
@@ -383,7 +383,7 @@ impl<'a> Generator<'a> {
                     RegSize::try_new_with_error(expr.ty.size_of(), self.input, *rhs)?,
                 )?;
             }
-            ConvExprKind::Func(name, args) => {
+            ConvExprKind::Func(name, args, n_floating) => {
                 let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
                     .into_iter()
                     .map(|reg| reg.try_into().unwrap())
@@ -400,6 +400,9 @@ impl<'a> Generator<'a> {
                 } // pop args
                   // e.g) if arg_len == 2, pop rsi, pop rdi
 
+                // for flexible-length-arg function
+                writeln!(f, "  mov al, {}", n_floating)?;
+
                 // 16bit align
                 if self.depth % 2 == 0 {
                     writeln!(f, "  sub rsp, 8")?; // align
@@ -413,7 +416,11 @@ impl<'a> Generator<'a> {
             ConvExprKind::Deref(expr) => {
                 let ty = match Clone::clone(&expr.ty) {
                     Type::Base(_)
-                    | Type::Func(_, _)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
                     | Type::Array(_, _)
                     | Type::Struct(_)
                     | Type::InComplete(_)
