@@ -264,6 +264,19 @@ fn flexible_args() {
     all!(tester);
 }
 
+#[test]
+fn postfix_inc_dec() {
+    let src = "
+    int main() {
+        int a = 1;
+        a++;
+        a--;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

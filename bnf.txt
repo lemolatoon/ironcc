@@ -72,6 +72,8 @@
                                 | <postfix> "[" <expr> "]"
                                 | <postfix> "." <ident>
                                 | <postfix> "->" <ident>
+                                | <postfix> "++"
+                                | <postfix> "--"
 <primary>                   := <num> 
                                 | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"

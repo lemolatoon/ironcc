@@ -504,6 +504,52 @@ impl<'a> Generator<'a> {
                 self.gen_expr(f, *els)?;
                 writeln!(f, ".Lend{}:", label_index)?;
             }
+            ConvExprKind::PostfixIncrement(expr, value) => {
+                let ty = expr.ty.clone();
+                self.gen_lvalue(f, *expr.clone())?;
+                self.pop(f, RegKind::Rax)?; // rax = &expr
+                self.deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*expr.clone()),
+                )?; // rdi = *rax
+                self.push(f, RegKind::Rdi)?; // push expr's value
+                writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
+                self.assign(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rdi,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*expr),
+                )?; // *rax = rdi
+
+                // return expr's value
+            }
+            ConvExprKind::PostfixDecrement(expr, value) => {
+                let ty = expr.ty.clone();
+                self.gen_lvalue(f, *expr.clone())?;
+                self.pop(f, RegKind::Rax)?; // rax = &expr
+                self.deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::Rax,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*expr.clone()),
+                )?; // rdi = *rax
+                self.push(f, RegKind::Rdi)?; // push expr's value
+                writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
+                self.assign(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rdi,
+                    &ty,
+                    UnexpectedTypeSizeStatus::Expr(*expr),
+                )?; // *rax = rdi
+
+                // return expr's value
+            }
         }
         Ok(())
     }

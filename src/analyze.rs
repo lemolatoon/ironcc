@@ -749,23 +749,6 @@ impl<'a> Analyzer<'a> {
 
                 let minus_offset = member.offset - member.ty.size_of();
                 Ok(ConvExpr::new_member(expr, member.ty, minus_offset, pos))
-                // Ok(match expr.kind {
-                //     ConvExprKind::LVar(LVar { offset, ty: _ }) => {
-                //         let stack_offset_of_member = offset + member.ty.size_of() - member.offset;
-                //         ConvExpr::new_lvar_raw(
-                //             LVar {
-                //                 offset: stack_offset_of_member,
-                //                 ty: member.ty.clone(),
-                //             },
-                //             member.ty,
-                //             expr.pos,
-                //         )
-                //     }
-                //     ConvExprKind::GVar(_) => todo!(),
-                //     _ => unreachable!(
-                //         "Any expr of type struct must be local variable or global variable."
-                //     ),
-                // })
             }
             ExprKind::Arrow(expr, ident_name) => {
                 let pos = expr.pos;
@@ -777,6 +760,56 @@ impl<'a> Analyzer<'a> {
                 let then = self.traverse_expr(*then, BTreeSet::new())?;
                 let els = self.traverse_expr(*els, BTreeSet::new())?;
                 self.new_conditional_with_type_checking(cond, then, els)
+            }
+            ExprKind::PostfixIncrement(expr) => {
+                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let expr_ty = expr.ty.clone();
+                let pos = expr.pos;
+                let value = match &expr_ty {
+                    Type::Base(_) => 1,
+                    Type::Ptr(ptr_to) => ptr_to.size_of(),
+                    Type::InComplete(_)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
+                    | Type::Struct(_) => {
+                        return Err(CompileError::new_type_expect_failed_with_str(
+                            self.input,
+                            pos,
+                            "Type::Base(_) | Type::Ptr(_)".to_string(),
+                            expr_ty,
+                        ))
+                    }
+                    Type::Void | Type::Array(_, _) => unreachable!(),
+                };
+                Ok(ConvExpr::new_postfix_increment(expr, value, expr_ty, pos))
+            }
+            ExprKind::PostfixDecrement(expr) => {
+                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let expr_ty = expr.ty.clone();
+                let pos = expr.pos;
+                let value = match &expr_ty {
+                    Type::Base(_) => 1,
+                    Type::Ptr(ptr_to) => ptr_to.size_of(),
+                    Type::InComplete(_)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
+                    | Type::Struct(_) => {
+                        return Err(CompileError::new_type_expect_failed_with_str(
+                            self.input,
+                            pos,
+                            "Type::Base(_) | Type::Ptr(_)".to_string(),
+                            expr_ty,
+                        ))
+                    }
+                    Type::Void | Type::Array(_, _) => unreachable!(),
+                };
+                Ok(ConvExpr::new_postfix_decrement(expr, value, expr_ty, pos))
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
@@ -1533,6 +1566,23 @@ impl ConvExpr {
             pos,
         }
     }
+
+    pub fn new_postfix_increment(lhs: ConvExpr, value: usize, ty: Type, pos: Position) -> Self {
+        Self {
+            kind: ConvExprKind::PostfixIncrement(Box::new(lhs), value),
+            ty,
+            pos,
+        }
+    }
+
+    pub fn new_postfix_decrement(lhs: ConvExpr, value: usize, ty: Type, pos: Position) -> Self {
+        Self {
+            kind: ConvExprKind::PostfixDecrement(Box::new(lhs), value),
+            ty,
+            pos,
+        }
+    }
+
     pub fn new_conditional_raw(cond: ConvExpr, then: ConvExpr, els: ConvExpr, ty: Type) -> Self {
         let pos = cond.pos;
         Self {
@@ -1663,6 +1713,8 @@ pub enum ConvExprKind {
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
     Cast(Box<ConvExpr>, CastKind),
+    PostfixIncrement(Box<ConvExpr>, /* + n */ usize),
+    PostfixDecrement(Box<ConvExpr>, /* - n */ usize),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2249,6 +2301,15 @@ impl ConstExpr {
                     Self::try_eval_as_const(src, *els)?
                 } else {
                     Self::try_eval_as_const(src, *then)?
+                }
+            }
+            ConvExprKind::PostfixIncrement(expr, _) | ConvExprKind::PostfixDecrement(expr, _) => {
+                let expr_pos = expr.pos;
+                let value = Self::try_eval_as_const(src, *expr)?.get_num_lit()?;
+                ConstExpr {
+                    kind: ConstExprKind::Int(value as i32),
+                    ty: Type::Base(BaseType::Int),
+                    pos: expr_pos,
                 }
             }
         })

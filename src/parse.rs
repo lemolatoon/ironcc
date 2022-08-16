@@ -685,6 +685,14 @@ impl<'a> Parser<'a> {
                     let (member, pos) = tokens.consume_ident()?;
                     expr = Expr::new_arrow(expr, member, pos);
                 }
+                Some(TokenKind::PlusPlus) => {
+                    tokens.next();
+                    expr = Expr::new_postfix_increment(expr, pos);
+                }
+                Some(TokenKind::MinusMinus) => {
+                    tokens.next();
+                    expr = Expr::new_postfix_decrement(expr, pos);
+                }
                 _ => break,
             };
         }
@@ -1248,6 +1256,8 @@ pub enum ExprKind {
         then: Box<Expr>,
         els: Box<Expr>,
     },
+    PostfixIncrement(Box<Expr>),
+    PostfixDecrement(Box<Expr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1284,6 +1294,20 @@ impl Expr {
     pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::Arrow(Box::new(expr), ident),
+            pos,
+        }
+    }
+
+    pub fn new_postfix_increment(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::PostfixIncrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_postfix_decrement(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::PostfixDecrement(Box::new(expr)),
             pos,
         }
     }

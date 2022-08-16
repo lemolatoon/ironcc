@@ -58,6 +58,8 @@ impl<'a> Tokenizer<'a> {
                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
                 ("||", TokenKind::BinOp(BinOpToken::VerticalVertical)),
                 ("&&", TokenKind::BinOp(BinOpToken::AndAnd)),
+                ("++", TokenKind::PlusPlus),
+                ("--", TokenKind::MinusMinus),
                 ("->", TokenKind::Arrow),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
@@ -309,6 +311,10 @@ pub enum TokenKind {
     Arrow,
     /// `...`
     DotDotDot,
+    /// `++`
+    PlusPlus,
+    /// `--`
+    MinusMinus,
     Eof,
 }
 
