@@ -223,8 +223,12 @@ pub mod ast {
         )
     }
 
-    pub fn func_dd(name: &str, args: Vec<Declaration>) -> DirectDeclarator {
-        DirectDeclarator::Func(Box::new(DirectDeclarator::Ident(name.to_string())), args)
+    pub fn func_dd(name: &str, args: Vec<Declaration>, is_flexible: bool) -> DirectDeclarator {
+        DirectDeclarator::Func(
+            Box::new(DirectDeclarator::Ident(name.to_string())),
+            args,
+            is_flexible,
+        )
     }
 
     pub fn expr_stmt(expr: Expr) -> Stmt {

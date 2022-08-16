@@ -249,6 +249,21 @@ fn logical_or_and() {
     all!(tester);
 }
 
+#[test]
+fn flexible_args() {
+    let src = r#"
+    void printf(char *msg, ...);
+    
+    int main() {
+        int a = 2;
+        printf("Hello World:%d\n", a);
+    }
+    "#;
+
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

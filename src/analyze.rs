@@ -1202,7 +1202,7 @@ impl<'a> Analyzer<'a> {
         let mut watching_direct_declarator = &declarator.direct_declarator;
         loop {
             match watching_direct_declarator {
-                DirectDeclarator::Func(direct_declarator, args) => {
+                DirectDeclarator::Func(direct_declarator, args, is_flexible) => {
                     // e.g) int a(arg1: int, arg2: int*)(arg0: int) -> Func(Func(Int, vec![arg0]), vec![arg1, arg2])
                     ty = Type::Func {
                         ret_ty: Box::new(ty),
@@ -1223,7 +1223,7 @@ impl<'a> Analyzer<'a> {
                                 )
                             })
                             .collect::<Result<Vec<_>, CompileError>>()?,
-                        is_flexible: args.is_empty(),
+                        is_flexible: *is_flexible,
                     };
                     watching_direct_declarator = direct_declarator;
                 }

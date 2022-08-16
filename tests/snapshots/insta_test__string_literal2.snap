@@ -23,7 +23,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: OpenDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 14,
@@ -59,7 +59,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: CloseDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 24,
@@ -93,7 +93,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: OpenDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 12,
@@ -102,7 +102,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: CloseDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 13,
@@ -195,7 +195,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: OpenDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 14,
@@ -213,7 +213,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: CloseDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 18,

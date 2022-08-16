@@ -95,6 +95,7 @@ Program {
                             "main",
                         ),
                         [],
+                        true,
                     ),
                 },
                 Stmt {

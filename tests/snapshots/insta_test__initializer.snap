@@ -1,6 +1,6 @@
 ---
 source: tests/insta_test.rs
-expression: tester.tokens()
+expression: tester.tokens().as_ref().unwrap()
 ---
 [
     Token {
@@ -23,7 +23,7 @@ expression: tester.tokens()
     },
     Token {
         kind: OpenDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 8,
@@ -32,7 +32,7 @@ expression: tester.tokens()
     },
     Token {
         kind: CloseDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 9,

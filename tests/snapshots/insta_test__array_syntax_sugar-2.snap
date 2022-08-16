@@ -14,6 +14,7 @@ Program {
                             "main",
                         ),
                         [],
+                        true,
                     ),
                 },
                 Stmt {

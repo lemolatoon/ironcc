@@ -90,6 +90,7 @@ Program {
                             "main",
                         ),
                         [],
+                        true,
                     ),
                 },
                 Stmt {

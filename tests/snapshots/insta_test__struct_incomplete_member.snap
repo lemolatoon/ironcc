@@ -180,7 +180,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: OpenDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 8,
@@ -189,7 +189,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: CloseDelim(
-            Paran,
+            Paren,
         ),
         pos: Position {
             n_char: 9,

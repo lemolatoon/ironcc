@@ -49,6 +49,7 @@ impl<'a> Tokenizer<'a> {
             }
 
             let symbols = vec![
+                ("...", TokenKind::DotDotDot),
                 ("<<", TokenKind::BinOp(BinOpToken::LShift)),
                 (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
@@ -64,10 +65,10 @@ impl<'a> Tokenizer<'a> {
                 ("/", TokenKind::BinOp(BinOpToken::Slash)),
                 ("&", TokenKind::BinOp(BinOpToken::And)),
                 ("%", TokenKind::BinOp(BinOpToken::Percent)),
-                ("(", TokenKind::OpenDelim(DelimToken::Paran)),
+                ("(", TokenKind::OpenDelim(DelimToken::Paren)),
                 ("{", TokenKind::OpenDelim(DelimToken::Brace)),
                 ("[", TokenKind::OpenDelim(DelimToken::Bracket)),
-                (")", TokenKind::CloseDelim(DelimToken::Paran)),
+                (")", TokenKind::CloseDelim(DelimToken::Paren)),
                 ("}", TokenKind::CloseDelim(DelimToken::Brace)),
                 ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
                 (",", TokenKind::Comma),
@@ -306,6 +307,8 @@ pub enum TokenKind {
     Dot,
     /// `->`
     Arrow,
+    /// `...`
+    DotDotDot,
     Eof,
 }
 
@@ -321,7 +324,7 @@ pub enum TypeToken {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {
     /// A round parenthesis (i.e., `(` or `)`)
-    Paran,
+    Paren,
     /// A square bracket (i.e., `[` or `]`)
     Bracket,
     /// A curly brase (i.e., `{` or `}`)

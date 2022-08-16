@@ -124,8 +124,8 @@ int main()
     return 0;
 }
 
-int exit(int status);
-void printf();
+void exit(int status);
+int printf(char *msg, ...);
 int assertion_failed(int index, int expected, int got)
 {
     printf("Assertion_failed At test%d\n", index, 0);
@@ -291,6 +291,7 @@ int test9_0()
     z = &px;
     *z = py;
     assert(90, 10, **z);
+    return 0;
 }
 
 int test9_1()
@@ -308,6 +309,7 @@ int test9_1()
     assert(91, 5, **z);
     *z = py;
     assert(91, 10, **z);
+    return 0;
 }
 
 int test9()

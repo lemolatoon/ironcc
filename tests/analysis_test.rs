@@ -99,7 +99,7 @@ fn analysis_program_test() -> Result<(), CompileError> {
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", vec![]),
+        func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -164,7 +164,7 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", vec![]),
+        func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -237,6 +237,7 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
                 .into_iter()
                 .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
                 .collect(),
+            false,
         ),
         block(vec![
             declare_stmt(declare(
@@ -311,7 +312,7 @@ fn analysis_declaration() -> Result<(), CompileError> {
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", vec![]),
+        func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
@@ -387,7 +388,7 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             declare_stmt(declare(
                 TypeSpec::Int,
