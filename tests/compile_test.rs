@@ -373,4 +373,39 @@ fn flexible_args() {
     let mut tester = CachedProcessor::new(src);
     let result = tester.conv_program();
     assert!(matches!(result, Ok(_),), "{:?}", result,);
+    let src = r#"
+    int f(void);
+    int main() {
+        return f(3);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(
+        matches!(
+            result,
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::FuncArgsError(
+                    _,
+                    _,
+                    _,
+                    _,
+                    _
+                )),
+                src: _
+            }),
+        ),
+        "{:?}",
+        result,
+    );
+
+    let src = r#"
+    int f();
+    int main() {
+        return f(3);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(matches!(result, Ok(_)), "{:?}", result,);
 }
