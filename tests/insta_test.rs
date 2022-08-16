@@ -226,6 +226,17 @@ fn void_type() {
     all!(tester);
 }
 
+#[test]
+fn conditional_expr() {
+    let src = "int main() {
+        int a = 1;
+        int b = 2;
+        int c = a > b ? a : b;
+    }";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

@@ -30,6 +30,7 @@ fn compile() -> Result<(), CompileError> {
     let mut input = String::new();
     in_f.read_to_string(&mut input)
         .expect("This source is not valid UTF8");
+    input.push('\n');
 
     let tokenizer = Tokenizer::new(&input);
     let tokens = tokenizer.tokenize()?;

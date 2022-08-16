@@ -478,6 +478,26 @@ impl<'a> Generator<'a> {
                     RegSize::try_new_with_error(expr.ty.size_of(), self.input, *struct_expr)?,
                 )?;
             }
+            ConvExprKind::Conditional { cond, then, els } => {
+                let label_index = self.label();
+                let ty_size_of = cond.ty.size_of();
+                self.gen_expr(f, *cond)?;
+                self.pop(f, RegKind::Rax)?; // conditional expr
+                                            // writeln!(f, "  cmp rax, 0")?; // false
+                Self::gen_cmp(
+                    f,
+                    RegOrLit::Reg(RegKind::Rax),
+                    ty_size_of,
+                    RegOrLit::Lit(0),
+                    4,
+                )?;
+                writeln!(f, "  je .Lelse{}", label_index)?;
+                self.gen_expr(f, *then)?;
+                writeln!(f, "  jmp .Lend{}", label_index)?;
+                writeln!(f, ".Lelse{}:", label_index)?;
+                self.gen_expr(f, *els)?;
+                writeln!(f, ".Lend{}:", label_index)?;
+            }
         }
         Ok(())
     }
@@ -530,6 +550,14 @@ impl<'a> Generator<'a> {
             CastKind::ToVoidPtr { ptr_to: _ } | CastKind::FromVoidPtr { ptr_to: _ } => {
                 self.gen_expr(f, expr)?;
             }
+            CastKind::NoCast => {
+                self.gen_expr(f, expr)?;
+            }
+            CastKind::Ptr2Ptr {
+                from,
+                to,
+                cast_kind,
+            } => todo!(),
         }
         Ok(())
     }

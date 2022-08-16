@@ -73,6 +73,8 @@ impl<'a> Tokenizer<'a> {
                 (">", TokenKind::BinOp(BinOpToken::Gt)),
                 ("~", TokenKind::Tilde),
                 ("!", TokenKind::Exclamation),
+                ("?", TokenKind::Question),
+                (":", TokenKind::Colon),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
                 (".", TokenKind::Dot),
@@ -294,6 +296,10 @@ pub enum TokenKind {
     Tilde,
     /// `!`
     Exclamation,
+    /// `?`
+    Question,
+    /// `:`
+    Colon,
     /// `.`
     Dot,
     /// `->`

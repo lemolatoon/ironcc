@@ -1,3 +1,4 @@
+#include <stdio.h>
 int test0();
 int test0_2();
 int test0_3();
@@ -46,6 +47,7 @@ int test40();
 int test41();
 int test42();
 int test43();
+int test44();
 // actually `void`
 int assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -115,6 +117,7 @@ int main()
     assert(41, 0, test41());
     assert(42, 0, test42());
     assert(43, 0, test43());
+    assert(44, 0, test44());
 
     print_ok();
     return 0;
@@ -889,12 +892,60 @@ int test43() {
         assert(43, i, node->value);
         node = node->after;
     }
-    assert(43, 0, node->after == &tail);
+    // assert(43, 1, node == &tail);
     node = tail.before;
     for (int i = 9; i >= 0; i = i - 1) {
         assert(43, i, node->value);
         node = node->before;
     }
-    assert(43, 0, node->before == &head);
+    // assert(43, 1, node == &head);
     return 0; 
+
 }
+
+int test44_global_var;
+int inc_44_global_var_and_return_true() {
+    test44_global_var = test44_global_var + 1;
+    return 1;
+}
+
+int inc_44_global_var_and_return_false() {
+    test44_global_var = test44_global_var + 1;
+    return 0;
+}
+
+int test44() {
+    assert(44, 0, test44_global_var);
+    assert(44, 1, inc_44_global_var_and_return_true() ? inc_44_global_var_and_return_true() : inc_44_global_var_and_return_false());
+    assert(44, 2, test44_global_var);
+    assert(44, 0, inc_44_global_var_and_return_false() ? inc_44_global_var_and_return_true() : 0);
+    assert(44, 3, test44_global_var);
+    assert(44, 0, inc_44_global_var_and_return_false() ? 1 : inc_44_global_var_and_return_false());
+    assert(44, 5, test44_global_var);
+    return 0;
+}
+
+// int  test45_global_var;
+// int inc_45_global_var_and_return_true() {
+//     test45_global_var = test45_global_var + 1;
+//     return 1;
+// }
+
+// int inc_45_global_var_and_return_false() {
+//     test45_global_var = test45_global_var + 1;
+//     return 0;
+// }
+
+// int test45() {
+//     assert(45, 1, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_true());
+//     assert(45, 2, test45_global_var);
+//     assert(45, 1, inc_45_global_var_and_return_true() || inc_45_global_var_and_return_true());
+//     assert(45, 3, test45_global_var);
+//     assert(45, 1, inc_45_global_var_and_return_false() || inc_45_global_var_and_return_true());
+//     assert(45, 5, test45_global_var);
+//     assert(45, 0, inc_45_global_var_and_return_false() && inc_45_global_var_and_return_true());
+//     assert(45, 6, test45_global_var);
+//     assert(45, 0, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_false());
+//     assert(45, 8, test45_global_var);
+//     return 0;
+// }

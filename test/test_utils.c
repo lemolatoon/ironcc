@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int printf2(char *msg, int arg0, int arg1)
+void printf2(char *msg, int arg0, int arg1)
 {
     printf(msg, arg0, arg1);
 }

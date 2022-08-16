@@ -728,6 +728,12 @@ impl<'a> Analyzer<'a> {
                 let converted_expr = Expr::new_member(Expr::new_deref(*expr, pos), ident_name, pos);
                 self.traverse_expr(converted_expr, BTreeSet::new())
             }
+            ExprKind::Conditional { cond, then, els } => {
+                let cond = self.traverse_expr(*cond, BTreeSet::new())?;
+                let then = self.traverse_expr(*then, BTreeSet::new())?;
+                let els = self.traverse_expr(*els, BTreeSet::new())?;
+                self.new_conditional_with_type_checking(cond, then, els)
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -811,6 +817,31 @@ impl<'a> Analyzer<'a> {
             }
         }
         Ok(ConvExpr::new_func(name, args, ret_ty.clone(), pos))
+    }
+
+    pub fn new_conditional_with_type_checking(
+        &self,
+        cond: ConvExpr,
+        mut then: ConvExpr,
+        mut els: ConvExpr,
+    ) -> Result<ConvExpr, CompileError> {
+        if cond.ty != Type::Base(BaseType::Int) {
+            return Err(CompileError::new_type_expect_failed(
+                self.input,
+                cond.pos,
+                Type::Base(BaseType::Int),
+                cond.ty,
+            ));
+        }
+        if then.ty.ty_eq(&els.ty) {
+            let ty = then.ty.clone();
+            Ok(ConvExpr::new_conditional_raw(cond, then, els, ty))
+        } else {
+            // implicit cast
+            ConvExpr::binary_implicit_cast(self.input, &mut then, &mut els)?;
+            let new_ty = then.ty.clone();
+            Ok(ConvExpr::new_conditional_raw(cond, then, els, new_ty))
+        }
     }
 
     #[allow(clippy::too_many_lines)]
@@ -1321,32 +1352,121 @@ impl ConvExpr {
         ConvExpr::new_addr(self, pos)
     }
 
-    pub fn implicit_cast(
-        self,
+    pub fn type_cast(
         src: &str,
-        ty: &Type,
-        ctx: CastContext,
-    ) -> Result<Self, CompileError> {
-        match (ctx, self.ty.get_base(), ty.get_base()) {
-            (CastContext::Assign, Some(from_base), Some(to_base)) if from_base == to_base => {
+        from_ty: Type,
+        to_ty: Type,
+        pos: Position,
+    ) -> Result<(Type, CastKind), CompileError> {
+        match (from_ty, to_ty) {
+            (Type::Base(from_base), Type::Base(to_base)) if from_base == to_base => {
                 // No Cast
-                Ok(self)
+                Ok((Type::Base(to_base), CastKind::NoCast))
             }
-            (CastContext::Assign, Some(from_base), Some(to_base)) if from_base > to_base => {
+            (Type::Base(from_base), Type::Base(to_base)) /*if *from_base > *to_base */ => {
                 // Castable
-                let (from_base, to_base) = (*from_base, *to_base);
-                Ok(ConvExpr::new_cast(
-                    self,
-                    Type::Base(to_base),
-                    CastKind::Base2Base(from_base, to_base),
+                Ok((Type::Base(to_base), CastKind::Base2Base(from_base, to_base)))
+            }
+            (Type::Ptr(void_base), Type::Ptr(ptr_to)) if *void_base == Type::Void => {
+                // Void -> Ptr
+                Ok((
+                    Type::Ptr(ptr_to.clone()),
+                    CastKind::FromVoidPtr {
+                        ptr_to: *ptr_to,
+                    },
                 ))
             }
-            _ => Err(unimplemented_err!(
+            (Type::Ptr(ptr_to), Type::Ptr(void_base)) if *void_base == Type::Void => {
+                // Ptr -> Void
+                Ok((
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::ToVoidPtr {
+                        ptr_to: *ptr_to.clone(),
+                    },
+                ))
+            }
+            (Type::Ptr(ptr_to_from), Type::Ptr(ptr_to_to)) => {
+                let (new_ptr_to, cast_kind) = Self::type_cast(src, *ptr_to_from.clone(), *ptr_to_to.clone(), pos)?;
+                Ok((
+                    Type::Ptr(Box::new(new_ptr_to.clone())),
+                    CastKind::Ptr2Ptr {
+                        from: Type::Ptr(ptr_to_from),
+                        to: Type::Ptr(ptr_to_to),
+                        cast_kind: Box::new(cast_kind),
+                    },
+                ))
+            }
+            (from_ty, to_ty) => Err(unimplemented_err!(
                 src,
-                self.pos,
-                format!("Implicit Cast Failed.: {:?} -> {:?}", self.ty, ty)
+                pos,
+                format!("Implicit Cast Failed.: {:?} -> {:?}", from_ty, to_ty)
             )),
         }
+    }
+
+    pub fn implicit_cast(self, src: &str, ty: &Type) -> Result<Self, CompileError> {
+        // self.ty -> ty
+        let (new_ty, cast_kind) = ConvExpr::type_cast(src, self.ty.clone(), ty.clone(), self.pos)?;
+        Ok(ConvExpr::new_cast(self, new_ty, cast_kind))
+    }
+
+    pub fn binary_implicit_cast(
+        src: &str,
+        lhs: &mut ConvExpr,
+        rhs: &mut ConvExpr,
+    ) -> Result<(), CompileError> {
+        if lhs.ty.ty_eq(&rhs.ty) {
+            return Ok(());
+        }
+        let lhs_ty = lhs.ty.clone();
+        let rhs_ty = rhs.ty.clone();
+        let pos = lhs.pos;
+        match (lhs_ty, rhs_ty) {
+            (Type::Base(base_lhs), Type::Base(base_rhs))
+                if base_lhs.bytes() == base_rhs.bytes() =>
+            {
+                // No Cast
+                return Ok(());
+            }
+            (Type::Base(base_lhs), Type::Base(base_rhs)) if base_lhs.bytes() > base_rhs.bytes() => {
+                // rhs_ty -> lhs_ty
+                let (new_ty, cast_kind) =
+                    Self::type_cast(src, Type::Base(base_rhs), Type::Base(base_lhs), pos)?;
+                let rhs_cloned = rhs.clone();
+                *rhs = ConvExpr::new_cast(rhs_cloned, new_ty, cast_kind);
+            }
+            (Type::Base(base_lhs), Type::Base(base_rhs)) if base_lhs.bytes() < base_rhs.bytes() => {
+                // lhs_ty -> rhs_ty
+                let (new_ty, cast_kind) =
+                    Self::type_cast(src, Type::Base(base_lhs), Type::Base(base_rhs), pos)?;
+                let lhs_cloned = lhs.clone();
+                *lhs = ConvExpr::new_cast(lhs_cloned, new_ty, cast_kind);
+            }
+            (Type::Ptr(void_base), Type::Ptr(ptr_to)) if *void_base == Type::Void => {
+                // Ptr -> Void
+                let rhs_cloned = rhs.clone();
+                *rhs = ConvExpr::new_cast(
+                    rhs_cloned,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::ToVoidPtr {
+                        ptr_to: *ptr_to.clone(),
+                    },
+                );
+            }
+            (Type::Ptr(ptr_to), Type::Ptr(void_base)) if *void_base == Type::Void => {
+                // Ptr -> Void
+                let lhs_cloned = lhs.clone();
+                *lhs = ConvExpr::new_cast(
+                    lhs_cloned,
+                    Type::Ptr(Box::new(Type::Void)),
+                    CastKind::ToVoidPtr {
+                        ptr_to: *ptr_to.clone(),
+                    },
+                );
+            }
+            _ => todo!(),
+        }
+        Ok(())
     }
 
     #[must_use]
@@ -1364,6 +1484,18 @@ impl ConvExpr {
     ) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
+            ty,
+            pos,
+        }
+    }
+    pub fn new_conditional_raw(cond: ConvExpr, then: ConvExpr, els: ConvExpr, ty: Type) -> Self {
+        let pos = cond.pos;
+        Self {
+            kind: ConvExprKind::Conditional {
+                cond: Box::new(cond),
+                then: Box::new(then),
+                els: Box::new(els),
+            },
             ty,
             pos,
         }
@@ -1471,6 +1603,11 @@ pub enum ConvExprKind {
         struct_expr: Box<ConvExpr>,
         minus_offset: usize,
     },
+    Conditional {
+        cond: Box<ConvExpr>,
+        then: Box<ConvExpr>,
+        els: Box<ConvExpr>,
+    },
     Binary(ConvBinary),
     Unary(ConvUnaryOp, Box<ConvExpr>),
     Num(isize),
@@ -1491,8 +1628,18 @@ pub enum ConvUnaryOp {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum CastKind {
     Base2Base(BaseType, BaseType),
-    ToVoidPtr { ptr_to: Type },
-    FromVoidPtr { ptr_to: Type },
+    NoCast,
+    Ptr2Ptr {
+        from: Type,
+        to: Type,
+        cast_kind: Box<CastKind>,
+    },
+    ToVoidPtr {
+        ptr_to: Type,
+    },
+    FromVoidPtr {
+        ptr_to: Type,
+    },
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2025,6 +2172,14 @@ impl ConstExpr {
             }
             ConvExprKind::Unary(unary_op, expr) => {
                 Self::try_eval_as_const(src, *expr)?.apply_unary_op(&unary_op)?
+            }
+            ConvExprKind::Conditional { cond, then, els } => {
+                let cond_val = Self::try_eval_as_const(src, *cond)?.get_num_lit()?;
+                if cond_val == 0 {
+                    Self::try_eval_as_const(src, *els)?
+                } else {
+                    Self::try_eval_as_const(src, *then)?
+                }
             }
         })
     }

@@ -35,7 +35,8 @@ impl<'a> Parser<'a> {
                     let pos = declaration.pos;
                     ProgramComponent::new(ProgramKind::Declaration(declaration), pos)
                 } else {
-                    self.parse_func_def(tokens)?
+                    let func_def = self.parse_func_def(tokens)?;
+                    func_def
                 }
             };
             program.push(component);
@@ -385,7 +386,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let lhs = self.parse_bit_wise_and(tokens)?;
+        let lhs = self.parse_conditional(tokens)?;
         let (kind, &pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos),
             None => {
@@ -403,6 +404,26 @@ impl<'a> Parser<'a> {
             _ => Ok(lhs),
         }
     }
+
+    pub fn parse_conditional<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let cond = self.parse_bit_wise_and(tokens)?;
+        if tokens.consume(&TokenKind::Question) {
+            let then_expr = self.parse_expr(tokens)?;
+            tokens.expect(TokenKind::Colon)?;
+            let else_expr = self.parse_conditional(tokens)?;
+            let cond_pos = cond.pos;
+            Ok(Expr::new_conditional(cond, then_expr, else_expr, cond_pos))
+        } else {
+            Ok(cond)
+        }
+    }
+
     pub fn parse_bit_wise_and<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
@@ -667,11 +688,9 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        dbg!("type_name");
         let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         // TODO: support DirectAbstractDeclarator
         let abstract_declarator = self.parse_abstract_declarator(tokens)?;
-        dbg!(&abstract_declarator);
         Ok(TypeName::new(SpecQual(ty_spec), abstract_declarator, pos))
     }
 
@@ -1169,6 +1188,11 @@ pub enum ExprKind {
     Array(Box<Expr>, Box<Expr>),
     Member(Box<Expr>, String),
     Arrow(Box<Expr>, String),
+    Conditional {
+        cond: Box<Expr>,
+        then: Box<Expr>,
+        els: Box<Expr>,
+    },
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1186,6 +1210,16 @@ pub enum UnaryOp {
 }
 
 impl Expr {
+    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Conditional {
+                cond: Box::new(cond),
+                then: Box::new(then),
+                els: Box::new(els),
+            },
+            pos,
+        }
+    }
     pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::Member(Box::new(expr), ident),
