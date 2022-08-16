@@ -37,7 +37,7 @@ impl<'a> Tokenizer<'a> {
                 input = &input[num_this_line_char..];
                 continue;
             }
-            if input.starts_with("#") {
+            if input.starts_with('#') {
                 let mut input_iter = input.chars();
                 let mut num_this_line_char = 1;
                 while !matches!(input_iter.next(), Some('\n')) {

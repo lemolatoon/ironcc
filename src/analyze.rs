@@ -86,7 +86,7 @@ impl<'a> Analyzer<'a> {
                             | Type::Ptr(_)
                             | Type::Array(_, _)
                             | Type::Struct(_)) => {
-                                let gvar = self.new_global_variable(init, name, ty, pos)?;
+                                let gvar = self.new_global_variable(*init, name, ty, pos)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
                             Type::Func(ret_ty, args) => {
@@ -112,7 +112,7 @@ impl<'a> Analyzer<'a> {
                             }
                             Type::InComplete(InCompleteKind::Struct(tag_name)) => {
                                 let gvar = self.new_global_variable(
-                                    init,
+                                    *init,
                                     name,
                                     Type::InComplete(InCompleteKind::Struct(tag_name.clone())),
                                     pos,
@@ -169,7 +169,7 @@ impl<'a> Analyzer<'a> {
     /// Construct Global Variable and register it to `self.scope`
     pub fn new_global_variable(
         &mut self,
-        init: &Option<&Initializer>,
+        init: Option<&Initializer>,
         name: &str,
         // global variable's type
         ty: Type,
@@ -252,7 +252,13 @@ impl<'a> Analyzer<'a> {
                         }
                     }
                 }
-                Type::Void => todo!(),
+                Type::Void => {
+                    return Err(CompileError::new_unexpected_void(
+                        self.input,
+                        pos,
+                        "void type global variable found.".to_string(),
+                    ))
+                }
                 Type::InComplete(_) => todo!(),
             };
         }
@@ -381,7 +387,7 @@ impl<'a> Analyzer<'a> {
                             // lvar_map.insert(declaration.ident_name().to_string(), lvar.clone());
                             if let Some(init) = declaration
                                 .init_declarator
-                                .map_or(None, |init_declarator| init_declarator.initializer)
+                                .and_then(|init_declarator| init_declarator.initializer)
                             {
                                 Ok(Some(self.new_init_expr(
                                     init,
@@ -467,7 +473,7 @@ impl<'a> Analyzer<'a> {
                 )?;
                 match declaration
                     .init_declarator
-                    .map_or(None, |init_declarator| init_declarator.initializer)
+                    .and_then(|init_declarator| init_declarator.initializer)
                 {
                     Some(Initializer::Expr(init)) => {
                         let rhs = self.traverse_expr(init, BTreeSet::new())?;
@@ -541,7 +547,8 @@ impl<'a> Analyzer<'a> {
             let lhs_ptr_to = lhs.ty.get_ptr_to();
             let rhs_ptr_to = rhs.ty.get_ptr_to();
             if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
-                let ptr_to = rhs_ptr_to.unwrap().clone();
+                // Safety: `rhs_ptr_to.is_some()` is true on this branch
+                let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
                 rhs = ConvExpr::new_cast(
                     rhs,
                     Type::Ptr(Box::new(Type::Void)),
@@ -615,7 +622,7 @@ impl<'a> Analyzer<'a> {
                         .collect(),
                 ));
                 let gvar = self.new_global_variable(
-                    &init.as_ref(),
+                    init.as_ref(),
                     &name,
                     Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
                     pos,
@@ -656,11 +663,7 @@ impl<'a> Analyzer<'a> {
                         pos,
                     )),
                     Type::Ptr(ptr_base) => Ok(ConvExpr::new_deref(conv_expr, *ptr_base, pos)),
-                    Type::Void => todo!(),
                     Type::InComplete(_) => todo!(),
-                    Type::Base(_) => todo!(),
-                    Type::Func(_, _) => todo!(),
-                    Type::Struct(_) => todo!(),
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
@@ -1381,14 +1384,14 @@ impl ConvExpr {
                 Ok((
                     Type::Ptr(Box::new(Type::Void)),
                     CastKind::ToVoidPtr {
-                        ptr_to: *ptr_to.clone(),
+                        ptr_to: *ptr_to,
                     },
                 ))
             }
             (Type::Ptr(ptr_to_from), Type::Ptr(ptr_to_to)) => {
                 let (new_ptr_to, cast_kind) = Self::type_cast(src, *ptr_to_from.clone(), *ptr_to_to.clone(), pos)?;
                 Ok((
-                    Type::Ptr(Box::new(new_ptr_to.clone())),
+                    Type::Ptr(Box::new(new_ptr_to)),
                     CastKind::Ptr2Ptr {
                         from: Type::Ptr(ptr_to_from),
                         to: Type::Ptr(ptr_to_to),
@@ -1448,9 +1451,7 @@ impl ConvExpr {
                 *rhs = ConvExpr::new_cast(
                     rhs_cloned,
                     Type::Ptr(Box::new(Type::Void)),
-                    CastKind::ToVoidPtr {
-                        ptr_to: *ptr_to.clone(),
-                    },
+                    CastKind::ToVoidPtr { ptr_to: *ptr_to },
                 );
             }
             (Type::Ptr(ptr_to), Type::Ptr(void_base)) if *void_base == Type::Void => {
@@ -1459,9 +1460,7 @@ impl ConvExpr {
                 *lhs = ConvExpr::new_cast(
                     lhs_cloned,
                     Type::Ptr(Box::new(Type::Void)),
-                    CastKind::ToVoidPtr {
-                        ptr_to: *ptr_to.clone(),
-                    },
+                    CastKind::ToVoidPtr { ptr_to: *ptr_to },
                 );
             }
             _ => todo!(),
@@ -1842,7 +1841,7 @@ impl Struct {
             offset = aligned_offset(offset, &ty);
             struct_members.push(StructMember { name, offset, ty });
         }
-        return struct_members;
+        struct_members
     }
 
     pub fn new(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
@@ -2254,10 +2253,10 @@ impl Type {
 
     pub const fn get_ptr_to(&self) -> Option<&Type> {
         match self {
-            Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) => None,
+            Type::Base(_) | Type::Func(_, _) | Type::Array(_, _) | Type::Struct(_) | Type::Void => {
+                None
+            }
             Type::Ptr(ptr_to) => Some(ptr_to),
-            Type::Struct(_) => todo!(),
-            Type::Void => todo!(),
             Type::InComplete(_) => todo!(),
         }
     }
@@ -2275,11 +2274,7 @@ impl<'a> Analyzer<'a> {
             TypeSpec::Void => Type::Void,
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithTag(tag)) => {
                 match self.look_up_struct_tag(tag.as_str()) {
-                    Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members }))) => {
-                        // Type::Struct(Struct {
-                        //     tag: Some(tag.clone()),
-                        //     members: members.clone(),
-                        // })
+                    Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members: _ }))) => {
                         Type::InComplete(InCompleteKind::Struct(tag.clone()))
                     }
                     Some(Taged::Struct(StructTagKind::OnlyTag(tag))) => {
@@ -2328,14 +2323,15 @@ impl<'a> Analyzer<'a> {
                     }
                 }
 
-                if let Some(name) = name {
-                    Type::InComplete(InCompleteKind::Struct(name.to_string()))
-                } else {
-                    Type::Struct(Struct {
-                        tag: name.clone(),
-                        members: constructed_members,
-                    })
-                }
+                name.as_ref().map_or_else(
+                    || {
+                        Type::Struct(Struct {
+                            tag: None,
+                            members: constructed_members,
+                        })
+                    },
+                    |name| Type::InComplete(InCompleteKind::Struct(name.clone())),
+                )
             }
         })
     }
@@ -2404,11 +2400,9 @@ impl<'a> Analyzer<'a> {
 impl Type {
     pub fn size_of(&self) -> usize {
         match self {
-            Type::Void => 1,
             Type::Base(BaseType::Int) => 4,
-            Type::Base(BaseType::Char) => 1,
+            Type::Base(BaseType::Char) | Type::Func(_, _) | Type::Void => 1,
             Type::Ptr(_) => 8,
-            Type::Func(_, _) => 1,
             Type::Array(ty, size) => ty.size_of() * *size,
             Type::Struct(struct_struct) => struct_struct.size_of(),
             Type::InComplete(_) => todo!(),
@@ -2421,10 +2415,9 @@ impl Type {
             Type::Base(BaseType::Int) => 4,
             Type::Base(BaseType::Char) => 1,
             Type::Ptr(_) => 8,
-            Type::Func(_, _) => todo!(),
+            Type::Func(_, _) | Type::InComplete(_) => todo!(),
             Type::Array(base_ty, _) => base_ty.align_of(),
             Type::Struct(struct_struct) => struct_struct.align_of(),
-            Type::InComplete(_) => todo!(),
         }
     }
 
@@ -2432,9 +2425,7 @@ impl Type {
         match self {
             ty @ Type::Base(_) => ty,
             Type::Ptr(base) | Type::Func(base, _) | Type::Array(base, _) => base,
-            Type::Struct(_) => todo!(),
-            Type::Void => todo!(),
-            Type::InComplete(_) => todo!(),
+            Type::Struct(_) | Type::Void | Type::InComplete(_) => todo!(),
         }
     }
 
@@ -2442,9 +2433,7 @@ impl Type {
         match self {
             Type::Base(base) => Some(base),
             Type::Ptr(_) | Type::Func(_, _) | Type::Array(_, _) => None,
-            Type::Struct(_) => todo!(),
-            Type::Void => todo!(),
-            Type::InComplete(_) => todo!(),
+            Type::Struct(_) | Type::Void | Type::InComplete(_) => todo!(),
         }
     }
 

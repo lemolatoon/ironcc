@@ -31,7 +31,7 @@ impl<'a> Generator<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         kind: RegKind,
-        size: RegSize,
+        _size: RegSize,
     ) -> Result<(), CompileError> {
         // todo!();
         // match size {
@@ -344,7 +344,7 @@ impl<'a> Generator<'a> {
         let ty = expr.ty.clone();
         match expr.kind {
             ConvExprKind::Num(val) => self.push_lit(f, val)?,
-            ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, expr.ty)?,
+            ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, &expr.ty)?,
             ConvExprKind::LVar(_) => {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr.clone())?;
@@ -547,16 +547,15 @@ impl<'a> Generator<'a> {
                     self.gen_expr(f, expr)?;
                 }
             }
-            CastKind::ToVoidPtr { ptr_to: _ } | CastKind::FromVoidPtr { ptr_to: _ } => {
-                self.gen_expr(f, expr)?;
-            }
-            CastKind::NoCast => {
+            CastKind::ToVoidPtr { ptr_to: _ }
+            | CastKind::FromVoidPtr { ptr_to: _ }
+            | CastKind::NoCast => {
                 self.gen_expr(f, expr)?;
             }
             CastKind::Ptr2Ptr {
-                from,
-                to,
-                cast_kind,
+                from: _,
+                to: _,
+                cast_kind: _,
             } => todo!(),
         }
         Ok(())
@@ -570,7 +569,7 @@ impl<'a> Generator<'a> {
         expr: ConvExpr,
     ) -> Result<(), CompileError> {
         match expr.kind {
-            ConvExprKind::LVar(LVar { offset, ty }) => {
+            ConvExprKind::LVar(LVar { offset, ty: _ }) => {
                 writeln!(f, "  mov rax, rbp")?;
                 writeln!(f, "  sub rax, {}", offset)?;
                 // push ptr
@@ -605,7 +604,7 @@ impl<'a> Generator<'a> {
         &mut self,
         f: &mut BufWriter<W>,
         c_binary: ConvBinary,
-        ty: Type,
+        ty: &Type,
     ) -> Result<(), CompileError> {
         let ConvBinary { kind: op, lhs, rhs } = c_binary;
         let lhs_ty_sizeof = lhs.ty.size_of();

@@ -35,8 +35,7 @@ impl<'a> Parser<'a> {
                     let pos = declaration.pos;
                     ProgramComponent::new(ProgramKind::Declaration(declaration), pos)
                 } else {
-                    let func_def = self.parse_func_def(tokens)?;
-                    func_def
+                    self.parse_func_def(tokens)?
                 }
             };
             program.push(component);
@@ -723,36 +722,36 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let mut direct_abstract_declarator =
-            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
-                // "(" <abstract-declarator> ")"
-                let mut tmp_tokens = tokens.clone();
-                let abstract_declarator = self.parse_abstract_declarator(&mut tmp_tokens);
-                if abstract_declarator.is_err()
-                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Bracket))
-                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Paran))
-                {
-                    // [ <assign> ]
-                    // | ( <parameter-type-list>? )
-                    todo!()
-                } else {
-                    let abstract_declarator = abstract_declarator?;
-                    if abstract_declarator.is_none() {
-                        return Ok(None);
-                    }
-                    let direct_abstract_declarator = DirectAbstractDeclarator::AbstractDeclarator(
-                        Box::new(abstract_declarator.unwrap()),
-                    );
-                    *tokens = tmp_tokens;
-                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
-                    direct_abstract_declarator
-                }
-            } else {
+        let direct_abstract_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran))
+        {
+            // "(" <abstract-declarator> ")"
+            let mut tmp_tokens = tokens.clone();
+            let abstract_declarator = self.parse_abstract_declarator(&mut tmp_tokens);
+            if abstract_declarator.is_err()
+                || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Bracket))
+                || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Paran))
+            {
                 // [ <assign> ]
                 // | ( <parameter-type-list>? )
-                // TODO: support above
-                todo!();
-            };
+                todo!()
+            } else {
+                let abstract_declarator = abstract_declarator?;
+                if abstract_declarator.is_none() {
+                    return Ok(None);
+                }
+                let direct_abstract_declarator = DirectAbstractDeclarator::AbstractDeclarator(
+                    Box::new(abstract_declarator.unwrap()),
+                );
+                *tokens = tmp_tokens;
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                direct_abstract_declarator
+            }
+        } else {
+            // [ <assign> ]
+            // | ( <parameter-type-list>? )
+            // TODO: support above
+            todo!();
+        };
         loop {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
                 // function declaration
@@ -775,6 +774,8 @@ impl<'a> Parser<'a> {
                     // TODO: support function type direct_abstract_declarator
                 }
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
+                // these branches should be parsed differently, but now both are not yet implemented
+                #[allow(clippy::branches_sharing_code)]
                 if tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
                     // direct_abstract_declarator =
                     //     DirectAbstractDeclarator::Array(Box::new(direct_declarator), None);
