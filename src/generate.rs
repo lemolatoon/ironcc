@@ -561,13 +561,53 @@ impl<'a> Generator<'a> {
         unary_op: &ConvUnaryOp,
     ) -> Result<(), CompileError> {
         let operand_ty = operand.ty.clone();
-        self.gen_expr(f, operand)?;
         match unary_op {
             ConvUnaryOp::BitInvert => {
+                self.gen_expr(f, operand)?;
                 assert!(operand_ty == Type::Base(BaseType::Int));
                 self.pop(f, RegKind::Rax)?;
                 writeln!(f, "  not eax")?;
                 self.push(f, RegKind::Rax)?;
+            }
+            ConvUnaryOp::Increment(value) => {
+                self.gen_lvalue(f, operand.clone())?;
+                self.pop(f, RegKind::Rax)?; // rax = &expr
+                self.deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::Rax,
+                    &operand_ty,
+                    UnexpectedTypeSizeStatus::Expr(operand.clone()),
+                )?; // rdi = *rax
+                writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
+                self.assign(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rdi,
+                    &operand_ty,
+                    UnexpectedTypeSizeStatus::Expr(operand),
+                )?; // *rax = rdi
+                self.push(f, RegKind::Rdi)?; // push incremented expr's value
+            }
+            ConvUnaryOp::Decrement(value) => {
+                self.gen_lvalue(f, operand.clone())?;
+                self.pop(f, RegKind::Rax)?; // rax = &expr
+                self.deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::Rax,
+                    &operand_ty,
+                    UnexpectedTypeSizeStatus::Expr(operand.clone()),
+                )?; // rdi = *rax
+                writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
+                self.assign(
+                    f,
+                    RegKind::Rax,
+                    RegKind::Rdi,
+                    &operand_ty,
+                    UnexpectedTypeSizeStatus::Expr(operand),
+                )?; // *rax = rdi
+                self.push(f, RegKind::Rdi)?; // push incremented expr's value
             }
         }
         Ok(())

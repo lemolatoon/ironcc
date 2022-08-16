@@ -1,6 +1,5 @@
 ---
 source: tests/insta_test.rs
-assertion_line: 277
 expression: tester.conv_program().as_ref().unwrap()
 ---
 ConvProgram {

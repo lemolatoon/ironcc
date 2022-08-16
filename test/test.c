@@ -50,6 +50,8 @@ int test44();
 int test45();
 int test46();
 int test47();
+int test48();
+int test49();
 // actually `void`
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -123,6 +125,8 @@ int main()
     assert(45, 0, test45());
     assert(46, 0, test46());
     assert(47, 0, test47());
+    assert(48, 0, test48());
+    assert(49, 0, test49());
 
     print_ok();
     return 0;
@@ -986,5 +990,38 @@ int *ret_addr_of_test47_global_bar() {
 int test47() {
     assert(47, 1, (*(ret_addr_of_test47_global_bar()))++);
     assert(47, 2, test47_global_var);
+    return 0;
+}
+
+int test48() {
+    int a = 1;
+    assert(48, 2, ++a);
+    assert(48, 3, ++a);
+    assert(48, 2, --a);
+    assert(48, 1, --a);
+    int *p = &a;
+    assert(48, 2, ++(*p));
+    assert(48, 2, *p);
+    int arr[4] = {1, 2, 3, 4};
+    int *p2 = arr;
+    assert(48, 2, ++(*p2));
+    assert(48, 3, ++(*p2));
+    assert(48, 4, ++(*p2));
+    assert(48, 3, --(*p2));
+    assert(48, 2, --(*p2));
+    assert(48, 1, --(*p2));
+    assert(48, 1, *p2);
+    return 0;
+}
+
+int test49_global_var = 1;
+// called only once
+int *ret_addr_of_test49_global_bar() {
+    assert(49, 1, test49_global_var);
+    return &test49_global_var;
+}
+int test49() {
+    assert(49, 2, ++(*(ret_addr_of_test49_global_bar())));
+    assert(49, 2, test49_global_var);
     return 0;
 }

@@ -60,14 +60,16 @@
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
 <unary>                     := <postfix>
-                                | "+" <mul>
-                                | "-" <mul>
-                                | "~" <mul>
-                                | "!" <mul>
-                                | "*" <mul>
-                                | "&" <mul>
+                                | "+" <unary>
+                                | "-" <unary>
+                                | "~" <unary>
+                                | "!" <unary>
+                                | "*" <unary>
+                                | "&" <unary>
                                 | "sizeof" <unary>
                                 | "sizeof" "(" <type-name> ")"
+                                | "++" <unary>
+                                | "--" <unary>
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
                                 | <postfix> "." <ident>

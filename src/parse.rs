@@ -612,27 +612,27 @@ impl<'a> Parser<'a> {
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Plus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Minus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Minus, self.parse_unary(tokens)?, pos)
             }
             TokenKind::Tilde => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::BitInvert, self.parse_unary(tokens)?, pos)
             }
             TokenKind::Exclamation => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::LogicalNot, self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
-                Expr::new_deref(self.parse_mul(tokens)?, pos)
+                Expr::new_deref(self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::And) => {
                 tokens.next();
-                Expr::new_addr(self.parse_mul(tokens)?, pos)
+                Expr::new_addr(self.parse_unary(tokens)?, pos)
             }
             TokenKind::SizeOf => {
                 tokens.next();
@@ -654,9 +654,81 @@ impl<'a> Parser<'a> {
                     Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
                 }
             }
+            TokenKind::PlusPlus => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::Increment, self.parse_unary(tokens)?, pos)
+            }
+            TokenKind::MinusMinus => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::Decrement, self.parse_unary(tokens)?, pos)
+            }
             _ => self.parse_postfix(tokens)?,
         })
+        // let mut op_vec = Vec::new();
+        // loop {
+        //     let (kind, pos) = match tokens.peek() {
+        //         Some(Token { kind, pos }) => (kind, pos),
+        //         None => {
+        //             return Err(CompileError::new_unexpected_eof(
+        //                 self.input,
+        //                 Box::new("Token"),
+        //             ))
+        //         }
+        //     };
+        //     let pos = *pos;
+        //     match **kind {
+        //         TokenKind::BinOp(BinOpToken::Plus) => {
+        //             tokens.next();
+        //             Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens), pos);
+        //             op_vec.push(TokenKind::BinOp(UnaryOp::Plus));
+        //         }
+        //         TokenKind::BinOp(BinOpToken::Minus) => {
+        //             tokens.next();
+        //             // Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
+        //             // op_vec.push(TokenKind::BinOp(UnaryOp::Minus));
+        //         }
+        //         TokenKind::Tilde => {
+        //             tokens.next();
+        //             // Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+        //             // op_vec.push(TokenKind::Tilde);
+        //         }
+        //         TokenKind::Exclamation => {
+        //             tokens.next();
+        //             Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::BinOp(BinOpToken::Star) => {
+        //             tokens.next();
+        //             Expr::new_deref(self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::BinOp(BinOpToken::And) => {
+        //             tokens.next();
+        //             Expr::new_addr(self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::SizeOf => {
+        //             tokens.next();
+        //             let mut tmp_tokens = tokens.clone();
+        //             if let (
+        //                 Some(TokenKind::OpenDelim(DelimToken::Paren)),
+        //                 Some(TokenKind::Type(_) | TokenKind::Struct),
+        //             ) = (
+        //                 tmp_tokens.next().map(|token| *token.kind()),
+        //                 tmp_tokens.next().map(|token| *token.kind()),
+        //             ) {
+        //                 // e.g) sizeof(int)
+        //                 tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
+        //                 let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
+        //                 tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
+        //                 expr
+        //             } else {
+        //                 // e.g) sizeof (5)
+        //                 Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
+        //             }
+        //         }
+        //         _ => self.parse_postfix(tokens)?,
+        //     }
+        // }
     }
+
     pub fn parse_postfix<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
@@ -1258,6 +1330,8 @@ pub enum ExprKind {
     },
     PostfixIncrement(Box<Expr>),
     PostfixDecrement(Box<Expr>),
+    UnaryIncrement(Box<Expr>),
+    UnaryDecrement(Box<Expr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1269,7 +1343,9 @@ pub enum SizeOfOperandKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum UnaryOp {
     Plus,
+    Increment,
     Minus,
+    Decrement,
     BitInvert,
     LogicalNot,
 }
@@ -1308,6 +1384,20 @@ impl Expr {
     pub fn new_postfix_decrement(expr: Expr, pos: Position) -> Self {
         Self {
             kind: ExprKind::PostfixDecrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_unary_increment(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::UnaryIncrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_unary_decrement(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::UnaryDecrement(Box::new(expr)),
             pos,
         }
     }

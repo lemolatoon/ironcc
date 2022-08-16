@@ -811,6 +811,8 @@ impl<'a> Analyzer<'a> {
                 };
                 Ok(ConvExpr::new_postfix_decrement(expr, value, expr_ty, pos))
             }
+            ExprKind::UnaryIncrement(_) => todo!(),
+            ExprKind::UnaryDecrement(_) => todo!(),
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -1193,6 +1195,56 @@ impl<'a> Analyzer<'a> {
                 let eq_with_0 =
                     Binary::new(BinOpKind::Eq, operand, Box::new(Expr::new_num(0, pos)));
                 Ok(self.traverse_binary(eq_with_0, pos)?)
+            }
+            UnaryOp::Increment => {
+                let operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                let expr_ty = operand.ty.clone();
+                let pos = operand.pos;
+                let value = match &expr_ty {
+                    Type::Base(_) => 1,
+                    Type::Ptr(ptr_to) => ptr_to.size_of(),
+                    Type::InComplete(_)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
+                    | Type::Struct(_) => {
+                        return Err(CompileError::new_type_expect_failed_with_str(
+                            self.input,
+                            pos,
+                            "Type::Base(_) | Type::Ptr(_)".to_string(),
+                            expr_ty,
+                        ))
+                    }
+                    Type::Void | Type::Array(_, _) => unreachable!(),
+                };
+                Ok(ConvExpr::new_unary(ConvUnaryOp::Increment(value), operand))
+            }
+            UnaryOp::Decrement => {
+                let operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                let expr_ty = operand.ty.clone();
+                let pos = operand.pos;
+                let value = match &expr_ty {
+                    Type::Base(_) => 1,
+                    Type::Ptr(ptr_to) => ptr_to.size_of(),
+                    Type::InComplete(_)
+                    | Type::Func {
+                        ret_ty: _,
+                        args: _,
+                        is_flexible: _,
+                    }
+                    | Type::Struct(_) => {
+                        return Err(CompileError::new_type_expect_failed_with_str(
+                            self.input,
+                            pos,
+                            "Type::Base(_) | Type::Ptr(_)".to_string(),
+                            expr_ty,
+                        ))
+                    }
+                    Type::Void | Type::Array(_, _) => unreachable!(),
+                };
+                Ok(ConvExpr::new_unary(ConvUnaryOp::Decrement(value), operand))
             }
         }
     }
@@ -1720,6 +1772,8 @@ pub enum ConvExprKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ConvUnaryOp {
     BitInvert,
+    Increment(usize),
+    Decrement(usize),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2139,6 +2193,14 @@ impl ConstExpr {
                     )))
                 }
             },
+            ConvUnaryOp::Increment(value) => {
+                let n = self.get_num_lit()?;
+                ConstExpr::new_int(n as i32 + *value as i32, pos)
+            }
+            ConvUnaryOp::Decrement(value) => {
+                let n = self.get_num_lit()?;
+                ConstExpr::new_int(n as i32 - *value as i32, pos)
+            }
         })
     }
 
