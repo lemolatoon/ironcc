@@ -607,6 +607,15 @@
 <span id="602">602</span>
 <span id="603">603</span>
 <span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
@@ -664,6 +673,7 @@
                 (<span class="string">&quot;&gt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Ge</span>)),
                 (<span class="string">&quot;==&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::EqEq</span>)),
                 (<span class="string">&quot;!=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Ne</span>)),
+                (<span class="string">&quot;-&gt;&quot;</span>, <span class="ident">TokenKind::Arrow</span>),
                 (<span class="string">&quot;+&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Plus</span>)),
                 (<span class="string">&quot;-&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Minus</span>)),
                 (<span class="string">&quot;*&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Star</span>)),
@@ -683,6 +693,7 @@
                 (<span class="string">&quot;!&quot;</span>, <span class="ident">TokenKind::Exclamation</span>),
                 (<span class="string">&quot;;&quot;</span>, <span class="ident">TokenKind::Semi</span>),
                 (<span class="string">&quot;=&quot;</span>, <span class="ident">TokenKind::Eq</span>),
+                (<span class="string">&quot;.&quot;</span>, <span class="ident">TokenKind::Dot</span>),
             ];
 
             <span class="kw">for</span> (<span class="ident">literal</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">symbols</span> {
@@ -837,6 +848,7 @@
                         <span class="string">&quot;for&quot;</span> =&gt; <span class="ident">TokenKind::For</span>,
                         <span class="string">&quot;int&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Int</span>),
                         <span class="string">&quot;char&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Char</span>),
+                        <span class="string">&quot;void&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Void</span>),
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
                         <span class="string">&quot;struct&quot;</span> =&gt; <span class="ident">TokenKind::Struct</span>,
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
@@ -900,6 +912,10 @@
     <span class="ident">Tilde</span>,
     <span class="doccomment">/// `!`</span>
     <span class="ident">Exclamation</span>,
+    <span class="doccomment">/// `.`</span>
+    <span class="ident">Dot</span>,
+    <span class="doccomment">/// `-&gt;`</span>
+    <span class="ident">Arrow</span>,
     <span class="ident">Eof</span>,
 }
 
@@ -909,6 +925,8 @@
     <span class="ident">Int</span>,
     <span class="doccomment">/// `char`, type specifier</span>
     <span class="ident">Char</span>,
+    <span class="doccomment">/// `void`, type specifier</span>
+    <span class="ident">Void</span>,
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DelimToken</span> {
@@ -1086,12 +1104,12 @@
         }
     }
 
-    <span class="doccomment">/// if next token is ident, then return its name, otherwise return Err(_)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// if next token is ident, then return its name and Position, otherwise return Err(_)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Position</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
         <span class="kw">match</span> <span class="ident">token</span> {
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">name</span>),
+                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">pos</span>)),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
                     <span class="self">self</span>.<span class="ident">input</span>,
                     <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),

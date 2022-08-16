@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["RegKind",""],["RegSize",""]],"struct":[["Generator",""]]});
+initSidebarItems({"enum":[["RegKind",""],["RegOrLit",""],["RegSize",""]],"struct":[["Generator",""]]});

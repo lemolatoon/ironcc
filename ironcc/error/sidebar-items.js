@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["AnalyzeErrorKind",""],["CompileErrorKind",""],["GenerateErrorKind",""],["ParseErrorKind",""],["TokenizeErrorKind",""],["TypeErrorKind",""],["UnexpectedTypeSizeStatus",""],["VariableKind",""]],"struct":[["CompileError",""]]});
+initSidebarItems({"enum":[["AnalyzeErrorKind",""],["CompileErrorKind",""],["GenerateErrorKind",""],["ParseErrorKind",""],["TokenizeErrorKind",""],["TypeErrorKind",""],["TypeExpectedFailedKind",""],["UnexpectedTypeSizeStatus",""],["VariableKind",""]],"struct":[["CompileError",""]]});
