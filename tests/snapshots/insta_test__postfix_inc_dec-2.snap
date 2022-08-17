@@ -1,0 +1,109 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                        true,
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        ty_spec: Int,
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "a",
+                                                    ),
+                                                },
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: Num(
+                                                                1,
+                                                            ),
+                                                            pos: Position {
+                                                                n_char: 16,
+                                                                n_line: 2,
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 2,
+                                        },
+                                    },
+                                ),
+                            },
+                            Stmt {
+                                kind: Expr(
+                                    Expr {
+                                        kind: PostfixIncrement(
+                                            Expr {
+                                                kind: LVar(
+                                                    "a",
+                                                ),
+                                                pos: Position {
+                                                    n_char: 8,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 3,
+                                        },
+                                    },
+                                ),
+                            },
+                            Stmt {
+                                kind: Expr(
+                                    Expr {
+                                        kind: PostfixDecrement(
+                                            Expr {
+                                                kind: LVar(
+                                                    "a",
+                                                ),
+                                                pos: Position {
+                                                    n_char: 8,
+                                                    n_line: 4,
+                                                },
+                                            },
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 4,
+                                        },
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
+        },
+    ],
+}

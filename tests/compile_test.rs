@@ -338,3 +338,74 @@ fn global_variable() {
     let result = tester.conv_program();
     assert!(matches!(result, Ok(_)), "{:?}", result,);
 }
+
+#[test]
+fn flexible_args() {
+    let src = "
+    void printf(char *msg, ...);
+    int main() {
+        int a;
+        printf(a);
+        return 0;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(
+        matches!(
+            result,
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(_)),
+                src: _,
+            })
+        ),
+        "{:?}",
+        result,
+    );
+    let src = r#"
+    void printf(char *msg, ...);
+    int main() {
+        char a[3] = {1, 2, 3};
+        printf(a, 1, 2, 3, 3, 4 , "asldkfjl");
+        return 0;
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(matches!(result, Ok(_),), "{:?}", result,);
+    let src = r#"
+    int f(void);
+    int main() {
+        return f(3);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(
+        matches!(
+            result,
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::FuncArgsError(
+                    _,
+                    _,
+                    _,
+                    _,
+                    _
+                )),
+                src: _
+            }),
+        ),
+        "{:?}",
+        result,
+    );
+
+    let src = r#"
+    int f();
+    int main() {
+        return f(3);
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    let result = tester.conv_program();
+    assert!(matches!(result, Ok(_)), "{:?}", result,);
+}

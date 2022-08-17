@@ -89,11 +89,11 @@ fn parse_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(2),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Star),
         TokenKind::Num(3),
         TokenKind::Eof
@@ -109,17 +109,17 @@ fn parse_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::Num(2),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Slash),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(31),
         TokenKind::BinOp(BinOpToken::Star),
         TokenKind::Num(4),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(5),
         TokenKind::Eof
@@ -144,17 +144,17 @@ fn parse_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::Num(2),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Slash),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(31),
         TokenKind::BinOp(BinOpToken::Percent),
         TokenKind::Num(4),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(5),
         TokenKind::Eof
@@ -184,20 +184,20 @@ fn parse_unary_test() -> Result<(), CompileError> {
     let input = String::new();
     let parser = Parser::new(&input);
     let tokens = tokens!(
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Minus),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::Num(2),
-        TokenKind::CloseDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Slash),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(31),
         TokenKind::BinOp(BinOpToken::Star),
         TokenKind::Num(4),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(5),
         TokenKind::Eof
@@ -235,11 +235,11 @@ fn parse_unary_test() -> Result<(), CompileError> {
     let parser = Parser::new(&input);
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Minus),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Star),
         TokenKind::Num(22),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Eof
     );
     let expr = parser
@@ -320,8 +320,8 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Num(1),
         TokenKind::Semi,
@@ -336,7 +336,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", vec![]),
+        func_dd("main", vec![], true),
         block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
         Position::default(),
     )]);
@@ -348,8 +348,8 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident("a".to_string()),
         TokenKind::Eq,
@@ -367,7 +367,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
         Position::default(),
     )]);
@@ -383,8 +383,8 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('a'.to_string()),
         TokenKind::Eq,
@@ -399,7 +399,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
         Position::default(),
     )]);
@@ -411,8 +411,8 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('a'.to_string()),
         TokenKind::Eq,
@@ -429,7 +429,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(
             lvar("a"),
             assign(lvar("b"), num(2)),
@@ -444,8 +444,8 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('a'.to_string()),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -462,7 +462,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(
             bin(BinOpKind::Add, lvar("a"), num(1)),
             num(2),
@@ -481,19 +481,19 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('a'.to_string()),
         TokenKind::Eq,
         TokenKind::Num(22),
         TokenKind::Semi,
         TokenKind::If,
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Ident('a'.to_string()),
         TokenKind::BinOp(BinOpToken::Ge),
         TokenKind::Num(10),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Return,
         TokenKind::Num(1),
         TokenKind::Semi,
@@ -510,7 +510,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             expr_stmt(assign(lvar("a"), num(22))),
             if_(
@@ -529,19 +529,19 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('a'.to_string()),
         TokenKind::Eq,
         TokenKind::Num(22),
         TokenKind::Semi,
         TokenKind::While,
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Ident('a'.to_string()),
         TokenKind::BinOp(BinOpToken::Gt),
         TokenKind::Num(0),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Ident('a'.to_string()),
         TokenKind::Eq,
         TokenKind::Ident('a'.to_string()),
@@ -560,7 +560,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             expr_stmt(assign(lvar("a"), num(22))),
             while_(
@@ -579,15 +579,15 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident('x'.to_string()),
         TokenKind::Eq,
         TokenKind::Num(1),
         TokenKind::Semi,
         TokenKind::For,
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Ident("a".to_string()),
         TokenKind::Eq,
         TokenKind::Num(3),
@@ -598,11 +598,11 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         TokenKind::Ident("a".to_string()),
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::Num(2),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::If,
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Ident("a".to_string()),
         TokenKind::Eq,
         TokenKind::Ident("a".to_string()),
@@ -622,7 +622,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             expr_stmt(assign(lvar("x"), num(1))),
             for_(
@@ -646,8 +646,8 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident("a".to_string()),
         TokenKind::Eq,
@@ -656,11 +656,11 @@ fn parse_various_stmts() -> Result<(), CompileError> {
         TokenKind::Return,
         TokenKind::Ident("a".to_string()),
         TokenKind::BinOp(BinOpToken::Percent),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(3),
         TokenKind::BinOp(BinOpToken::Percent),
         TokenKind::Num(1),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Semi,
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
@@ -671,7 +671,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             expr_stmt(assign(lvar("a"), num(13))),
             ret(bin(
@@ -694,15 +694,15 @@ fn parse_call_func() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident("foo".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(3),
         TokenKind::Comma,
         TokenKind::Num(1),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Semi,
         TokenKind::CloseDelim(DelimToken::Brace),
         TokenKind::Eof
@@ -713,7 +713,7 @@ fn parse_call_func() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
         Position::default(),
     )]);
@@ -729,8 +729,8 @@ fn parse_ptr() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Return,
         TokenKind::BinOp(BinOpToken::Star),
@@ -745,7 +745,7 @@ fn parse_ptr() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![ret(deref(lvar("a")))]),
         Position::default(),
     )]);
@@ -756,17 +756,17 @@ fn parse_ptr() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Ident("a".to_string()),
         TokenKind::Eq,
         TokenKind::Ident("foo".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(3),
         TokenKind::Comma,
         TokenKind::Num(1),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::Semi, // a = foo(3, 1);
         TokenKind::Ident("ap".to_string()),
         TokenKind::Eq,
@@ -797,7 +797,7 @@ fn parse_ptr() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![
             expr_stmt(assign(lvar("a"), func("foo", vec![num(3), num(1)]))),
             expr_stmt(assign(lvar("ap"), addr(lvar("a")))),
@@ -820,8 +820,8 @@ fn parse_declaration() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("a".to_string()),
@@ -844,7 +844,7 @@ fn parse_declaration() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![declare_stmt(declare(
             TypeSpec::Int,
             0,
@@ -859,8 +859,8 @@ fn parse_declaration() -> Result<(), CompileError> {
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
-        TokenKind::OpenDelim(DelimToken::Paran),
-        TokenKind::CloseDelim(DelimToken::Paran),
+        TokenKind::OpenDelim(DelimToken::Paren),
+        TokenKind::CloseDelim(DelimToken::Paren),
         TokenKind::OpenDelim(DelimToken::Brace),
         TokenKind::Type(TypeToken::Int),
         TokenKind::BinOp(BinOpToken::Star),
@@ -884,7 +884,7 @@ fn parse_declaration() -> Result<(), CompileError> {
     let expected = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
-        func_dd("main", Vec::new()),
+        func_dd("main", Vec::new(), true),
         block(vec![declare_stmt(declare(
             TypeSpec::Int,
             1,

@@ -37,7 +37,7 @@ impl<'a> Tokenizer<'a> {
                 input = &input[num_this_line_char..];
                 continue;
             }
-            if input.starts_with("#") {
+            if input.starts_with('#') {
                 let mut input_iter = input.chars();
                 let mut num_this_line_char = 1;
                 while !matches!(input_iter.next(), Some('\n')) {
@@ -49,12 +49,17 @@ impl<'a> Tokenizer<'a> {
             }
 
             let symbols = vec![
+                ("...", TokenKind::DotDotDot),
                 ("<<", TokenKind::BinOp(BinOpToken::LShift)),
                 (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
+                ("||", TokenKind::BinOp(BinOpToken::VerticalVertical)),
+                ("&&", TokenKind::BinOp(BinOpToken::AndAnd)),
+                ("++", TokenKind::PlusPlus),
+                ("--", TokenKind::MinusMinus),
                 ("->", TokenKind::Arrow),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
@@ -62,10 +67,10 @@ impl<'a> Tokenizer<'a> {
                 ("/", TokenKind::BinOp(BinOpToken::Slash)),
                 ("&", TokenKind::BinOp(BinOpToken::And)),
                 ("%", TokenKind::BinOp(BinOpToken::Percent)),
-                ("(", TokenKind::OpenDelim(DelimToken::Paran)),
+                ("(", TokenKind::OpenDelim(DelimToken::Paren)),
                 ("{", TokenKind::OpenDelim(DelimToken::Brace)),
                 ("[", TokenKind::OpenDelim(DelimToken::Bracket)),
-                (")", TokenKind::CloseDelim(DelimToken::Paran)),
+                (")", TokenKind::CloseDelim(DelimToken::Paren)),
                 ("}", TokenKind::CloseDelim(DelimToken::Brace)),
                 ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
                 (",", TokenKind::Comma),
@@ -73,6 +78,8 @@ impl<'a> Tokenizer<'a> {
                 (">", TokenKind::BinOp(BinOpToken::Gt)),
                 ("~", TokenKind::Tilde),
                 ("!", TokenKind::Exclamation),
+                ("?", TokenKind::Question),
+                (":", TokenKind::Colon),
                 (";", TokenKind::Semi),
                 ("=", TokenKind::Eq),
                 (".", TokenKind::Dot),
@@ -294,10 +301,20 @@ pub enum TokenKind {
     Tilde,
     /// `!`
     Exclamation,
+    /// `?`
+    Question,
+    /// `:`
+    Colon,
     /// `.`
     Dot,
     /// `->`
     Arrow,
+    /// `...`
+    DotDotDot,
+    /// `++`
+    PlusPlus,
+    /// `--`
+    MinusMinus,
     Eof,
 }
 
@@ -313,7 +330,7 @@ pub enum TypeToken {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DelimToken {
     /// A round parenthesis (i.e., `(` or `)`)
-    Paran,
+    Paren,
     /// A square bracket (i.e., `[` or `]`)
     Bracket,
     /// A curly brase (i.e., `{` or `}`)
@@ -350,6 +367,10 @@ pub enum BinOpToken {
     LShift,
     /// `>>`
     RShift,
+    /// `||` logical or
+    VerticalVertical,
+    /// `&&` logical and
+    AndAnd,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

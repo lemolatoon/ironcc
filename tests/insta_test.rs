@@ -226,6 +226,80 @@ fn void_type() {
     all!(tester);
 }
 
+#[test]
+fn conditional_expr() {
+    let src = "int main() {
+        int a = 1;
+        int b = 2;
+        int c = a > b ? a : b;
+    }";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn logical_or_and() {
+    let src = "int main() {
+        int a = 1;
+        int b = 0;
+        int c = a && b && 2; // -> 0
+        int d = a || b || 1; // -> 1 
+    }";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn flexible_args() {
+    let src = r#"
+    void printf(char *msg, ...);
+    
+    int main() {
+        int a = 2;
+        printf("Hello World:%d\n", a);
+    }
+    "#;
+
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+
+    let src = r#"
+    void printf(char *msg, ...);
+    void printf2(char *msg, ...) {
+        printf(msg);
+    }
+    "#;
+
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn postfix_inc_dec() {
+    let src = "
+    int main() {
+        int a = 1;
+        a++;
+        a--;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
+#[test]
+fn unary_inc_dec() {
+    let src = "
+    int main() {
+        int a = 1;
+        ++a;
+        --a;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

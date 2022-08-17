@@ -36,6 +36,7 @@ Program {
                                             },
                                         },
                                     ],
+                                    false,
                                 ),
                             },
                             initializer: None,
@@ -62,6 +63,7 @@ Program {
                             "main",
                         ),
                         [],
+                        true,
                     ),
                 },
                 Stmt {

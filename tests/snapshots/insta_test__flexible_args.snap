@@ -1,0 +1,251 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: Type(
+            Void,
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Ident(
+            "printf",
+        ),
+        pos: Position {
+            n_char: 9,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 15,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Type(
+            Char,
+        ),
+        pos: Position {
+            n_char: 16,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: BinOp(
+            Star,
+        ),
+        pos: Position {
+            n_char: 21,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Ident(
+            "msg",
+        ),
+        pos: Position {
+            n_char: 22,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Comma,
+        pos: Position {
+            n_char: 25,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: DotDotDot,
+        pos: Position {
+            n_char: 27,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 30,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 31,
+            n_line: 1,
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        pos: Position {
+            n_char: 8,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 12,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 13,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 15,
+            n_line: 3,
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        pos: Position {
+            n_char: 8,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Ident(
+            "a",
+        ),
+        pos: Position {
+            n_char: 12,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Eq,
+        pos: Position {
+            n_char: 14,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Num(
+            2,
+        ),
+        pos: Position {
+            n_char: 16,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 17,
+            n_line: 4,
+        },
+    },
+    Token {
+        kind: Ident(
+            "printf",
+        ),
+        pos: Position {
+            n_char: 8,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 14,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: Str(
+            "Hello World:%d\n",
+        ),
+        pos: Position {
+            n_char: 15,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: Comma,
+        pos: Position {
+            n_char: 33,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: Ident(
+            "a",
+        ),
+        pos: Position {
+            n_char: 35,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        pos: Position {
+            n_char: 36,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: Semi,
+        pos: Position {
+            n_char: 37,
+            n_line: 5,
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        pos: Position {
+            n_char: 4,
+            n_line: 6,
+        },
+    },
+    Token {
+        kind: Eof,
+        pos: Position {
+            n_char: 4,
+            n_line: 7,
+        },
+    },
+]

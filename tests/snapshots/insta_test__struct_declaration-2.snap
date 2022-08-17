@@ -64,6 +64,7 @@ Program {
                             "main",
                         ),
                         [],
+                        true,
                     ),
                 },
                 Stmt {

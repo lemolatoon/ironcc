@@ -46,8 +46,14 @@ int test40();
 int test41();
 int test42();
 int test43();
+int test44();
+int test45();
+int test46();
+int test47();
+int test48();
+int test49();
 // actually `void`
-int assert(int index, int expected, int got);
+void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
 int f(int arg0);
@@ -60,7 +66,7 @@ int add(int arg0, int arg1);
 int **alloc4_ptr(int *a, int *b, int *c, int *d);
 int *alloc4(int a, int b, int c, int d);
 
-int print_ok();
+void print_ok();
 
 int main()
 {
@@ -115,28 +121,34 @@ int main()
     assert(41, 0, test41());
     assert(42, 0, test42());
     assert(43, 0, test43());
+    assert(44, 0, test44());
+    assert(45, 0, test45());
+    assert(46, 0, test46());
+    assert(47, 0, test47());
+    assert(48, 0, test48());
+    assert(49, 0, test49());
 
     print_ok();
     return 0;
 }
 
-int exit(int status);
-int printf2(char *msg, int arg0, int arg1);
+void exit(int status);
+int printf(char *msg, ...);
 int assertion_failed(int index, int expected, int got)
 {
-    printf2("Assertion_failed At test%d\n", index, 0);
-    printf2("Expected %d, but got %d\n", expected, got);
+    printf("Assertion_failed At test%d\n", index, 0);
+    printf("Expected %d, but got %d\n", expected, got);
     exit(1);
 }
 
-int passed(int index) { printf2("Test %d passed\n", index, 0); }
+int passed(int index) { printf("Test %d passed\n", index); }
 
-int print_ok()
+void print_ok()
 {
-    printf2("\e[32mALL TESTS PASSED\e[0m\n", 0, 0);
+    printf("\e[32mALL TESTS PASSED\e[0m\n");
 }
 
-int assert(int index, int expected, int got)
+void assert(int index, int expected, int got)
 {
     if (expected != got)
     {
@@ -146,7 +158,6 @@ int assert(int index, int expected, int got)
     {
         passed(index);
     }
-    return 0;
 }
 
 int test0() { return 3; }
@@ -288,6 +299,7 @@ int test9_0()
     z = &px;
     *z = py;
     assert(90, 10, **z);
+    return 0;
 }
 
 int test9_1()
@@ -305,6 +317,7 @@ int test9_1()
     assert(91, 5, **z);
     *z = py;
     assert(91, 10, **z);
+    return 0;
 }
 
 int test9()
@@ -889,12 +902,126 @@ int test43() {
         assert(43, i, node->value);
         node = node->after;
     }
-    assert(43, 0, node->after == &tail);
+    // assert(43, 1, node == &tail);
     node = tail.before;
     for (int i = 9; i >= 0; i = i - 1) {
         assert(43, i, node->value);
         node = node->before;
     }
-    assert(43, 0, node->before == &head);
+    // assert(43, 1, node == &head);
     return 0; 
+
+}
+
+int test44_global_var;
+int inc_44_global_var_and_return_true() {
+    test44_global_var = test44_global_var + 1;
+    return 1;
+}
+
+int inc_44_global_var_and_return_false() {
+    test44_global_var = test44_global_var + 1;
+    return 0;
+}
+
+int test44() {
+    assert(44, 0, test44_global_var);
+    assert(44, 1, inc_44_global_var_and_return_true() ? inc_44_global_var_and_return_true() : inc_44_global_var_and_return_false());
+    assert(44, 2, test44_global_var);
+    assert(44, 0, inc_44_global_var_and_return_false() ? inc_44_global_var_and_return_true() : 0);
+    assert(44, 3, test44_global_var);
+    assert(44, 0, inc_44_global_var_and_return_false() ? 1 : inc_44_global_var_and_return_false());
+    assert(44, 5, test44_global_var);
+    return 0;
+}
+
+int  test45_global_var;
+int inc_45_global_var_and_return_true() {
+    test45_global_var = test45_global_var + 1;
+    return 1;
+}
+
+int inc_45_global_var_and_return_false() {
+    test45_global_var = test45_global_var + 1;
+    return 0;
+}
+
+int test45() {
+    assert(45, 1, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_true());
+    assert(45, 2, test45_global_var);
+    assert(45, 1, inc_45_global_var_and_return_true() || inc_45_global_var_and_return_true());
+    assert(45, 3, test45_global_var);
+    assert(45, 1, inc_45_global_var_and_return_false() || inc_45_global_var_and_return_true());
+    assert(45, 5, test45_global_var);
+    assert(45, 0, inc_45_global_var_and_return_false() && inc_45_global_var_and_return_true());
+    assert(45, 6, test45_global_var);
+    assert(45, 0, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_false());
+    assert(45, 8, test45_global_var);
+    return 0;
+}
+
+int test46() {
+    int a = 1;
+    assert(46, 1, a++);
+    assert(46, 2, a++);
+    assert(46, 3, a--);
+    assert(46, 2, a--);
+    int *p = &a;
+    assert(46, 1, (*p)++);
+    assert(46, 2, *p);
+    int arr[4] = {1, 2, 3, 4};
+    int *p2 = arr;
+    assert(46, 1, *p2++);
+    assert(46, 2, *p2++);
+    assert(46, 3, *p2++);
+    assert(46, 4, *p2--);
+    assert(46, 3, *p2--);
+    assert(46, 2, *p2--);
+    assert(46, 1, *p2);
+    return 0;
+}
+
+int test47_global_var = 1;
+// called only once
+int *ret_addr_of_test47_global_bar() {
+    assert(47, 1, test47_global_var);
+    return &test47_global_var;
+}
+int test47() {
+    assert(47, 1, (*(ret_addr_of_test47_global_bar()))++);
+    assert(47, 2, test47_global_var);
+    return 0;
+}
+
+int test48() {
+    int a = 1;
+    assert(48, 2, ++a);
+    assert(48, 3, ++a);
+    assert(48, 2, --a);
+    assert(48, 1, --a);
+    int *p = &a;
+    assert(48, 2, ++(*p));
+    assert(48, 2, *p);
+    int arr[4] = {1, 2, 3, 4};
+    int *p2 = arr;
+    assert(48, 2, ++(*p2));
+    assert(48, 3, ++(*p2));
+    assert(48, 4, ++(*p2));
+    assert(48, 3, --(*p2));
+    assert(48, 2, --(*p2));
+    assert(48, 1, --(*p2));
+    assert(48, 1, *p2);
+    return 0;
+}
+
+int test49_global_var = 1;
+// called only once
+int *ret_addr_of_test49_global_bar() {
+    assert(49, 1, test49_global_var);
+    return &test49_global_var;
+}
+int test49() {
+    assert(49, 2, ++(*(ret_addr_of_test49_global_bar())));
+    assert(49, 2, test49_global_var);
+    return 0;
 }

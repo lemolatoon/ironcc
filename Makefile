@@ -46,7 +46,9 @@ tetris: tetris.s
 	clang -g3 tetris.s
 	./a.out
 	
-
+clang_test: test/test.c test/test_utils.c
+	clang test/test.c test/test_utils.c
+	./a.out
 
 cargo_test: FORCE
 	cargo test

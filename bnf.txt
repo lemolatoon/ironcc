@@ -30,6 +30,7 @@
                                 | <direct-abstract-declarator>? ( <parameter-type-list>? )
 <parameter-type-list>       := <parameter-list>
 <parameter-list>            := <parameter-declaration>
+                                | <parameter-list> "," <parameter-declaration> "," "..."
 <parameter-declaration>     := <declaration-specifiers> <declarator>
                                 | <declaration-specifiers> <abstract-declarator>
 
@@ -45,7 +46,13 @@
 
 
 <expr>                      := <assign>
-<assign>                    := <bit-wise-and> ("=" <assign>)?
+<assign>                    := <conditional> ("=" <assign>)?
+<conditional>               := <logical-or> 
+                                | <logical-or> "?" <expr> : <conditional>
+<logical-or>                := <logical-or>
+                                | <logical-or> || <logical-and>
+<logical-and>               := <bit-wise-and>
+                                | <logical-and> && <bit-wise-and>
 <bit-wise-and>              := <equality> ("&" <equality>)*
 <equality>                  := <relational> ("==" <relational> | "!=" <relational>)*
 <relational>                := <shift> ("<" <shift> | "<=" <shift> | ">" <shift> | ">=" <shift>)*
@@ -53,18 +60,22 @@
 <add>                       := <mul> ("+" <mul> | "-" <mul>)*
 <mul>                       := <unary> ("*" <unary> | "/" <unary> | "%" <unary>)*
 <unary>                     := <postfix>
-                                | "+" <mul>
-                                | "-" <mul>
-                                | "~" <mul>
-                                | "!" <mul>
-                                | "*" <mul>
-                                | "&" <mul>
+                                | "+" <unary>
+                                | "-" <unary>
+                                | "~" <unary>
+                                | "!" <unary>
+                                | "*" <unary>
+                                | "&" <unary>
                                 | "sizeof" <unary>
                                 | "sizeof" "(" <type-name> ")"
+                                | "++" <unary>
+                                | "--" <unary>
 <postfix>                   := <primary>
                                 | <postfix> "[" <expr> "]"
                                 | <postfix> "." <ident>
                                 | <postfix> "->" <ident>
+                                | <postfix> "++"
+                                | <postfix> "--"
 <primary>                   := <num> 
                                 | """ <letters> """
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"

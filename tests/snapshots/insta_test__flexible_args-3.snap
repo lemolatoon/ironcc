@@ -1,0 +1,541 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Global(
+            GVar {
+                name: ".LC0",
+                ty: Array(
+                    Base(
+                        Char,
+                    ),
+                    16,
+                ),
+                init: Some(
+                    Array(
+                        [
+                            ConstExpr {
+                                kind: Int(
+                                    72,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    101,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    108,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    108,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    111,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    32,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    87,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    111,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    114,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    108,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    100,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    58,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    37,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    100,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    10,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                            ConstExpr {
+                                kind: Int(
+                                    0,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 15,
+                                    n_line: 5,
+                                },
+                            },
+                        ],
+                    ),
+                ),
+            },
+        ),
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 4,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 4,
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            2,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        pos: Position {
+                                            n_char: 16,
+                                            n_line: 4,
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                pos: Position {
+                                    n_char: 8,
+                                    n_line: 4,
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Func(
+                                    "printf",
+                                    [
+                                        ConvExpr {
+                                            kind: Addr(
+                                                ConvExpr {
+                                                    kind: GVar(
+                                                        GVar {
+                                                            name: ".LC0",
+                                                            ty: Array(
+                                                                Base(
+                                                                    Char,
+                                                                ),
+                                                                16,
+                                                            ),
+                                                            init: Some(
+                                                                Array(
+                                                                    [
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                72,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                101,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                111,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                32,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                87,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                111,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                114,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                100,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                58,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                37,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                100,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                10,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                        ConstExpr {
+                                                                            kind: Int(
+                                                                                0,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Int,
+                                                                            ),
+                                                                            pos: Position {
+                                                                                n_char: 15,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                    ],
+                                                                ),
+                                                            ),
+                                                        },
+                                                    ),
+                                                    ty: Base(
+                                                        Char,
+                                                    ),
+                                                    pos: Position {
+                                                        n_char: 15,
+                                                        n_line: 5,
+                                                    },
+                                                },
+                                            ),
+                                            ty: Ptr(
+                                                Base(
+                                                    Char,
+                                                ),
+                                            ),
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 5,
+                                            },
+                                        },
+                                        ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 4,
+                                                    ty: Base(
+                                                        Int,
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            pos: Position {
+                                                n_char: 35,
+                                                n_line: 5,
+                                            },
+                                        },
+                                    ],
+                                    true,
+                                    0,
+                                ),
+                                ty: Void,
+                                pos: Position {
+                                    n_char: 8,
+                                    n_line: 5,
+                                },
+                            },
+                        ),
+                    ],
+                ),
+                stack_size: 4,
+            },
+        ),
+    ],
+}

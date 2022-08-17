@@ -121,32 +121,51 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let mut direct_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+        let mut direct_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
             // "(" <declaration> ")"
             let direct_declarator =
                 DirectDeclarator::Declarator(Box::new(self.parse_declarator(tokens)?));
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
             direct_declarator
         } else {
             // <ident>
             DirectDeclarator::Ident(tokens.consume_ident()?.0)
         };
         loop {
-            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
                 // function declaration
-                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                     // e.g) `main()`
+                    // no arg func should be considered as a flexible arg function
                     direct_declarator =
-                        DirectDeclarator::Func(Box::new(direct_declarator), Vec::new());
-                } else {
-                    let mut args = Vec::new();
-                    args.push(self.parse_declaration(tokens)?);
-                    while tokens.consume(&TokenKind::Comma) {
-                        args.push(self.parse_declaration(tokens)?);
+                        DirectDeclarator::Func(Box::new(direct_declarator), Vec::new(), true);
+                    continue;
+                } else if tokens.peek_expect(&TokenKind::Type(TypeToken::Void)) {
+                    let mut tmp_tokens = tokens.clone();
+                    tmp_tokens.next();
+                    if tmp_tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
+                        // no arg func with void should be considered as a **not** flexible arg function
+                        *tokens = tmp_tokens;
+                        direct_declarator =
+                            DirectDeclarator::Func(Box::new(direct_declarator), Vec::new(), false);
+                        continue;
                     }
-                    direct_declarator = DirectDeclarator::Func(Box::new(direct_declarator), args);
-                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+
+                    // not flexible arg function
                 }
+                let mut args = Vec::new();
+                args.push(self.parse_declaration(tokens)?);
+                let mut is_flexible = false;
+                while tokens.consume(&TokenKind::Comma) {
+                    if tokens.consume(&TokenKind::DotDotDot) {
+                        is_flexible = true;
+                        break;
+                    }
+                    args.push(self.parse_declaration(tokens)?);
+                }
+                direct_declarator =
+                    DirectDeclarator::Func(Box::new(direct_declarator), args, is_flexible);
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
                 if tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
                     direct_declarator = DirectDeclarator::Array(Box::new(direct_declarator), None);
@@ -310,9 +329,9 @@ impl<'a> Parser<'a> {
             tokens.expect(TokenKind::Semi)?;
             Ok(Stmt::ret(returning_expr))
         } else if tokens.consume(&TokenKind::If) {
-            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paren))?;
             let conditional_expr = self.parse_expr(tokens)?;
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
             let else_stmt = if tokens.consume(&TokenKind::Else) {
                 Some(self.parse_stmt(tokens)?)
@@ -321,13 +340,13 @@ impl<'a> Parser<'a> {
             };
             Ok(Stmt::new_if(conditional_expr, then_stmt, else_stmt))
         } else if tokens.consume(&TokenKind::While) {
-            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paren))?;
             let conditional_expr = self.parse_expr(tokens)?;
-            tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_while(conditional_expr, then_stmt))
         } else if tokens.consume(&TokenKind::For) {
-            tokens.expect(TokenKind::OpenDelim(DelimToken::Paran))?;
+            tokens.expect(TokenKind::OpenDelim(DelimToken::Paren))?;
             let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
@@ -348,11 +367,11 @@ impl<'a> Parser<'a> {
                 tokens.expect(TokenKind::Semi)?;
                 Some(expr)
             };
-            let inc_expr = if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+            let inc_expr = if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                 None
             } else {
                 let expr = self.parse_expr(tokens)?;
-                tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
                 Some(expr)
             };
             let then_stmt = self.parse_stmt(tokens)?;
@@ -385,7 +404,7 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let lhs = self.parse_bit_wise_and(tokens)?;
+        let lhs = self.parse_conditional(tokens)?;
         let (kind, &pos) = match tokens.peek() {
             Some(Token { kind, pos }) => (kind, pos),
             None => {
@@ -403,6 +422,57 @@ impl<'a> Parser<'a> {
             _ => Ok(lhs),
         }
     }
+
+    pub fn parse_conditional<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let cond = self.parse_logical_or(tokens)?;
+        if tokens.consume(&TokenKind::Question) {
+            let then_expr = self.parse_expr(tokens)?;
+            tokens.expect(TokenKind::Colon)?;
+            let else_expr = self.parse_conditional(tokens)?;
+            let cond_pos = cond.pos;
+            Ok(Expr::new_conditional(cond, then_expr, else_expr, cond_pos))
+        } else {
+            Ok(cond)
+        }
+    }
+    pub fn parse_logical_or<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_logical_and(tokens)?;
+        while tokens.consume(&TokenKind::BinOp(BinOpToken::VerticalVertical)) {
+            let rhs = self.parse_logical_and(tokens)?;
+            let pos = lhs.pos;
+            lhs = Expr::new_binary(BinOpKind::LogicalOr, lhs, rhs, pos);
+        }
+        Ok(lhs)
+    }
+
+    pub fn parse_logical_and<'b, I>(
+        &self,
+        tokens: &mut TokenStream<'b, I>,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token>,
+    {
+        let mut lhs = self.parse_bit_wise_and(tokens)?;
+        while tokens.consume(&TokenKind::BinOp(BinOpToken::AndAnd)) {
+            let rhs = self.parse_bit_wise_and(tokens)?;
+            let pos = lhs.pos;
+            lhs = Expr::new_binary(BinOpKind::LogicalAnd, lhs, rhs, pos);
+        }
+        Ok(lhs)
+    }
+
     pub fn parse_bit_wise_and<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
@@ -542,33 +612,33 @@ impl<'a> Parser<'a> {
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Plus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Minus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Minus, self.parse_unary(tokens)?, pos)
             }
             TokenKind::Tilde => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::BitInvert, self.parse_unary(tokens)?, pos)
             }
             TokenKind::Exclamation => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
+                Expr::new_unary(UnaryOp::LogicalNot, self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
-                Expr::new_deref(self.parse_mul(tokens)?, pos)
+                Expr::new_deref(self.parse_unary(tokens)?, pos)
             }
             TokenKind::BinOp(BinOpToken::And) => {
                 tokens.next();
-                Expr::new_addr(self.parse_mul(tokens)?, pos)
+                Expr::new_addr(self.parse_unary(tokens)?, pos)
             }
             TokenKind::SizeOf => {
                 tokens.next();
                 let mut tmp_tokens = tokens.clone();
                 if let (
-                    Some(TokenKind::OpenDelim(DelimToken::Paran)),
+                    Some(TokenKind::OpenDelim(DelimToken::Paren)),
                     Some(TokenKind::Type(_) | TokenKind::Struct),
                 ) = (
                     tmp_tokens.next().map(|token| *token.kind()),
@@ -577,16 +647,88 @@ impl<'a> Parser<'a> {
                     // e.g) sizeof(int)
                     tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
                     let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
-                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
                     expr
                 } else {
                     // e.g) sizeof (5)
                     Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
                 }
             }
+            TokenKind::PlusPlus => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::Increment, self.parse_unary(tokens)?, pos)
+            }
+            TokenKind::MinusMinus => {
+                tokens.next();
+                Expr::new_unary(UnaryOp::Decrement, self.parse_unary(tokens)?, pos)
+            }
             _ => self.parse_postfix(tokens)?,
         })
+        // let mut op_vec = Vec::new();
+        // loop {
+        //     let (kind, pos) = match tokens.peek() {
+        //         Some(Token { kind, pos }) => (kind, pos),
+        //         None => {
+        //             return Err(CompileError::new_unexpected_eof(
+        //                 self.input,
+        //                 Box::new("Token"),
+        //             ))
+        //         }
+        //     };
+        //     let pos = *pos;
+        //     match **kind {
+        //         TokenKind::BinOp(BinOpToken::Plus) => {
+        //             tokens.next();
+        //             Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens), pos);
+        //             op_vec.push(TokenKind::BinOp(UnaryOp::Plus));
+        //         }
+        //         TokenKind::BinOp(BinOpToken::Minus) => {
+        //             tokens.next();
+        //             // Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
+        //             // op_vec.push(TokenKind::BinOp(UnaryOp::Minus));
+        //         }
+        //         TokenKind::Tilde => {
+        //             tokens.next();
+        //             // Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
+        //             // op_vec.push(TokenKind::Tilde);
+        //         }
+        //         TokenKind::Exclamation => {
+        //             tokens.next();
+        //             Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::BinOp(BinOpToken::Star) => {
+        //             tokens.next();
+        //             Expr::new_deref(self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::BinOp(BinOpToken::And) => {
+        //             tokens.next();
+        //             Expr::new_addr(self.parse_mul(tokens)?, pos)
+        //         }
+        //         TokenKind::SizeOf => {
+        //             tokens.next();
+        //             let mut tmp_tokens = tokens.clone();
+        //             if let (
+        //                 Some(TokenKind::OpenDelim(DelimToken::Paren)),
+        //                 Some(TokenKind::Type(_) | TokenKind::Struct),
+        //             ) = (
+        //                 tmp_tokens.next().map(|token| *token.kind()),
+        //                 tmp_tokens.next().map(|token| *token.kind()),
+        //             ) {
+        //                 // e.g) sizeof(int)
+        //                 tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
+        //                 let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
+        //                 tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
+        //                 expr
+        //             } else {
+        //                 // e.g) sizeof (5)
+        //                 Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
+        //             }
+        //         }
+        //         _ => self.parse_postfix(tokens)?,
+        //     }
+        // }
     }
+
     pub fn parse_postfix<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
@@ -615,6 +757,14 @@ impl<'a> Parser<'a> {
                     let (member, pos) = tokens.consume_ident()?;
                     expr = Expr::new_arrow(expr, member, pos);
                 }
+                Some(TokenKind::PlusPlus) => {
+                    tokens.next();
+                    expr = Expr::new_postfix_increment(expr, pos);
+                }
+                Some(TokenKind::MinusMinus) => {
+                    tokens.next();
+                    expr = Expr::new_postfix_decrement(expr, pos);
+                }
                 _ => break,
             };
         }
@@ -632,20 +782,20 @@ impl<'a> Parser<'a> {
             Some(Token { kind, pos }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, pos),
                 TokenKind::Str(letters) => Expr::new_str_lit(letters, pos),
-                TokenKind::OpenDelim(DelimToken::Paran) => {
+                TokenKind::OpenDelim(DelimToken::Paren) => {
                     let expr = self.parse_expr(tokens)?;
-                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
+                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
                     expr
                 }
                 TokenKind::Ident(name) => {
-                    if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+                    if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
                         // func call
                         let mut args = Vec::new();
-                        if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                        if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                             return Ok(Expr::new_func(name, args, pos));
                         }
                         args.push(self.parse_expr(tokens)?);
-                        while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                        while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                             tokens.expect(TokenKind::Comma)?;
                             args.push(self.parse_expr(tokens)?);
                         }
@@ -667,11 +817,9 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        dbg!("type_name");
         let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
         // TODO: support DirectAbstractDeclarator
         let abstract_declarator = self.parse_abstract_declarator(tokens)?;
-        dbg!(&abstract_declarator);
         Ok(TypeName::new(SpecQual(ty_spec), abstract_declarator, pos))
     }
 
@@ -684,7 +832,7 @@ impl<'a> Parser<'a> {
     {
         let n_star = Self::parse_pointer(tokens)?;
         let direct_abstract_declarator =
-            if let Some(TokenKind::OpenDelim(DelimToken::Bracket | DelimToken::Paran)) =
+            if let Some(TokenKind::OpenDelim(DelimToken::Bracket | DelimToken::Paren)) =
                 tokens.peek_kind()
             {
                 self.parse_direct_abstract_declarator(tokens)?
@@ -704,40 +852,40 @@ impl<'a> Parser<'a> {
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
-        let mut direct_abstract_declarator =
-            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
-                // "(" <abstract-declarator> ")"
-                let mut tmp_tokens = tokens.clone();
-                let abstract_declarator = self.parse_abstract_declarator(&mut tmp_tokens);
-                if abstract_declarator.is_err()
-                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Bracket))
-                    || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Paran))
-                {
-                    // [ <assign> ]
-                    // | ( <parameter-type-list>? )
-                    todo!()
-                } else {
-                    let abstract_declarator = abstract_declarator?;
-                    if abstract_declarator.is_none() {
-                        return Ok(None);
-                    }
-                    let direct_abstract_declarator = DirectAbstractDeclarator::AbstractDeclarator(
-                        Box::new(abstract_declarator.unwrap()),
-                    );
-                    *tokens = tmp_tokens;
-                    tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
-                    direct_abstract_declarator
-                }
-            } else {
+        let direct_abstract_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren))
+        {
+            // "(" <abstract-declarator> ")"
+            let mut tmp_tokens = tokens.clone();
+            let abstract_declarator = self.parse_abstract_declarator(&mut tmp_tokens);
+            if abstract_declarator.is_err()
+                || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Bracket))
+                || tmp_tokens.peek_kind() == Some(TokenKind::OpenDelim(DelimToken::Paren))
+            {
                 // [ <assign> ]
                 // | ( <parameter-type-list>? )
-                // TODO: support above
-                todo!();
-            };
+                todo!()
+            } else {
+                let abstract_declarator = abstract_declarator?;
+                if abstract_declarator.is_none() {
+                    return Ok(None);
+                }
+                let direct_abstract_declarator = DirectAbstractDeclarator::AbstractDeclarator(
+                    Box::new(abstract_declarator.unwrap()),
+                );
+                *tokens = tmp_tokens;
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
+                direct_abstract_declarator
+            }
+        } else {
+            // [ <assign> ]
+            // | ( <parameter-type-list>? )
+            // TODO: support above
+            todo!();
+        };
         loop {
-            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paran)) {
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
                 // function declaration
-                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paran)) {
+                if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                     // e.g) `main()`
                     // direct_abstract_declarator = DirectAbstractDeclarator::Func(
                     //     Box::new(direct_abstract_declarator),
@@ -756,6 +904,8 @@ impl<'a> Parser<'a> {
                     // TODO: support function type direct_abstract_declarator
                 }
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
+                // these branches should be parsed differently, but now both are not yet implemented
+                #[allow(clippy::branches_sharing_code)]
                 if tokens.consume(&TokenKind::CloseDelim(DelimToken::Bracket)) {
                     // direct_abstract_declarator =
                     //     DirectAbstractDeclarator::Array(Box::new(direct_declarator), None);
@@ -927,7 +1077,11 @@ impl Declarator {
 pub enum DirectDeclarator {
     Ident(String),
     Array(Box<DirectDeclarator>, Option<Expr>),
-    Func(Box<DirectDeclarator>, Vec<Declaration>),
+    Func(
+        Box<DirectDeclarator>,
+        Vec<Declaration>,
+        /*is_flexible arg*/ bool,
+    ),
     Declarator(Box<Declarator>),
 }
 
@@ -935,7 +1089,7 @@ impl DirectDeclarator {
     pub fn ident_name(&self) -> &str {
         match self {
             DirectDeclarator::Ident(name) => name,
-            DirectDeclarator::Func(direct_declarator, _)
+            DirectDeclarator::Func(direct_declarator, _, _)
             | DirectDeclarator::Array(direct_declarator, _) => direct_declarator.ident_name(),
             DirectDeclarator::Declarator(declarator) => declarator.direct_declarator.ident_name(),
         }
@@ -946,7 +1100,7 @@ impl DirectDeclarator {
             DirectDeclarator::Ident(_) => None,
             DirectDeclarator::Array(direct_declarator, _) => direct_declarator.args(),
             DirectDeclarator::Declarator(declarator) => declarator.direct_declarator.args(),
-            DirectDeclarator::Func(_, args) => Some(args.clone()),
+            DirectDeclarator::Func(_, args, _) => Some(args.clone()),
         }
     }
 }
@@ -1169,6 +1323,15 @@ pub enum ExprKind {
     Array(Box<Expr>, Box<Expr>),
     Member(Box<Expr>, String),
     Arrow(Box<Expr>, String),
+    Conditional {
+        cond: Box<Expr>,
+        then: Box<Expr>,
+        els: Box<Expr>,
+    },
+    PostfixIncrement(Box<Expr>),
+    PostfixDecrement(Box<Expr>),
+    UnaryIncrement(Box<Expr>),
+    UnaryDecrement(Box<Expr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1180,12 +1343,24 @@ pub enum SizeOfOperandKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum UnaryOp {
     Plus,
+    Increment,
     Minus,
+    Decrement,
     BitInvert,
     LogicalNot,
 }
 
 impl Expr {
+    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::Conditional {
+                cond: Box::new(cond),
+                then: Box::new(then),
+                els: Box::new(els),
+            },
+            pos,
+        }
+    }
     pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::Member(Box::new(expr), ident),
@@ -1195,6 +1370,34 @@ impl Expr {
     pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
         Self {
             kind: ExprKind::Arrow(Box::new(expr), ident),
+            pos,
+        }
+    }
+
+    pub fn new_postfix_increment(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::PostfixIncrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_postfix_decrement(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::PostfixDecrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_unary_increment(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::UnaryIncrement(Box::new(expr)),
+            pos,
+        }
+    }
+
+    pub fn new_unary_decrement(expr: Expr, pos: Position) -> Self {
+        Self {
+            kind: ExprKind::UnaryDecrement(Box::new(expr)),
             pos,
         }
     }
@@ -1332,4 +1535,8 @@ pub enum BinOpKind {
     RShift,
     /// The `&` operator (bit wise and)
     BitWiseAnd,
+    /// The `||` operator (logical or)
+    LogicalOr,
+    /// The `&&` operator (logical and)
+    LogicalAnd,
 }
