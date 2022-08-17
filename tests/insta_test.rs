@@ -262,6 +262,16 @@ fn flexible_args() {
 
     let mut tester = CachedProcessor::new(src);
     all!(tester);
+
+    let src = r#"
+    void printf(char *msg, ...);
+    void printf2(char *msg, ...) {
+        printf(msg);
+    }
+    "#;
+
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
 }
 
 #[test]

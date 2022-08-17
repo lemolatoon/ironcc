@@ -1,0 +1,76 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Void,
+                    args: [
+                        Ptr(
+                            Base(
+                                Char,
+                            ),
+                        ),
+                    ],
+                    is_flexible: true,
+                },
+                name: "printf2",
+                args: [
+                    LVar {
+                        offset: 8,
+                        ty: Ptr(
+                            Base(
+                                Char,
+                            ),
+                        ),
+                    },
+                ],
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Func(
+                                    "printf",
+                                    [
+                                        ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 8,
+                                                    ty: Ptr(
+                                                        Base(
+                                                            Char,
+                                                        ),
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Ptr(
+                                                Base(
+                                                    Char,
+                                                ),
+                                            ),
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    ],
+                                    true,
+                                    0,
+                                ),
+                                ty: Void,
+                                pos: Position {
+                                    n_char: 8,
+                                    n_line: 3,
+                                },
+                            },
+                        ),
+                    ],
+                ),
+                stack_size: 8,
+            },
+        ),
+    ],
+}

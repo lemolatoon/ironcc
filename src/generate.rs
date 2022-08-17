@@ -383,7 +383,7 @@ impl<'a> Generator<'a> {
                     RegSize::try_new_with_error(expr.ty.size_of(), self.input, *rhs)?,
                 )?;
             }
-            ConvExprKind::Func(name, args, n_floating) => {
+            ConvExprKind::Func(name, args, is_flexible_length, n_floating) => {
                 let arg_reg: Vec<RegKind> = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
                     .into_iter()
                     .map(|reg| reg.try_into().unwrap())
@@ -400,8 +400,10 @@ impl<'a> Generator<'a> {
                 } // pop args
                   // e.g) if arg_len == 2, pop rsi, pop rdi
 
-                // for flexible-length-arg function
-                writeln!(f, "  mov al, {}", n_floating)?;
+                if is_flexible_length {
+                    // for flexible-length-arg function
+                    writeln!(f, "  mov al, {}", n_floating)?;
+                }
 
                 // 16bit align
                 if self.depth % 2 == 0 {

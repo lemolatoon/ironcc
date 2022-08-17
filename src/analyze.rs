@@ -292,14 +292,13 @@ impl<'a> Analyzer<'a> {
         let converted_type = self.resolve_name_and_convert_to_type(ty_spec, pos)?;
         let ty = self.get_type(converted_type, declarator)?;
 
-        let (ret_ty, args_ty);
-        if let Type::Func {
+        let (ret_ty, args_ty, is_flexible) = if let Type::Func {
             ret_ty: this_ret_ty,
             args: this_args,
-            is_flexible: _,
+            is_flexible,
         } = ty.clone()
         {
-            (ret_ty, args_ty) = (this_ret_ty, this_args);
+            (this_ret_ty, this_args, is_flexible)
         } else {
             return Err(CompileError::new_type_expect_failed_with_str(
                 self.input,
@@ -307,7 +306,7 @@ impl<'a> Analyzer<'a> {
                 "Type::Func(_)".to_string(),
                 ty,
             ));
-        }
+        };
         let args = if let Some(args) = declarator.direct_declarator.args() {
             args
         } else {
@@ -319,7 +318,6 @@ impl<'a> Analyzer<'a> {
         };
         self.scope.push_scope();
         self.tag_scope.push(BTreeMap::new());
-        let args_is_empty = args.is_empty();
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
@@ -341,7 +339,7 @@ impl<'a> Analyzer<'a> {
             }
             self.func_map.insert(
                 ident.to_string(),
-                Func::new_raw(ident.to_string(), args_ty, args_is_empty, *ret_ty, pos),
+                Func::new_raw(ident.to_string(), args_ty, is_flexible, *ret_ty, pos),
             );
             ConvStmt::new_block(
                 stmts
@@ -898,7 +896,13 @@ impl<'a> Analyzer<'a> {
                 }
             }
         }
-        Ok(ConvExpr::new_func(name, args, ret_ty.clone(), pos))
+        Ok(ConvExpr::new_func(
+            name,
+            args,
+            ret_ty.clone(),
+            is_flexible_length,
+            pos,
+        ))
     }
 
     pub fn new_conditional_with_type_checking(
@@ -1658,9 +1662,15 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_func(name: String, args: Vec<ConvExpr>, ret_ty: Type, pos: Position) -> Self {
+    pub fn new_func(
+        name: String,
+        args: Vec<ConvExpr>,
+        ret_ty: Type,
+        is_flexible: bool,
+        pos: Position,
+    ) -> Self {
         Self {
-            kind: ConvExprKind::Func(name, args, 0),
+            kind: ConvExprKind::Func(name, args, is_flexible, 0),
             ty: ret_ty,
             pos,
         }
@@ -1761,7 +1771,12 @@ pub enum ConvExprKind {
     LVar(LVar),
     GVar(GVar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
-    Func(String, Vec<ConvExpr>, usize),
+    Func(
+        String,
+        Vec<ConvExpr>,
+        /* is_flexible_length */ bool,
+        usize,
+    ),
     Deref(Box<ConvExpr>),
     Addr(Box<ConvExpr>),
     Cast(Box<ConvExpr>, CastKind),
@@ -2331,7 +2346,7 @@ impl ConstExpr {
             ConvExprKind::LVar(_)
             | ConvExprKind::GVar(_)
             | ConvExprKind::Assign(_, _)
-            | ConvExprKind::Func(_, _, _)
+            | ConvExprKind::Func(..)
             | ConvExprKind::Deref(_)
             | ConvExprKind::Member {
                 struct_expr: _,

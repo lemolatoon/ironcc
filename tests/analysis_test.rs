@@ -640,11 +640,12 @@ fn _cfor_(
     ConvStmt::new_for(init, cond, inc, then)
 }
 
-fn _cfunc(name: &str, args: Vec<ConvExpr>) -> ConvExpr {
+fn _cfunc(name: &str, args: Vec<ConvExpr>, is_flexible: bool) -> ConvExpr {
     ConvExpr::new_func(
         name.to_string(),
         args,
         Type::Base(BaseType::Int),
+        is_flexible,
         Position::default(),
     )
 }

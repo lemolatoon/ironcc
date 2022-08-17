@@ -1,0 +1,125 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: Declaration(
+                Declaration {
+                    ty_spec: Void,
+                    init_declarator: Some(
+                        InitDeclarator {
+                            declarator: Declarator {
+                                n_star: 0,
+                                direct_declarator: Func(
+                                    Ident(
+                                        "printf",
+                                    ),
+                                    [
+                                        Declaration {
+                                            ty_spec: Char,
+                                            init_declarator: Some(
+                                                InitDeclarator {
+                                                    declarator: Declarator {
+                                                        n_star: 1,
+                                                        direct_declarator: Ident(
+                                                            "msg",
+                                                        ),
+                                                    },
+                                                    initializer: None,
+                                                },
+                                            ),
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 1,
+                                            },
+                                        },
+                                    ],
+                                    true,
+                                ),
+                            },
+                            initializer: None,
+                        },
+                    ),
+                    pos: Position {
+                        n_char: 4,
+                        n_line: 1,
+                    },
+                },
+            ),
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
+        },
+        ProgramComponent {
+            kind: FuncDef(
+                Void,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "printf2",
+                        ),
+                        [
+                            Declaration {
+                                ty_spec: Char,
+                                init_declarator: Some(
+                                    InitDeclarator {
+                                        declarator: Declarator {
+                                            n_star: 1,
+                                            direct_declarator: Ident(
+                                                "msg",
+                                            ),
+                                        },
+                                        initializer: None,
+                                    },
+                                ),
+                                pos: Position {
+                                    n_char: 17,
+                                    n_line: 2,
+                                },
+                            },
+                        ],
+                        true,
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Expr(
+                                    Expr {
+                                        kind: Func(
+                                            "printf",
+                                            [
+                                                Expr {
+                                                    kind: LVar(
+                                                        "msg",
+                                                    ),
+                                                    pos: Position {
+                                                        n_char: 15,
+                                                        n_line: 3,
+                                                    },
+                                                },
+                                            ],
+                                        ),
+                                        pos: Position {
+                                            n_char: 8,
+                                            n_line: 3,
+                                        },
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
+        },
+    ],
+}
