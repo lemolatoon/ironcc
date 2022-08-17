@@ -72,6 +72,12 @@ make life
 ```
 Thanks to @uint256_t
 
+
+```
+make life2
+```
+lemolatoon自身による実装
+
 ## ドーナツを動かす
 ```
 make donut

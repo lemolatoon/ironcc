@@ -32,6 +32,11 @@ life: life_game.s
 	clang -g3 life_game.s
 	./a.out
 
+life2: samples/cellular_automaton.c
+	cargo run samples/cellular_automaton.c
+	clang cellular_automaton.s
+	./a.out
+
 donut: rotate.c
 	cargo run rotate.c
 	clang rotate.s

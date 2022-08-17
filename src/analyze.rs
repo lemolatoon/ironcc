@@ -2342,9 +2342,17 @@ impl ConstExpr {
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     & Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
             ),
+            ConvExprKind::GVar(ref gvar) => {
+                // TODO: check if gvar is const or not
+                if let Some(val) = gvar.init.as_ref().map_or(None, |init| Some(init.get_num_lit()?)) {
+                    eprintln!("Have to check {:?} is const or not.", &gvar);
+                    return Ok(num_expr(val));
+                } else {
+                    return Err(CompileError::new_const_expr_error(src, pos, kind))
+                }
+            },
             ConvExprKind::Num(num) => num_expr(num),
             ConvExprKind::LVar(_)
-            | ConvExprKind::GVar(_)
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(..)
             | ConvExprKind::Deref(_)
