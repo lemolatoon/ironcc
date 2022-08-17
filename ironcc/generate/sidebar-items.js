@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["RegKind",""],["RegOrLit",""],["RegSize",""]],"struct":[["Generator",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["RegKind",""],["RegOrLit",""],["RegSize",""]],"struct":[["Generator",""]]};
