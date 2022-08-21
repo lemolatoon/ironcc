@@ -38,7 +38,7 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 3,
@@ -77,7 +77,7 @@ ConvProgram {
                                                                 ),
                                                             ),
                                                         ),
-                                                        pos: DebugInfo {
+                                                        debug_info: DebugInfo {
                                                             pos: Position {
                                                                 n_char: 13,
                                                                 n_line: 3,
@@ -98,7 +98,7 @@ ConvProgram {
                                                         ),
                                                     ),
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 12,
                                                         n_line: 3,
@@ -122,7 +122,7 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 12,
                                                 n_line: 3,
@@ -133,7 +133,7 @@ ConvProgram {
                                 ty: Ptr(
                                     Void,
                                 ),
-                                pos: DebugInfo {
+                                debug_info: DebugInfo {
                                     pos: Position {
                                         n_char: 10,
                                         n_line: 3,

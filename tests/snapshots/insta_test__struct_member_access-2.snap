@@ -14,7 +14,7 @@ Program {
                             ),
                             [
                                 StructDeclaration {
-                                    pos: DebugInfo {
+                                    debug_info: DebugInfo {
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 2,
@@ -32,7 +32,7 @@ Program {
                                                     kind: Num(
                                                         2,
                                                     ),
-                                                    pos: DebugInfo {
+                                                    debug_info: DebugInfo {
                                                         pos: Position {
                                                             n_char: 10,
                                                             n_line: 2,
@@ -44,7 +44,7 @@ Program {
                                     },
                                 },
                                 StructDeclaration {
-                                    pos: DebugInfo {
+                                    debug_info: DebugInfo {
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 3,
@@ -59,7 +59,7 @@ Program {
                                     },
                                 },
                                 StructDeclaration {
-                                    pos: DebugInfo {
+                                    debug_info: DebugInfo {
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 4,
@@ -77,7 +77,7 @@ Program {
                         ),
                     ),
                     init_declarator: None,
-                    pos: DebugInfo {
+                    debug_info: DebugInfo {
                         pos: Position {
                             n_char: 0,
                             n_line: 0,
@@ -85,7 +85,7 @@ Program {
                     },
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 0,
                     n_line: 0,
@@ -127,7 +127,7 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 9,
@@ -146,7 +146,7 @@ Program {
                                                         kind: LVar(
                                                             "a",
                                                         ),
-                                                        pos: DebugInfo {
+                                                        debug_info: DebugInfo {
                                                             pos: Position {
                                                                 n_char: 4,
                                                                 n_line: 10,
@@ -155,7 +155,7 @@ Program {
                                                     },
                                                     "b",
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 6,
                                                         n_line: 10,
@@ -166,7 +166,7 @@ Program {
                                                 kind: Num(
                                                     2,
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 10,
                                                         n_line: 10,
@@ -174,7 +174,7 @@ Program {
                                                 },
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 10,
@@ -195,7 +195,7 @@ Program {
                                                                 kind: LVar(
                                                                     "a",
                                                                 ),
-                                                                pos: DebugInfo {
+                                                                debug_info: DebugInfo {
                                                                     pos: Position {
                                                                         n_char: 4,
                                                                         n_line: 11,
@@ -204,7 +204,7 @@ Program {
                                                             },
                                                             "a",
                                                         ),
-                                                        pos: DebugInfo {
+                                                        debug_info: DebugInfo {
                                                             pos: Position {
                                                                 n_char: 6,
                                                                 n_line: 11,
@@ -215,7 +215,7 @@ Program {
                                                         kind: Num(
                                                             1,
                                                         ),
-                                                        pos: DebugInfo {
+                                                        debug_info: DebugInfo {
                                                             pos: Position {
                                                                 n_char: 8,
                                                                 n_line: 11,
@@ -223,7 +223,7 @@ Program {
                                                         },
                                                     },
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 11,
@@ -234,7 +234,7 @@ Program {
                                                 kind: Num(
                                                     1,
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 13,
                                                         n_line: 11,
@@ -242,7 +242,7 @@ Program {
                                                 },
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 11,
                                                 n_line: 11,
@@ -259,7 +259,7 @@ Program {
                                                 kind: LVar(
                                                     "a",
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 11,
                                                         n_line: 12,
@@ -268,7 +268,7 @@ Program {
                                             },
                                             "c",
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 13,
                                                 n_line: 12,
@@ -281,7 +281,7 @@ Program {
                     ),
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 0,
                     n_line: 7,

@@ -56,7 +56,7 @@ ConvProgram {
                                                         "A",
                                                     ),
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 9,
@@ -72,7 +72,7 @@ ConvProgram {
                                                 ),
                                             ),
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 30,
                                                 n_line: 9,
@@ -163,7 +163,7 @@ ConvProgram {
                                                         ],
                                                     },
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 40,
                                                         n_line: 9,
@@ -211,7 +211,7 @@ ConvProgram {
                                                 },
                                             ),
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 39,
                                                 n_line: 9,
@@ -226,7 +226,7 @@ ConvProgram {
                                         ),
                                     ),
                                 ),
-                                pos: DebugInfo {
+                                debug_info: DebugInfo {
                                     pos: Position {
                                         n_char: 37,
                                         n_line: 9,
@@ -256,7 +256,7 @@ ConvProgram {
                                                         "A",
                                                     ),
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 10,
@@ -268,7 +268,7 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 30,
                                                 n_line: 10,
@@ -282,7 +282,7 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 38,
                                                 n_line: 10,
@@ -293,7 +293,7 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: DebugInfo {
+                                debug_info: DebugInfo {
                                     pos: Position {
                                         n_char: 36,
                                         n_line: 10,
@@ -323,7 +323,7 @@ ConvProgram {
                                                         "A",
                                                     ),
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 11,
@@ -339,7 +339,7 @@ ConvProgram {
                                                 ),
                                             ),
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 30,
                                                 n_line: 11,
@@ -430,7 +430,7 @@ ConvProgram {
                                                         ],
                                                     },
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 39,
                                                         n_line: 11,
@@ -478,7 +478,7 @@ ConvProgram {
                                                 },
                                             ),
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 38,
                                                 n_line: 11,
@@ -493,7 +493,7 @@ ConvProgram {
                                         ),
                                     ),
                                 ),
-                                pos: DebugInfo {
+                                debug_info: DebugInfo {
                                     pos: Position {
                                         n_char: 36,
                                         n_line: 11,

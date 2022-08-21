@@ -38,7 +38,7 @@ Program {
                                                             kind: Num(
                                                                 15,
                                                             ),
-                                                            pos: DebugInfo {
+                                                            debug_info: DebugInfo {
                                                                 pos: Position {
                                                                     n_char: 16,
                                                                     n_line: 2,
@@ -49,7 +49,7 @@ Program {
                                                 ),
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -62,7 +62,7 @@ Program {
                     ),
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 4,
                     n_line: 1,

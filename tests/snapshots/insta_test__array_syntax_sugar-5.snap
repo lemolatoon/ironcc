@@ -37,7 +37,7 @@ Program {
                                                                 kind: Num(
                                                                     5,
                                                                 ),
-                                                                pos: DebugInfo {
+                                                                debug_info: DebugInfo {
                                                                     pos: Position {
                                                                         n_char: 11,
                                                                         n_line: 2,
@@ -50,7 +50,7 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 1,
                                                 n_line: 2,
@@ -67,7 +67,7 @@ Program {
                                                 kind: LVar(
                                                     "array",
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 15,
                                                         n_line: 3,
@@ -78,7 +78,7 @@ Program {
                                                 kind: Num(
                                                     3,
                                                 ),
-                                                pos: DebugInfo {
+                                                debug_info: DebugInfo {
                                                     pos: Position {
                                                         n_char: 21,
                                                         n_line: 3,
@@ -86,7 +86,7 @@ Program {
                                                 },
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 15,
                                                 n_line: 3,
@@ -99,7 +99,7 @@ Program {
                     ),
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 0,
                     n_line: 1,

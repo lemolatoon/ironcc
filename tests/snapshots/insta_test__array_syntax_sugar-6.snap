@@ -44,7 +44,7 @@ ConvProgram {
                                                             ty: Base(
                                                                 Int,
                                                             ),
-                                                            pos: DebugInfo {
+                                                            debug_info: DebugInfo {
                                                                 pos: Position {
                                                                     n_char: 15,
                                                                     n_line: 3,
@@ -57,7 +57,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                     ),
-                                                    pos: DebugInfo {
+                                                    debug_info: DebugInfo {
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 3,
@@ -75,7 +75,7 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: DebugInfo {
+                                                                debug_info: DebugInfo {
                                                                     pos: Position {
                                                                         n_char: 21,
                                                                         n_line: 3,
@@ -89,7 +89,7 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: DebugInfo {
+                                                                debug_info: DebugInfo {
                                                                     pos: Position {
                                                                         n_char: 15,
                                                                         n_line: 3,
@@ -101,7 +101,7 @@ ConvProgram {
                                                     ty: Base(
                                                         Int,
                                                     ),
-                                                    pos: DebugInfo {
+                                                    debug_info: DebugInfo {
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 3,
@@ -115,7 +115,7 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 15,
                                                 n_line: 3,
@@ -126,7 +126,7 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: DebugInfo {
+                                debug_info: DebugInfo {
                                     pos: Position {
                                         n_char: 15,
                                         n_line: 3,

@@ -14,7 +14,7 @@ Program {
                             ),
                             [
                                 StructDeclaration {
-                                    pos: DebugInfo {
+                                    debug_info: DebugInfo {
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 2,
@@ -29,7 +29,7 @@ Program {
                                     },
                                 },
                                 StructDeclaration {
-                                    pos: DebugInfo {
+                                    debug_info: DebugInfo {
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 3,
@@ -47,7 +47,7 @@ Program {
                         ),
                     ),
                     init_declarator: None,
-                    pos: DebugInfo {
+                    debug_info: DebugInfo {
                         pos: Position {
                             n_char: 0,
                             n_line: 0,
@@ -55,7 +55,7 @@ Program {
                     },
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 0,
                     n_line: 0,
@@ -97,7 +97,7 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: DebugInfo {
+                                        debug_info: DebugInfo {
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 8,
@@ -110,7 +110,7 @@ Program {
                     ),
                 },
             ),
-            pos: DebugInfo {
+            debug_info: DebugInfo {
                 pos: Position {
                     n_char: 0,
                     n_line: 6,

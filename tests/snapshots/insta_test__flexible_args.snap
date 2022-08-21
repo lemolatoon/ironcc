@@ -7,7 +7,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Void,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -18,7 +18,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "printf",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 9,
                 n_line: 1,
@@ -29,7 +29,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: OpenDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 15,
                 n_line: 1,
@@ -40,7 +40,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Char,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 16,
                 n_line: 1,
@@ -51,7 +51,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: BinOp(
             Star,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 21,
                 n_line: 1,
@@ -62,7 +62,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "msg",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 22,
                 n_line: 1,
@@ -71,7 +71,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Comma,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 25,
                 n_line: 1,
@@ -80,7 +80,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: DotDotDot,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 27,
                 n_line: 1,
@@ -91,7 +91,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: CloseDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 30,
                 n_line: 1,
@@ -100,7 +100,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Semi,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 31,
                 n_line: 1,
@@ -111,7 +111,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Int,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -122,7 +122,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "main",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 8,
                 n_line: 3,
@@ -133,7 +133,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: OpenDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 12,
                 n_line: 3,
@@ -144,7 +144,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: CloseDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 13,
                 n_line: 3,
@@ -155,7 +155,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: OpenDelim(
             Brace,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 15,
                 n_line: 3,
@@ -166,7 +166,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Int,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 8,
                 n_line: 4,
@@ -177,7 +177,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "a",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 12,
                 n_line: 4,
@@ -186,7 +186,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Eq,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 14,
                 n_line: 4,
@@ -197,7 +197,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Num(
             2,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 16,
                 n_line: 4,
@@ -206,7 +206,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Semi,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 17,
                 n_line: 4,
@@ -217,7 +217,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "printf",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 8,
                 n_line: 5,
@@ -228,7 +228,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: OpenDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 14,
                 n_line: 5,
@@ -239,7 +239,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Str(
             "Hello World:%d\n",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 15,
                 n_line: 5,
@@ -248,7 +248,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Comma,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 33,
                 n_line: 5,
@@ -259,7 +259,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Ident(
             "a",
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 35,
                 n_line: 5,
@@ -270,7 +270,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: CloseDelim(
             Paren,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 36,
                 n_line: 5,
@@ -279,7 +279,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Semi,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 37,
                 n_line: 5,
@@ -290,7 +290,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: CloseDelim(
             Brace,
         ),
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 4,
                 n_line: 6,
@@ -299,7 +299,7 @@ expression: tester.tokens().as_ref().unwrap()
     },
     Token {
         kind: Eof,
-        pos: DebugInfo {
+        debug_info: DebugInfo {
             pos: Position {
                 n_char: 4,
                 n_line: 7,

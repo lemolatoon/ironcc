@@ -532,10 +532,10 @@ fn extract_func_ty(src: &str) -> Type {
     let ast = Parser::new(src).parse_func_def(&mut tokens).unwrap();
     let (ty_spec, declarator, body, pos) = if let ProgramComponent {
         kind: ProgramKind::FuncDef(ty_spec, declarator, body),
-        pos,
+        debug_info,
     } = ast
     {
-        (ty_spec, declarator, body, pos)
+        (ty_spec, declarator, body, debug_info)
     } else {
         panic!("ProgramKind::Func expected.")
     };
