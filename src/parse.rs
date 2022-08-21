@@ -12,10 +12,7 @@ impl Parser {
     pub const fn new() -> Self {
         Self {}
     }
-    pub fn parse_program<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Program, CompileError>
+    pub fn parse_program<I>(&self, tokens: &mut TokenStream<I>) -> Result<Program, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -40,9 +37,9 @@ impl Parser {
         Ok(program)
     }
 
-    pub fn parse_func_def<'b, I>(
+    pub fn parse_func_def<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<ProgramComponent, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -61,9 +58,9 @@ impl Parser {
         Ok(ProgramComponent::new(kind, debug_info))
     }
 
-    pub fn parse_declaration<'b, I>(
+    pub fn parse_declaration<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<Declaration, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -96,9 +93,9 @@ impl Parser {
         ))
     }
 
-    pub fn parse_declarator<'b, I>(
+    pub fn parse_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<Declarator, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -109,9 +106,9 @@ impl Parser {
         ))
     }
 
-    pub fn parse_direct_declarator<'b, I>(
+    pub fn parse_direct_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<DirectDeclarator, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -177,9 +174,9 @@ impl Parser {
         Ok(direct_declarator)
     }
 
-    pub fn parse_initializer<'b, I>(
+    pub fn parse_initializer<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<Initializer, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -312,7 +309,7 @@ impl Parser {
         Ok(n_star)
     }
 
-    pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Stmt, CompileError>
+    pub fn parse_stmt<I>(&self, tokens: &mut TokenStream<I>) -> Result<Stmt, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -386,14 +383,14 @@ impl Parser {
         }
     }
 
-    pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_expr<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         self.parse_assign(tokens)
     }
 
-    pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_assign<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -415,10 +412,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_conditional<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_conditional<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -438,10 +432,7 @@ impl Parser {
             Ok(cond)
         }
     }
-    pub fn parse_logical_or<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_logical_or<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -454,10 +445,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_logical_and<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_logical_and<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -470,10 +458,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_bit_wise_and<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_bit_wise_and<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -490,10 +475,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_equality<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_equality<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -511,10 +493,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_relational<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_relational<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -535,7 +514,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_shift<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_shift<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -554,16 +533,12 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_add<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_add<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_mul(tokens)?;
-        while let Some(Token {
-            kind,
-            debug_info: debug_info,
-        }) = tokens.peek()
-        {
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
             let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Plus) => BinOpKind::Add,
@@ -576,16 +551,12 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_mul<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_mul<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut lhs = self.parse_unary(tokens)?;
-        while let Some(Token {
-            kind,
-            debug_info: debug_info,
-        }) = tokens.peek()
-        {
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
             let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
@@ -600,15 +571,12 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_unary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_unary<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let (kind, debug_info) = match tokens.peek() {
-            Some(Token {
-                kind,
-                debug_info: debug_info,
-            }) => (kind, debug_info),
+            Some(Token { kind, debug_info }) => (kind, debug_info),
             None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
         let debug_info = debug_info.clone();
@@ -669,10 +637,7 @@ impl Parser {
         })
     }
 
-    pub fn parse_postfix<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_postfix<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -711,15 +676,12 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn parse_primary<'b, I>(
-        &self,
-        tokens: &mut TokenStream<'b, I>,
-    ) -> Result<Expr, CompileError>
+    pub fn parse_primary<I>(&self, tokens: &mut TokenStream<I>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
         match tokens.next() {
-            Some(Token { kind, debug_info: debug_info }) => Ok(match *kind {
+            Some(Token { kind, debug_info }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, debug_info),
                 TokenKind::Str(letters) => Expr::new_str_lit(letters, debug_info),
                 TokenKind::OpenDelim(DelimToken::Paren) => {
@@ -767,9 +729,9 @@ impl Parser {
         ))
     }
 
-    pub fn parse_abstract_declarator<'b, I>(
+    pub fn parse_abstract_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<Option<AbstractDeclarator>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
@@ -789,9 +751,9 @@ impl Parser {
         )))
     }
 
-    pub fn parse_direct_abstract_declarator<'b, I>(
+    pub fn parse_direct_abstract_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I>,
     ) -> Result<Option<DirectAbstractDeclarator>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,

@@ -9,7 +9,7 @@ use ironcc::{error::CompileError, tokenize::*};
 #[test]
 fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let input = String::from("0 + 0 + 11  -4");
-    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
     let tokenizer = Tokenizer::new();
     assert_eq!(
         tokenizer
@@ -62,7 +62,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
         )
     );
     let input = String::from("1 + 4 -       909");
-    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
     let tokenizer = Tokenizer::new();
     assert!(kind_eq(
         &tokenizer.tokenize(&file_info).unwrap(),
@@ -77,7 +77,7 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     ));
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
     let tokenizer = Tokenizer::new();
-    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
     assert!(kind_eq(
         &tokenizer.tokenize(&file_info).unwrap(),
         &tokens!(
@@ -107,7 +107,7 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
     use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
     let tokenizer = Tokenizer::new();
-    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -129,7 +129,7 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
 
     let input = String::from("1 +1\n\t+5");
     let tokenizer = Tokenizer::new();
-    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(

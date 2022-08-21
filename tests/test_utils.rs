@@ -93,7 +93,7 @@ struct CachedTokenizer<'a> {
     src: &'a str,
     tokenizer: Tokenizer,
     tokens: Option<Result<Vec<Token>, CompileError>>,
-    token_stream: Option<Result<TokenStream<'a, std::vec::IntoIter<Token>>, CompileError>>,
+    token_stream: Option<Result<TokenStream<std::vec::IntoIter<Token>>, CompileError>>,
 }
 
 impl<'a> CachedTokenizer<'a> {
@@ -116,10 +116,10 @@ impl<'a> CachedTokenizer<'a> {
             .map_err(|err| err.clone())
     }
 
-    fn stream(&mut self) -> Result<&mut TokenStream<'a, std::vec::IntoIter<Token>>, CompileError> {
+    fn stream(&mut self) -> Result<&mut TokenStream<std::vec::IntoIter<Token>>, CompileError> {
         let iter = self.tokens().map(|vec| vec.clone().into_iter())?;
         self.token_stream
-            .get_or_insert_with(|| Ok(TokenStream::new(iter, self.src)))
+            .get_or_insert_with(|| Ok(TokenStream::new(iter)))
             .as_mut()
             .map_err(|err| err.clone())
     }
@@ -138,10 +138,7 @@ impl CachedParser {
         }
     }
 
-    pub fn program<'a, I>(
-        &mut self,
-        stream: &mut TokenStream<'a, I>,
-    ) -> Result<&Program, CompileError>
+    pub fn program<I>(&mut self, stream: &mut TokenStream<I>) -> Result<&Program, CompileError>
     where
         I: Iterator<Item = Token> + Clone + Debug,
     {

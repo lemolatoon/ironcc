@@ -11,19 +11,14 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Generator<'a> {
-    input: &'a str,
+pub struct Generator {
     label: usize,
     depth: usize,
 }
 
-impl<'a> Generator<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self {
-            input,
-            label: 0,
-            depth: 0,
-        }
+impl Generator {
+    pub const fn new() -> Self {
+        Self { label: 0, depth: 0 }
     }
 
     /// this function has the same function as `push`, but in the future this function will have the function, cast(with sign extension) and push
@@ -81,7 +76,6 @@ impl<'a> Generator<'a> {
 
     /// *lhs = rhs
     pub fn assign<W: Write>(
-        &mut self,
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
@@ -100,7 +94,6 @@ impl<'a> Generator<'a> {
 
     /// lhs = *rhs
     pub fn deref<W: Write>(
-        &mut self,
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
@@ -158,7 +151,7 @@ impl<'a> Generator<'a> {
                     for (idx, LVar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
-                        self.assign(
+                        Self::assign(
                             f,
                             RegKind::Rax,
                             arg_reg[idx],
@@ -348,7 +341,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -367,7 +360,7 @@ impl<'a> Generator<'a> {
                 self.gen_expr(f, *rhs.clone())?;
                 self.pop(f, RegKind::Rdi)?; // rhs; rdi = rhs
                 self.pop(f, RegKind::Rax)?; // lhs's addr; rax = &lhs
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -430,7 +423,7 @@ impl<'a> Generator<'a> {
                 };
                 self.gen_expr(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -472,7 +465,7 @@ impl<'a> Generator<'a> {
                 self.gen_lvalue(f, *struct_expr.clone())?;
                 self.pop(f, RegKind::Rax)?;
                 writeln!(f, "  add rax, {}", minus_offset)?;
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -508,7 +501,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -517,7 +510,7 @@ impl<'a> Generator<'a> {
                 )?; // rdi = *rax
                 self.push(f, RegKind::Rdi)?; // push expr's value
                 writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -531,7 +524,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -540,7 +533,7 @@ impl<'a> Generator<'a> {
                 )?; // rdi = *rax
                 self.push(f, RegKind::Rdi)?; // push expr's value
                 writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -572,7 +565,7 @@ impl<'a> Generator<'a> {
             ConvUnaryOp::Increment(value) => {
                 self.gen_lvalue(f, operand.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -580,7 +573,7 @@ impl<'a> Generator<'a> {
                     UnexpectedTypeSizeStatus::Expr(operand.clone()),
                 )?; // rdi = *rax
                 writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -592,7 +585,7 @@ impl<'a> Generator<'a> {
             ConvUnaryOp::Decrement(value) => {
                 self.gen_lvalue(f, operand.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -600,7 +593,7 @@ impl<'a> Generator<'a> {
                     UnexpectedTypeSizeStatus::Expr(operand.clone()),
                 )?; // rdi = *rax
                 writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -942,6 +935,9 @@ impl RegSize {
             _ => return None,
         })
     }
+
+    // clippy complains about this, but it's wrong
+    #[allow(clippy::missing_const_for_fn)]
     pub fn try_new_with_error(size: usize, expr: ConvExpr) -> Result<Self, CompileError> {
         Ok(match size {
             1 => Self::Byte,

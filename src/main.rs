@@ -48,9 +48,9 @@ fn preprocess(input: &str, include_dir: &str) -> String {
 
 fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError> {
     let tokenizer = Tokenizer::new();
-    let file_info = Rc::new(FileInfo::new(file_name, input.clone())); // TODO: remove this clone, by all input info around substituted with Rc
+    let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
     let tokens = tokenizer.tokenize(&file_info)?;
-    let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
+    let mut token_stream = TokenStream::new(tokens.into_iter());
 
     let parser = Parser::new();
     let program = parser.parse_program(&mut token_stream)?;
@@ -59,7 +59,7 @@ fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileE
     let converted_program = analyzer.traverse_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);
-    let mut generater = Generator::new(&input);
+    let mut generater = Generator::new();
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
 

@@ -496,17 +496,16 @@ impl DebugInfo {
 }
 
 #[derive(Clone)]
-pub struct TokenStream<'a, I>
+pub struct TokenStream<I>
 where
     I: Iterator<Item = Token> + Clone + Debug,
 {
     iter: Peekable<I>,
-    input: &'a str,
 }
 
 use std::fmt::Debug;
 use std::rc::Rc;
-impl<'a, I> Debug for TokenStream<'a, I>
+impl<I> Debug for TokenStream<I>
 where
     I: Iterator<Item = Token> + Clone + Debug,
 {
@@ -520,11 +519,10 @@ where
     }
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
-    pub fn new(iter: I, input: &'a str) -> Self {
+impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
+    pub fn new(iter: I) -> Self {
         Self {
             iter: iter.peekable(),
-            input,
         }
     }
 
@@ -638,7 +636,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     }
 }
 
-impl<'a, I: Iterator<Item = Token> + Clone + Debug> Iterator for TokenStream<'a, I> {
+impl<I: Iterator<Item = Token> + Clone + Debug> Iterator for TokenStream<I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
