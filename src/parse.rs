@@ -234,7 +234,6 @@ impl<'a> Parser<'a> {
                     ))
                 }
                 _ => Err(CompileError::new_expected_failed(
-                    self.input,
                     Box::new("TokenKind::Type(_)"),
                     Token::new(*kind, debug_info),
                 )),
@@ -270,7 +269,6 @@ impl<'a> Parser<'a> {
 
         match tokens.peek() {
             Some(token) => Err(CompileError::new_expected_failed(
-                self.input,
                 Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
                 token.clone(),
             )),
@@ -761,7 +759,7 @@ impl<'a> Parser<'a> {
                     Expr::new_lvar(name, debug_info)
                 }
                 TokenKind::Eof => return Err(CompileError::new_unexpected_eof(self.input, Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
-                _ => return Err(CompileError::new_expected_failed(self.input, Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
+                _ => return Err(CompileError::new_expected_failed( Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
             }),
             None => Err(CompileError::new_unexpected_eof(self.input, Box::new(
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",

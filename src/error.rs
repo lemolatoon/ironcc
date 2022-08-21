@@ -56,6 +56,11 @@ impl From<io::Error> for CompileError {
 }
 
 impl CompileError {
+    pub fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError {
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedChar(debug_info, c),
+        ))
+    }
     pub fn new_unexpected_eof(input: &str, kind: Box<dyn Debug>) -> CompileError {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
             input.to_string(),
@@ -63,7 +68,7 @@ impl CompileError {
         )))
     }
 
-    pub fn new_expected_failed(input: &str, expect: Box<dyn Debug>, got: Token) -> CompileError {
+    pub fn new_expected_failed(expect: Box<dyn Debug>, got: Token) -> CompileError {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
             expect,
             got,

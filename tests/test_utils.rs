@@ -91,7 +91,7 @@ impl<'a> CachedProcessor<'a> {
 
 struct CachedTokenizer<'a> {
     src: &'a str,
-    tokenizer: Tokenizer<'a>,
+    tokenizer: Tokenizer,
     tokens: Option<Result<Vec<Token>, CompileError>>,
     token_stream: Option<Result<TokenStream<'a, std::vec::IntoIter<Token>>, CompileError>>,
 }
@@ -100,7 +100,7 @@ impl<'a> CachedTokenizer<'a> {
     fn new(src: &'a str) -> Self {
         Self {
             src,
-            tokenizer: Tokenizer::new(src),
+            tokenizer: Tokenizer::new(),
             tokens: None,
             token_stream: None,
         }
@@ -110,7 +110,7 @@ impl<'a> CachedTokenizer<'a> {
         self.tokens
             .get_or_insert_with(|| {
                 self.tokenizer
-                    .tokenize(Rc::new(FileInfo::new(String::new(), self.src.to_string())))
+                    .tokenize(&Rc::new(FileInfo::new(String::new(), self.src.to_string())))
             })
             .as_ref()
             .map_err(|err| err.clone())

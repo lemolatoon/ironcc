@@ -10,10 +10,10 @@ use ironcc::{error::CompileError, tokenize::*};
 fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     assert_eq!(
         tokenizer
-            .tokenize(file_info)
+            .tokenize(&file_info)
             .unwrap()
             .into_iter()
             .map(|token| token.kind())
@@ -63,9 +63,9 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     );
     let input = String::from("1 + 4 -       909");
     let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     assert!(kind_eq(
-        &tokenizer.tokenize(file_info).unwrap(),
+        &tokenizer.tokenize(&file_info).unwrap(),
         &tokens!(
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -76,10 +76,10 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
         )
     ));
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert!(kind_eq(
-        &tokenizer.tokenize(file_info).unwrap(),
+        &tokenizer.tokenize(&file_info).unwrap(),
         &tokens!(
             TokenKind::Num(0),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -99,47 +99,61 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
 }
 
 #[cfg(test)]
-fn debug_info_with_pos(n_char: usize, n_line: usize) -> DebugInfo {
-    use std::rc::Rc;
-
-    DebugInfo::new(Rc::new(FileInfo::default()), n_char, n_line)
+fn debug_info_with_pos(file_info: Rc<FileInfo>, n_char: usize, n_line: usize) -> DebugInfo {
+    DebugInfo::new(file_info, n_char, n_line)
 }
 #[test]
 fn tokenize_pos_test() -> Result<(), CompileError> {
+    use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert_eq!(
-        tokenizer.tokenize(file_info).unwrap(),
+        tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
-            (TokenKind::Num(1), debug_info_with_pos(0, 0)),
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 0, 0)
+            ),
             (
                 TokenKind::BinOp(BinOpToken::Plus),
-                debug_info_with_pos(2, 0)
+                debug_info_with_pos(file_info.clone(), 2, 0)
             ),
-            (TokenKind::Num(1), debug_info_with_pos(3, 0)),
-            (TokenKind::Eof, debug_info_with_pos(4, 0))
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 3, 0)
+            ),
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 4, 0))
         )
     );
 
     let input = String::from("1 +1\n\t+5");
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert_eq!(
-        tokenizer.tokenize(file_info).unwrap(),
+        tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
-            (TokenKind::Num(1), debug_info_with_pos(0, 0)),
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 0, 0)
+            ),
             (
                 TokenKind::BinOp(BinOpToken::Plus),
-                debug_info_with_pos(2, 0)
+                debug_info_with_pos(file_info.clone(), 2, 0)
             ),
-            (TokenKind::Num(1), debug_info_with_pos(3, 0)),
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 3, 0)
+            ),
             (
                 TokenKind::BinOp(BinOpToken::Plus),
-                debug_info_with_pos(1, 1)
+                debug_info_with_pos(file_info.clone(), 1, 1)
             ),
-            (TokenKind::Num(5), debug_info_with_pos(2, 1)),
-            (TokenKind::Eof, debug_info_with_pos(3, 1))
+            (
+                TokenKind::Num(5),
+                debug_info_with_pos(file_info.clone(), 2, 1)
+            ),
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 3, 1))
         )
     );
     Ok(())

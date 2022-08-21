@@ -1,21 +1,20 @@
-use crate::error::{CompileError, CompileErrorKind, TokenizeErrorKind};
+use crate::error::CompileError;
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
-pub struct Tokenizer<'a> {
-    input: &'a str,
-}
+pub struct Tokenizer {}
 
-impl<'a> Tokenizer<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self { input }
+impl Tokenizer {
+    pub const fn new() -> Self {
+        Self {}
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn tokenize(&self, file_info: Rc<FileInfo>) -> Result<Vec<Token>, CompileError> {
+    pub fn tokenize(&self, file_info: &Rc<FileInfo>) -> Result<Vec<Token>, CompileError> {
         let mut tokens = Vec::new();
-        let mut pos = DebugInfo::default_with_file_info(file_info); // 0, 0
-        let mut input = <&str>::clone(&self.input);
+        let src = file_info.get_file_src();
+        let mut pos = DebugInfo::default_with_file_info(file_info.clone()); // 0, 0
+        let mut input = <&str>::clone(&src);
 
         'tokenize_loop: while !input.is_empty() {
             // skip white spaces
@@ -133,9 +132,7 @@ impl<'a> Tokenizer<'a> {
                             str_lit.push(*c);
                             chars.next();
                         }
-                        None => {
-                            return Err(CompileError::new_unexpected_eof_tokenize(self.input, pos))
-                        }
+                        None => return Err(CompileError::new_unexpected_eof_tokenize(src, pos)),
                     }
                 }
                 tokens.push(Token::new(
@@ -164,7 +161,6 @@ impl<'a> Tokenizer<'a> {
                         }
                         _ => {
                             return Err(CompileError::new_expected_failed(
-                                self.input,
                                 Box::new("'0' | '1'"),
                                 Token {
                                     kind: Box::new(TokenKind::Ident(c.to_string())),
@@ -254,17 +250,14 @@ impl<'a> Tokenizer<'a> {
                 input = &input[len_token..];
                 continue;
             }
-            return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
+            return Err(CompileError::new_unexpected_char(
+                pos,
+                input.chars().next().unwrap(),
+            ));
         }
         tokens.push(Token::new(TokenKind::Eof, pos.get_pos_and_advance(0)));
 
         Ok(tokens)
-    }
-
-    pub fn new_unexpected_char(&self, pos: DebugInfo, c: char) -> CompileError {
-        CompileError::new(CompileErrorKind::TokenizeError(
-            TokenizeErrorKind::UnexpectedChar(pos, c),
-        ))
     }
 }
 
@@ -575,7 +568,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             }) => match *kind {
                 TokenKind::Num(num) => Ok(num),
                 _ => Err(CompileError::new_expected_failed(
-                    self.input,
                     Box::new("TokenKind::Num(_)"),
                     Token::new(*kind, pos),
                 )),
@@ -594,7 +586,6 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             Some(token) => match *token.kind {
                 TokenKind::Ident(name) => Ok((name, token.debug_info)),
                 _ => Err(CompileError::new_expected_failed(
-                    self.input,
                     Box::new("TokenKind::Ident(_)"),
                     token,
                 )),
@@ -619,11 +610,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
             None => Err(CompileError::new_unexpected_eof(self.input, Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
-                    return Err(CompileError::new_expected_failed(
-                        self.input,
-                        Box::new(kind),
-                        token,
-                    ));
+                    return Err(CompileError::new_expected_failed(Box::new(kind), token));
                 }
                 Ok(())
             }
@@ -710,9 +697,9 @@ pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
 }
 
 pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError> {
-    let tokenizer = Tokenizer::new(input);
+    let tokenizer = Tokenizer::new();
     Ok(tokenizer
-        .tokenize(Rc::new(FileInfo {
+        .tokenize(&Rc::new(FileInfo {
             file_name: String::new(),
             src: input.to_string(),
         }))?

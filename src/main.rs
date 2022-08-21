@@ -47,9 +47,9 @@ fn preprocess(input: &str, include_dir: &str) -> String {
 }
 
 fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError> {
-    let tokenizer = Tokenizer::new(&input);
+    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(file_name, input.clone())); // TODO: remove this clone, by all input info around substituted with Rc
-    let tokens = tokenizer.tokenize(file_info)?;
+    let tokens = tokenizer.tokenize(&file_info)?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);

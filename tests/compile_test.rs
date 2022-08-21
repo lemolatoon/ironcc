@@ -17,7 +17,6 @@ fn unexpected_char() {
         tester.tokens(),
         Err(CompileError {
             kind: CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedChar(_, _)),
-            src: _,
         })
     ));
 }
@@ -30,8 +29,7 @@ fn unexpected_eof() {
         matches!(
             tester.program(),
             Err(CompileError {
-                kind: CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(_)),
-                src: _
+                kind: CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(..)),
             })
         ),
         "{:?}",
@@ -47,7 +45,6 @@ fn expected_failed() {
         tester.program(),
         Err(CompileError {
             kind: CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect: _, got: _ }),
-            src: _
         })
     ));
 }
@@ -65,7 +62,6 @@ fn variable_undeclared() {
                     _,
                     VariableKind::Local
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -83,7 +79,6 @@ fn variable_undeclared() {
                     _,
                     VariableKind::Func,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -104,7 +99,6 @@ fn variable_redefined() {
                     _,
                     VariableKind::Local
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -122,7 +116,6 @@ fn variable_redefined() {
                     _,
                     VariableKind::Local,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -139,7 +132,6 @@ fn type_error() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
-                src: _,
             })
         ),
         "{:?}",
@@ -153,7 +145,6 @@ fn type_error() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
-                src: _,
             })
         ),
         "{:?}",
@@ -167,7 +158,6 @@ fn type_error() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _,)),
-                src: _,
             })
         ),
         "{:?}",
@@ -188,7 +178,6 @@ fn type_error() {
                         got: Type::Base(BaseType::Int),
                     }
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -202,7 +191,6 @@ fn type_error() {
             tester.conv_program(),
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(_, _)),
-                src: _,
             })
         ),
         "{:?}",
@@ -225,7 +213,6 @@ fn func_arg_error() {
                     2, // got
                     _,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -253,7 +240,6 @@ fn scopes() {
                     _,
                     VariableKind::Local,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -298,7 +284,6 @@ fn global_variable() {
                     _,
                     VariableKind::Global,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -321,7 +306,6 @@ fn global_variable() {
                     _,
                     VariableKind::Global,
                 )),
-                src: _,
             })
         ),
         "{:?}",
@@ -356,7 +340,6 @@ fn flexible_args() {
             result,
             Err(CompileError {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(_)),
-                src: _,
             })
         ),
         "{:?}",
@@ -392,7 +375,6 @@ fn flexible_args() {
                     _,
                     _
                 )),
-                src: _
             }),
         ),
         "{:?}",
