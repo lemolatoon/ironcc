@@ -1,4 +1,4 @@
-use crate::tokenize::Position;
+use crate::tokenize::DebugInfo;
 
 pub struct Preprocessor<'b> {
     include_dir: &'b str,

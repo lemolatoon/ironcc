@@ -3,7 +3,7 @@ use crate::analyze::ConvExpr;
 use crate::analyze::ConvExprKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
-use crate::tokenize::Position;
+use crate::tokenize::DebugInfo;
 use crate::tokenize::Token;
 use std::error::Error;
 use std::fmt::Debug;
@@ -31,7 +31,7 @@ pub enum CompileErrorKind {
     ParseError(ParseErrorKind),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
-    Unimplemented(Option<Position>, String),
+    Unimplemented(Option<DebugInfo>, String),
     IOError(Box<dyn Debug>),
 }
 
@@ -73,14 +73,14 @@ impl CompileError {
             CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
         )
     }
-    pub fn new_unexpected_eof_tokenize(src: &str, pos: Position) -> Self {
+    pub fn new_unexpected_eof_tokenize(src: &str, pos: DebugInfo) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)),
         )
     }
 
-    pub fn new_unexpected_void(src: &str, pos: Position, msg: String) -> Self {
+    pub fn new_unexpected_void(src: &str, pos: DebugInfo, msg: String) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
@@ -92,7 +92,7 @@ impl CompileError {
     pub fn new_redefined_variable(
         src: &str,
         name: String,
-        pos: Position,
+        pos: DebugInfo,
         kind: VariableKind,
     ) -> Self {
         CompileError::new(
@@ -104,7 +104,7 @@ impl CompileError {
     pub fn new_no_such_member(
         src: &str,
         tag_name: Option<String>,
-        pos: Position,
+        pos: DebugInfo,
         got_member_name: String,
     ) -> Self {
         CompileError::new(
@@ -120,7 +120,7 @@ impl CompileError {
     pub fn new_undeclared_error(
         src: &str,
         name: String,
-        pos: Position,
+        pos: DebugInfo,
         kind: VariableKind,
     ) -> Self {
         CompileError::new(
@@ -132,10 +132,10 @@ impl CompileError {
     pub fn new_args_error(
         src: &str,
         name: String,
-        pos: Position,
+        pos: DebugInfo,
         expected: usize,
         got: usize,
-        declared_pos: Position,
+        declared_pos: DebugInfo,
     ) -> Self {
         CompileError::new(
             src,
@@ -181,8 +181,8 @@ impl CompileError {
 
     pub fn new_type_error_types<T: Into<String>>(
         src: &str,
-        pos0: Position,
-        pos1: Position,
+        pos0: DebugInfo,
+        pos1: DebugInfo,
         ty0: Type,
         ty1: Type,
         msg: Option<T>,
@@ -196,7 +196,7 @@ impl CompileError {
         )
     }
 
-    pub fn new_type_expect_failed(src: &str, pos: Position, expected: Type, got: Type) -> Self {
+    pub fn new_type_expect_failed(src: &str, pos: DebugInfo, expected: Type, got: Type) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
@@ -207,7 +207,7 @@ impl CompileError {
 
     pub fn new_type_expect_failed_with_str(
         src: &str,
-        pos: Position,
+        pos: DebugInfo,
         expected: String,
         got: Type,
     ) -> Self {
@@ -219,7 +219,7 @@ impl CompileError {
         )
     }
 
-    pub fn new_const_expr_error(src: &str, pos: Position, kind: ConvExprKind) -> Self {
+    pub fn new_const_expr_error(src: &str, pos: DebugInfo, kind: ConvExprKind) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)),
@@ -250,8 +250,8 @@ impl CompileError {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TokenizeErrorKind {
-    UnexpectedChar(Position, char),
-    UnexpectedEof(Position),
+    UnexpectedChar(DebugInfo, char),
+    UnexpectedEof(DebugInfo),
 }
 
 #[derive(Debug)]
@@ -450,43 +450,43 @@ impl Debug for CompileError {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum AnalyzeErrorKind {
-    RedefinedError(String, Position, VariableKind),
-    UndeclaredError(String, Position, VariableKind),
+    RedefinedError(String, DebugInfo, VariableKind),
+    UndeclaredError(String, DebugInfo, VariableKind),
     NoSuchMemberError {
         tag_name: Option<String>,
-        pos: Position,
+        pos: DebugInfo,
         got_member_name: String,
     },
-    FuncArgsError(String, Position, usize, usize, Position),
+    FuncArgsError(String, DebugInfo, usize, usize, DebugInfo),
     TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(TypeExpectedFailedKind),
-    ConstExprError(Position, ConvExprKind),
+    ConstExprError(DebugInfo, ConvExprKind),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TypeExpectedFailedKind {
     Type {
-        pos: Position,
+        pos: DebugInfo,
         expected: Type,
         got: Type,
     },
     TypeWithPatternStr {
-        pos: Position,
+        pos: DebugInfo,
         expected: String,
         got: Type,
     },
-    UnexpectedVoid(Position, String),
+    UnexpectedVoid(DebugInfo, String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TypeErrorKind {
     Expr { lhs: ConvExpr, rhs: ConvExpr },
     ConstExpr(ConstExpr, ConstExpr),
-    Type(Position, Position, Type, Type),
+    Type(DebugInfo, DebugInfo, Type, Type),
 }
 
 impl TypeErrorKind {
-    pub const fn positions(&self) -> (Position, Position) {
+    pub const fn positions(&self) -> (DebugInfo, DebugInfo) {
         match self {
             TypeErrorKind::Expr { lhs, rhs } => (lhs.pos, rhs.pos),
             TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),
@@ -529,20 +529,21 @@ pub enum UnexpectedTypeSizeStatus {
 /// write source annotation which indicates `pos` in `src`
 fn error_at(
     src: &str,
-    mut positions: Vec<Position>,
+    mut positions: Vec<DebugInfo>,
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
     writeln!(f, "\n")?;
-    positions.sort_by(|a, b| (a.n_line, a.n_char).cmp(&(b.n_line, b.n_char)));
+    positions
+        .sort_by(|a, b| (a.get_n_line(), a.get_n_char()).cmp(&(b.get_n_line(), b.get_n_char())));
     let mut same_line_positions = Vec::new();
     let mut tmp_vec = Vec::new();
     // TOOD: handle None well
-    let mut tmp_line = positions.first().map_or(0, |pos| pos.n_line);
+    let mut tmp_line = positions.first().map_or(0, |pos| pos.get_n_line());
     for pos in positions {
-        if pos.n_line == tmp_line {
+        if pos.get_n_line() == tmp_line {
             tmp_vec.push(pos);
         } else {
-            tmp_line = pos.n_line;
+            tmp_line = pos.get_n_line();
             same_line_positions.push(tmp_vec);
             tmp_vec = vec![pos];
         }
@@ -553,13 +554,13 @@ fn error_at(
         .unwrap()
         .first()
         .unwrap()
-        .n_line
+        .get_n_line()
         .to_string()
         .len()
         + 3;
     for same_line_pos in same_line_positions {
         let mut splited = src.split('\n');
-        let n_line = same_line_pos.first().unwrap().n_line;
+        let n_line = same_line_pos.first().unwrap().get_n_line();
         let mut num_prefix = String::with_capacity(max_prefix_len);
         num_prefix.push_str(&(n_line + 1).to_string());
         while num_prefix.len() < max_prefix_len {
@@ -578,11 +579,11 @@ fn error_at(
                 same_line_pos.first().unwrap()
             )
         }?;
-        let n_iter = same_line_pos.last().unwrap().n_char + max_prefix_len;
+        let n_iter = same_line_pos.last().unwrap().get_n_char() + max_prefix_len;
         let mut buffer = String::with_capacity(n_iter + 1);
         let mut point = same_line_pos
             .into_iter()
-            .map(|pos| pos.n_char + max_prefix_len)
+            .map(|pos| pos.get_n_char() + max_prefix_len)
             .peekable();
         for idx in 0..=n_iter {
             match point.peek() {
@@ -623,7 +624,7 @@ fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
             None => writeln!(
                 f,
                 "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
-                Position::new(n_char, n_line)
+                DebugInfo::new(n_char, n_line)
             ),
         }?;
     }

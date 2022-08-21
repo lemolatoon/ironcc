@@ -38,18 +38,22 @@ Program {
                                                             kind: Num(
                                                                 1,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 1,
+                                                            pos: DebugInfo {
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 1,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 1,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 1,
+                                            },
                                         },
                                     },
                                 ),
@@ -72,18 +76,22 @@ Program {
                                                             kind: Num(
                                                                 0,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 2,
+                                                            pos: DebugInfo {
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 2,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -114,50 +122,62 @@ Program {
                                                                                     kind: LVar(
                                                                                         "a",
                                                                                     ),
-                                                                                    pos: Position {
-                                                                                        n_char: 16,
-                                                                                        n_line: 3,
+                                                                                    pos: DebugInfo {
+                                                                                        pos: Position {
+                                                                                            n_char: 16,
+                                                                                            n_line: 3,
+                                                                                        },
                                                                                     },
                                                                                 },
                                                                                 rhs: Expr {
                                                                                     kind: LVar(
                                                                                         "b",
                                                                                     ),
-                                                                                    pos: Position {
-                                                                                        n_char: 21,
-                                                                                        n_line: 3,
+                                                                                    pos: DebugInfo {
+                                                                                        pos: Position {
+                                                                                            n_char: 21,
+                                                                                            n_line: 3,
+                                                                                        },
                                                                                     },
                                                                                 },
                                                                             },
                                                                         ),
-                                                                        pos: Position {
-                                                                            n_char: 16,
-                                                                            n_line: 3,
+                                                                        pos: DebugInfo {
+                                                                            pos: Position {
+                                                                                n_char: 16,
+                                                                                n_line: 3,
+                                                                            },
                                                                         },
                                                                     },
                                                                     rhs: Expr {
                                                                         kind: Num(
                                                                             2,
                                                                         ),
-                                                                        pos: Position {
-                                                                            n_char: 26,
-                                                                            n_line: 3,
+                                                                        pos: DebugInfo {
+                                                                            pos: Position {
+                                                                                n_char: 26,
+                                                                                n_line: 3,
+                                                                            },
                                                                         },
                                                                     },
                                                                 },
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 3,
+                                                            pos: DebugInfo {
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 3,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
@@ -188,50 +208,62 @@ Program {
                                                                                     kind: LVar(
                                                                                         "a",
                                                                                     ),
-                                                                                    pos: Position {
-                                                                                        n_char: 16,
-                                                                                        n_line: 4,
+                                                                                    pos: DebugInfo {
+                                                                                        pos: Position {
+                                                                                            n_char: 16,
+                                                                                            n_line: 4,
+                                                                                        },
                                                                                     },
                                                                                 },
                                                                                 rhs: Expr {
                                                                                     kind: LVar(
                                                                                         "b",
                                                                                     ),
-                                                                                    pos: Position {
-                                                                                        n_char: 21,
-                                                                                        n_line: 4,
+                                                                                    pos: DebugInfo {
+                                                                                        pos: Position {
+                                                                                            n_char: 21,
+                                                                                            n_line: 4,
+                                                                                        },
                                                                                     },
                                                                                 },
                                                                             },
                                                                         ),
-                                                                        pos: Position {
-                                                                            n_char: 16,
-                                                                            n_line: 4,
+                                                                        pos: DebugInfo {
+                                                                            pos: Position {
+                                                                                n_char: 16,
+                                                                                n_line: 4,
+                                                                            },
                                                                         },
                                                                     },
                                                                     rhs: Expr {
                                                                         kind: Num(
                                                                             1,
                                                                         ),
-                                                                        pos: Position {
-                                                                            n_char: 26,
-                                                                            n_line: 4,
+                                                                        pos: DebugInfo {
+                                                                            pos: Position {
+                                                                                n_char: 26,
+                                                                                n_line: 4,
+                                                                            },
                                                                         },
                                                                     },
                                                                 },
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 4,
+                                                            pos: DebugInfo {
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 4,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -240,9 +272,11 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 0,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
             },
         },
     ],

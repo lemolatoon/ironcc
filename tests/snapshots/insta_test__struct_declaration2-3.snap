@@ -28,9 +28,11 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 11,
-                                    n_line: 8,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 8,
+                                    },
                                 },
                             },
                             "main",

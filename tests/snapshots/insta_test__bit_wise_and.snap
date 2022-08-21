@@ -7,102 +7,126 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 12,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 13,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 15,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Return,
-        pos: Position {
-            n_char: 8,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Num(
             7,
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 15,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: BinOp(
             And,
         ),
-        pos: Position {
-            n_char: 19,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 19,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Num(
             5,
         ),
-        pos: Position {
-            n_char: 21,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 21,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 24,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 24,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 4,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 4,
+            },
         },
     },
 ]

@@ -30,25 +30,31 @@ Program {
                                                     kind: Num(
                                                         7,
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 2,
+                                                    pos: DebugInfo {
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 2,
+                                                        },
                                                     },
                                                 },
                                                 rhs: Expr {
                                                     kind: Num(
                                                         5,
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 21,
-                                                        n_line: 2,
+                                                    pos: DebugInfo {
+                                                        pos: Position {
+                                                            n_char: 21,
+                                                            n_line: 2,
+                                                        },
                                                     },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 19,
-                                            n_line: 2,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 19,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -57,9 +63,11 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
     ],

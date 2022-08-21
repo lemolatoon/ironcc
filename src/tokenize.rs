@@ -14,7 +14,7 @@ impl<'a> Tokenizer<'a> {
     #[allow(clippy::too_many_lines)]
     pub fn tokenize(&self) -> Result<Vec<Token>, CompileError> {
         let mut tokens = Vec::new();
-        let mut pos = Position::default(); // 0, 0
+        let mut pos = DebugInfo::default(); // 0, 0
         let mut input = <&str>::clone(&self.input);
 
         'tokenize_loop: while !input.is_empty() {
@@ -245,7 +245,7 @@ impl<'a> Tokenizer<'a> {
                             input = &input[5..];
                             pos.get_pos_and_advance(5);
                             continue;
-                        },
+                        }
                         _ => TokenKind::Ident(ident),
                     },
                     pos.get_pos_and_advance(len_token),
@@ -260,7 +260,7 @@ impl<'a> Tokenizer<'a> {
         Ok(tokens)
     }
 
-    pub fn new_unexpected_char(&self, pos: Position, c: char) -> CompileError {
+    pub fn new_unexpected_char(&self, pos: DebugInfo, c: char) -> CompileError {
         CompileError::new(
             self.input,
             CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)),
@@ -382,11 +382,11 @@ pub enum BinOpToken {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Token {
     pub kind: Box<TokenKind>,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 impl Token {
-    pub fn new(token_kind: TokenKind, pos: Position) -> Self {
+    pub fn new(token_kind: TokenKind, pos: DebugInfo) -> Self {
         Self {
             kind: Box::new(token_kind),
             pos,
@@ -405,31 +405,46 @@ impl Token {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy, Default)]
+pub struct DebugInfo {
+    pos: Position,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy, Default)]
 pub struct Position {
     pub n_char: usize,
     pub n_line: usize,
 }
 
-impl Position {
+impl DebugInfo {
     pub const fn new(n_char: usize, n_line: usize) -> Self {
-        Self { n_char, n_line }
+        Self {
+            pos: Position { n_char, n_line },
+        }
+    }
+
+    pub const fn get_n_char(&self) -> usize {
+        self.pos.n_char
+    }
+
+    pub const fn get_n_line(&self) -> usize {
+        self.pos.n_line
     }
 
     pub fn advance_line(&mut self) {
-        self.n_char = 0;
-        self.n_line += 1;
+        self.pos.n_char = 0;
+        self.pos.n_line += 1;
     }
 
-    #[must_use]
+    #[allow(clippy::return_self_not_must_use)]
     pub fn get_pos_and_advance(&mut self, len_token: usize) -> Self {
         let return_struct = *self;
-        self.n_char += len_token;
+        self.pos.n_char += len_token;
         return_struct
     }
 
     /// just advance `self.n_char` by `len_token`
     pub fn advance(&mut self, len_token: usize) {
-        self.n_char += len_token;
+        self.pos.n_char += len_token;
     }
 }
 
@@ -514,7 +529,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     }
 
     /// if next token is ident, then return its name and Position, otherwise return Err(_)
-    pub fn consume_ident(&mut self) -> Result<(String, Position), CompileError> {
+    pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {

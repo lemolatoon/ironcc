@@ -14,9 +14,11 @@ Program {
                             ),
                             [
                                 StructDeclaration {
-                                    pos: Position {
-                                        n_char: 4,
-                                        n_line: 2,
+                                    pos: DebugInfo {
+                                        pos: Position {
+                                            n_char: 4,
+                                            n_line: 2,
+                                        },
                                     },
                                     ty_spec: Int,
                                     declarator: Declarator {
@@ -27,9 +29,11 @@ Program {
                                     },
                                 },
                                 StructDeclaration {
-                                    pos: Position {
-                                        n_char: 4,
-                                        n_line: 3,
+                                    pos: DebugInfo {
+                                        pos: Position {
+                                            n_char: 4,
+                                            n_line: 3,
+                                        },
                                     },
                                     ty_spec: Char,
                                     declarator: Declarator {
@@ -43,15 +47,19 @@ Program {
                         ),
                     ),
                     init_declarator: None,
-                    pos: Position {
-                        n_char: 0,
-                        n_line: 0,
+                    pos: DebugInfo {
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
                     },
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 0,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
             },
         },
         ProgramComponent {
@@ -89,9 +97,11 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 8,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 8,
+                                            },
                                         },
                                     },
                                 ),
@@ -100,9 +110,11 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 6,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 0,
+                    n_line: 6,
+                },
             },
         },
     ],

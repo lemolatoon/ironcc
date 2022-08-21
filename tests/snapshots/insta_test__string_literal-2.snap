@@ -30,9 +30,11 @@ Program {
                                                     initializer: None,
                                                 },
                                             ),
-                                            pos: Position {
-                                                n_char: 15,
-                                                n_line: 1,
+                                            pos: DebugInfo {
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 1,
+                                                },
                                             },
                                         },
                                     ],
@@ -42,15 +44,19 @@ Program {
                             initializer: None,
                         },
                     ),
-                    pos: Position {
-                        n_char: 4,
-                        n_line: 1,
+                    pos: DebugInfo {
+                        pos: Position {
+                            n_char: 4,
+                            n_line: 1,
+                        },
                     },
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
         ProgramComponent {
@@ -87,18 +93,22 @@ Program {
                                                             kind: StrLit(
                                                                 "Hello World",
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 20,
-                                                                n_line: 4,
+                                                            pos: DebugInfo {
+                                                                pos: Position {
+                                                                    n_char: 20,
+                                                                    n_line: 4,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -113,16 +123,20 @@ Program {
                                                     kind: LVar(
                                                         "msg",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 5,
+                                                    pos: DebugInfo {
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                             ],
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 5,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                 ),
@@ -131,9 +145,11 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 3,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 4,
+                    n_line: 3,
+                },
             },
         },
     ],

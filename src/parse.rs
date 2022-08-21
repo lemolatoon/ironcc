@@ -1,7 +1,7 @@
 use crate::{
     analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, InCompleteKind, Type},
     error::CompileError,
-    tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+    tokenize::{BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream, TypeToken},
     unimplemented_err,
 };
 use std::fmt::Debug;
@@ -208,7 +208,7 @@ impl<'a> Parser<'a> {
     pub fn parse_type_specifier<I>(
         &self,
         tokens: &mut TokenStream<I>,
-    ) -> Result<(TypeSpec, Position), CompileError>
+    ) -> Result<(TypeSpec, DebugInfo), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token>,
     {
@@ -961,11 +961,11 @@ impl IntoIterator for Program {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct ProgramComponent {
     pub kind: ProgramKind,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 impl ProgramComponent {
-    pub const fn new(kind: ProgramKind, pos: Position) -> Self {
+    pub const fn new(kind: ProgramKind, pos: DebugInfo) -> Self {
         Self { kind, pos }
     }
 }
@@ -999,7 +999,7 @@ pub struct Declaration {
     pub ty_spec: TypeSpec,
     // init-declarator
     pub init_declarator: Option<InitDeclarator>,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 impl Declaration {
@@ -1009,7 +1009,7 @@ impl Declaration {
         n_star: usize,
         direct_declarator: DirectDeclarator,
         initializer: Option<Initializer>,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Self {
         Self {
             ty_spec,
@@ -1027,7 +1027,7 @@ impl Declaration {
             .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
-    pub fn ty(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+    pub fn ty(&self, analyzer: &mut Analyzer, pos: DebugInfo) -> Result<Type, CompileError> {
         let converted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
         analyzer.get_type(
             converted_type,
@@ -1143,7 +1143,7 @@ pub enum StructOrUnionSpec {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct StructDeclaration {
-    pub pos: Position,
+    pub pos: DebugInfo,
     ty_spec: TypeSpec,
     declarator: Declarator,
 }
@@ -1153,7 +1153,7 @@ impl StructDeclaration {
         self.declarator.direct_declarator.ident_name()
     }
 
-    pub fn get_type(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
+    pub fn get_type(&self, analyzer: &mut Analyzer, pos: DebugInfo) -> Result<Type, CompileError> {
         let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
         analyzer.get_type(conveted_type, &self.declarator)
     }
@@ -1214,14 +1214,14 @@ pub struct TypeName {
     // TODO: actually Vec
     spec_quals: SpecQual,
     abstract_declarator: Option<AbstractDeclarator>,
-    pos: Position,
+    pos: DebugInfo,
 }
 
 impl TypeName {
     pub const fn new(
         spec_quals: SpecQual,
         abstract_declarator: Option<AbstractDeclarator>,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Self {
         Self {
             spec_quals,
@@ -1305,7 +1305,7 @@ pub enum ForInitKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Expr {
     pub kind: ExprKind,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1351,7 +1351,7 @@ pub enum UnaryOp {
 }
 
 impl Expr {
-    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, pos: Position) -> Self {
+    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Conditional {
                 cond: Box::new(cond),
@@ -1361,89 +1361,89 @@ impl Expr {
             pos,
         }
     }
-    pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
+    pub fn new_member(expr: Expr, ident: String, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Member(Box::new(expr), ident),
             pos,
         }
     }
-    pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
+    pub fn new_arrow(expr: Expr, ident: String, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Arrow(Box::new(expr), ident),
             pos,
         }
     }
 
-    pub fn new_postfix_increment(expr: Expr, pos: Position) -> Self {
+    pub fn new_postfix_increment(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::PostfixIncrement(Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_postfix_decrement(expr: Expr, pos: Position) -> Self {
+    pub fn new_postfix_decrement(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::PostfixDecrement(Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_unary_increment(expr: Expr, pos: Position) -> Self {
+    pub fn new_unary_increment(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::UnaryIncrement(Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_unary_decrement(expr: Expr, pos: Position) -> Self {
+    pub fn new_unary_decrement(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::UnaryDecrement(Box::new(expr)),
             pos,
         }
     }
-    pub fn new_array(expr: Expr, index: Expr, pos: Position) -> Self {
+    pub fn new_array(expr: Expr, index: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Array(Box::new(expr), Box::new(index)),
             pos,
         }
     }
 
-    pub fn new_binary(kind: BinOpKind, lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn new_binary(kind: BinOpKind, lhs: Expr, rhs: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Binary(Binary::new(kind, Box::new(lhs), Box::new(rhs))),
             pos,
         }
     }
 
-    pub const fn new_num(num: isize, pos: Position) -> Self {
+    pub const fn new_num(num: isize, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Num(num),
             pos,
         }
     }
 
-    pub const fn new_str_lit(letters: String, pos: Position) -> Self {
+    pub const fn new_str_lit(letters: String, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::StrLit(letters),
             pos,
         }
     }
 
-    pub const fn new_lvar(name: String, pos: Position) -> Self {
+    pub const fn new_lvar(name: String, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::LVar(name),
             pos,
         }
     }
 
-    pub fn new_unary(kind: UnaryOp, expr: Expr, pos: Position) -> Self {
+    pub fn new_unary(kind: UnaryOp, expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Unary(kind, Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_assign(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn new_assign(lhs: Expr, rhs: Expr, pos: DebugInfo) -> Self {
         // pos is Position of TokenKind::Eq (i.e. `=`)
         Self {
             kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
@@ -1451,35 +1451,35 @@ impl Expr {
         }
     }
 
-    pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<Expr>, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Func(name, args),
             pos,
         }
     }
 
-    pub fn new_deref(expr: Expr, pos: Position) -> Self {
+    pub fn new_deref(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Deref(Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_addr(expr: Expr, pos: Position) -> Self {
+    pub fn new_addr(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Addr(Box::new(expr)),
             pos,
         }
     }
 
-    pub fn new_expr_sizeof(expr: Expr, pos: Position) -> Self {
+    pub fn new_expr_sizeof(expr: Expr, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Expr(Box::new(expr))),
             pos,
         }
     }
 
-    pub const fn new_type_sizeof(type_name: TypeName, pos: Position) -> Self {
+    pub const fn new_type_sizeof(type_name: TypeName, pos: DebugInfo) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)),
             pos,

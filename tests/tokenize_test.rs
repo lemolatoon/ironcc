@@ -100,10 +100,10 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
     assert_eq!(
         tokenizer.tokenize().unwrap(),
         token_poses!(
-            (TokenKind::Num(1), Position::new(0, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
-            (TokenKind::Num(1), Position::new(3, 0)),
-            (TokenKind::Eof, Position::new(4, 0))
+            (TokenKind::Num(1), DebugInfo::new(0, 0)),
+            (TokenKind::BinOp(BinOpToken::Plus), DebugInfo::new(2, 0)),
+            (TokenKind::Num(1), DebugInfo::new(3, 0)),
+            (TokenKind::Eof, DebugInfo::new(4, 0))
         )
     );
 
@@ -112,12 +112,12 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
     assert_eq!(
         tokenizer.tokenize().unwrap(),
         token_poses!(
-            (TokenKind::Num(1), Position::new(0, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
-            (TokenKind::Num(1), Position::new(3, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(1, 1)),
-            (TokenKind::Num(5), Position::new(2, 1)),
-            (TokenKind::Eof, Position::new(3, 1))
+            (TokenKind::Num(1), DebugInfo::new(0, 0)),
+            (TokenKind::BinOp(BinOpToken::Plus), DebugInfo::new(2, 0)),
+            (TokenKind::Num(1), DebugInfo::new(3, 0)),
+            (TokenKind::BinOp(BinOpToken::Plus), DebugInfo::new(1, 1)),
+            (TokenKind::Num(5), DebugInfo::new(2, 1)),
+            (TokenKind::Eof, DebugInfo::new(3, 1))
         )
     );
     Ok(())

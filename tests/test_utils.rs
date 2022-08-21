@@ -13,7 +13,7 @@ macro_rules! tokens {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = Position::default();
+            let pos = DebugInfo::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -47,7 +47,7 @@ macro_rules! token_kinds {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = Position::default();
+            let pos = DebugInfo::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -168,13 +168,13 @@ impl<'a> CachedAnalyzer<'a> {
 }
 
 pub mod ast {
-    use ironcc::{parse::*, tokenize::Position};
+    use ironcc::{parse::*, tokenize::DebugInfo};
     pub fn deref(expr: Expr) -> Expr {
-        Expr::new_deref(expr, Position::default())
+        Expr::new_deref(expr, DebugInfo::default())
     }
 
     pub fn addr(expr: Expr) -> Expr {
-        Expr::new_addr(expr, Position::default())
+        Expr::new_addr(expr, DebugInfo::default())
     }
 
     pub fn func_def(
@@ -182,7 +182,7 @@ pub mod ast {
         n_star: usize,
         direct_declarator: DirectDeclarator,
         body: Stmt,
-        pos: Position,
+        pos: DebugInfo,
     ) -> ProgramComponent {
         ProgramComponent::new(
             ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body),
@@ -204,7 +204,7 @@ pub mod ast {
             n_star,
             direct_declarator,
             None,
-            Position::default(),
+            DebugInfo::default(),
         )
     }
 
@@ -219,7 +219,7 @@ pub mod ast {
             n_star,
             direct_declarator,
             Some(init),
-            Position::default(),
+            DebugInfo::default(),
         )
     }
 
@@ -256,26 +256,26 @@ pub mod ast {
     }
 
     pub fn func(name: &str, args: Vec<Expr>) -> Expr {
-        Expr::new_func(name.to_string(), args, Position::default())
+        Expr::new_func(name.to_string(), args, DebugInfo::default())
     }
 
     pub fn lvar(name: &str) -> Expr {
-        Expr::new_lvar(name.to_string(), Position::default())
+        Expr::new_lvar(name.to_string(), DebugInfo::default())
     }
 
     pub fn assign(lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_assign(lhs, rhs, Position::default())
+        Expr::new_assign(lhs, rhs, DebugInfo::default())
     }
 
     pub fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_binary(op, lhs, rhs, Position::default())
+        Expr::new_binary(op, lhs, rhs, DebugInfo::default())
     }
 
     pub fn num(n: isize) -> Expr {
-        Expr::new_num(n, Position::default())
+        Expr::new_num(n, DebugInfo::default())
     }
 
     pub fn unary(op: UnaryOp, operand: Expr) -> Expr {
-        Expr::new_unary(op, operand, Position::default())
+        Expr::new_unary(op, operand, DebugInfo::default())
     }
 }

@@ -11,7 +11,7 @@ use crate::{
         Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
         StructOrUnionSpec, TypeSpec, UnaryOp,
     },
-    tokenize::Position,
+    tokenize::DebugInfo,
     unimplemented_err,
 };
 
@@ -183,7 +183,7 @@ impl<'a> Analyzer<'a> {
         name: &str,
         // global variable's type
         ty: Type,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<GVar, CompileError> {
         let init = init
             .map(|expr| {
@@ -285,7 +285,7 @@ impl<'a> Analyzer<'a> {
         ty_spec: &TypeSpec,
         declarator: &Declarator,
         body: Stmt,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
         let ident = declarator.direct_declarator.ident_name();
@@ -555,7 +555,7 @@ impl<'a> Analyzer<'a> {
         &self,
         lhs: ConvExpr,
         rhs: ConvExpr,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
         if !lhs.ty.ty_eq(&rhs.ty) {
@@ -823,7 +823,7 @@ impl<'a> Analyzer<'a> {
         &mut self,
         name: String,
         args: Vec<Expr>,
-        pos: Position,
+        pos: DebugInfo,
         _attrs: &BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         // args type check
@@ -934,7 +934,7 @@ impl<'a> Analyzer<'a> {
     pub fn traverse_binary(
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
         let mut lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
@@ -1165,7 +1165,7 @@ impl<'a> Analyzer<'a> {
         &mut self,
         unary_op: &UnaryOp,
         operand: Box<Expr>,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         match unary_op {
             UnaryOp::Plus => self.traverse_expr(*operand, BTreeSet::new()),
@@ -1259,7 +1259,7 @@ impl<'a> Analyzer<'a> {
         lvar: LVar,
         ty: Type,
         attrs: BTreeSet<DownExprAttribute>,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         match init {
             Initializer::Expr(init) => {
@@ -1338,7 +1338,7 @@ impl<'a> Analyzer<'a> {
         Ok(ty)
     }
 
-    pub fn fetch_lvar(&self, name: &str, pos: Position) -> Result<ConvExpr, CompileError> {
+    pub fn fetch_lvar(&self, name: &str, pos: DebugInfo) -> Result<ConvExpr, CompileError> {
         let var = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar,
             None => {
@@ -1475,7 +1475,7 @@ pub enum DownExprAttribute {
 pub struct ConvExpr {
     pub kind: ConvExprKind,
     pub ty: Type,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 impl ConvExpr {
     /// if `self.kind == Type::Array(_)` return ptr-converted expr, otherwise return `self` itself
@@ -1494,7 +1494,7 @@ impl ConvExpr {
         src: &str,
         from_ty: Type,
         to_ty: Type,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<(Type, CastKind), CompileError> {
         match (from_ty, to_ty) {
             (Type::Base(from_base), Type::Base(to_base)) if from_base == to_base => {
@@ -1614,7 +1614,7 @@ impl ConvExpr {
         lhs: ConvExpr,
         rhs: ConvExpr,
         ty: Type,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Self {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
@@ -1623,7 +1623,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_postfix_increment(lhs: ConvExpr, value: usize, ty: Type, pos: Position) -> Self {
+    pub fn new_postfix_increment(lhs: ConvExpr, value: usize, ty: Type, pos: DebugInfo) -> Self {
         Self {
             kind: ConvExprKind::PostfixIncrement(Box::new(lhs), value),
             ty,
@@ -1631,7 +1631,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_postfix_decrement(lhs: ConvExpr, value: usize, ty: Type, pos: Position) -> Self {
+    pub fn new_postfix_decrement(lhs: ConvExpr, value: usize, ty: Type, pos: DebugInfo) -> Self {
         Self {
             kind: ConvExprKind::PostfixDecrement(Box::new(lhs), value),
             ty,
@@ -1667,7 +1667,7 @@ impl ConvExpr {
         args: Vec<ConvExpr>,
         ret_ty: Type,
         is_flexible: bool,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Self {
         Self {
             kind: ConvExprKind::Func(name, args, is_flexible, 0),
@@ -1676,7 +1676,7 @@ impl ConvExpr {
         }
     }
 
-    pub const fn new_num(num: isize, pos: Position) -> Self {
+    pub const fn new_num(num: isize, pos: DebugInfo) -> Self {
         Self {
             kind: ConvExprKind::Num(num),
             ty: Type::Base(BaseType::Int),
@@ -1684,7 +1684,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: Position) -> Self {
+    pub fn new_assign(lhs: ConvExpr, rhs: ConvExpr, pos: DebugInfo) -> Self {
         let ty = lhs.ty.clone();
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
@@ -1693,7 +1693,12 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_member(expr: ConvExpr, member_ty: Type, minus_offset: usize, pos: Position) -> Self {
+    pub fn new_member(
+        expr: ConvExpr,
+        member_ty: Type,
+        minus_offset: usize,
+        pos: DebugInfo,
+    ) -> Self {
         ConvExpr {
             kind: ConvExprKind::Member {
                 struct_expr: Box::new(expr),
@@ -1704,7 +1709,7 @@ impl ConvExpr {
         }
     }
 
-    pub const fn new_lvar_raw(lvar: LVar, ty: Type, pos: Position) -> Self {
+    pub const fn new_lvar_raw(lvar: LVar, ty: Type, pos: DebugInfo) -> Self {
         ConvExpr {
             kind: ConvExprKind::LVar(lvar),
             ty,
@@ -1712,7 +1717,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_gvar(gvar: GVar, pos: Position) -> Self {
+    pub fn new_gvar(gvar: GVar, pos: DebugInfo) -> Self {
         let ty = gvar.ty.clone();
         ConvExpr {
             kind: ConvExprKind::GVar(gvar),
@@ -1721,7 +1726,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_deref(expr: ConvExpr, base_ty: Type, pos: Position) -> Self {
+    pub fn new_deref(expr: ConvExpr, base_ty: Type, pos: DebugInfo) -> Self {
         Self {
             kind: ConvExprKind::Deref(Box::new(expr)),
             ty: base_ty,
@@ -1729,7 +1734,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn new_addr(expr: ConvExpr, pos: Position) -> Self {
+    pub fn new_addr(expr: ConvExpr, pos: DebugInfo) -> Self {
         let ty = expr.ty.clone();
         Self {
             kind: ConvExprKind::Addr(Box::new(expr)),
@@ -1887,7 +1892,7 @@ impl Scope {
     pub fn register_gvar(
         &mut self,
         src: &str,
-        pos: Position,
+        pos: DebugInfo,
         name: &str,
         ty: Type,
         init: Option<ConstInitializer>,
@@ -1922,7 +1927,7 @@ impl Scope {
     pub fn register_lvar(
         &mut self,
         src: &str,
-        pos: Position,
+        pos: DebugInfo,
         new_offset: &mut usize,
         name: &str,
         ty: Type,
@@ -2071,7 +2076,7 @@ pub struct Func {
     pub name: String,
     pub args: FuncArgs,
     pub ret: Type,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 impl Func {
@@ -2080,7 +2085,7 @@ impl Func {
         args: Vec<Type>,
         is_flexible_length_arg: bool,
         ret: Type,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Self {
         Self {
             name,
@@ -2142,7 +2147,7 @@ impl ConstInitializer {
         }
     }
 
-    pub fn get_pos(&self) -> Position {
+    pub fn get_pos(&self) -> DebugInfo {
         match self {
             ConstInitializer::Expr(expr) => expr.pos,
             ConstInitializer::Array(vec) => vec.first().map(|expr| expr.pos).unwrap_or_default(),
@@ -2154,11 +2159,11 @@ impl ConstInitializer {
 pub struct ConstExpr {
     pub kind: ConstExprKind,
     pub ty: Type,
-    pub pos: Position,
+    pub pos: DebugInfo,
 }
 
 impl ConstExpr {
-    pub const fn new_int(n: i32, pos: Position) -> Self {
+    pub const fn new_int(n: i32, pos: DebugInfo) -> Self {
         Self {
             kind: ConstExprKind::Int(n),
             ty: Type::Base(BaseType::Int),
@@ -2166,7 +2171,7 @@ impl ConstExpr {
         }
     }
 
-    pub const fn new_char(n: i8, pos: Position) -> Self {
+    pub const fn new_char(n: i8, pos: DebugInfo) -> Self {
         Self {
             kind: ConstExprKind::Char(n),
             ty: Type::Base(BaseType::Int),
@@ -2344,13 +2349,17 @@ impl ConstExpr {
             ),
             ConvExprKind::GVar(ref gvar) => {
                 // TODO: check if gvar is const or not
-                if let Some(val) = gvar.init.as_ref().map_or(None, |init| Some(init.get_num_lit()?)) {
+                if let Some(val) = gvar
+                    .init
+                    .as_ref()
+                    .map_or(None, |init| Some(init.get_num_lit()?))
+                {
                     eprintln!("Have to check {:?} is const or not.", &gvar);
                     return Ok(num_expr(val));
                 } else {
-                    return Err(CompileError::new_const_expr_error(src, pos, kind))
+                    return Err(CompileError::new_const_expr_error(src, pos, kind));
                 }
-            },
+            }
             ConvExprKind::Num(num) => num_expr(num),
             ConvExprKind::LVar(_)
             | ConvExprKind::Assign(_, _)
@@ -2505,7 +2514,7 @@ impl<'a> Analyzer<'a> {
     pub fn resolve_name_and_convert_to_type(
         &mut self,
         ty_spec: &TypeSpec,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<Type, CompileError> {
         Ok(match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
@@ -2578,7 +2587,7 @@ impl<'a> Analyzer<'a> {
     pub fn resolve_incomplete_type(
         &mut self,
         ty: Type,
-        pos: Position,
+        pos: DebugInfo,
     ) -> Result<Type, CompileError> {
         if let Type::InComplete(InCompleteKind::Struct(name)) = ty {
             let got = self.resolve_tag_name(&name);

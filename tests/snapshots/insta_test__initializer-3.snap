@@ -32,9 +32,11 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 0,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -44,18 +46,22 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 20,
-                                            n_line: 0,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 20,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 12,
-                                    n_line: 0,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 12,
+                                        n_line: 0,
+                                    },
                                 },
                             },
                         ),
@@ -78,9 +84,11 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 23,
-                                            n_line: 0,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 23,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -97,9 +105,11 @@ ConvProgram {
                                                 ty: Base(
                                                     Int,
                                                 ),
-                                                pos: Position {
-                                                    n_char: 33,
-                                                    n_line: 0,
+                                                pos: DebugInfo {
+                                                    pos: Position {
+                                                        n_char: 33,
+                                                        n_line: 0,
+                                                    },
                                                 },
                                             },
                                         ),
@@ -108,9 +118,11 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 32,
-                                            n_line: 0,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 32,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                 ),
@@ -119,9 +131,11 @@ ConvProgram {
                                         Int,
                                     ),
                                 ),
-                                pos: Position {
-                                    n_char: 23,
-                                    n_line: 0,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 23,
+                                        n_line: 0,
+                                    },
                                 },
                             },
                         ),
@@ -133,9 +147,11 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 43,
-                                    n_line: 0,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 43,
+                                        n_line: 0,
+                                    },
                                 },
                             },
                             "main",

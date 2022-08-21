@@ -23,9 +23,9 @@ fn parse_test() -> Result<(), CompileError> {
         expr.kind,
         Expr::new_binary(
             BinOpKind::Add,
-            Expr::new_num(1, Position::default()),
-            Expr::new_num(2, Position::default()),
-            Position::default(),
+            Expr::new_num(1, DebugInfo::default()),
+            Expr::new_num(2, DebugInfo::default()),
+            DebugInfo::default(),
         )
         .kind
     );
@@ -47,14 +47,14 @@ fn parse_test() -> Result<(), CompileError> {
         expr.kind,
         Expr::new_binary(
             BinOpKind::Add,
-            Expr::new_num(1, Position::default()),
+            Expr::new_num(1, DebugInfo::default()),
             Expr::new_binary(
                 BinOpKind::Mul,
-                Expr::new_num(2, Position::default()),
-                Expr::new_num(3, Position::default()),
-                Position::default()
+                Expr::new_num(2, DebugInfo::default()),
+                Expr::new_num(3, DebugInfo::default()),
+                DebugInfo::default()
             ),
-            Position::default(),
+            DebugInfo::default(),
         )
         .kind
     );
@@ -338,7 +338,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
         0,
         func_dd("main", vec![], true),
         block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -369,7 +369,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -401,7 +401,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -434,7 +434,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
             lvar("a"),
             assign(lvar("b"), num(2)),
         ))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -467,7 +467,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
             bin(BinOpKind::Add, lvar("a"), num(1)),
             num(2),
         ))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -519,7 +519,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 Some(ret(num(0))),
             ),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -569,7 +569,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
             ),
             ret(lvar("a")),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -636,7 +636,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 ),
             ),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -680,7 +680,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
                 bin(BinOpKind::Rem, num(3), num(1)),
             )),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -715,7 +715,7 @@ fn parse_call_func() -> Result<(), CompileError> {
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -747,7 +747,7 @@ fn parse_ptr() -> Result<(), CompileError> {
         0,
         func_dd("main", Vec::new(), true),
         block(vec![ret(deref(lvar("a")))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -806,7 +806,7 @@ fn parse_ptr() -> Result<(), CompileError> {
                 bin(BinOpKind::Add, lvar("a"), num(1)),
             )),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -850,7 +850,7 @@ fn parse_declaration() -> Result<(), CompileError> {
             0,
             DirectDeclarator::Ident("a".to_string()),
         ))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);
@@ -890,7 +890,7 @@ fn parse_declaration() -> Result<(), CompileError> {
             1,
             DirectDeclarator::Ident("a".to_string()),
         ))]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
 
     assert_eq!(parsed, expected);

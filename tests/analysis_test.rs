@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
 use ironcc::parse::*;
-use ironcc::tokenize::{Position, TokenStream, Tokenizer};
+use ironcc::tokenize::{DebugInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[test]
@@ -75,7 +75,7 @@ fn analysis_ident_test() -> Result<(), CompileError> {
         .scope
         .register_lvar(
             &input,
-            Position::default(),
+            DebugInfo::default(),
             &mut offset,
             "a",
             Type::Base(BaseType::Int),
@@ -119,7 +119,7 @@ fn analysis_program_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("a"), bin(BinOpKind::Ge, num(1), lvar("k")))),
             expr_stmt(lvar("b")),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -185,7 +185,7 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("c"), num(3))),
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -250,7 +250,7 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
             ret(bin(BinOpKind::Div, lvar("b"), lvar("c"))),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -336,7 +336,7 @@ fn analysis_declaration() -> Result<(), CompileError> {
             )), // int x;
             expr_stmt(bin(BinOpKind::Add, lvar("a"), lvar("k"))), // a + k
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -403,7 +403,7 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("p"), bin(BinOpKind::Add, lvar("k"), num(1)))), // p = k + 1;
             ret(num(0)),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -596,12 +596,12 @@ fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
     analyzer.scope.push_scope();
     let lvar = analyzer
         .scope
-        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .register_lvar("", DebugInfo::default(), offset, &name.to_string(), ty)
         .unwrap();
 
     analyzer.scope.pop_scope(offset);
     let ty = lvar.ty.clone();
-    ConvExpr::new_lvar_raw(lvar, ty, Position::default())
+    ConvExpr::new_lvar_raw(lvar, ty, DebugInfo::default())
 }
 
 fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> LVar {
@@ -610,7 +610,7 @@ fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> LVar {
     analyzer.scope.push_scope();
     analyzer
         .scope
-        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .register_lvar("", DebugInfo::default(), offset, &name.to_string(), ty)
         .unwrap()
 }
 
@@ -646,12 +646,12 @@ fn _cfunc(name: &str, args: Vec<ConvExpr>, is_flexible: bool) -> ConvExpr {
         args,
         Type::Base(BaseType::Int),
         is_flexible,
-        Position::default(),
+        DebugInfo::default(),
     )
 }
 
 fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
-    ConvExpr::new_assign(lhs, rhs, Position::default())
+    ConvExpr::new_assign(lhs, rhs, DebugInfo::default())
 }
 
 fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
@@ -662,10 +662,10 @@ fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
             rhs: Box::new(rhs),
         }),
         ty,
-        pos: Position::default(),
+        pos: DebugInfo::default(),
     }
 }
 
 fn cnum(n: isize) -> ConvExpr {
-    ConvExpr::new_num(n, Position::default())
+    ConvExpr::new_num(n, DebugInfo::default())
 }

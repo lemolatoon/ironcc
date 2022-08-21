@@ -30,9 +30,11 @@ Program {
                                                 ),
                                                 [
                                                     StructDeclaration {
-                                                        pos: Position {
-                                                            n_char: 8,
-                                                            n_line: 4,
+                                                        pos: DebugInfo {
+                                                            pos: Position {
+                                                                n_char: 8,
+                                                                n_line: 4,
+                                                            },
                                                         },
                                                         ty_spec: Char,
                                                         declarator: Declarator {
@@ -43,9 +45,11 @@ Program {
                                                         },
                                                     },
                                                     StructDeclaration {
-                                                        pos: Position {
-                                                            n_char: 8,
-                                                            n_line: 5,
+                                                        pos: DebugInfo {
+                                                            pos: Position {
+                                                                n_char: 8,
+                                                                n_line: 5,
+                                                            },
                                                         },
                                                         ty_spec: Int,
                                                         declarator: Declarator {
@@ -56,9 +60,11 @@ Program {
                                                         },
                                                     },
                                                     StructDeclaration {
-                                                        pos: Position {
-                                                            n_char: 8,
-                                                            n_line: 6,
+                                                        pos: DebugInfo {
+                                                            pos: Position {
+                                                                n_char: 8,
+                                                                n_line: 6,
+                                                            },
                                                         },
                                                         ty_spec: Char,
                                                         declarator: Declarator {
@@ -82,9 +88,11 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 2,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -98,16 +106,20 @@ Program {
                                                     kind: LVar(
                                                         "mine",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 18,
-                                                        n_line: 8,
+                                                    pos: DebugInfo {
+                                                        pos: Position {
+                                                            n_char: 18,
+                                                            n_line: 8,
+                                                        },
                                                     },
                                                 },
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 11,
-                                            n_line: 8,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 11,
+                                                n_line: 8,
+                                            },
                                         },
                                     },
                                 ),
@@ -116,9 +128,11 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 0,
+            pos: DebugInfo {
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
             },
         },
     ],

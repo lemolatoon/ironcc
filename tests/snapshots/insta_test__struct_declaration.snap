@@ -5,186 +5,230 @@ expression: tester.tokens().as_ref().unwrap()
 [
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 0,
-            n_line: 0,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Ident(
             "my_struct_tag",
         ),
-        pos: Position {
-            n_char: 7,
-            n_line: 0,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 9,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 9,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Type(
             Char,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "b",
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 9,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 10,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 10,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 1,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 1,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 9,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 7,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Ident(
             "my_struct_tag",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Ident(
             "my_struct",
         ),
-        pos: Position {
-            n_char: 25,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 25,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 34,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 34,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 1,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 1,
+                n_line: 9,
+            },
         },
     },
 ]

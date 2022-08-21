@@ -38,9 +38,11 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -75,9 +77,11 @@ ConvProgram {
                                                                 ),
                                                             ),
                                                         ),
-                                                        pos: Position {
-                                                            n_char: 13,
-                                                            n_line: 3,
+                                                        pos: DebugInfo {
+                                                            pos: Position {
+                                                                n_char: 13,
+                                                                n_line: 3,
+                                                            },
                                                         },
                                                     },
                                                 ),
@@ -94,9 +98,11 @@ ConvProgram {
                                                         ),
                                                     ),
                                                 ),
-                                                pos: Position {
-                                                    n_char: 12,
-                                                    n_line: 3,
+                                                pos: DebugInfo {
+                                                    pos: Position {
+                                                        n_char: 12,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                             ToVoidPtr {
@@ -116,18 +122,22 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 3,
+                                        pos: DebugInfo {
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Ptr(
                                     Void,
                                 ),
-                                pos: Position {
-                                    n_char: 10,
-                                    n_line: 3,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 10,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),

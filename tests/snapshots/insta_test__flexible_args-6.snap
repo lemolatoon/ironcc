@@ -51,9 +51,11 @@ ConvProgram {
                                                     Char,
                                                 ),
                                             ),
-                                            pos: Position {
-                                                n_char: 15,
-                                                n_line: 3,
+                                            pos: DebugInfo {
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 3,
+                                                },
                                             },
                                         },
                                     ],
@@ -61,9 +63,11 @@ ConvProgram {
                                     0,
                                 ),
                                 ty: Void,
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 3,
+                                pos: DebugInfo {
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),

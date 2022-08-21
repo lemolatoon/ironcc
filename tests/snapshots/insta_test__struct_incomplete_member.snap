@@ -5,446 +5,554 @@ expression: tester.tokens().as_ref().unwrap()
 [
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 0,
-            n_line: 0,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 7,
-            n_line: 0,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 0,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 9,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 12,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "before",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 13,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 19,
-            n_line: 1,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 19,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Ident(
             "value",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 13,
-            n_line: 2,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 13,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 12,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "after",
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 14,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 19,
-            n_line: 3,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 19,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Ident(
             "global_doubly_linked_list",
         ),
-        pos: Position {
-            n_char: 2,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 2,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 27,
-            n_line: 4,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 27,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 8,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 9,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 6,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 7,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 7,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Ident(
             "a1",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 7,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 13,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 15,
-            n_line: 7,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 15,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 11,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Ident(
             "a2",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 13,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 15,
-            n_line: 8,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 15,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Ident(
             "global_doubly_linked_list",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 29,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 29,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "before",
         ),
-        pos: Position {
-            n_char: 30,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 30,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 37,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 37,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: BinOp(
             And,
         ),
-        pos: Position {
-            n_char: 39,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 39,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "a1",
         ),
-        pos: Position {
-            n_char: 40,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 40,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 42,
-            n_line: 9,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 42,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "global_doubly_linked_list",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 29,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 29,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Ident(
             "value",
         ),
-        pos: Position {
-            n_char: 30,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 30,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 36,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 36,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Num(
             2,
         ),
-        pos: Position {
-            n_char: 38,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 38,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 39,
-            n_line: 10,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 39,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Ident(
             "global_doubly_linked_list",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 4,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 29,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 29,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Ident(
             "after",
         ),
-        pos: Position {
-            n_char: 30,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 30,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 36,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 36,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: BinOp(
             And,
         ),
-        pos: Position {
-            n_char: 38,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 38,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Ident(
             "a2",
         ),
-        pos: Position {
-            n_char: 39,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 39,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 41,
-            n_line: 11,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 41,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 12,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 0,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 1,
-            n_line: 12,
+        pos: DebugInfo {
+            pos: Position {
+                n_char: 1,
+                n_line: 12,
+            },
         },
     },
 ]
