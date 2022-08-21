@@ -980,11 +980,7 @@ impl Declaration {
                 .init_declarator
                 .as_ref()
                 .ok_or_else(|| {
-                    unimplemented_err!(
-                        analyzer.input,
-                        debug_info,
-                        "get_type for struct is not yet implemented."
-                    )
+                    unimplemented_err!(debug_info, "get_type for struct is not yet implemented.")
                 })?
                 .declarator,
         )

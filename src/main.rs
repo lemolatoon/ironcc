@@ -55,7 +55,7 @@ fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileE
     let parser = Parser::new();
     let program = parser.parse_program(&mut token_stream)?;
 
-    let mut analyzer = Analyzer::new(&input);
+    let mut analyzer = Analyzer::new();
     let converted_program = analyzer.traverse_program(program)?;
 
     let mut buf_writer = BufWriter::new(out_f);

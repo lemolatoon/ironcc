@@ -60,7 +60,7 @@ macro_rules! token_kinds {
 pub struct CachedProcessor<'a> {
     tokenizer: CachedTokenizer<'a>,
     parser: CachedParser,
-    analyzer: CachedAnalyzer<'a>,
+    analyzer: CachedAnalyzer,
 }
 
 impl<'a> CachedProcessor<'a> {
@@ -68,7 +68,7 @@ impl<'a> CachedProcessor<'a> {
         Self {
             tokenizer: CachedTokenizer::new(src),
             parser: CachedParser::new(),
-            analyzer: CachedAnalyzer::new(src),
+            analyzer: CachedAnalyzer::new(),
         }
     }
 }
@@ -152,15 +152,15 @@ impl CachedParser {
     }
 }
 
-struct CachedAnalyzer<'a> {
-    analyzer: Analyzer<'a>,
+struct CachedAnalyzer {
+    analyzer: Analyzer,
     program: Option<Result<ConvProgram, CompileError>>,
 }
 
-impl<'a> CachedAnalyzer<'a> {
-    pub fn new(input: &'a str) -> Self {
+impl CachedAnalyzer {
+    pub fn new() -> Self {
         Self {
-            analyzer: Analyzer::new(input),
+            analyzer: Analyzer::new(),
             program: None,
         }
     }

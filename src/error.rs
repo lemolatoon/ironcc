@@ -73,31 +73,25 @@ impl CompileError {
             got,
         }))
     }
-    pub fn new_unexpected_eof_tokenize(src: &str, pos: DebugInfo) -> Self {
+    pub fn new_unexpected_eof_tokenize(pos: DebugInfo) -> Self {
         CompileError::new(CompileErrorKind::TokenizeError(
             TokenizeErrorKind::UnexpectedEof(pos),
         ))
     }
 
-    pub fn new_unexpected_void(src: &str, pos: DebugInfo, msg: String) -> Self {
+    pub fn new_unexpected_void(pos: DebugInfo, msg: String) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
             AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::UnexpectedVoid(pos, msg)),
         ))
     }
 
-    pub fn new_redefined_variable(
-        src: &str,
-        name: String,
-        pos: DebugInfo,
-        kind: VariableKind,
-    ) -> Self {
+    pub fn new_redefined_variable(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
             AnalyzeErrorKind::RedefinedError(name, pos, kind),
         ))
     }
 
     pub fn new_no_such_member(
-        src: &str,
         tag_name: Option<String>,
         pos: DebugInfo,
         got_member_name: String,
@@ -118,7 +112,6 @@ impl CompileError {
     }
 
     pub fn new_args_error(
-        src: &str,
         name: String,
         debug_info: DebugInfo,
         expected: usize,
@@ -130,12 +123,7 @@ impl CompileError {
         ))
     }
 
-    pub fn new_type_error<T: Into<String>>(
-        src: &str,
-        lhs: ConvExpr,
-        rhs: ConvExpr,
-        msg: Option<T>,
-    ) -> Self {
+    pub fn new_type_error<T: Into<String>>(lhs: ConvExpr, rhs: ConvExpr, msg: Option<T>) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
             TypeErrorKind::Expr { lhs, rhs },
             msg.map(std::convert::Into::into),
@@ -143,7 +131,6 @@ impl CompileError {
     }
 
     pub fn new_type_error_const<T: Into<String>>(
-        src: &str,
         expr0: ConstExpr,
         expr1: ConstExpr,
         msg: Option<T>,
@@ -155,7 +142,6 @@ impl CompileError {
     }
 
     pub fn new_type_error_types<T: Into<String>>(
-        src: &str,
         pos0: DebugInfo,
         pos1: DebugInfo,
         ty0: Type,
@@ -168,14 +154,13 @@ impl CompileError {
         )))
     }
 
-    pub fn new_type_expect_failed(src: &str, pos: DebugInfo, expected: Type, got: Type) -> Self {
+    pub fn new_type_expect_failed(pos: DebugInfo, expected: Type, got: Type) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
             AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type { pos, expected, got }),
         ))
     }
 
     pub fn new_type_expect_failed_with_str(
-        src: &str,
         debug_info: DebugInfo,
         expected: String,
         got: Type,
@@ -189,25 +174,25 @@ impl CompileError {
         ))
     }
 
-    pub fn new_const_expr_error(src: &str, debug_info: DebugInfo, kind: ConvExprKind) -> Self {
+    pub fn new_const_expr_error(debug_info: DebugInfo, kind: ConvExprKind) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
             AnalyzeErrorKind::ConstExprError(debug_info, kind),
         ))
     }
 
-    pub fn new_deref_error(src: &str, expr: ConvExpr) -> Self {
+    pub fn new_deref_error(expr: ConvExpr) -> Self {
         CompileError::new(CompileErrorKind::GenerateError(
             GenerateErrorKind::DerefError(expr),
         ))
     }
 
-    pub fn new_lvalue_error(src: &str, expr: ConvExpr) -> Self {
+    pub fn new_lvalue_error(expr: ConvExpr) -> Self {
         CompileError::new(CompileErrorKind::GenerateError(
             GenerateErrorKind::LeftValueError(expr),
         ))
     }
 
-    pub fn new_type_size_error(src: &str, status: UnexpectedTypeSizeStatus) -> Self {
+    pub fn new_type_size_error(status: UnexpectedTypeSizeStatus) -> Self {
         CompileError::new(CompileErrorKind::GenerateError(
             GenerateErrorKind::UnexpectedTypeSize(status),
         ))

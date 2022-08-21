@@ -120,7 +120,6 @@ impl Tokenizer {
                                 _ => {
                                     pos.advance(len_token);
                                     return Err(unimplemented_err!(
-                                        self.input,
                                         pos,
                                         "This type of escape Sequences are not currently implemented."
                                     ));
@@ -132,7 +131,7 @@ impl Tokenizer {
                             str_lit.push(*c);
                             chars.next();
                         }
-                        None => return Err(CompileError::new_unexpected_eof_tokenize(src, pos)),
+                        None => return Err(CompileError::new_unexpected_eof_tokenize(pos)),
                     }
                 }
                 tokens.push(Token::new(

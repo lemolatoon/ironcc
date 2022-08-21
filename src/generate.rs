@@ -92,7 +92,7 @@ impl<'a> Generator<'a> {
             1 => ("BYTE PTR", lhs.qword(), rhs.byte()),
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            _ => return Err(CompileError::new_type_size_error(self.input, status)),
+            _ => return Err(CompileError::new_type_size_error(status)),
         };
         writeln!(f, "  mov {} [{}], {}", prefix, lhs, rhs)?;
         Ok(())
@@ -111,7 +111,7 @@ impl<'a> Generator<'a> {
             1 => ("BYTE PTR", lhs.byte(), rhs.qword()),
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            _ => return Err(CompileError::new_type_size_error(self.input, status)),
+            _ => return Err(CompileError::new_type_size_error(status)),
         };
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
@@ -187,7 +187,6 @@ impl<'a> Generator<'a> {
                         4 => Ok("long"),
                         8 => Ok("quad"),
                         _ => Err(CompileError::new_type_size_error(
-                            self.input,
                             UnexpectedTypeSizeStatus::Global(gvar),
                         )),
                     };
@@ -196,7 +195,7 @@ impl<'a> Generator<'a> {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
-                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
+                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
                             Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
@@ -211,7 +210,7 @@ impl<'a> Generator<'a> {
                                 }},
                                 ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
-                            Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
+                            Type::Struct(_) => return Err(unimplemented_err!(init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
                             Type::InComplete(_) => todo!(),
                         },
@@ -359,7 +358,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, expr)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), expr)?,
                 )?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
@@ -380,7 +379,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rdi,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *rhs)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), *rhs)?,
                 )?;
             }
             ConvExprKind::Func(name, args, is_flexible_length, n_floating) => {
@@ -426,7 +425,7 @@ impl<'a> Generator<'a> {
                     | Type::Array(_, _)
                     | Type::Struct(_)
                     | Type::InComplete(_)
-                    | Type::Void => return Err(CompileError::new_deref_error(self.input, *expr)),
+                    | Type::Void => return Err(CompileError::new_deref_error(*expr)),
                     Type::Ptr(base) => *base,
                 };
                 self.gen_expr(f, *expr.clone())?;
@@ -441,7 +440,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(ty.size_of(), self.input, *expr)?,
+                    RegSize::try_new_with_error(ty.size_of(), *expr)?,
                 )?;
             }
             ConvExprKind::Addr(expr) => {
@@ -454,7 +453,6 @@ impl<'a> Generator<'a> {
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
                         return Err(CompileError::new_type_size_error(
-                            self.input,
                             UnexpectedTypeSizeStatus::Global(GVar { name, ty, init }),
                         ))
                     }
@@ -484,7 +482,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *struct_expr)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), *struct_expr)?,
                 )?;
             }
             ConvExprKind::Conditional { cond, then, els } => {
@@ -689,7 +687,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  add rax, {}", minus_offset)?;
                 self.push(f, RegKind::Rax)?;
             }
-            _ => return Err(CompileError::new_lvalue_error(self.input, expr)),
+            _ => return Err(CompileError::new_lvalue_error(expr)),
         }
         Ok(())
     }
@@ -944,18 +942,13 @@ impl RegSize {
             _ => return None,
         })
     }
-    pub fn try_new_with_error(
-        size: usize,
-        src: &str,
-        expr: ConvExpr,
-    ) -> Result<Self, CompileError> {
+    pub fn try_new_with_error(size: usize, expr: ConvExpr) -> Result<Self, CompileError> {
         Ok(match size {
             1 => Self::Byte,
             4 => Self::Dword,
             8 => Self::Qword,
             _ => {
                 return Err(CompileError::new_type_size_error(
-                    src,
                     UnexpectedTypeSizeStatus::Expr(expr),
                 ));
             }

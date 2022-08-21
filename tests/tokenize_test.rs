@@ -1,6 +1,6 @@
 extern crate ironcc;
 pub mod test_utils;
-use std::{fmt::Debug, rc::Rc};
+use std::rc::Rc;
 
 use test_utils::kind_eq;
 

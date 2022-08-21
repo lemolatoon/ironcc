@@ -6,7 +6,7 @@
 /// Also no args provided is allowed.
 #[macro_export]
 macro_rules! unimplemented_err {
-    ($input: expr, $pos: expr, $msg: expr) => {
+    ($pos: expr, $msg: expr) => {
         CompileError::new($crate::error::CompileErrorKind::Unimplemented(
             Some($pos),
             format!("{}{}", $crate::meta!(), $msg),
