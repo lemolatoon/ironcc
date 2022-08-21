@@ -31,6 +31,7 @@ Program {
                                                         7,
                                                     ),
                                                     debug_info: DebugInfo {
+                                                        file_name: "",
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 2,
@@ -42,6 +43,7 @@ Program {
                                                         5,
                                                     ),
                                                     debug_info: DebugInfo {
+                                                        file_name: "",
                                                         pos: Position {
                                                             n_char: 21,
                                                             n_line: 2,
@@ -51,6 +53,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 19,
                                                 n_line: 2,
@@ -64,6 +67,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
+                file_name: "",
                 pos: Position {
                     n_char: 4,
                     n_line: 1,

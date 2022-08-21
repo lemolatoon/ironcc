@@ -32,7 +32,7 @@ impl<'a> Parser<'a> {
                 if Some(TokenKind::Semi) == tmp_tokens.peek_kind() {
                     tmp_tokens.expect(TokenKind::Semi).unwrap();
                     *tokens = tmp_tokens;
-                    let debug_info = declaration.debug_info;
+                    let debug_info = declaration.debug_info.clone();
                     ProgramComponent::new(ProgramKind::Declaration(declaration), debug_info)
                 } else {
                     self.parse_func_def(tokens)?
@@ -405,8 +405,8 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let lhs = self.parse_conditional(tokens)?;
-        let (kind, &debug_info) = match tokens.peek() {
-            Some(Token { kind, debug_info }) => (kind, debug_info),
+        let (kind, debug_info) = match tokens.peek() {
+            Some(Token { kind, debug_info }) => (kind, debug_info.clone()),
             None => {
                 return Err(CompileError::new_unexpected_eof(
                     self.input,
@@ -439,7 +439,7 @@ impl<'a> Parser<'a> {
             let then_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::Colon)?;
             let else_expr = self.parse_conditional(tokens)?;
-            let cond_debug_info = cond.debug_info;
+            let cond_debug_info = cond.debug_info.clone();
             Ok(Expr::new_conditional(
                 cond,
                 then_expr,
@@ -460,7 +460,7 @@ impl<'a> Parser<'a> {
         let mut lhs = self.parse_logical_and(tokens)?;
         while tokens.consume(&TokenKind::BinOp(BinOpToken::VerticalVertical)) {
             let rhs = self.parse_logical_and(tokens)?;
-            let debug_info = lhs.debug_info;
+            let debug_info = lhs.debug_info.clone();
             lhs = Expr::new_binary(BinOpKind::LogicalOr, lhs, rhs, debug_info);
         }
         Ok(lhs)
@@ -476,7 +476,7 @@ impl<'a> Parser<'a> {
         let mut lhs = self.parse_bit_wise_and(tokens)?;
         while tokens.consume(&TokenKind::BinOp(BinOpToken::AndAnd)) {
             let rhs = self.parse_bit_wise_and(tokens)?;
-            let debug_info = lhs.debug_info;
+            let debug_info = lhs.debug_info.clone();
             lhs = Expr::new_binary(BinOpKind::LogicalAnd, lhs, rhs, debug_info);
         }
         Ok(lhs)
@@ -491,7 +491,7 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_equality(tokens)?;
         while let Some(Token { kind, debug_info }) = tokens.peek() {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::And) => BinOpKind::BitWiseAnd,
                 _ => break,
@@ -511,7 +511,7 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_relational(tokens)?;
         while let Some(Token { kind, debug_info }) = tokens.peek() {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::EqEq) => BinOpKind::Eq,
                 TokenKind::BinOp(BinOpToken::Ne) => BinOpKind::Ne,
@@ -532,7 +532,7 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_shift(tokens)?;
         while let Some(Token { kind, debug_info }) = tokens.peek() {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Lt) => BinOpKind::Lt,
                 TokenKind::BinOp(BinOpToken::Le) => BinOpKind::Le,
@@ -553,7 +553,7 @@ impl<'a> Parser<'a> {
     {
         let mut lhs = self.parse_add(tokens)?;
         while let Some(Token { kind, debug_info }) = tokens.peek() {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::LShift) => BinOpKind::LShift,
                 TokenKind::BinOp(BinOpToken::RShift) => BinOpKind::RShift,
@@ -576,7 +576,7 @@ impl<'a> Parser<'a> {
             debug_info: debug_info,
         }) = tokens.peek()
         {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Plus) => BinOpKind::Add,
                 TokenKind::BinOp(BinOpToken::Minus) => BinOpKind::Sub,
@@ -598,7 +598,7 @@ impl<'a> Parser<'a> {
             debug_info: debug_info,
         }) = tokens.peek()
         {
-            let debug_info = *debug_info;
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
                 TokenKind::BinOp(BinOpToken::Slash) => BinOpKind::Div,
@@ -628,7 +628,7 @@ impl<'a> Parser<'a> {
                 ))
             }
         };
-        let debug_info = *debug_info;
+        let debug_info = debug_info.clone();
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
@@ -682,74 +682,11 @@ impl<'a> Parser<'a> {
                 tokens.next();
                 Expr::new_unary(UnaryOp::Decrement, self.parse_unary(tokens)?, debug_info)
             }
-            _ => self.parse_debug_infotfix(tokens)?,
+            _ => self.parse_postfix(tokens)?,
         })
-        // let mut op_vec = Vec::new();
-        // loop {
-        //     let (kind, debug_info) = match tokens.peek() {
-        //         Some(Token { kind, debug_info }) => (kind, debug_info),
-        //         None => {
-        //             return Err(CompileError::new_unexpected_eof(
-        //                 self.input,
-        //                 Box::new("Token"),
-        //             ))
-        //         }
-        //     };
-        //     let debug_info = *debug_info;
-        //     match **kind {
-        //         TokenKind::BinOp(BinOpToken::Plus) => {
-        //             tokens.next();
-        //             Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens), debug_info);
-        //             op_vec.push(TokenKind::BinOp(UnaryOp::Plus));
-        //         }
-        //         TokenKind::BinOp(BinOpToken::Minus) => {
-        //             tokens.next();
-        //             // Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, debug_info)
-        //             // op_vec.push(TokenKind::BinOp(UnaryOp::Minus));
-        //         }
-        //         TokenKind::Tilde => {
-        //             tokens.next();
-        //             // Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, debug_info)
-        //             // op_vec.push(TokenKind::Tilde);
-        //         }
-        //         TokenKind::Exclamation => {
-        //             tokens.next();
-        //             Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, debug_info)
-        //         }
-        //         TokenKind::BinOp(BinOpToken::Star) => {
-        //             tokens.next();
-        //             Expr::new_deref(self.parse_mul(tokens)?, debug_info)
-        //         }
-        //         TokenKind::BinOp(BinOpToken::And) => {
-        //             tokens.next();
-        //             Expr::new_addr(self.parse_mul(tokens)?, debug_info)
-        //         }
-        //         TokenKind::SizeOf => {
-        //             tokens.next();
-        //             let mut tmp_tokens = tokens.clone();
-        //             if let (
-        //                 Some(TokenKind::OpenDelim(DelimToken::Paren)),
-        //                 Some(TokenKind::Type(_) | TokenKind::Struct),
-        //             ) = (
-        //                 tmp_tokens.next().map(|token| *token.kind()),
-        //                 tmp_tokens.next().map(|token| *token.kind()),
-        //             ) {
-        //                 // e.g) sizeof(int)
-        //                 tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-        //                 let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, debug_info);
-        //                 tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
-        //                 expr
-        //             } else {
-        //                 // e.g) sizeof (5)
-        //                 Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info)
-        //             }
-        //         }
-        //         _ => self.parse_debug_infotfix(tokens)?,
-        //     }
-        // }
     }
 
-    pub fn parse_debug_infotfix<'b, I>(
+    pub fn parse_postfix<'b, I>(
         &self,
         tokens: &mut TokenStream<'b, I>,
     ) -> Result<Expr, CompileError>
@@ -757,14 +694,14 @@ impl<'a> Parser<'a> {
         I: Clone + Debug + Iterator<Item = Token>,
     {
         let mut expr = self.parse_primary(tokens)?;
-        let mut debug_info = expr.debug_info;
+        let mut debug_info = expr.debug_info.clone();
 
         loop {
             match tokens.peek_kind() {
                 Some(TokenKind::OpenDelim(DelimToken::Bracket)) => {
                     tokens.next();
                     expr = Expr::new_array(expr, self.parse_expr(tokens)?, debug_info);
-                    debug_info = expr.debug_info;
+                    debug_info = expr.debug_info.clone();
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
                 }
                 Some(TokenKind::Dot) => {
@@ -779,11 +716,11 @@ impl<'a> Parser<'a> {
                 }
                 Some(TokenKind::PlusPlus) => {
                     tokens.next();
-                    expr = Expr::new_postfix_increment(expr, debug_info);
+                    expr = Expr::new_postfix_increment(expr, debug_info.clone());
                 }
                 Some(TokenKind::MinusMinus) => {
                     tokens.next();
-                    expr = Expr::new_postfix_decrement(expr, debug_info);
+                    expr = Expr::new_postfix_decrement(expr, debug_info.clone());
                 }
                 _ => break,
             };
@@ -1053,7 +990,7 @@ impl Declaration {
 
     pub fn ty(&self, analyzer: &mut Analyzer, debug_info: DebugInfo) -> Result<Type, CompileError> {
         let converted_type =
-            analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info)?;
+            analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info.clone())?;
         analyzer.get_type(
             converted_type,
             &self

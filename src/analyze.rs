@@ -78,10 +78,12 @@ impl<'a> Analyzer<'a> {
                     if let Some(init_declarator) = declaration.init_declarator {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
-                        let debug_info = declaration.debug_info;
+                        let debug_info = declaration.debug_info.clone();
                         self.register_struct_tag_from_type_specifier(&declaration.ty_spec);
-                        let converted_type = self
-                            .resolve_name_and_convert_to_type(&declaration.ty_spec, debug_info)?;
+                        let converted_type = self.resolve_name_and_convert_to_type(
+                            &declaration.ty_spec,
+                            debug_info.clone(),
+                        )?;
                         match self.get_type(converted_type, &init_declarator.declarator)? {
                             ty @ (Type::Base(_)
                             | Type::Ptr(_)
@@ -144,7 +146,7 @@ impl<'a> Analyzer<'a> {
                                     .iter()
                                     .map(|struct_declaration| {
                                         struct_declaration
-                                            .get_type(self, struct_declaration.debug_info)
+                                            .get_type(self, struct_declaration.debug_info.clone())
                                     })
                                     .collect::<Result<_, CompileError>>()?;
                                 let names = vec
@@ -218,9 +220,9 @@ impl<'a> Analyzer<'a> {
                         Some("Array Initializer has incompatible types"),
                     ));
                 }
-                Some((exprs[0].debug_info, exprs[0].ty.clone()))
+                Some((exprs[0].debug_info.clone(), exprs[0].ty.clone()))
             }
-            Some(ConstInitializer::Expr(expr)) => Some((expr.debug_info, expr.ty.clone())),
+            Some(ConstInitializer::Expr(expr)) => Some((expr.debug_info.clone(), expr.ty.clone())),
             None => None,
         };
         if let Some((init_debug_info, init_ty)) = init_debug_info_ty {
@@ -292,7 +294,7 @@ impl<'a> Analyzer<'a> {
     ) -> Result<ConvProgramKind, CompileError> {
         let mut lvars = Vec::new();
         let ident = declarator.direct_declarator.ident_name();
-        let converted_type = self.resolve_name_and_convert_to_type(ty_spec, debug_info)?;
+        let converted_type = self.resolve_name_and_convert_to_type(ty_spec, debug_info.clone())?;
         let ty = self.get_type(converted_type, declarator)?;
 
         let (ret_ty, args_ty, is_flexible) = if let Type::Func {
@@ -325,7 +327,7 @@ impl<'a> Analyzer<'a> {
             for arg in args {
                 // register func args as lvar
                 let converted_type =
-                    self.resolve_name_and_convert_to_type(&arg.ty_spec, arg.debug_info)?;
+                    self.resolve_name_and_convert_to_type(&arg.ty_spec, arg.debug_info.clone())?;
                 let ty = self.get_type(
                     converted_type,
                     &arg.init_declarator
@@ -337,7 +339,7 @@ impl<'a> Analyzer<'a> {
                 let name = name.as_ref().expect("struct");
                 let lvar = self.scope.register_lvar(
                     self.input,
-                    arg.debug_info,
+                    arg.debug_info.clone(),
                     &mut self.offset,
                     name,
                     ty,
@@ -398,10 +400,10 @@ impl<'a> Analyzer<'a> {
                             self.traverse_expr(expr, BTreeSet::new()).map(Some)
                         }
                         ForInitKind::Declaration(declaration) => {
-                            let ty = declaration.ty(self, declaration.debug_info)?;
+                            let ty = declaration.ty(self, declaration.debug_info.clone())?;
                             let lvar = self.scope.register_lvar(
                                 self.input,
-                                declaration.debug_info,
+                                declaration.debug_info.clone(),
                                 &mut self.offset,
                                 declaration.ident_name().unwrap_or_else(|| todo!("struct")),
                                 ty.clone(),
@@ -451,7 +453,8 @@ impl<'a> Analyzer<'a> {
                             let types = vec
                                 .iter()
                                 .map(|struct_declaration| {
-                                    struct_declaration.get_type(self, struct_declaration.debug_info)
+                                    struct_declaration
+                                        .get_type(self, struct_declaration.debug_info.clone())
                                 })
                                 .collect::<Result<_, CompileError>>()?;
                             let names = vec
@@ -482,13 +485,13 @@ impl<'a> Analyzer<'a> {
                         }
                     };
                 }
-                let ty = declaration.ty(self, declaration.debug_info)?;
+                let ty = declaration.ty(self, declaration.debug_info.clone())?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
-                let ty = self.resolve_incomplete_type(ty, declaration.debug_info)?;
+                let ty = self.resolve_incomplete_type(ty, declaration.debug_info.clone())?;
                 let lvar = self.scope.register_lvar(
                     self.input,
-                    declaration.debug_info,
+                    declaration.debug_info.clone(),
                     &mut self.offset,
                     name,
                     ty.clone(),
@@ -502,7 +505,7 @@ impl<'a> Analyzer<'a> {
                         ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                             // Safety:
                             // the lvar is generated by `register_lvar` which initializes lvar_map
-                            ConvExpr::new_lvar_raw(lvar, ty, declaration.debug_info),
+                            ConvExpr::new_lvar_raw(lvar, ty, declaration.debug_info.clone()),
                             rhs,
                             declaration.debug_info,
                         )?)
@@ -512,7 +515,7 @@ impl<'a> Analyzer<'a> {
                             vec.into_iter()
                                 .enumerate()
                                 .map(|(idx, expr)| {
-                                    let expr_debug_info = expr.debug_info;
+                                    let expr_debug_info = expr.debug_info.clone();
                                     let rhs = self.traverse_expr(expr, BTreeSet::new())?;
                                     Ok(ConvStmt::new_expr(self.new_assign_expr_with_type_check(
                                         ConvExpr::new_deref(
@@ -525,22 +528,22 @@ impl<'a> Analyzer<'a> {
                                                     ConvExpr::new_lvar_raw(
                                                         lvar.clone(),
                                                         ty.base_type().clone(),
-                                                        expr_debug_info,
+                                                        expr_debug_info.clone(),
                                                     ),
-                                                    expr_debug_info,
+                                                    expr_debug_info.clone(),
                                                 ),
                                                 ConvExpr::new_num(
                                                     (ty.base_type().size_of() * idx) as isize,
-                                                    declaration.debug_info,
+                                                    declaration.debug_info.clone(),
                                                 ),
                                                 ty.base_type().clone(),
-                                                expr_debug_info,
+                                                expr_debug_info.clone(),
                                             ),
                                             ty.base_type().clone(),
-                                            declaration.debug_info,
+                                            declaration.debug_info.clone(),
                                         ),
                                         rhs,
-                                        declaration.debug_info,
+                                        declaration.debug_info.clone(),
                                     )?))
                                 })
                                 .collect::<Result<Vec<_>, CompileError>>()?,
@@ -634,9 +637,13 @@ impl<'a> Analyzer<'a> {
                 lhs,
                 rhs,
             }) => {
-                let debug_info = lhs.debug_info;
-                let conditional =
-                    Expr::new_conditional(*lhs, Expr::new_num(1, debug_info), *rhs, debug_info);
+                let debug_info = lhs.debug_info.clone();
+                let conditional = Expr::new_conditional(
+                    *lhs,
+                    Expr::new_num(1, debug_info.clone()),
+                    *rhs,
+                    debug_info,
+                );
                 self.traverse_expr(conditional, attrs.clone())
             }
             ExprKind::Binary(Binary {
@@ -644,9 +651,13 @@ impl<'a> Analyzer<'a> {
                 lhs,
                 rhs,
             }) => {
-                let debug_info = lhs.debug_info;
-                let conditional =
-                    Expr::new_conditional(*lhs, *rhs, Expr::new_num(0, debug_info), debug_info);
+                let debug_info = lhs.debug_info.clone();
+                let conditional = Expr::new_conditional(
+                    *lhs,
+                    *rhs,
+                    Expr::new_num(0, debug_info.clone()),
+                    debug_info,
+                );
                 self.traverse_expr(conditional, attrs.clone())
             }
             // do nothing
@@ -659,14 +670,16 @@ impl<'a> Analyzer<'a> {
                 let init = Some(Initializer::Array(
                     letters
                         .chars()
-                        .map(|c| Expr::new_num(u8::try_from(c).unwrap() as isize, debug_info))
+                        .map(|c| {
+                            Expr::new_num(u8::try_from(c).unwrap() as isize, debug_info.clone())
+                        })
                         .collect(),
                 ));
                 let gvar = self.new_global_variable(
                     init.as_ref(),
                     &name,
                     Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
-                    debug_info,
+                    debug_info.clone(),
                 )?;
                 self.conv_program
                     .push(ConvProgramKind::Global(gvar.clone()));
@@ -729,34 +742,37 @@ impl<'a> Analyzer<'a> {
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
                 let mut ty = type_name.ty();
-                ty = self.resolve_incomplete_type(ty, debug_info)?;
+                ty = self.resolve_incomplete_type(ty, debug_info.clone())?;
                 Ok(ConvExpr::new_num(ty.size_of() as isize, debug_info))
             }
             ExprKind::Array(expr, index) => {
-                let debug_info = expr.debug_info;
+                let debug_info = expr.debug_info.clone();
                 // `a[i]` := `*(a + i)`
                 let desugared = Expr::new_deref(
-                    Expr::new_binary(BinOpKind::Add, *expr, *index, debug_info),
+                    Expr::new_binary(BinOpKind::Add, *expr, *index, debug_info.clone()),
                     debug_info,
                 );
                 self.traverse_expr(desugared, BTreeSet::new())
             }
             ExprKind::Member(expr, ident_name) => {
                 let expr = self.traverse_expr(*expr, BTreeSet::new())?;
-                let ty = self.resolve_incomplete_type(expr.ty.clone(), expr.debug_info)?;
+                let ty = self.resolve_incomplete_type(expr.ty.clone(), expr.debug_info.clone())?;
                 let member = if let Type::Struct(Struct { tag, members }) = ty {
                     members
                         .into_iter()
                         .find(|struct_member| struct_member.name == ident_name)
                         .ok_or_else(|| {
                             CompileError::new_no_such_member(
-                                self.input, tag, debug_info, ident_name,
+                                self.input,
+                                tag,
+                                debug_info.clone(),
+                                ident_name,
                             )
                         })?
                 } else {
                     return Err(CompileError::new_type_expect_failed_with_str(
                         self.input,
-                        debug_info,
+                        debug_info.clone(),
                         "Type::Struct(_)".to_string(),
                         expr.ty,
                     ));
@@ -771,9 +787,12 @@ impl<'a> Analyzer<'a> {
                 ))
             }
             ExprKind::Arrow(expr, ident_name) => {
-                let debug_info = expr.debug_info;
-                let converted_expr =
-                    Expr::new_member(Expr::new_deref(*expr, debug_info), ident_name, debug_info);
+                let debug_info = expr.debug_info.clone();
+                let converted_expr = Expr::new_member(
+                    Expr::new_deref(*expr, debug_info.clone()),
+                    ident_name,
+                    debug_info,
+                );
                 self.traverse_expr(converted_expr, BTreeSet::new())
             }
             ExprKind::Conditional { cond, then, els } => {
@@ -785,7 +804,7 @@ impl<'a> Analyzer<'a> {
             ExprKind::PostfixIncrement(expr) => {
                 let expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 let expr_ty = expr.ty.clone();
-                let debug_info = expr.debug_info;
+                let debug_info = expr.debug_info.clone();
                 let value = match &expr_ty {
                     Type::Base(_) => 1,
                     Type::Ptr(ptr_to) => ptr_to.size_of(),
@@ -812,7 +831,7 @@ impl<'a> Analyzer<'a> {
             ExprKind::PostfixDecrement(expr) => {
                 let expr = self.traverse_expr(*expr, BTreeSet::new())?;
                 let expr_ty = expr.ty.clone();
-                let debug_info = expr.debug_info;
+                let debug_info = expr.debug_info.clone();
                 let value = match &expr_ty {
                     Type::Base(_) => 1,
                     Type::Ptr(ptr_to) => ptr_to.size_of(),
@@ -882,7 +901,7 @@ impl<'a> Analyzer<'a> {
                 debug_info,
                 func_args.args.len(),
                 args.len(),
-                *declared_debug_info,
+                declared_debug_info.clone(),
             ));
         }
 
@@ -916,7 +935,7 @@ impl<'a> Analyzer<'a> {
                 } else {
                     return Err(CompileError::new_type_expect_failed(
                         self.input,
-                        got_expr.debug_info,
+                        got_expr.debug_info.clone(),
                         expected_ty.clone(),
                         got_expr.ty.clone(),
                     ));
@@ -1012,10 +1031,10 @@ impl<'a> Analyzer<'a> {
                     }
                     lhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
-                        ConvExpr::new_num(ptr_base.size_of() as isize, debug_info),
+                        ConvExpr::new_num(ptr_base.size_of() as isize, debug_info.clone()),
                         lhs.clone(),
                         Type::Base(BaseType::Int),
-                        debug_info,
+                        debug_info.clone(),
                     ); // i + p -> sizeof(*p) * i + p
                     let ptr_base = ptr_base.clone();
                     Ok(ConvExpr::new_binary(
@@ -1039,10 +1058,10 @@ impl<'a> Analyzer<'a> {
                     rhs = ConvExpr::new_binary(
                         ConvBinOpKind::Mul,
                         rhs.clone(),
-                        ConvExpr::new_num(ptr_base.size_of() as isize, debug_info),
+                        ConvExpr::new_num(ptr_base.size_of() as isize, debug_info.clone()),
                         // Type::Ptr(ptr_base.clone()),
                         Type::Base(BaseType::Int),
-                        debug_info,
+                        debug_info.clone(),
                     ); // p + i ->  p + i * sizeof(*p)
                     let ptr_base = ptr_base.clone();
                     Ok(ConvExpr::new_binary(
@@ -1065,13 +1084,13 @@ impl<'a> Analyzer<'a> {
                         ));
                     }
                     let base_ty = lhs_base.clone();
-                    let size_of = ConvExpr::new_num(base_ty.size_of() as isize, debug_info);
+                    let size_of = ConvExpr::new_num(base_ty.size_of() as isize, debug_info.clone());
                     let subtracted = ConvExpr::new_binary(
                         ConvBinOpKind::Sub,
                         lhs,
                         rhs,
                         Type::Ptr(base_ty.clone()),
-                        debug_info,
+                        debug_info.clone(),
                     );
                     Ok(ConvExpr::new_binary(
                         ConvBinOpKind::Div,
@@ -1199,7 +1218,7 @@ impl<'a> Analyzer<'a> {
             UnaryOp::Minus => self.traverse_binary(
                 Binary::new(
                     BinOpKind::Sub,
-                    Box::new(Expr::new_num(0, debug_info)),
+                    Box::new(Expr::new_num(0, debug_info.clone())),
                     operand,
                 ),
                 debug_info,
@@ -1216,7 +1235,7 @@ impl<'a> Analyzer<'a> {
                     } else {
                         return Err(CompileError::new_type_error_types(
                             self.input,
-                            operand.debug_info,
+                            operand.debug_info.clone(),
                             operand.debug_info,
                             operand.ty,
                             Type::Base(BaseType::Int),
@@ -1230,14 +1249,14 @@ impl<'a> Analyzer<'a> {
                 let eq_with_0 = Binary::new(
                     BinOpKind::Eq,
                     operand,
-                    Box::new(Expr::new_num(0, debug_info)),
+                    Box::new(Expr::new_num(0, debug_info.clone())),
                 );
                 Ok(self.traverse_binary(eq_with_0, debug_info)?)
             }
             UnaryOp::Increment => {
                 let operand = self.traverse_expr(*operand, BTreeSet::new())?;
                 let expr_ty = operand.ty.clone();
-                let debug_info = operand.debug_info;
+                let debug_info = operand.debug_info.clone();
                 let value = match &expr_ty {
                     Type::Base(_) => 1,
                     Type::Ptr(ptr_to) => ptr_to.size_of(),
@@ -1262,7 +1281,7 @@ impl<'a> Analyzer<'a> {
             UnaryOp::Decrement => {
                 let operand = self.traverse_expr(*operand, BTreeSet::new())?;
                 let expr_ty = operand.ty.clone();
-                let debug_info = operand.debug_info;
+                let debug_info = operand.debug_info.clone();
                 let value = match &expr_ty {
                     Type::Base(_) => 1,
                     Type::Ptr(ptr_to) => ptr_to.size_of(),
@@ -1301,7 +1320,7 @@ impl<'a> Analyzer<'a> {
                 self.new_assign_expr_with_type_check(
                     // Safety:
                     // the lvar is generated by `Self::register_lvar` which initializes lvar_map
-                    ConvExpr::new_lvar_raw(lvar, ty, debug_info),
+                    ConvExpr::new_lvar_raw(lvar, ty, debug_info.clone()),
                     rhs,
                     debug_info,
                 )
@@ -1334,7 +1353,7 @@ impl<'a> Analyzer<'a> {
                             .map(|declaration| {
                                 let converted_ty_spec = self.resolve_name_and_convert_to_type(
                                     &declaration.ty_spec,
-                                    declaration.debug_info,
+                                    declaration.debug_info.clone(),
                                 )?;
                                 self.get_type(
                                     converted_ty_spec,
@@ -1520,7 +1539,7 @@ impl ConvExpr {
         } else {
             return self;
         };
-        let debug_info = self.debug_info;
+        let debug_info = self.debug_info.clone();
         ConvExpr::new_addr(self, debug_info)
     }
 
@@ -1579,7 +1598,7 @@ impl ConvExpr {
     pub fn implicit_cast(self, src: &str, ty: &Type) -> Result<Self, CompileError> {
         // self.ty -> ty
         let (new_ty, cast_kind) =
-            ConvExpr::type_cast(src, self.ty.clone(), ty.clone(), self.debug_info)?;
+            ConvExpr::type_cast(src, self.ty.clone(), ty.clone(), self.debug_info.clone())?;
         Ok(ConvExpr::new_cast(self, new_ty, cast_kind))
     }
 
@@ -1593,7 +1612,7 @@ impl ConvExpr {
         }
         let lhs_ty = lhs.ty.clone();
         let rhs_ty = rhs.ty.clone();
-        let debug_info = lhs.debug_info;
+        let debug_info = lhs.debug_info.clone();
         match (lhs_ty, rhs_ty) {
             (Type::Base(base_lhs), Type::Base(base_rhs))
                 if base_lhs.bytes() == base_rhs.bytes() =>
@@ -1654,7 +1673,7 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::Binary(ConvBinary::new(kind, Box::new(lhs), Box::new(rhs))),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1667,7 +1686,7 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::PostfixIncrement(Box::new(lhs), value),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1680,12 +1699,12 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::PostfixDecrement(Box::new(lhs), value),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
     pub fn new_conditional_raw(cond: ConvExpr, then: ConvExpr, els: ConvExpr, ty: Type) -> Self {
-        let debug_info = cond.debug_info;
+        let debug_info = cond.debug_info.clone();
         Self {
             kind: ConvExprKind::Conditional {
                 cond: Box::new(cond),
@@ -1693,17 +1712,17 @@ impl ConvExpr {
                 els: Box::new(els),
             },
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
     pub fn new_unary(unary_op: ConvUnaryOp, expr: ConvExpr) -> Self {
         let ty = expr.ty.clone();
-        let debug_info = expr.debug_info;
+        let debug_info = expr.debug_info.clone();
         Self {
             kind: ConvExprKind::Unary(unary_op, Box::new(expr)),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1717,7 +1736,7 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::Func(name, args, is_flexible, 0),
             ty: ret_ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1725,7 +1744,7 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::Num(num),
             ty: Type::Base(BaseType::Int),
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1734,7 +1753,7 @@ impl ConvExpr {
         ConvExpr {
             kind: ConvExprKind::Assign(Box::new(lhs), Box::new(rhs)),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1750,7 +1769,7 @@ impl ConvExpr {
                 minus_offset,
             },
             ty: member_ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1758,7 +1777,7 @@ impl ConvExpr {
         ConvExpr {
             kind: ConvExprKind::LVar(lvar),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1767,7 +1786,7 @@ impl ConvExpr {
         ConvExpr {
             kind: ConvExprKind::GVar(gvar),
             ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1775,7 +1794,7 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::Deref(Box::new(expr)),
             ty: base_ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -1784,16 +1803,16 @@ impl ConvExpr {
         Self {
             kind: ConvExprKind::Addr(Box::new(expr)),
             ty: Type::Ptr(Box::new(ty)),
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
     pub fn new_cast(expr: ConvExpr, to_ty: Type, kind: CastKind) -> Self {
-        let debug_info = expr.debug_info;
+        let debug_info = expr.debug_info.clone();
         Self {
             kind: ConvExprKind::Cast(Box::new(expr), kind),
             ty: to_ty,
-            debug_info: debug_info,
+            debug_info,
         }
     }
 }
@@ -2194,10 +2213,11 @@ impl ConstInitializer {
 
     pub fn get_debug_info(&self) -> DebugInfo {
         match self {
-            ConstInitializer::Expr(expr) => expr.debug_info,
-            ConstInitializer::Array(vec) => {
-                vec.first().map(|expr| expr.debug_info).unwrap_or_default()
-            }
+            ConstInitializer::Expr(expr) => expr.debug_info.clone(),
+            ConstInitializer::Array(vec) => vec
+                .first()
+                .map(|expr| expr.debug_info.clone())
+                .unwrap_or_default(),
         }
     }
 }
@@ -2214,7 +2234,7 @@ impl ConstExpr {
         Self {
             kind: ConstExprKind::Int(n),
             ty: Type::Base(BaseType::Int),
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -2222,7 +2242,7 @@ impl ConstExpr {
         Self {
             kind: ConstExprKind::Char(n),
             ty: Type::Base(BaseType::Int),
-            debug_info: debug_info,
+            debug_info,
         }
     }
 
@@ -2248,7 +2268,7 @@ impl ConstExpr {
     }
 
     pub fn apply_unary_op(&self, unary_op: &ConvUnaryOp) -> Result<ConstExpr, CompileError> {
-        let debug_info = self.debug_info;
+        let debug_info = self.debug_info.clone();
         Ok(match unary_op {
             ConvUnaryOp::BitInvert => match &self.kind {
                 ConstExprKind::Int(n) => ConstExpr::new_int(!*n, debug_info),
@@ -2288,14 +2308,14 @@ pub enum ConstExprKind {
 impl ConstExpr {
     #[allow(clippy::too_many_lines)]
     fn try_eval_as_const(src: &str, expr: ConvExpr) -> Result<Self, CompileError> {
-        let debug_info = expr.debug_info;
+        let debug_info = expr.debug_info.clone();
         let ty = expr.ty.clone();
         let kind = expr.kind;
         let bool_to_isize = |b| if b { 1 } else { 0 };
-        let num_expr = |num: isize| ConstExpr {
+        let num_expr = |num: isize, debug_info| ConstExpr {
             kind: ConstExprKind::Int(num as i32),
             ty,
-            debug_info: debug_info,
+            debug_info,
         };
         Ok(match kind {
             ConvExprKind::Binary(ConvBinary {
@@ -2305,6 +2325,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     + Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Sub,
@@ -2313,6 +2334,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     - Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Mul,
@@ -2321,6 +2343,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     * Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Div,
@@ -2329,6 +2352,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     / Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Rem,
@@ -2337,39 +2361,52 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     % Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Eq,
                 lhs,
                 rhs,
-            }) => num_expr(bool_to_isize(
-                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
-                    == Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
-            )),
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                        == Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+            ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Ne,
                 lhs,
                 rhs,
-            }) => num_expr(bool_to_isize(
-                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
-                    != Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
-            )),
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                        != Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+            ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Lt,
                 lhs,
                 rhs,
-            }) => num_expr(bool_to_isize(
-                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
-                    < Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
-            )),
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                        < Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+            ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Le,
                 lhs,
                 rhs,
-            }) => num_expr(bool_to_isize(
-                Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
-                    <= Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
-            )),
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
+                        <= Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+            ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::LShift,
                 lhs,
@@ -2377,6 +2414,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     << Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::RShift,
@@ -2385,6 +2423,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     >> Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::BitWiseAnd,
@@ -2393,6 +2432,7 @@ impl ConstExpr {
             }) => num_expr(
                 Self::try_eval_as_const(src, *lhs)?.get_num_lit()?
                     & Self::try_eval_as_const(src, *rhs)?.get_num_lit()?,
+                debug_info,
             ),
             ConvExprKind::GVar(ref gvar) => {
                 // TODO: check if gvar is const or not
@@ -2402,12 +2442,11 @@ impl ConstExpr {
                     .map_or(None, |init| Some(init.get_num_lit()?))
                 {
                     eprintln!("Have to check {:?} is const or not.", &gvar);
-                    return Ok(num_expr(val));
-                } else {
-                    return Err(CompileError::new_const_expr_error(src, debug_info, kind));
+                    return Ok(num_expr(val, debug_info));
                 }
+                return Err(CompileError::new_const_expr_error(src, debug_info, kind));
             }
-            ConvExprKind::Num(num) => num_expr(num),
+            ConvExprKind::Num(num) => num_expr(num, debug_info),
             ConvExprKind::LVar(_)
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(..)
@@ -2447,7 +2486,7 @@ impl ConstExpr {
                 }
             }
             ConvExprKind::PostfixIncrement(expr, _) | ConvExprKind::PostfixDecrement(expr, _) => {
-                let expr_debug_info = expr.debug_info;
+                let expr_debug_info = expr.debug_info.clone();
                 let value = Self::try_eval_as_const(src, *expr)?.get_num_lit()?;
                 ConstExpr {
                     kind: ConstExprKind::Int(value as i32),
@@ -2595,7 +2634,7 @@ impl<'a> Analyzer<'a> {
                 let types = vec
                     .iter()
                     .map(|struct_declaration| {
-                        struct_declaration.get_type(self, struct_declaration.debug_info)
+                        struct_declaration.get_type(self, struct_declaration.debug_info.clone())
                     })
                     .collect::<Result<_, CompileError>>()?;
                 let names = vec

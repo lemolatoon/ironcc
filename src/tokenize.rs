@@ -1,6 +1,5 @@
 use crate::error::{CompileError, CompileErrorKind, TokenizeErrorKind};
 use crate::unimplemented_err;
-use std::cell::Ref;
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -405,9 +404,9 @@ impl Token {
     }
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug, Default)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Default)]
 pub struct DebugInfo {
-    // file_name: Rc<String>,
+    file_name: Rc<String>,
     pos: Position,
 }
 
@@ -434,7 +433,7 @@ impl Position {
 impl DebugInfo {
     pub fn new(file_name: Rc<String>, n_char: usize, n_line: usize) -> Self {
         Self {
-            // file_name,
+            file_name,
             pos: Position { n_char, n_line },
         }
     }
@@ -454,7 +453,7 @@ impl DebugInfo {
 
     #[allow(clippy::return_self_not_must_use)]
     pub fn get_pos_and_advance(&mut self, len_token: usize) -> Self {
-        let return_struct = *self;
+        let return_struct = self.clone();
         self.pos.n_char += len_token;
         return_struct
     }

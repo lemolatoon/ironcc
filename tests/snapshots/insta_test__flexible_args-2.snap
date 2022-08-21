@@ -31,6 +31,7 @@ Program {
                                                 },
                                             ),
                                             debug_info: DebugInfo {
+                                                file_name: "",
                                                 pos: Position {
                                                     n_char: 16,
                                                     n_line: 1,
@@ -45,6 +46,7 @@ Program {
                         },
                     ),
                     debug_info: DebugInfo {
+                        file_name: "",
                         pos: Position {
                             n_char: 4,
                             n_line: 1,
@@ -53,6 +55,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
+                file_name: "",
                 pos: Position {
                     n_char: 4,
                     n_line: 1,
@@ -94,6 +97,7 @@ Program {
                                                                 2,
                                                             ),
                                                             debug_info: DebugInfo {
+                                                                file_name: "",
                                                                 pos: Position {
                                                                     n_char: 16,
                                                                     n_line: 4,
@@ -105,6 +109,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -124,6 +129,7 @@ Program {
                                                         "Hello World:%d\n",
                                                     ),
                                                     debug_info: DebugInfo {
+                                                        file_name: "",
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 5,
@@ -135,6 +141,7 @@ Program {
                                                         "a",
                                                     ),
                                                     debug_info: DebugInfo {
+                                                        file_name: "",
                                                         pos: Position {
                                                             n_char: 35,
                                                             n_line: 5,
@@ -144,6 +151,7 @@ Program {
                                             ],
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 5,
@@ -157,6 +165,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
+                file_name: "",
                 pos: Position {
                     n_char: 4,
                     n_line: 3,

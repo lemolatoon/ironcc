@@ -6,6 +6,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Struct,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 0,
                 n_line: 0,
@@ -17,6 +18,7 @@ expression: tester.tokens().as_ref().unwrap()
             "A",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 7,
                 n_line: 0,
@@ -28,6 +30,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 9,
                 n_line: 0,
@@ -37,6 +40,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Struct,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -48,6 +52,7 @@ expression: tester.tokens().as_ref().unwrap()
             "A",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 11,
                 n_line: 1,
@@ -59,6 +64,7 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 12,
                 n_line: 1,
@@ -70,6 +76,7 @@ expression: tester.tokens().as_ref().unwrap()
             "before",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 13,
                 n_line: 1,
@@ -79,6 +86,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 19,
                 n_line: 1,
@@ -90,6 +98,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 2,
@@ -101,6 +110,7 @@ expression: tester.tokens().as_ref().unwrap()
             "value",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 8,
                 n_line: 2,
@@ -110,6 +120,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 13,
                 n_line: 2,
@@ -119,6 +130,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Struct,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -130,6 +142,7 @@ expression: tester.tokens().as_ref().unwrap()
             "A",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 11,
                 n_line: 3,
@@ -141,6 +154,7 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 12,
                 n_line: 3,
@@ -152,6 +166,7 @@ expression: tester.tokens().as_ref().unwrap()
             "after",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 14,
                 n_line: 3,
@@ -161,6 +176,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 19,
                 n_line: 3,
@@ -172,6 +188,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 0,
                 n_line: 4,
@@ -183,6 +200,7 @@ expression: tester.tokens().as_ref().unwrap()
             "global_doubly_linked_list",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 2,
                 n_line: 4,
@@ -192,6 +210,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 27,
                 n_line: 4,
@@ -203,6 +222,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 0,
                 n_line: 6,
@@ -214,6 +234,7 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 6,
@@ -225,6 +246,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 8,
                 n_line: 6,
@@ -236,6 +258,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 9,
                 n_line: 6,
@@ -247,6 +270,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 11,
                 n_line: 6,
@@ -256,6 +280,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Struct,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 7,
@@ -267,6 +292,7 @@ expression: tester.tokens().as_ref().unwrap()
             "A",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 11,
                 n_line: 7,
@@ -278,6 +304,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a1",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 13,
                 n_line: 7,
@@ -287,6 +314,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 15,
                 n_line: 7,
@@ -296,6 +324,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Struct,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 8,
@@ -307,6 +336,7 @@ expression: tester.tokens().as_ref().unwrap()
             "A",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 11,
                 n_line: 8,
@@ -318,6 +348,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a2",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 13,
                 n_line: 8,
@@ -327,6 +358,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 15,
                 n_line: 8,
@@ -338,6 +370,7 @@ expression: tester.tokens().as_ref().unwrap()
             "global_doubly_linked_list",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 9,
@@ -347,6 +380,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Dot,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 29,
                 n_line: 9,
@@ -358,6 +392,7 @@ expression: tester.tokens().as_ref().unwrap()
             "before",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 30,
                 n_line: 9,
@@ -367,6 +402,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 37,
                 n_line: 9,
@@ -378,6 +414,7 @@ expression: tester.tokens().as_ref().unwrap()
             And,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 39,
                 n_line: 9,
@@ -389,6 +426,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a1",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 40,
                 n_line: 9,
@@ -398,6 +436,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 42,
                 n_line: 9,
@@ -409,6 +448,7 @@ expression: tester.tokens().as_ref().unwrap()
             "global_doubly_linked_list",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 10,
@@ -418,6 +458,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Dot,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 29,
                 n_line: 10,
@@ -429,6 +470,7 @@ expression: tester.tokens().as_ref().unwrap()
             "value",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 30,
                 n_line: 10,
@@ -438,6 +480,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 36,
                 n_line: 10,
@@ -449,6 +492,7 @@ expression: tester.tokens().as_ref().unwrap()
             2,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 38,
                 n_line: 10,
@@ -458,6 +502,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 39,
                 n_line: 10,
@@ -469,6 +514,7 @@ expression: tester.tokens().as_ref().unwrap()
             "global_doubly_linked_list",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 11,
@@ -478,6 +524,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Dot,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 29,
                 n_line: 11,
@@ -489,6 +536,7 @@ expression: tester.tokens().as_ref().unwrap()
             "after",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 30,
                 n_line: 11,
@@ -498,6 +546,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 36,
                 n_line: 11,
@@ -509,6 +558,7 @@ expression: tester.tokens().as_ref().unwrap()
             And,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 38,
                 n_line: 11,
@@ -520,6 +570,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a2",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 39,
                 n_line: 11,
@@ -529,6 +580,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 41,
                 n_line: 11,
@@ -540,6 +592,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 0,
                 n_line: 12,
@@ -549,6 +602,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 1,
                 n_line: 12,

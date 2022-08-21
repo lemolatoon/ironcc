@@ -36,6 +36,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 1,
@@ -60,6 +61,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -77,6 +79,7 @@ Program {
                                                     "p",
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 8,
                                                         n_line: 3,
@@ -90,6 +93,7 @@ Program {
                                                             "a",
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 13,
                                                                 n_line: 3,
@@ -98,6 +102,7 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 12,
                                                         n_line: 3,
@@ -106,6 +111,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 10,
                                                 n_line: 3,
@@ -119,6 +125,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
+                file_name: "",
                 pos: Position {
                     n_char: 0,
                     n_line: 0,

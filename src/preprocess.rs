@@ -10,7 +10,7 @@ impl<'b> Preprocessor<'b> {
     }
 
     pub fn preprocess(&self, input: &str) -> String {
-        return input.to_string();
+        input.to_string()
     }
 
     // #[allow(clippy::too_many_lines)]

@@ -43,7 +43,7 @@ impl Clone for CompileErrorKind {
             Self::ParseError(arg0) => Self::ParseError(arg0.clone()),
             Self::AnalyzeError(arg0) => Self::AnalyzeError(arg0.clone()),
             Self::GenerateError(arg0) => Self::GenerateError(arg0.clone()),
-            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(*arg0, arg1.clone()),
+            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(arg0.clone(), arg1.clone()),
             Self::IOError(arg0) => Self::IOError(Box::new(format!("{:?}", arg0))),
         }
     }
@@ -133,19 +133,19 @@ impl CompileError {
     pub fn new_args_error(
         src: &str,
         name: String,
-        pos: DebugInfo,
+        debug_info: DebugInfo,
         expected: usize,
         got: usize,
-        declared_pos: DebugInfo,
+        declared_debug_info: DebugInfo,
     ) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::FuncArgsError(
                 name,
-                pos,
+                debug_info,
                 expected,
                 got,
-                declared_pos,
+                declared_debug_info,
             )),
         )
     }
@@ -208,22 +208,26 @@ impl CompileError {
 
     pub fn new_type_expect_failed_with_str(
         src: &str,
-        pos: DebugInfo,
+        debug_info: DebugInfo,
         expected: String,
         got: Type,
     ) -> Self {
         CompileError::new(
             src,
             CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
+                TypeExpectedFailedKind::TypeWithPatternStr {
+                    pos: debug_info,
+                    expected,
+                    got,
+                },
             )),
         )
     }
 
-    pub fn new_const_expr_error(src: &str, pos: DebugInfo, kind: ConvExprKind) -> Self {
+    pub fn new_const_expr_error(src: &str, debug_info: DebugInfo, kind: ConvExprKind) -> Self {
         CompileError::new(
             src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)),
+            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)),
         )
     }
 
@@ -303,21 +307,21 @@ impl Debug for CompileError {
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(&self.src, vec![got.debug_info], f)?;
+                error_at(&self.src, vec![got.debug_info.clone()], f)?;
                 writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::UnexpectedVoid(pos, msg),
+                TypeExpectedFailedKind::UnexpectedVoid(debug_info, msg),
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?}", msg)?;
             }
             AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, debug_info, kind)) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
             }
             AnalyzeError(AnalyzeErrorKind::RedefinedError(name, debug_info, kind)) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
             }
             AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
@@ -325,7 +329,7 @@ impl Debug for CompileError {
                 pos: debug_info,
                 got_member_name,
             }) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 if let Some(tag_name) = tag_name {
                     writeln!(
                         f,
@@ -345,7 +349,7 @@ impl Debug for CompileError {
                 expected,
                 got,
             })) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
@@ -355,7 +359,7 @@ impl Debug for CompileError {
                     got,
                 },
             )) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeError(error, msg)) => {
@@ -378,17 +382,17 @@ impl Debug for CompileError {
                 got,
                 declared_pos,
             )) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "In {:?}'s calling, {} args expected, but got {}",
                     name, expected, got
                 )?;
-                error_at(&self.src, vec![*declared_pos], f)?;
+                error_at(&self.src, vec![declared_pos.clone()], f)?;
                 writeln!(f, "{} is first declared here.", name)?;
             }
             AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This kind({:?}) of Expr cannot be evaluated as constants.",
@@ -396,11 +400,11 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
-                error_at(&self.src, vec![expr.debug_info], f)?;
+                error_at(&self.src, vec![expr.debug_info.clone()], f)?;
                 writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
             }
             GenerateError(GenerateErrorKind::LeftValueError(expr)) => {
-                error_at(&self.src, vec![expr.debug_info], f)?;
+                error_at(&self.src, vec![expr.debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This expr cannot be used for generate address(Not left value). Type: {:?}",
@@ -410,7 +414,7 @@ impl Debug for CompileError {
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
                 UnexpectedTypeSizeStatus::Expr(expr),
             )) => {
-                error_at(&self.src, vec![expr.debug_info], f)?;
+                error_at(&self.src, vec![expr.debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This expr's type size is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}",
@@ -441,7 +445,7 @@ impl Debug for CompileError {
                 writeln!(f, "this type size is unexpected. size: {}", size)?;
             }
             Unimplemented(Some(debug_info), msg) => {
-                error_at(&self.src, vec![*debug_info], f)?;
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "{}", msg)?;
             }
             Unimplemented(None, msg) => {
@@ -491,11 +495,13 @@ pub enum TypeErrorKind {
 }
 
 impl TypeErrorKind {
-    pub const fn positions(&self) -> (DebugInfo, DebugInfo) {
+    pub fn positions(&self) -> (DebugInfo, DebugInfo) {
         match self {
-            TypeErrorKind::Expr { lhs, rhs } => (lhs.debug_info, rhs.debug_info),
-            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.debug_info, expr1.debug_info),
-            TypeErrorKind::Type(pos0, pos1, _, _) => (*pos0, *pos1),
+            TypeErrorKind::Expr { lhs, rhs } => (lhs.debug_info.clone(), rhs.debug_info.clone()),
+            TypeErrorKind::ConstExpr(expr0, expr1) => {
+                (expr0.debug_info.clone(), expr1.debug_info.clone())
+            }
+            TypeErrorKind::Type(pos0, pos1, _, _) => (pos0.clone(), pos1.clone()),
         }
     }
 

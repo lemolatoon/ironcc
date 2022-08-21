@@ -39,6 +39,7 @@ Program {
                                                                 4,
                                                             ),
                                                             debug_info: DebugInfo {
+                                                                file_name: "",
                                                                 pos: Position {
                                                                     n_char: 17,
                                                                     n_line: 2,
@@ -50,6 +51,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -68,6 +70,7 @@ Program {
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 3,
@@ -76,6 +79,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 15,
                                                 n_line: 3,
@@ -89,6 +93,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
+                file_name: "",
                 pos: Position {
                     n_char: 4,
                     n_line: 1,

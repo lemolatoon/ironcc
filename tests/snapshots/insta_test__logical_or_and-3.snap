@@ -33,6 +33,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 1,
@@ -47,6 +48,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 1,
@@ -58,6 +60,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
+                                    file_name: "",
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 1,
@@ -81,6 +84,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -95,6 +99,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 2,
@@ -106,6 +111,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
+                                    file_name: "",
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 2,
@@ -129,6 +135,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 3,
@@ -152,6 +159,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 3,
@@ -171,6 +179,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 21,
                                                                 n_line: 3,
@@ -185,6 +194,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 3,
@@ -196,6 +206,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 3,
@@ -210,6 +221,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 26,
                                                         n_line: 3,
@@ -224,6 +236,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 3,
@@ -235,6 +248,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 3,
@@ -246,6 +260,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
+                                    file_name: "",
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 3,
@@ -269,6 +284,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -292,6 +308,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 4,
@@ -306,6 +323,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 4,
@@ -325,6 +343,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
+                                                            file_name: "",
                                                             pos: Position {
                                                                 n_char: 21,
                                                                 n_line: 4,
@@ -336,6 +355,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 4,
@@ -350,6 +370,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 4,
@@ -364,6 +385,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
+                                                    file_name: "",
                                                     pos: Position {
                                                         n_char: 26,
                                                         n_line: 4,
@@ -375,6 +397,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
+                                            file_name: "",
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 4,
@@ -386,6 +409,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
+                                    file_name: "",
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 4,

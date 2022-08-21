@@ -8,6 +8,7 @@ expression: tester.tokens().as_ref().unwrap()
             Void,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -19,6 +20,7 @@ expression: tester.tokens().as_ref().unwrap()
             "printf",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 9,
                 n_line: 1,
@@ -30,6 +32,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 15,
                 n_line: 1,
@@ -41,6 +44,7 @@ expression: tester.tokens().as_ref().unwrap()
             Char,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 16,
                 n_line: 1,
@@ -52,6 +56,7 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 21,
                 n_line: 1,
@@ -63,6 +68,7 @@ expression: tester.tokens().as_ref().unwrap()
             "msg",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 22,
                 n_line: 1,
@@ -72,6 +78,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Comma,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 25,
                 n_line: 1,
@@ -81,6 +88,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: DotDotDot,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 27,
                 n_line: 1,
@@ -92,6 +100,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 30,
                 n_line: 1,
@@ -101,6 +110,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 31,
                 n_line: 1,
@@ -112,6 +122,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -123,6 +134,7 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 8,
                 n_line: 3,
@@ -134,6 +146,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 12,
                 n_line: 3,
@@ -145,6 +158,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 13,
                 n_line: 3,
@@ -156,6 +170,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 15,
                 n_line: 3,
@@ -167,6 +182,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 8,
                 n_line: 4,
@@ -178,6 +194,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 12,
                 n_line: 4,
@@ -187,6 +204,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 14,
                 n_line: 4,
@@ -198,6 +216,7 @@ expression: tester.tokens().as_ref().unwrap()
             2,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 16,
                 n_line: 4,
@@ -207,6 +226,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 17,
                 n_line: 4,
@@ -218,6 +238,7 @@ expression: tester.tokens().as_ref().unwrap()
             "printf",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 8,
                 n_line: 5,
@@ -229,6 +250,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 14,
                 n_line: 5,
@@ -240,6 +262,7 @@ expression: tester.tokens().as_ref().unwrap()
             "Hello World:%d\n",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 15,
                 n_line: 5,
@@ -249,6 +272,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Comma,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 33,
                 n_line: 5,
@@ -260,6 +284,7 @@ expression: tester.tokens().as_ref().unwrap()
             "a",
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 35,
                 n_line: 5,
@@ -271,6 +296,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 36,
                 n_line: 5,
@@ -280,6 +306,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 37,
                 n_line: 5,
@@ -291,6 +318,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 6,
@@ -300,6 +328,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
+            file_name: "",
             pos: Position {
                 n_char: 4,
                 n_line: 7,
