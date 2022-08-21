@@ -662,7 +662,7 @@ fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
             rhs: Box::new(rhs),
         }),
         ty,
-        pos: DebugInfo::default(),
+        debug_info: DebugInfo::default(),
     }
 }
 

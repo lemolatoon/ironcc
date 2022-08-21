@@ -196,14 +196,14 @@ impl<'a> Generator<'a> {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
-                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_pos(), "Ptr Initializer should not be array."))?)?,
+                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
                             Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
                                     let size_of = ty.size_of();
                                     let size_explanation = size_hint(*ty)?;
                                     for i in 0..size {
-                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, pos: _ }) = vec.get(i) {
+                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, debug_info: _ }) = vec.get(i) {
                                             writeln!(f, ".{} {}", size_explanation, val)?;
                                         } else {
                                             writeln!(f, ".zero {}", size_of)?;
@@ -211,7 +211,7 @@ impl<'a> Generator<'a> {
                                 }},
                                 ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
-                            Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_pos(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
+                            Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
                             Type::InComplete(_) => todo!(),
                         },

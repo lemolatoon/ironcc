@@ -4,6 +4,7 @@ use crate::analyze::ConvExprKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
 use crate::tokenize::DebugInfo;
+use crate::tokenize::Position;
 use crate::tokenize::Token;
 use std::error::Error;
 use std::fmt::Debug;
@@ -289,12 +290,12 @@ impl Debug for CompileError {
             AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
         };
         match &self.kind {
-            TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            TokenizeError(TokenizeErrorKind::UnexpectedEof(debug_info)) => {
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "Got Unexpected Eof while tokenizing")?;
             }
-            TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            TokenizeError(TokenizeErrorKind::UnexpectedChar(debug_info, c)) => {
+                error_at(&self.src, vec![debug_info.clone()], f)?;
                 writeln!(f, "Got Unexpected char while tokenizing: `{}`", c)?;
             }
             ParseError(ParseErrorKind::UnexpectedEof(expect)) => {
@@ -302,7 +303,7 @@ impl Debug for CompileError {
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(&self.src, vec![got.pos], f)?;
+                error_at(&self.src, vec![got.debug_info], f)?;
                 writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
@@ -311,20 +312,20 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*pos], f)?;
                 writeln!(f, "{:?}", msg)?;
             }
-            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, debug_info, kind)) => {
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
             }
-            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, debug_info, kind)) => {
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
             }
             AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
                 tag_name,
-                pos,
+                pos: debug_info,
                 got_member_name,
             }) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(&self.src, vec![*debug_info], f)?;
                 if let Some(tag_name) = tag_name {
                     writeln!(
                         f,
@@ -340,17 +341,21 @@ impl Debug for CompileError {
                 }
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type {
-                pos,
+                pos: debug_info,
                 expected,
                 got,
             })) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
+                TypeExpectedFailedKind::TypeWithPatternStr {
+                    pos: debug_info,
+                    expected,
+                    got,
+                },
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeError(error, msg)) => {
@@ -368,12 +373,12 @@ impl Debug for CompileError {
             }
             AnalyzeError(AnalyzeErrorKind::FuncArgsError(
                 name,
-                pos,
+                debug_info,
                 expected,
                 got,
                 declared_pos,
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(
                     f,
                     "In {:?}'s calling, {} args expected, but got {}",
@@ -382,8 +387,8 @@ impl Debug for CompileError {
                 error_at(&self.src, vec![*declared_pos], f)?;
                 writeln!(f, "{} is first declared here.", name)?;
             }
-            AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) => {
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(
                     f,
                     "This kind({:?}) of Expr cannot be evaluated as constants.",
@@ -391,11 +396,11 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(&self.src, vec![expr.debug_info], f)?;
                 writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
             }
             GenerateError(GenerateErrorKind::LeftValueError(expr)) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(&self.src, vec![expr.debug_info], f)?;
                 writeln!(
                     f,
                     "This expr cannot be used for generate address(Not left value). Type: {:?}",
@@ -405,7 +410,7 @@ impl Debug for CompileError {
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
                 UnexpectedTypeSizeStatus::Expr(expr),
             )) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(&self.src, vec![expr.debug_info], f)?;
                 writeln!(
                     f,
                     "This expr's type size is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}",
@@ -435,8 +440,8 @@ impl Debug for CompileError {
             )) => {
                 writeln!(f, "this type size is unexpected. size: {}", size)?;
             }
-            Unimplemented(Some(pos), msg) => {
-                error_at(&self.src, vec![*pos], f)?;
+            Unimplemented(Some(debug_info), msg) => {
+                error_at(&self.src, vec![*debug_info], f)?;
                 writeln!(f, "{}", msg)?;
             }
             Unimplemented(None, msg) => {
@@ -488,8 +493,8 @@ pub enum TypeErrorKind {
 impl TypeErrorKind {
     pub const fn positions(&self) -> (DebugInfo, DebugInfo) {
         match self {
-            TypeErrorKind::Expr { lhs, rhs } => (lhs.pos, rhs.pos),
-            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),
+            TypeErrorKind::Expr { lhs, rhs } => (lhs.debug_info, rhs.debug_info),
+            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.debug_info, expr1.debug_info),
             TypeErrorKind::Type(pos0, pos1, _, _) => (*pos0, *pos1),
         }
     }
@@ -624,7 +629,7 @@ fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
             None => writeln!(
                 f,
                 "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
-                DebugInfo::new(n_char, n_line)
+                Position { n_char, n_line }
             ),
         }?;
     }

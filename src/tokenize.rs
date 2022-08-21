@@ -1,5 +1,6 @@
 use crate::error::{CompileError, CompileErrorKind, TokenizeErrorKind};
 use crate::unimplemented_err;
+use std::cell::Ref;
 use std::iter::Peekable;
 
 pub struct Tokenizer<'a> {
@@ -168,7 +169,7 @@ impl<'a> Tokenizer<'a> {
                                 Box::new("'0' | '1'"),
                                 Token {
                                     kind: Box::new(TokenKind::Ident(c.to_string())),
-                                    pos,
+                                    debug_info: pos,
                                 },
                             ));
                         }
@@ -382,14 +383,14 @@ pub enum BinOpToken {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Token {
     pub kind: Box<TokenKind>,
-    pub pos: DebugInfo,
+    pub debug_info: DebugInfo,
 }
 
 impl Token {
     pub fn new(token_kind: TokenKind, pos: DebugInfo) -> Self {
         Self {
             kind: Box::new(token_kind),
-            pos,
+            debug_info: pos,
         }
     }
 
@@ -404,8 +405,9 @@ impl Token {
     }
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy, Default)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug, Default)]
 pub struct DebugInfo {
+    // file_name: Rc<String>,
     pos: Position,
 }
 
@@ -415,9 +417,24 @@ pub struct Position {
     pub n_line: usize,
 }
 
-impl DebugInfo {
+impl Position {
     pub const fn new(n_char: usize, n_line: usize) -> Self {
+        Self { n_char, n_line }
+    }
+
+    pub const fn get_n_char(&self) -> usize {
+        self.n_char
+    }
+
+    pub const fn get_n_line(&self) -> usize {
+        self.n_line
+    }
+}
+
+impl DebugInfo {
+    pub fn new(file_name: Rc<String>, n_char: usize, n_line: usize) -> Self {
         Self {
+            // file_name,
             pos: Position { n_char, n_line },
         }
     }
@@ -458,6 +475,7 @@ where
 }
 
 use std::fmt::Debug;
+use std::rc::Rc;
 impl<'a, I> Debug for TokenStream<'a, I>
 where
     I: Iterator<Item = Token> + Clone + Debug,
@@ -513,7 +531,10 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         let token = self.next();
         // let next = token.map(|token| *token.kind);
         match token {
-            Some(Token { kind, pos }) => match *kind {
+            Some(Token {
+                kind,
+                debug_info: pos,
+            }) => match *kind {
                 TokenKind::Num(num) => Ok(num),
                 _ => Err(CompileError::new_expected_failed(
                     self.input,
@@ -533,7 +554,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
-                TokenKind::Ident(name) => Ok((name, token.pos)),
+                TokenKind::Ident(name) => Ok((name, token.debug_info)),
                 _ => Err(CompileError::new_expected_failed(
                     self.input,
                     Box::new("TokenKind::Ident(_)"),
@@ -551,9 +572,10 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
     pub fn expect(&mut self, kind: TokenKind) -> Result<(), CompileError> {
         let peeked_token = self.next();
         match peeked_token {
-            Some(Token { kind: got, pos: _ })
-                if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof =>
-            {
+            Some(Token {
+                kind: got,
+                debug_info: _,
+            }) if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof => {
                 Err(CompileError::new_unexpected_eof(self.input, Box::new(kind)))
             }
             None => Err(CompileError::new_unexpected_eof(self.input, Box::new(kind))),
