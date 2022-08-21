@@ -3,9 +3,9 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    tokenize::{Token, TokenStream, Tokenizer},
+    tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 #[cfg(test)]
 #[macro_export]
@@ -108,7 +108,10 @@ impl<'a> CachedTokenizer<'a> {
 
     fn tokens(&mut self) -> Result<&Vec<Token>, CompileError> {
         self.tokens
-            .get_or_insert_with(|| self.tokenizer.tokenize())
+            .get_or_insert_with(|| {
+                self.tokenizer
+                    .tokenize(Rc::new(FileInfo::new(String::new(), self.src.to_string())))
+            })
             .as_ref()
             .map_err(|err| err.clone())
     }

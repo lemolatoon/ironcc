@@ -12,7 +12,7 @@ tmp.s: tmp.c $(COMPILER)
 a.out: tmp.s link.c
 	$(CC) tmp.s tmp_linked.c -o a.out $(CFLAGS)
 
-run: a.out 
+run: a.out $(COMPILER)
 	./a.out
 
 

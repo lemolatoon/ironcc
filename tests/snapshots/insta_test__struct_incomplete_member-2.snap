@@ -15,7 +15,10 @@ Program {
                             [
                                 StructDeclaration {
                                     debug_info: DebugInfo {
-                                        file_name: "",
+                                        file_info: FileInfo {
+                                            file_name: "",
+                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                        },
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 1,
@@ -35,7 +38,10 @@ Program {
                                 },
                                 StructDeclaration {
                                     debug_info: DebugInfo {
-                                        file_name: "",
+                                        file_info: FileInfo {
+                                            file_name: "",
+                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                        },
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 2,
@@ -51,7 +57,10 @@ Program {
                                 },
                                 StructDeclaration {
                                     debug_info: DebugInfo {
-                                        file_name: "",
+                                        file_info: FileInfo {
+                                            file_name: "",
+                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                        },
                                         pos: Position {
                                             n_char: 4,
                                             n_line: 3,
@@ -84,7 +93,10 @@ Program {
                         },
                     ),
                     debug_info: DebugInfo {
-                        file_name: "",
+                        file_info: FileInfo {
+                            file_name: "",
+                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                        },
                         pos: Position {
                             n_char: 0,
                             n_line: 0,
@@ -93,7 +105,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                },
                 pos: Position {
                     n_char: 0,
                     n_line: 0,
@@ -136,7 +151,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                            },
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 7,
@@ -165,7 +183,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                            },
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 8,
@@ -185,7 +206,10 @@ Program {
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 4,
                                                                 n_line: 9,
@@ -195,7 +219,10 @@ Program {
                                                     "before",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 30,
                                                         n_line: 9,
@@ -209,7 +236,10 @@ Program {
                                                             "a1",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 40,
                                                                 n_line: 9,
@@ -218,7 +248,10 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 39,
                                                         n_line: 9,
@@ -227,7 +260,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                            },
                                             pos: Position {
                                                 n_char: 37,
                                                 n_line: 9,
@@ -247,7 +283,10 @@ Program {
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 4,
                                                                 n_line: 10,
@@ -257,7 +296,10 @@ Program {
                                                     "value",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 30,
                                                         n_line: 10,
@@ -269,7 +311,10 @@ Program {
                                                     2,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 38,
                                                         n_line: 10,
@@ -278,7 +323,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                            },
                                             pos: Position {
                                                 n_char: 36,
                                                 n_line: 10,
@@ -298,7 +346,10 @@ Program {
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 4,
                                                                 n_line: 11,
@@ -308,7 +359,10 @@ Program {
                                                     "after",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 30,
                                                         n_line: 11,
@@ -322,7 +376,10 @@ Program {
                                                             "a2",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 39,
                                                                 n_line: 11,
@@ -331,7 +388,10 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                    },
                                                     pos: Position {
                                                         n_char: 38,
                                                         n_line: 11,
@@ -340,7 +400,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                            },
                                             pos: Position {
                                                 n_char: 36,
                                                 n_line: 11,
@@ -354,7 +417,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                },
                 pos: Position {
                     n_char: 0,
                     n_line: 6,

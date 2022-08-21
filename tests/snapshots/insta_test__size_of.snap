@@ -8,7 +8,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 0,
                 n_line: 1,
@@ -20,7 +23,10 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -32,7 +38,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 1,
@@ -44,7 +53,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 9,
                 n_line: 1,
@@ -56,7 +68,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 11,
                 n_line: 1,
@@ -68,7 +83,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 1,
                 n_line: 2,
@@ -80,7 +98,10 @@ expression: tester.tokens().as_ref().unwrap()
             "a",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 5,
                 n_line: 2,
@@ -90,7 +111,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 7,
                 n_line: 2,
@@ -102,7 +126,10 @@ expression: tester.tokens().as_ref().unwrap()
             5,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 9,
                 n_line: 2,
@@ -112,7 +139,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 10,
                 n_line: 2,
@@ -124,7 +154,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 1,
                 n_line: 3,
@@ -136,7 +169,10 @@ expression: tester.tokens().as_ref().unwrap()
             "b",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 5,
                 n_line: 3,
@@ -146,7 +182,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 7,
                 n_line: 3,
@@ -156,7 +195,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: SizeOf,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 9,
                 n_line: 3,
@@ -168,7 +210,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 16,
                 n_line: 3,
@@ -180,7 +225,10 @@ expression: tester.tokens().as_ref().unwrap()
             "a",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 17,
                 n_line: 3,
@@ -192,7 +240,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 18,
                 n_line: 3,
@@ -202,7 +253,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 19,
                 n_line: 3,
@@ -214,7 +268,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 1,
                 n_line: 4,
@@ -226,7 +283,10 @@ expression: tester.tokens().as_ref().unwrap()
             "c",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 5,
                 n_line: 4,
@@ -236,7 +296,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 7,
                 n_line: 4,
@@ -246,7 +309,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: SizeOf,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 9,
                 n_line: 4,
@@ -258,7 +324,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 16,
                 n_line: 4,
@@ -270,7 +339,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 17,
                 n_line: 4,
@@ -282,7 +354,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 20,
                 n_line: 4,
@@ -292,7 +367,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 21,
                 n_line: 4,
@@ -304,7 +382,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 1,
                 n_line: 5,
@@ -316,7 +397,10 @@ expression: tester.tokens().as_ref().unwrap()
             "d",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 5,
                 n_line: 5,
@@ -326,7 +410,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 7,
                 n_line: 5,
@@ -336,7 +423,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: SizeOf,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 9,
                 n_line: 5,
@@ -348,7 +438,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 16,
                 n_line: 5,
@@ -360,7 +453,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 17,
                 n_line: 5,
@@ -372,7 +468,10 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 20,
                 n_line: 5,
@@ -384,7 +483,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 21,
                 n_line: 5,
@@ -394,7 +496,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 22,
                 n_line: 5,
@@ -406,7 +511,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 1,
                 n_line: 6,
@@ -416,7 +524,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+            },
             pos: Position {
                 n_char: 0,
                 n_line: 7,

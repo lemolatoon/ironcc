@@ -2,11 +2,12 @@ extern crate ironcc;
 pub mod test_utils;
 
 use std::collections::BTreeSet;
+use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
 use ironcc::error::CompileError;
 use ironcc::parse::*;
-use ironcc::tokenize::{DebugInfo, TokenStream, Tokenizer};
+use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[test]
@@ -509,7 +510,8 @@ fn parse_type_test() {
 }
 
 fn extract_ty(src: &str) -> Type {
-    let tokens = Tokenizer::new(src).tokenize().unwrap();
+    let file_info = FileInfo::new(String::new(), src.to_string());
+    let tokens = Tokenizer::new(src).tokenize(Rc::new(file_info)).unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
     let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new(src);
@@ -527,7 +529,8 @@ fn extract_ty(src: &str) -> Type {
 }
 
 fn extract_func_ty(src: &str) -> Type {
-    let tokens = Tokenizer::new(src).tokenize().unwrap();
+    let file_info = FileInfo::new(String::new(), src.to_string());
+    let tokens = Tokenizer::new(src).tokenize(Rc::new(file_info)).unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
     let ast = Parser::new(src).parse_func_def(&mut tokens).unwrap();
     let (ty_spec, declarator, body, pos) = if let ProgramComponent {

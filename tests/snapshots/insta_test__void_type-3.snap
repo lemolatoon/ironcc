@@ -39,7 +39,10 @@ ConvProgram {
                                             Void,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 3,
@@ -79,7 +82,10 @@ ConvProgram {
                                                             ),
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_name: "",
+                                                            file_info: FileInfo {
+                                                                file_name: "",
+                                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                                            },
                                                             pos: Position {
                                                                 n_char: 13,
                                                                 n_line: 3,
@@ -101,7 +107,10 @@ ConvProgram {
                                                     ),
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                                    },
                                                     pos: Position {
                                                         n_char: 12,
                                                         n_line: 3,
@@ -126,7 +135,10 @@ ConvProgram {
                                             Void,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                            },
                                             pos: Position {
                                                 n_char: 12,
                                                 n_line: 3,
@@ -138,7 +150,10 @@ ConvProgram {
                                     Void,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                    },
                                     pos: Position {
                                         n_char: 10,
                                         n_line: 3,

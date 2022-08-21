@@ -24,7 +24,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -39,7 +42,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -54,7 +60,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -69,7 +78,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -84,7 +96,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -99,7 +114,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -114,7 +132,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -129,7 +150,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -144,7 +168,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -159,7 +186,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -174,7 +204,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -189,7 +222,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 20,
                                         n_line: 4,
@@ -234,7 +270,10 @@ ConvProgram {
                                             ),
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -264,7 +303,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -279,7 +321,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -294,7 +339,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -309,7 +357,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -324,7 +375,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -339,7 +393,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -354,7 +411,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -369,7 +429,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -384,7 +447,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -399,7 +465,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -414,7 +483,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -429,7 +501,10 @@ ConvProgram {
                                                                             Int,
                                                                         ),
                                                                         debug_info: DebugInfo {
-                                                                            file_name: "",
+                                                                            file_info: FileInfo {
+                                                                                file_name: "",
+                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                            },
                                                                             pos: Position {
                                                                                 n_char: 20,
                                                                                 n_line: 4,
@@ -445,7 +520,10 @@ ConvProgram {
                                                     Char,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                    },
                                                     pos: Position {
                                                         n_char: 20,
                                                         n_line: 4,
@@ -459,7 +537,10 @@ ConvProgram {
                                             ),
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 20,
                                                 n_line: 4,
@@ -473,7 +554,10 @@ ConvProgram {
                                     ),
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 4,
@@ -503,7 +587,10 @@ ConvProgram {
                                                 ),
                                             ),
                                             debug_info: DebugInfo {
-                                                file_name: "",
+                                                file_info: FileInfo {
+                                                    file_name: "",
+                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                },
                                                 pos: Position {
                                                     n_char: 15,
                                                     n_line: 5,
@@ -518,7 +605,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                    },
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 5,

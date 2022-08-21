@@ -45,7 +45,10 @@ ConvProgram {
                                                                 Int,
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_name: "",
+                                                                file_info: FileInfo {
+                                                                    file_name: "",
+                                                                    src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                                },
                                                                 pos: Position {
                                                                     n_char: 15,
                                                                     n_line: 3,
@@ -59,7 +62,10 @@ ConvProgram {
                                                         ),
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_name: "",
+                                                        file_info: FileInfo {
+                                                            file_name: "",
+                                                            src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                        },
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 3,
@@ -78,7 +84,10 @@ ConvProgram {
                                                                     Int,
                                                                 ),
                                                                 debug_info: DebugInfo {
-                                                                    file_name: "",
+                                                                    file_info: FileInfo {
+                                                                        file_name: "",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                                    },
                                                                     pos: Position {
                                                                         n_char: 21,
                                                                         n_line: 3,
@@ -93,7 +102,10 @@ ConvProgram {
                                                                     Int,
                                                                 ),
                                                                 debug_info: DebugInfo {
-                                                                    file_name: "",
+                                                                    file_info: FileInfo {
+                                                                        file_name: "",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                                    },
                                                                     pos: Position {
                                                                         n_char: 15,
                                                                         n_line: 3,
@@ -106,7 +118,10 @@ ConvProgram {
                                                         Int,
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_name: "",
+                                                        file_info: FileInfo {
+                                                            file_name: "",
+                                                            src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                        },
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 3,
@@ -121,7 +136,10 @@ ConvProgram {
                                             ),
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                            },
                                             pos: Position {
                                                 n_char: 15,
                                                 n_line: 3,
@@ -133,7 +151,10 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_name: "",
+                                    file_info: FileInfo {
+                                        file_name: "",
+                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                    },
                                     pos: Position {
                                         n_char: 15,
                                         n_line: 3,

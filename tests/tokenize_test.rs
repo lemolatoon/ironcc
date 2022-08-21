@@ -1,6 +1,6 @@
 extern crate ironcc;
 pub mod test_utils;
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use test_utils::kind_eq;
 
@@ -9,10 +9,11 @@ use ironcc::{error::CompileError, tokenize::*};
 #[test]
 fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     let input = String::from("0 + 0 + 11  -4");
+    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     let tokenizer = Tokenizer::new(&input);
     assert_eq!(
         tokenizer
-            .tokenize()
+            .tokenize(file_info)
             .unwrap()
             .into_iter()
             .map(|token| token.kind())
@@ -61,9 +62,10 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
         )
     );
     let input = String::from("1 + 4 -       909");
+    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     let tokenizer = Tokenizer::new(&input);
     assert!(kind_eq(
-        &tokenizer.tokenize().unwrap(),
+        &tokenizer.tokenize(file_info).unwrap(),
         &tokens!(
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -75,8 +77,9 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
     ));
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
     let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert!(kind_eq(
-        &tokenizer.tokenize().unwrap(),
+        &tokenizer.tokenize(file_info).unwrap(),
         &tokens!(
             TokenKind::Num(0),
             TokenKind::BinOp(BinOpToken::Plus),
@@ -99,14 +102,15 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
 fn debug_info_with_pos(n_char: usize, n_line: usize) -> DebugInfo {
     use std::rc::Rc;
 
-    DebugInfo::new(Rc::new(String::new()), n_char, n_line)
+    DebugInfo::new(Rc::new(FileInfo::default()), n_char, n_line)
 }
 #[test]
 fn tokenize_pos_test() -> Result<(), CompileError> {
     let input = String::from("1 +1");
     let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert_eq!(
-        tokenizer.tokenize().unwrap(),
+        tokenizer.tokenize(file_info).unwrap(),
         token_poses!(
             (TokenKind::Num(1), debug_info_with_pos(0, 0)),
             (
@@ -120,8 +124,9 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
 
     let input = String::from("1 +1\n\t+5");
     let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input.to_string()));
     assert_eq!(
-        tokenizer.tokenize().unwrap(),
+        tokenizer.tokenize(file_info).unwrap(),
         token_poses!(
             (TokenKind::Num(1), debug_info_with_pos(0, 0)),
             (

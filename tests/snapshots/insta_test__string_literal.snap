@@ -8,7 +8,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -20,7 +23,10 @@ expression: tester.tokens().as_ref().unwrap()
             "printf",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 1,
@@ -32,7 +38,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 14,
                 n_line: 1,
@@ -44,7 +53,10 @@ expression: tester.tokens().as_ref().unwrap()
             Char,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 15,
                 n_line: 1,
@@ -56,7 +68,10 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 20,
                 n_line: 1,
@@ -68,7 +83,10 @@ expression: tester.tokens().as_ref().unwrap()
             "msg",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 21,
                 n_line: 1,
@@ -80,7 +98,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 24,
                 n_line: 1,
@@ -90,7 +111,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 25,
                 n_line: 1,
@@ -102,7 +126,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -114,7 +141,10 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 3,
@@ -126,7 +156,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 12,
                 n_line: 3,
@@ -138,7 +171,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 13,
                 n_line: 3,
@@ -150,7 +186,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 15,
                 n_line: 3,
@@ -162,7 +201,10 @@ expression: tester.tokens().as_ref().unwrap()
             Char,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 4,
@@ -174,7 +216,10 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 13,
                 n_line: 4,
@@ -186,7 +231,10 @@ expression: tester.tokens().as_ref().unwrap()
             "msg",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 14,
                 n_line: 4,
@@ -196,7 +244,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eq,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 18,
                 n_line: 4,
@@ -208,7 +259,10 @@ expression: tester.tokens().as_ref().unwrap()
             "Hello World",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 20,
                 n_line: 4,
@@ -218,7 +272,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 33,
                 n_line: 4,
@@ -230,7 +287,10 @@ expression: tester.tokens().as_ref().unwrap()
             "printf",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 5,
@@ -242,7 +302,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 14,
                 n_line: 5,
@@ -254,7 +317,10 @@ expression: tester.tokens().as_ref().unwrap()
             "msg",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 15,
                 n_line: 5,
@@ -266,7 +332,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 18,
                 n_line: 5,
@@ -276,7 +345,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 19,
                 n_line: 5,
@@ -288,7 +360,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 6,
@@ -298,7 +373,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 7,

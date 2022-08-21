@@ -544,68 +544,102 @@ fn error_at(
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
     writeln!(f, "\n")?;
-    positions
-        .sort_by(|a, b| (a.get_n_line(), a.get_n_char()).cmp(&(b.get_n_line(), b.get_n_char())));
-    let mut same_line_positions = Vec::new();
+    positions.sort_by(|a, b| {
+        (a.get_file_name(), a.get_n_line(), a.get_n_char()).cmp(&(
+            b.get_file_name(),
+            b.get_n_line(),
+            b.get_n_char(),
+        ))
+    });
+    let max_prefix_len = positions
+        .iter()
+        .map(|debug_info| debug_info.to_error_msg_prefix_string().len())
+        .max()
+        .unwrap_or(0)
+        + 3;
+    let collect_by_lines = |same_file_name_info_vec: Vec<DebugInfo>| {
+        let mut same_line_positions = Vec::new();
+        let mut tmp_vec = Vec::new();
+        // TOOD: handle None well
+        let mut tmp_line = same_file_name_info_vec
+            .first()
+            .map_or(0, DebugInfo::get_n_line);
+        for pos in same_file_name_info_vec {
+            if pos.get_n_line() == tmp_line {
+                tmp_vec.push(pos);
+            } else {
+                tmp_line = pos.get_n_line();
+                same_line_positions.push(tmp_vec);
+                tmp_vec = vec![pos];
+            }
+        }
+        same_line_positions.push(tmp_vec);
+        same_line_positions
+    };
+    let mut collected_by_file_name_by_lines_debug_infos = Vec::new();
     let mut tmp_vec = Vec::new();
-    // TOOD: handle None well
-    let mut tmp_line = positions.first().map_or(0, |pos| pos.get_n_line());
-    for pos in positions {
-        if pos.get_n_line() == tmp_line {
-            tmp_vec.push(pos);
+    let mut tmp_file_name = positions.first().unwrap().get_file_name();
+    for debug_info in positions {
+        if debug_info.get_file_name() == tmp_file_name {
+            tmp_vec.push(debug_info);
         } else {
-            tmp_line = pos.get_n_line();
-            same_line_positions.push(tmp_vec);
-            tmp_vec = vec![pos];
+            tmp_file_name = debug_info.get_file_name();
+            collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+            tmp_vec = vec![debug_info];
         }
     }
-    same_line_positions.push(tmp_vec);
-    let max_prefix_len = same_line_positions
-        .last()
-        .unwrap()
-        .first()
-        .unwrap()
-        .get_n_line()
-        .to_string()
-        .len()
-        + 3;
-    for same_line_pos in same_line_positions {
-        let mut splited = src.split('\n');
-        let n_line = same_line_pos.first().unwrap().get_n_line();
-        let mut num_prefix = String::with_capacity(max_prefix_len);
-        num_prefix.push_str(&(n_line + 1).to_string());
-        while num_prefix.len() < max_prefix_len {
-            if num_prefix.len() == max_prefix_len - 2 {
-                num_prefix.push(':');
-                continue;
+    collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+    // let max_prefix_len = same_line_positions
+    //     .last()
+    //     .unwrap()
+    //     .first()
+    //     .unwrap()
+    //     .get_n_line()
+    //     .to_string()
+    //     .len()
+    //     + 3;
+    for same_line_positions in collected_by_file_name_by_lines_debug_infos {
+        let file_info = &same_line_positions[0][0];
+        let file_name = file_info.get_file_name();
+        let src = file_info.get_file_src();
+        for same_line_pos in same_line_positions {
+            let mut splited = src.split('\n');
+            let n_line = same_line_pos.first().unwrap().get_n_line();
+            let mut prefix = String::with_capacity(max_prefix_len);
+            prefix.push_str(&format!("{}:{}", &file_name, n_line + 1));
+            while prefix.len() < max_prefix_len {
+                if prefix.len() == max_prefix_len - 2 {
+                    prefix.push(':');
+                    continue;
+                }
+                prefix.push(' ');
             }
-            num_prefix.push(' ');
-        }
-        if let Some(line) = splited.nth(n_line) {
-            writeln!(f, "{}{}", num_prefix, line)
-        } else {
-            writeln!(
+            if let Some(line) = splited.nth(n_line) {
+                writeln!(f, "{}{}", prefix, line)
+            } else {
+                writeln!(
                 f,
-                "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
+                "[While Dealing Error, another error occured.] DebugInfo is illegal,\nPosition: {:?}",
                 same_line_pos.first().unwrap()
             )
-        }?;
-        let n_iter = same_line_pos.last().unwrap().get_n_char() + max_prefix_len;
-        let mut buffer = String::with_capacity(n_iter + 1);
-        let mut point = same_line_pos
-            .into_iter()
-            .map(|pos| pos.get_n_char() + max_prefix_len)
-            .peekable();
-        for idx in 0..=n_iter {
-            match point.peek() {
-                Some(&next) if next == idx => {
-                    point.next();
-                    buffer.push('^');
+            }?;
+            let n_iter = same_line_pos.last().unwrap().get_n_char() + max_prefix_len;
+            let mut buffer = String::with_capacity(n_iter + 1);
+            let mut point = same_line_pos
+                .into_iter()
+                .map(|pos| pos.get_n_char() + max_prefix_len)
+                .peekable();
+            for idx in 0..=n_iter {
+                match point.peek() {
+                    Some(&next) if next == idx => {
+                        point.next();
+                        buffer.push('^');
+                    }
+                    _ => buffer.push(' '),
                 }
-                _ => buffer.push(' '),
             }
+            writeln!(f, "{}", buffer)?;
         }
-        writeln!(f, "{}", buffer)?;
     }
     Ok(())
 }

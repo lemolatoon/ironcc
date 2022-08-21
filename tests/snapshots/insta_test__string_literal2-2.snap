@@ -31,7 +31,10 @@ Program {
                                                 },
                                             ),
                                             debug_info: DebugInfo {
-                                                file_name: "",
+                                                file_info: FileInfo {
+                                                    file_name: "",
+                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                },
                                                 pos: Position {
                                                     n_char: 15,
                                                     n_line: 1,
@@ -46,7 +49,10 @@ Program {
                         },
                     ),
                     debug_info: DebugInfo {
-                        file_name: "",
+                        file_info: FileInfo {
+                            file_name: "",
+                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                        },
                         pos: Position {
                             n_char: 4,
                             n_line: 1,
@@ -55,7 +61,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                },
                 pos: Position {
                     n_char: 4,
                     n_line: 1,
@@ -94,7 +103,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -112,7 +124,10 @@ Program {
                                                     "msg",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                    },
                                                     pos: Position {
                                                         n_char: 8,
                                                         n_line: 5,
@@ -124,7 +139,10 @@ Program {
                                                     "Hello World",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                    },
                                                     pos: Position {
                                                         n_char: 14,
                                                         n_line: 5,
@@ -133,7 +151,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 12,
                                                 n_line: 5,
@@ -153,7 +174,10 @@ Program {
                                                         "msg",
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_name: "",
+                                                        file_info: FileInfo {
+                                                            file_name: "",
+                                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                        },
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 6,
@@ -163,7 +187,10 @@ Program {
                                             ],
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 6,
@@ -177,7 +204,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg;\n        msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                },
                 pos: Position {
                     n_char: 4,
                     n_line: 3,

@@ -8,7 +8,10 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -20,7 +23,10 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 1,
@@ -32,7 +38,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 12,
                 n_line: 1,
@@ -44,7 +53,10 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 13,
                 n_line: 1,
@@ -56,7 +68,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 15,
                 n_line: 1,
@@ -66,7 +81,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Return,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 8,
                 n_line: 2,
@@ -78,7 +96,10 @@ expression: tester.tokens().as_ref().unwrap()
             7,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 15,
                 n_line: 2,
@@ -90,7 +111,10 @@ expression: tester.tokens().as_ref().unwrap()
             And,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 19,
                 n_line: 2,
@@ -102,7 +126,10 @@ expression: tester.tokens().as_ref().unwrap()
             5,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 21,
                 n_line: 2,
@@ -112,7 +139,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 24,
                 n_line: 2,
@@ -124,7 +154,10 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -134,7 +167,10 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
-            file_name: "",
+            file_info: FileInfo {
+                file_name: "",
+                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+            },
             pos: Position {
                 n_char: 4,
                 n_line: 4,

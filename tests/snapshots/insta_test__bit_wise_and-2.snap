@@ -31,7 +31,10 @@ Program {
                                                         7,
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_name: "",
+                                                        file_info: FileInfo {
+                                                            file_name: "",
+                                                            src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                                                        },
                                                         pos: Position {
                                                             n_char: 15,
                                                             n_line: 2,
@@ -43,7 +46,10 @@ Program {
                                                         5,
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_name: "",
+                                                        file_info: FileInfo {
+                                                            file_name: "",
+                                                            src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                                                        },
                                                         pos: Position {
                                                             n_char: 21,
                                                             n_line: 2,
@@ -53,7 +59,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 19,
                                                 n_line: 2,
@@ -67,7 +76,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                },
                 pos: Position {
                     n_char: 4,
                     n_line: 1,

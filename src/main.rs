@@ -6,10 +6,12 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::process::exit;
+use std::rc::Rc;
 
 use ironcc::analyze::Analyzer;
 use ironcc::error::CompileError;
 use ironcc::preprocess::Preprocessor;
+use ironcc::tokenize::FileInfo;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
 use ironcc::{generate::Generator, parse::Parser};
@@ -46,7 +48,8 @@ fn preprocess(input: &str, include_dir: &str) -> String {
 
 fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError> {
     let tokenizer = Tokenizer::new(&input);
-    let tokens = tokenizer.tokenize()?;
+    let file_info = Rc::new(FileInfo::new(file_name, input.clone())); // TODO: remove this clone, by all input info around substituted with Rc
+    let tokens = tokenizer.tokenize(file_info)?;
     let mut token_stream = TokenStream::new(tokens.into_iter(), &input);
 
     let parser = Parser::new(&input);

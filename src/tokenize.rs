@@ -12,9 +12,9 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn tokenize(&self) -> Result<Vec<Token>, CompileError> {
+    pub fn tokenize(&self, file_info: Rc<FileInfo>) -> Result<Vec<Token>, CompileError> {
         let mut tokens = Vec::new();
-        let mut pos = DebugInfo::default(); // 0, 0
+        let mut pos = DebugInfo::default_with_file_info(file_info); // 0, 0
         let mut input = <&str>::clone(&self.input);
 
         'tokenize_loop: while !input.is_empty() {
@@ -406,8 +406,28 @@ impl Token {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Default)]
 pub struct DebugInfo {
-    file_name: Rc<String>,
+    file_info: Rc<FileInfo>,
     pos: Position,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Default)]
+pub struct FileInfo {
+    file_name: String,
+    src: String,
+}
+
+impl FileInfo {
+    pub const fn new(file_name: String, src: String) -> Self {
+        Self { file_name, src }
+    }
+
+    pub fn get_file_name(&self) -> &str {
+        &self.file_name
+    }
+
+    pub fn get_file_src(&self) -> &str {
+        &self.src
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Copy, Default)]
@@ -431,11 +451,30 @@ impl Position {
 }
 
 impl DebugInfo {
-    pub fn new(file_name: Rc<String>, n_char: usize, n_line: usize) -> Self {
+    pub fn new(file_info: Rc<FileInfo>, n_char: usize, n_line: usize) -> Self {
         Self {
-            file_name,
+            file_info,
             pos: Position { n_char, n_line },
         }
+    }
+
+    pub fn default_with_file_info(file_info: Rc<FileInfo>) -> Self {
+        Self {
+            file_info,
+            pos: Position::default(),
+        }
+    }
+
+    pub fn to_error_msg_prefix_string(&self) -> String {
+        format!("{}:{}", self.file_info.file_name, self.get_n_line(),)
+    }
+
+    pub fn get_file_name(&self) -> String {
+        self.file_info.file_name.clone()
+    }
+
+    pub fn get_file_src(&self) -> String {
+        self.file_info.src.clone()
     }
 
     pub const fn get_n_char(&self) -> usize {
@@ -672,5 +711,12 @@ pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
 
 pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError> {
     let tokenizer = Tokenizer::new(input);
-    Ok(tokenizer.tokenize()?.into_iter().map(Token::kind).collect())
+    Ok(tokenizer
+        .tokenize(Rc::new(FileInfo {
+            file_name: String::new(),
+            src: input.to_string(),
+        }))?
+        .into_iter()
+        .map(Token::kind)
+        .collect())
 }

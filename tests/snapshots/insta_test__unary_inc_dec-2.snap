@@ -39,7 +39,10 @@ Program {
                                                                 1,
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_name: "",
+                                                                file_info: FileInfo {
+                                                                    file_name: "",
+                                                                    src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                                                },
                                                                 pos: Position {
                                                                     n_char: 16,
                                                                     n_line: 2,
@@ -51,7 +54,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -70,7 +76,10 @@ Program {
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                                    },
                                                     pos: Position {
                                                         n_char: 10,
                                                         n_line: 3,
@@ -79,7 +88,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 3,
@@ -98,7 +110,10 @@ Program {
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                                    },
                                                     pos: Position {
                                                         n_char: 10,
                                                         n_line: 4,
@@ -107,7 +122,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                                            },
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -121,7 +139,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "\n    int main() {\n        int a = 1;\n        ++a;\n        --a;\n    }\n    ",
+                },
                 pos: Position {
                     n_char: 4,
                     n_line: 1,

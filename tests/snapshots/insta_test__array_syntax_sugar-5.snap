@@ -38,7 +38,10 @@ Program {
                                                                     5,
                                                                 ),
                                                                 debug_info: DebugInfo {
-                                                                    file_name: "",
+                                                                    file_info: FileInfo {
+                                                                        file_name: "",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                                    },
                                                                     pos: Position {
                                                                         n_char: 11,
                                                                         n_line: 2,
@@ -52,7 +55,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                            },
                                             pos: Position {
                                                 n_char: 1,
                                                 n_line: 2,
@@ -70,7 +76,10 @@ Program {
                                                     "array",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                    },
                                                     pos: Position {
                                                         n_char: 15,
                                                         n_line: 3,
@@ -82,7 +91,10 @@ Program {
                                                     3,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_name: "",
+                                                    file_info: FileInfo {
+                                                        file_name: "",
+                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                    },
                                                     pos: Position {
                                                         n_char: 21,
                                                         n_line: 3,
@@ -91,7 +103,10 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_name: "",
+                                            file_info: FileInfo {
+                                                file_name: "",
+                                                src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                            },
                                             pos: Position {
                                                 n_char: 15,
                                                 n_line: 3,
@@ -105,7 +120,10 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_name: "",
+                file_info: FileInfo {
+                    file_name: "",
+                    src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                },
                 pos: Position {
                     n_char: 0,
                     n_line: 1,
