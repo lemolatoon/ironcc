@@ -886,11 +886,10 @@ impl<'a> Analyzer<'a> {
             Some(func) => func,
             None => {
                 return Err(CompileError::new_undeclared_error(
-                    self.input,
                     name,
                     debug_info,
                     VariableKind::Func,
-                ))
+                ));
             }
         };
         let is_flexible_length = func_args.is_flexible_length();
@@ -1395,14 +1394,13 @@ impl<'a> Analyzer<'a> {
         let var = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar,
             None => {
-                return Err(CompileError::new(
-                    self.input,
-                    CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                return Err(CompileError::new(CompileErrorKind::AnalyzeError(
+                    AnalyzeErrorKind::UndeclaredError(
                         name.to_string(),
                         debug_info,
                         VariableKind::Local,
-                    )),
-                ))
+                    ),
+                )))
             }
         };
         Ok(match var {
@@ -2685,7 +2683,6 @@ impl<'a> Analyzer<'a> {
                 }
                 Some(Taged::Struct(StructTagKind::OnlyTag(name))) => {
                     Err(CompileError::new_undeclared_error(
-                        self.input,
                         name.clone(),
                         debug_info,
                         VariableKind::Struct,

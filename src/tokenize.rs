@@ -242,6 +242,7 @@ impl<'a> Tokenizer<'a> {
                         "struct" => TokenKind::Struct,
                         "const" => {
                             // TODO: support const
+                            eprintln!("WARNING: `const` is just ignored this time.");
                             input = &input[5..];
                             pos.get_pos_and_advance(5);
                             continue;
@@ -261,10 +262,9 @@ impl<'a> Tokenizer<'a> {
     }
 
     pub fn new_unexpected_char(&self, pos: DebugInfo, c: char) -> CompileError {
-        CompileError::new(
-            self.input,
-            CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)),
-        )
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedChar(pos, c),
+        ))
     }
 }
 

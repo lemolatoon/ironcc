@@ -9,7 +9,6 @@ use std::fmt::Debug;
 pub struct Parser<'a> {
     /// input source code
     /// this member is only used when macro `unimplemented_err` is called
-    #[allow(dead_code)]
     input: &'a str,
 }
 

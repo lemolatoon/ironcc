@@ -7,31 +7,22 @@
 #[macro_export]
 macro_rules! unimplemented_err {
     ($input: expr, $pos: expr, $msg: expr) => {
-        CompileError::new(
-            $input,
-            $crate::error::CompileErrorKind::Unimplemented(
-                Some($pos),
-                format!("{}{}", $crate::meta!(), $msg),
-            ),
-        )
+        CompileError::new($crate::error::CompileErrorKind::Unimplemented(
+            Some($pos),
+            format!("{}{}", $crate::meta!(), $msg),
+        ))
     };
     ($msg: expr) => {
-        CompileError::new(
-            "",
-            $crate::error::CompileErrorKind::Unimplemented(
-                None,
-                format!("{} {}", $crate::meta!(), $msg),
-            ),
-        )
+        CompileError::new($crate::error::CompileErrorKind::Unimplemented(
+            None,
+            format!("{} {}", $crate::meta!(), $msg),
+        ))
     };
     () => {
-        CompileError::new(
-            "",
-            $crate::error::CompileErrorKind::Unimplemented(
-                None,
-                format!("{} Not yet implemented.", $crate::meta!()),
-            ),
-        )
+        CompileError::new($crate::error::CompileErrorKind::Unimplemented(
+            None,
+            format!("{} Not yet implemented.", $crate::meta!()),
+        ))
     };
 }
 
