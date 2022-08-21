@@ -572,8 +572,8 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
                     Token::new(*kind, pos),
                 )),
             },
-            _ => Err(CompileError::new_unexpected_eof(
-                self.input,
+            None => Err(CompileError::new_unexpected_eof(
+                None,
                 Box::new("TokenKind::Num(_)"),
             )),
         }
@@ -591,7 +591,7 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
                 )),
             },
             _ => Err(CompileError::new_unexpected_eof(
-                self.input,
+                None,
                 Box::new("TokenKind::Ident(_)"),
             )),
         }
@@ -603,11 +603,11 @@ impl<'a, I: Iterator<Item = Token> + Clone + Debug> TokenStream<'a, I> {
         match peeked_token {
             Some(Token {
                 kind: got,
-                debug_info: _,
-            }) if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof => {
-                Err(CompileError::new_unexpected_eof(self.input, Box::new(kind)))
-            }
-            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(kind))),
+                debug_info,
+            }) if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof => Err(
+                CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new(kind)),
+            ),
+            None => Err(CompileError::new_unexpected_eof(None, Box::new(kind))),
             Some(token) => {
                 if kind != *token.kind {
                     return Err(CompileError::new_expected_failed(Box::new(kind), token));

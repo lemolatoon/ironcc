@@ -6,15 +6,11 @@ use crate::{
 };
 use std::fmt::Debug;
 
-pub struct Parser<'a> {
-    /// input source code
-    /// this member is only used when macro `unimplemented_err` is called
-    input: &'a str,
-}
+pub struct Parser {}
 
-impl<'a> Parser<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self { input }
+impl Parser {
+    pub const fn new() -> Self {
+        Self {}
     }
     pub fn parse_program<'b, I>(
         &self,
@@ -239,7 +235,7 @@ impl<'a> Parser<'a> {
                 )),
             },
             None => Err(CompileError::new_unexpected_eof(
-                self.input,
+                None,
                 Box::new("ToKenKind::Type(_)"),
             )),
         }
@@ -273,7 +269,7 @@ impl<'a> Parser<'a> {
                 token.clone(),
             )),
             None => Err(CompileError::new_unexpected_eof(
-                self.input,
+                None,
                 Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
             )),
         }
@@ -404,12 +400,7 @@ impl<'a> Parser<'a> {
         let lhs = self.parse_conditional(tokens)?;
         let (kind, debug_info) = match tokens.peek() {
             Some(Token { kind, debug_info }) => (kind, debug_info.clone()),
-            None => {
-                return Err(CompileError::new_unexpected_eof(
-                    self.input,
-                    Box::new("Token"),
-                ))
-            }
+            None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
         match **kind {
             TokenKind::Eq => {
@@ -618,12 +609,7 @@ impl<'a> Parser<'a> {
                 kind,
                 debug_info: debug_info,
             }) => (kind, debug_info),
-            None => {
-                return Err(CompileError::new_unexpected_eof(
-                    self.input,
-                    Box::new("Token"),
-                ))
-            }
+            None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
         let debug_info = debug_info.clone();
         Ok(match **kind {
@@ -758,10 +744,10 @@ impl<'a> Parser<'a> {
                     // local variable
                     Expr::new_lvar(name, debug_info)
                 }
-                TokenKind::Eof => return Err(CompileError::new_unexpected_eof(self.input, Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
+                TokenKind::Eof => return Err(CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
                 _ => return Err(CompileError::new_expected_failed( Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
             }),
-            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(
+            None => Err(CompileError::new_unexpected_eof(None, Box::new(
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",
             ))),
         }

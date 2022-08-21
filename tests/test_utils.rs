@@ -59,7 +59,7 @@ macro_rules! token_kinds {
 
 pub struct CachedProcessor<'a> {
     tokenizer: CachedTokenizer<'a>,
-    parser: CachedParser<'a>,
+    parser: CachedParser,
     analyzer: CachedAnalyzer<'a>,
 }
 
@@ -67,7 +67,7 @@ impl<'a> CachedProcessor<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             tokenizer: CachedTokenizer::new(src),
-            parser: CachedParser::new(src),
+            parser: CachedParser::new(),
             analyzer: CachedAnalyzer::new(src),
         }
     }
@@ -125,20 +125,23 @@ impl<'a> CachedTokenizer<'a> {
     }
 }
 
-struct CachedParser<'a> {
-    parser: Parser<'a>,
+struct CachedParser {
+    parser: Parser,
     program: Option<Result<Program, CompileError>>,
 }
 
-impl<'a> CachedParser<'a> {
-    pub fn new(input: &'a str) -> Self {
+impl CachedParser {
+    pub fn new() -> Self {
         Self {
-            parser: Parser::new(input),
+            parser: Parser::new(),
             program: None,
         }
     }
 
-    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> Result<&Program, CompileError>
+    pub fn program<'a, I>(
+        &mut self,
+        stream: &mut TokenStream<'a, I>,
+    ) -> Result<&Program, CompileError>
     where
         I: Iterator<Item = Token> + Clone + Debug,
     {

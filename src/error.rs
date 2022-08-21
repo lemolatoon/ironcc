@@ -61,10 +61,9 @@ impl CompileError {
             TokenizeErrorKind::UnexpectedChar(debug_info, c),
         ))
     }
-    pub fn new_unexpected_eof(input: &str, kind: Box<dyn Debug>) -> CompileError {
+    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
-            input.to_string(),
-            kind,
+            input, kind,
         )))
     }
 
@@ -224,7 +223,7 @@ pub enum TokenizeErrorKind {
 #[derive(Debug)]
 pub enum ParseErrorKind {
     /// An error returned when an operation could not be completed because an "end of file" was reached prematurely.
-    UnexpectedEof(/* src */ String, Box<dyn Debug>),
+    UnexpectedEof(/* src */ Option<String>, Box<dyn Debug>),
     ExpectFailed {
         expect: Box<dyn Debug>,
         got: Token,
@@ -267,7 +266,9 @@ impl Debug for CompileError {
                 writeln!(f, "Got Unexpected char while tokenizing: `{}`", c)?;
             }
             ParseError(ParseErrorKind::UnexpectedEof(src, expect)) => {
-                error_at_eof(src.as_str(), f)?;
+                if let Some(src) = src {
+                    error_at_eof(src.as_str(), f)?;
+                }
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {

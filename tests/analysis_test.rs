@@ -513,7 +513,7 @@ fn extract_ty(src: &str) -> Type {
     let file_info = FileInfo::new(String::new(), src.to_string());
     let tokens = Tokenizer::new().tokenize(&Rc::new(file_info)).unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
-    let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
+    let ast = Parser::new().parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new(src);
     let conv_stmt = analyzer.traverse_stmt(ast, "main".to_string()).unwrap();
     if let ConvStmt::Block(vec) = conv_stmt {
@@ -532,7 +532,7 @@ fn extract_func_ty(src: &str) -> Type {
     let file_info = FileInfo::new(String::new(), src.to_string());
     let tokens = Tokenizer::new().tokenize(&Rc::new(file_info)).unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter(), src);
-    let ast = Parser::new(src).parse_func_def(&mut tokens).unwrap();
+    let ast = Parser::new().parse_func_def(&mut tokens).unwrap();
     let (ty_spec, declarator, body, pos) = if let ProgramComponent {
         kind: ProgramKind::FuncDef(ty_spec, declarator, body),
         debug_info,

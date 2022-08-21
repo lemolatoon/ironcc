@@ -9,7 +9,7 @@ use test_utils::ast::*;
 #[test]
 fn parse_test() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -31,7 +31,7 @@ fn parse_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -60,7 +60,7 @@ fn parse_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -87,7 +87,7 @@ fn parse_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -107,7 +107,7 @@ fn parse_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -142,7 +142,7 @@ fn parse_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -182,7 +182,7 @@ fn parse_test() -> Result<(), CompileError> {
 #[test]
 fn parse_unary_test() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -220,7 +220,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
     );
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(1),
@@ -232,7 +232,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
     assert_eq!(expr.kind, unary(UnaryOp::Plus, num(1)).kind);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::OpenDelim(DelimToken::Paren),
@@ -256,7 +256,7 @@ fn parse_unary_test() -> Result<(), CompileError> {
 #[test]
 fn parse_compare_op_test() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::EqEq),
@@ -280,7 +280,7 @@ fn parse_compare_op_test() -> Result<(), CompileError> {
         .kind
     );
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Ne),
@@ -316,7 +316,7 @@ fn parse_compare_op_test() -> Result<(), CompileError> {
 #[test]
 fn parse_stmt_test() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -344,7 +344,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -379,7 +379,7 @@ fn parse_stmt_test() -> Result<(), CompileError> {
 #[test]
 fn parse_assign_expr_test() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -407,7 +407,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -440,7 +440,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -477,7 +477,7 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
 #[test]
 fn parse_various_stmts() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -525,7 +525,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -575,7 +575,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -642,7 +642,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     assert_eq!(parsed, expected);
 
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -690,7 +690,7 @@ fn parse_various_stmts() -> Result<(), CompileError> {
 #[test]
 fn parse_call_func() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -725,7 +725,7 @@ fn parse_call_func() -> Result<(), CompileError> {
 #[test]
 fn parse_ptr() -> Result<(), CompileError> {
     let input = String::new();
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -752,7 +752,7 @@ fn parse_ptr() -> Result<(), CompileError> {
 
     assert_eq!(parsed, expected);
     let input = String::from("int main() {a = foo(3, 1); ap = &a; *a = a + 1;}");
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -816,7 +816,7 @@ fn parse_ptr() -> Result<(), CompileError> {
 #[test]
 fn parse_declaration() -> Result<(), CompileError> {
     let input = String::from("int main() {int a;}");
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -855,7 +855,7 @@ fn parse_declaration() -> Result<(), CompileError> {
 
     assert_eq!(parsed, expected);
     let input = String::from("int  main() {int *a;}");
-    let parser = Parser::new(&input);
+    let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
