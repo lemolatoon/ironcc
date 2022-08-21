@@ -13,4 +13,5 @@ pub mod common;
 pub mod error;
 pub mod generate;
 pub mod parse;
+pub mod preprocess;
 pub mod tokenize;
