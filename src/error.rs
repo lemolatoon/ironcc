@@ -6,33 +6,34 @@ use crate::analyze::Type;
 use crate::tokenize::DebugInfo;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
+use crate::tokenize::TokenKind;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::io;
 
 #[derive(Clone)]
-pub struct CompileError {
-    pub kind: CompileErrorKind,
+pub struct CompileError<K: PartialEq + Debug + Clone> {
+    pub kind: CompileErrorKind<K>,
 }
 
-impl CompileError {
-    pub const fn new(kind: CompileErrorKind) -> Self {
+impl<K: PartialEq + Debug + Clone> CompileError<K> {
+    pub const fn new(kind: CompileErrorKind<K>) -> Self {
         Self { kind }
     }
 }
 
 #[derive(Debug)]
-pub enum CompileErrorKind {
+pub enum CompileErrorKind<K: PartialEq + Debug> {
     TokenizeError(TokenizeErrorKind),
-    ParseError(ParseErrorKind),
+    ParseError(ParseErrorKind<K>),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
     Unimplemented(Option<DebugInfo>, String),
     IOError(Box<dyn Debug>),
 }
 
-impl Clone for CompileErrorKind {
+impl<K: PartialEq + Debug + Clone> Clone for CompileErrorKind<K> {
     fn clone(&self) -> Self {
         match self {
             Self::TokenizeError(arg0) => Self::TokenizeError(arg0.clone()),
@@ -45,9 +46,9 @@ impl Clone for CompileErrorKind {
     }
 }
 
-impl Error for CompileError {}
+impl<K: PartialEq + Debug + Clone> Error for CompileError<K> {}
 
-impl From<io::Error> for CompileError {
+impl<K: PartialEq + Debug + Clone> From<io::Error> for CompileError<K> {
     fn from(err: io::Error) -> Self {
         Self {
             kind: CompileErrorKind::IOError(Box::new(err)),
@@ -55,24 +56,32 @@ impl From<io::Error> for CompileError {
     }
 }
 
-impl CompileError {
-    pub const fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError {
+impl<K: PartialEq + Debug + Clone> CompileError<K> {
+    pub const fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError<K> {
         CompileError::new(CompileErrorKind::TokenizeError(
             TokenizeErrorKind::UnexpectedChar(debug_info, c),
         ))
     }
-    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError {
+    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError<K> {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
             input, kind,
         )))
     }
 
-    pub fn new_expected_failed(expect: Box<dyn Debug>, got: Token) -> CompileError {
+    pub fn new_expected_failed(expect: Box<dyn Debug>, got: Token<K>) -> CompileError<K> {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
             expect,
             got,
         }))
     }
+
+    pub fn new_expected_failed_with_box(expect: Box<dyn Debug>, got: Token<K>) -> CompileError<K> {
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
+            expect,
+            got,
+        }))
+    }
+
     pub const fn new_unexpected_eof_tokenize(pos: DebugInfo) -> Self {
         CompileError::new(CompileErrorKind::TokenizeError(
             TokenizeErrorKind::UnexpectedEof(pos),
@@ -206,16 +215,16 @@ pub enum TokenizeErrorKind {
 }
 
 #[derive(Debug)]
-pub enum ParseErrorKind {
+pub enum ParseErrorKind<K: PartialEq + Debug> {
     /// An error returned when an operation could not be completed because an "end of file" was reached prematurely.
     UnexpectedEof(/* src */ Option<String>, Box<dyn Debug>),
     ExpectFailed {
         expect: Box<dyn Debug>,
-        got: Token,
+        got: Token<K>,
     },
 }
 
-impl Clone for ParseErrorKind {
+impl<K: PartialEq + Debug + Clone> Clone for ParseErrorKind<K> {
     fn clone(&self) -> Self {
         match self {
             Self::UnexpectedEof(src, arg0) => {
@@ -229,13 +238,13 @@ impl Clone for ParseErrorKind {
     }
 }
 
-impl Display for CompileError {
+impl<K: PartialEq + Debug + Clone> Display for CompileError<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         <Self as Debug>::fmt(self, f)
     }
 }
 
-impl Debug for CompileError {
+impl<K: PartialEq + Debug + Clone> Debug for CompileError<K> {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use CompileErrorKind::{

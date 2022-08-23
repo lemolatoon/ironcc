@@ -4,10 +4,10 @@ use std::rc::Rc;
 
 use test_utils::kind_eq;
 
-use ironcc::{error::CompileError, tokenize::*};
+use ironcc::tokenize::*;
 
 #[test]
-fn tokenize_plus_minus_test() -> Result<(), CompileError> {
+fn tokenize_plus_minus_test() {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let tokenizer = Tokenizer::new();
@@ -95,7 +95,6 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     ));
-    Ok(())
 }
 
 #[cfg(test)]
@@ -103,7 +102,7 @@ fn debug_info_with_pos(file_info: Rc<FileInfo>, n_char: usize, n_line: usize) ->
     DebugInfo::new(file_info, n_char, n_line)
 }
 #[test]
-fn tokenize_pos_test() -> Result<(), CompileError> {
+fn tokenize_pos_test() {
     use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
     let tokenizer = Tokenizer::new();
@@ -156,11 +155,10 @@ fn tokenize_pos_test() -> Result<(), CompileError> {
             (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 3, 1))
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_compare_op_test() -> Result<(), CompileError> {
+fn tokenize_compare_op_test() {
     let input = String::from("1 == 2");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -221,11 +219,10 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_tokens_test() -> Result<(), CompileError> {
+fn tokenize_tokens_test() {
     let input = String::from("a = 2");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -247,11 +244,10 @@ fn tokenize_tokens_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_ident_test() -> Result<(), CompileError> {
+fn tokenize_ident_test() {
     let input = String::from("a");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -283,11 +279,10 @@ fn tokenize_ident_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_stmt_test() -> Result<(), CompileError> {
+fn tokenize_stmt_test() {
     let input = String::from("a;");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -313,11 +308,10 @@ fn tokenize_stmt_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_reserved_test() -> Result<(), CompileError> {
+fn tokenize_reserved_test() {
     let input = String::from("returnx = 1;\nreturn returnx;");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -487,11 +481,10 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_call_func_test() -> Result<(), CompileError> {
+fn tokenize_call_func_test() {
     let input = String::from("{return foo(1, 2);}");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -509,5 +502,4 @@ fn tokenize_call_func_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }

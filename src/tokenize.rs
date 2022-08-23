@@ -10,7 +10,10 @@ impl Tokenizer {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn tokenize(&self, file_info: &Rc<FileInfo>) -> Result<Vec<Token>, CompileError> {
+    pub fn tokenize(
+        &self,
+        file_info: &Rc<FileInfo>,
+    ) -> Result<Vec<Token<TokenKind>>, CompileError<TokenKind>> {
         let mut tokens = Vec::new();
         let src = file_info.get_file_src();
         let mut pos = DebugInfo::default_with_file_info(file_info.clone()); // 0, 0
@@ -372,26 +375,26 @@ pub enum BinOpToken {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Token {
-    pub kind: Box<TokenKind>,
+pub struct Token<K: PartialEq + Debug> {
+    pub kind: Box<K>,
     pub debug_info: DebugInfo,
 }
 
-impl Token {
-    pub fn new(token_kind: TokenKind, pos: DebugInfo) -> Self {
+impl<K: PartialEq + Debug + Eof> Token<K> {
+    pub fn new(token_kind: K, pos: DebugInfo) -> Self {
         Self {
             kind: Box::new(token_kind),
             debug_info: pos,
         }
     }
 
-    pub fn kind_eq(&self, rhs: &Token) -> bool {
+    pub fn kind_eq(&self, rhs: &Token<K>) -> bool {
         self.kind == rhs.kind
     }
 
     // clippy gives incorrect warning
     #[allow(clippy::missing_const_for_fn)]
-    pub fn kind(self) -> Box<TokenKind> {
+    pub fn kind(self) -> Box<K> {
         self.kind
     }
 }
@@ -496,18 +499,30 @@ impl DebugInfo {
 }
 
 #[derive(Clone)]
-pub struct TokenStream<I>
+pub struct TokenStream<I, K>
 where
-    I: Iterator<Item = Token> + Clone + Debug,
+    K: PartialEq + Debug + Clone + Eof,
+    I: Iterator<Item = Token<K>> + Clone + Debug,
 {
     iter: Peekable<I>,
 }
 
+pub trait Eof {
+    fn is_eof(&self) -> bool;
+}
+
+impl Eof for TokenKind {
+    fn is_eof(&self) -> bool {
+        *self == TokenKind::Eof
+    }
+}
+
 use std::fmt::Debug;
 use std::rc::Rc;
-impl<I> Debug for TokenStream<I>
+impl<I, K> Debug for TokenStream<I, K>
 where
-    I: Iterator<Item = Token> + Clone + Debug,
+    K: PartialEq + Eof + Debug + Clone,
+    I: Iterator<Item = Token<K>> + Clone + Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let stream = self.clone();
@@ -518,8 +533,11 @@ where
         )
     }
 }
-
-impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
+impl<I, K> TokenStream<I, K>
+where
+    K: PartialEq + Eof + Debug + Clone + 'static,
+    I: Iterator<Item = Token<K>> + Clone + Debug,
+{
     pub fn new(iter: I) -> Self {
         Self {
             iter: iter.peekable(),
@@ -527,7 +545,7 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
     }
 
     /// if next token is passed kind consume it and return true, else do nothing and return false
-    pub fn consume(&mut self, kind: &TokenKind) -> bool {
+    pub fn consume(&mut self, kind: &K) -> bool {
         if let Some(token) = self.peek() {
             if *token.kind == *kind {
                 self.next();
@@ -538,7 +556,7 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
     }
 
     /// if next token is passed kind, then return true, otherwise return false (Not consume)
-    pub fn peek_expect(&mut self, kind: &TokenKind) -> bool {
+    pub fn peek_expect(&mut self, kind: &K) -> bool {
         if let Some(token) = self.peek() {
             if *token.kind == *kind {
                 return true;
@@ -547,6 +565,50 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
         false
     }
 
+    /// if next token is expected kind, do nothing, otherwise `panic`
+    pub fn expect(&mut self, kind: K) -> Result<(), CompileError<K>> {
+        let peeked_token = self.next();
+        match peeked_token {
+            Some(Token {
+                kind: got,
+                debug_info,
+            }) if got.is_eof() && !kind.is_eof() => Err(CompileError::new_unexpected_eof(
+                Some(debug_info.get_file_src()),
+                Box::new(kind),
+            )),
+            None => Err(CompileError::new_unexpected_eof(None, Box::new(kind))),
+            Some(token) => {
+                if kind != *token.kind {
+                    return Err(CompileError::new_expected_failed(Box::new(kind), token));
+                }
+                Ok(())
+            }
+        }
+    }
+
+    pub fn peek(&mut self) -> Option<&I::Item> {
+        self.iter.peek()
+    }
+
+    pub fn peek_kind(&mut self) -> Option<K> {
+        self.iter.peek().map(|token| *token.kind.clone())
+    }
+
+    pub fn next_kind(&mut self) -> Option<K> {
+        self.next().map(|token| *token.kind)
+    }
+
+    /// # Panics
+    /// when `token_stream` does not have next token
+    pub fn at_eof(&mut self) -> bool {
+        match self.peek_kind() {
+            Some(token) => token.is_eof(),
+            None => panic!("This stream is already used."),
+        }
+    }
+}
+
+impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenKind> {
     /// Return next token is `TokenKind::Type` or not.(Not consume)
     pub fn is_type(&mut self) -> bool {
         if let Some(token) = self.peek() {
@@ -555,7 +617,7 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
         false
     }
 
-    pub fn expect_number(&mut self) -> Result<isize, CompileError> {
+    pub fn expect_number(&mut self) -> Result<isize, CompileError<TokenKind>> {
         let token = self.next();
         // let next = token.map(|token| *token.kind);
         match token {
@@ -577,7 +639,7 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
     }
 
     /// if next token is ident, then return its name and Position, otherwise return Err(_)
-    pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError> {
+    pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError<TokenKind>> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
@@ -593,50 +655,11 @@ impl<I: Iterator<Item = Token> + Clone + Debug> TokenStream<I> {
             )),
         }
     }
-
-    /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: TokenKind) -> Result<(), CompileError> {
-        let peeked_token = self.next();
-        match peeked_token {
-            Some(Token {
-                kind: got,
-                debug_info,
-            }) if matches!(*got, TokenKind::Eof) && kind != TokenKind::Eof => Err(
-                CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new(kind)),
-            ),
-            None => Err(CompileError::new_unexpected_eof(None, Box::new(kind))),
-            Some(token) => {
-                if kind != *token.kind {
-                    return Err(CompileError::new_expected_failed(Box::new(kind), token));
-                }
-                Ok(())
-            }
-        }
-    }
-
-    pub fn peek(&mut self) -> Option<&I::Item> {
-        self.iter.peek()
-    }
-
-    pub fn peek_kind(&mut self) -> Option<TokenKind> {
-        self.iter.peek().map(|token| *token.kind.clone())
-    }
-
-    pub fn next_kind(&mut self) -> Option<TokenKind> {
-        self.next().map(|token| *token.kind)
-    }
-
-    /// # Panics
-    /// when `token_stream` does not have next token
-    pub fn at_eof(&mut self) -> bool {
-        match self.peek_kind() {
-            Some(token) => matches!(token, TokenKind::Eof),
-            None => panic!("This stream is already used."),
-        }
-    }
 }
 
-impl<I: Iterator<Item = Token> + Clone + Debug> Iterator for TokenStream<I> {
+impl<K: PartialEq + Debug + Clone + Eof, I: Iterator<Item = Token<K>> + Clone + Debug> Iterator
+    for TokenStream<I, K>
+{
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -685,7 +708,7 @@ macro_rules! token_kinds {
 }
 
 #[cfg(test)]
-pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
+pub fn kind_eq(lhs: &[Token<TokenKind>], rhs: &[Token<TokenKind>]) -> bool {
     lhs.iter()
         .zip(rhs.iter())
         .fold(true, |acc, (l_token, r_token)| {
@@ -693,7 +716,7 @@ pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
         })
 }
 
-pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError> {
+pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError<TokenKind>> {
     let tokenizer = Tokenizer::new();
     Ok(tokenizer
         .tokenize(&Rc::new(FileInfo {

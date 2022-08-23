@@ -12,6 +12,7 @@ use ironcc::analyze::Analyzer;
 use ironcc::error::CompileError;
 use ironcc::preprocess::Preprocessor;
 use ironcc::tokenize::FileInfo;
+use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
 use ironcc::{generate::Generator, parse::Parser};
@@ -29,7 +30,7 @@ fn main() {
 
 const INCLUDE_DIR: &str = "include";
 
-fn preprocess_and_compile() -> Result<(), CompileError> {
+fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
     let args: Vec<String> = env::args().collect();
     let (file_name, mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
@@ -46,7 +47,7 @@ fn preprocess(input: &str, include_dir: &str) -> String {
     preprocessor.preprocess(input)
 }
 
-fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError> {
+fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError<TokenKind>> {
     let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
     let tokens = tokenizer.tokenize(&file_info)?;

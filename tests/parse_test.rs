@@ -1,13 +1,12 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use ironcc::error::CompileError;
 use ironcc::parse::*;
 use ironcc::tokenize::*;
 use test_utils::ast::*;
 
 #[test]
-fn parse_test() -> Result<(), CompileError> {
+fn parse_test() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
@@ -107,12 +106,10 @@ fn parse_test() -> Result<(), CompileError> {
         )
         .kind
     );
-
-    Ok(())
 }
 
 #[test]
-fn parse_unary_test() -> Result<(), CompileError> {
+fn parse_unary_test() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
@@ -178,12 +175,10 @@ fn parse_unary_test() -> Result<(), CompileError> {
         expr.kind,
         unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22))).kind
     );
-
-    Ok(())
 }
 
 #[test]
-fn parse_compare_op_test() -> Result<(), CompileError> {
+fn parse_compare_op_test() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
@@ -236,12 +231,10 @@ fn parse_compare_op_test() -> Result<(), CompileError> {
         )
         .kind
     );
-
-    Ok(())
 }
 
 #[test]
-fn parse_stmt_test() -> Result<(), CompileError> {
+fn parse_stmt_test() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -298,11 +291,10 @@ fn parse_stmt_test() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }
 
 #[test]
-fn parse_assign_expr_test() -> Result<(), CompileError> {
+fn parse_assign_expr_test() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -393,11 +385,10 @@ fn parse_assign_expr_test() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }
 
 #[test]
-fn parse_various_stmts() -> Result<(), CompileError> {
+fn parse_various_stmts() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -602,11 +593,10 @@ fn parse_various_stmts() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }
 
 #[test]
-fn parse_call_func() -> Result<(), CompileError> {
+fn parse_call_func() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -636,11 +626,10 @@ fn parse_call_func() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }
 
 #[test]
-fn parse_ptr() -> Result<(), CompileError> {
+fn parse_ptr() {
     let parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
@@ -726,11 +715,10 @@ fn parse_ptr() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }
 
 #[test]
-fn parse_declaration() -> Result<(), CompileError> {
+fn parse_declaration() {
     let input = String::from("int main() {int a;}");
     let parser = Parser::new();
     let tokens = tokens!(
@@ -810,5 +798,4 @@ fn parse_declaration() -> Result<(), CompileError> {
     )]);
 
     assert_eq!(parsed, expected);
-    Ok(())
 }

@@ -7,6 +7,7 @@ use crate::{
         GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
+    tokenize::TokenKind,
     unimplemented_err,
 };
 
@@ -27,7 +28,7 @@ impl Generator {
         f: &mut BufWriter<W>,
         kind: RegKind,
         _size: RegSize,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         // todo!();
         // match size {
         //     RegSize::Byte => writeln!(f, "  movsx {}, {}", kind.qword(), kind.byte())?,
@@ -49,7 +50,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         kind: RegKind,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         writeln!(f, "  push {}", kind.qword())?;
         self.depth += 1;
         Ok(())
@@ -58,7 +59,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         kind: RegKind,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         writeln!(f, "  pop {}", kind.qword())?;
         self.depth -= 1;
         Ok(())
@@ -68,7 +69,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         arg: isize,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         writeln!(f, "  push {}", arg)?;
         self.depth += 1;
         Ok(())
@@ -81,7 +82,7 @@ impl Generator {
         rhs: RegKind,
         ty: &Type,
         status: UnexpectedTypeSizeStatus,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             1 => ("BYTE PTR", lhs.qword(), rhs.byte()),
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
@@ -99,7 +100,7 @@ impl Generator {
         rhs: RegKind,
         ty: &Type,
         status: UnexpectedTypeSizeStatus,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         let (prefix, lhs, rhs) = match ty.size_of() {
             1 => ("BYTE PTR", lhs.byte(), rhs.qword()),
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
@@ -116,7 +117,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         program: ConvProgram,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         writeln!(f, ".intel_syntax noprefix\n")?;
         writeln!(f, ".global main")?;
 
@@ -220,7 +221,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         stmt: ConvStmt,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         match stmt {
             ConvStmt::Expr(expr) => {
                 self.gen_expr(f, expr)?;
@@ -332,7 +333,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         let ty = expr.ty.clone();
         match expr.kind {
             ConvExprKind::Num(val) => self.push_lit(f, val)?,
@@ -552,7 +553,7 @@ impl Generator {
         f: &mut BufWriter<W>,
         operand: ConvExpr,
         unary_op: &ConvUnaryOp,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         let operand_ty = operand.ty.clone();
         match unary_op {
             ConvUnaryOp::BitInvert => {
@@ -611,7 +612,7 @@ impl Generator {
         f: &mut BufWriter<W>,
         expr: ConvExpr,
         kind: &CastKind,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         match kind {
             CastKind::Base2Base(from, to) => {
                 // e.g) char -> int
@@ -652,7 +653,7 @@ impl Generator {
         &mut self,
         f: &mut BufWriter<W>,
         expr: ConvExpr,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         match expr.kind {
             ConvExprKind::LVar(LVar { offset, ty: _ }) => {
                 writeln!(f, "  mov rax, rbp")?;
@@ -690,7 +691,7 @@ impl Generator {
         f: &mut BufWriter<W>,
         c_binary: ConvBinary,
         ty: &Type,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         let ConvBinary { kind: op, lhs, rhs } = c_binary;
         let lhs_ty_sizeof = lhs.ty.size_of();
         let rhs_ty_sizeof = rhs.ty.size_of();
@@ -798,7 +799,7 @@ impl Generator {
         lhs_ty_size: usize,
         rhs: RegOrLit,
         rhs_ty_size: usize,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         writeln!(
             f,
             "  cmp {}, {}",
@@ -938,7 +939,10 @@ impl RegSize {
 
     // clippy complains about this, but it's wrong
     #[allow(clippy::missing_const_for_fn)]
-    pub fn try_new_with_error(size: usize, expr: ConvExpr) -> Result<Self, CompileError> {
+    pub fn try_new_with_error(
+        size: usize,
+        expr: ConvExpr,
+    ) -> Result<Self, CompileError<TokenKind>> {
         Ok(match size {
             1 => Self::Byte,
             4 => Self::Dword,

@@ -11,7 +11,7 @@ use crate::{
         Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
         StructOrUnionSpec, TypeSpec, UnaryOp,
     },
-    tokenize::DebugInfo,
+    tokenize::{DebugInfo, TokenKind},
     unimplemented_err,
 };
 
@@ -54,7 +54,10 @@ impl Analyzer {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn traverse_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
+    pub fn traverse_program(
+        &mut self,
+        program: Program,
+    ) -> Result<ConvProgram, CompileError<TokenKind>> {
         self.tag_scope.push(BTreeMap::new());
         for component in program {
             match component {
@@ -144,7 +147,7 @@ impl Analyzer {
                                         struct_declaration
                                             .get_type(self, struct_declaration.debug_info.clone())
                                     })
-                                    .collect::<Result<_, CompileError>>()?;
+                                    .collect::<Result<_, CompileError<TokenKind>>>()?;
                                 let names = vec
                                     .iter()
                                     .map(|struct_declaration| {
@@ -183,7 +186,7 @@ impl Analyzer {
         // global variable's type
         ty: Type,
         debug_info: DebugInfo,
-    ) -> Result<GVar, CompileError> {
+    ) -> Result<GVar, CompileError<TokenKind>> {
         let init = init
             .map(|expr| {
                 expr.clone().map(|expr| {
@@ -277,7 +280,7 @@ impl Analyzer {
         declarator: &Declarator,
         body: Stmt,
         debug_info: DebugInfo,
-    ) -> Result<ConvProgramKind, CompileError> {
+    ) -> Result<ConvProgramKind, CompileError<TokenKind>> {
         let mut lvars = Vec::new();
         let ident = declarator.direct_declarator.ident_name();
         let converted_type = self.resolve_name_and_convert_to_type(ty_spec, debug_info.clone())?;
@@ -334,7 +337,7 @@ impl Analyzer {
                 stmts
                     .into_iter()
                     .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
-                    .collect::<Result<Vec<_>, CompileError>>()?,
+                    .collect::<Result<Vec<_>, CompileError<TokenKind>>>()?,
             )
         } else {
             return Err(unimplemented_err!(
@@ -355,7 +358,11 @@ impl Analyzer {
     }
 
     #[allow(clippy::pedantic)]
-    pub fn traverse_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
+    pub fn traverse_stmt(
+        &mut self,
+        stmt: Stmt,
+        fn_name: String,
+    ) -> Result<ConvStmt, CompileError<TokenKind>> {
         Ok(match stmt.kind {
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.traverse_expr(expr, BTreeSet::new())?),
             StmtKind::Return(expr) => {
@@ -418,7 +425,7 @@ impl Analyzer {
                     stmts
                         .into_iter()
                         .map(|stmt| self.traverse_stmt(stmt, fn_name.clone()))
-                        .collect::<Result<Vec<_>, CompileError>>()?,
+                        .collect::<Result<Vec<_>, CompileError<TokenKind>>>()?,
                 );
                 self.scope.pop_scope(&mut self.offset);
                 block
@@ -434,7 +441,7 @@ impl Analyzer {
                                     struct_declaration
                                         .get_type(self, struct_declaration.debug_info.clone())
                                 })
-                                .collect::<Result<_, CompileError>>()?;
+                                .collect::<Result<_, CompileError<TokenKind>>>()?;
                             let names = vec
                                 .iter()
                                 .map(|struct_declaration| {
@@ -521,7 +528,7 @@ impl Analyzer {
                                         declaration.debug_info.clone(),
                                     )?))
                                 })
-                                .collect::<Result<Vec<_>, CompileError>>()?,
+                                .collect::<Result<Vec<_>, CompileError<TokenKind>>>()?,
                         )
                     }
                     // just declaration does nothing
@@ -535,7 +542,7 @@ impl Analyzer {
         lhs: ConvExpr,
         rhs: ConvExpr,
         debug_info: DebugInfo,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         let mut rhs = rhs;
         if !lhs.ty.ty_eq(&rhs.ty) {
             let lhs_ptr_to = lhs.ty.get_ptr_to();
@@ -585,7 +592,7 @@ impl Analyzer {
         &mut self,
         expr: Expr,
         mut attrs: BTreeSet<DownExprAttribute>,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         let debug_info = expr.debug_info;
         let expr = match expr.kind {
             // `a >= b` := `b <= a`
@@ -830,12 +837,12 @@ impl Analyzer {
         args: Vec<Expr>,
         debug_info: DebugInfo,
         _attrs: &BTreeSet<DownExprAttribute>,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         // args type check
         let mut args = args
             .into_iter()
             .map(|expr| self.traverse_expr(expr, BTreeSet::new()))
-            .collect::<Result<Vec<_>, CompileError>>()?;
+            .collect::<Result<Vec<_>, CompileError<TokenKind>>>()?;
         let Func {
             name: _,
             args: func_args,
@@ -912,7 +919,7 @@ impl Analyzer {
         cond: ConvExpr,
         mut then: ConvExpr,
         mut els: ConvExpr,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         if cond.ty != Type::Base(BaseType::Int) {
             return Err(CompileError::new_type_expect_failed(
                 cond.debug_info,
@@ -936,7 +943,7 @@ impl Analyzer {
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
         debug_info: DebugInfo,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         let mut rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
         let mut lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
@@ -1154,7 +1161,7 @@ impl Analyzer {
         unary_op: &UnaryOp,
         operand: Box<Expr>,
         debug_info: DebugInfo,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         match unary_op {
             UnaryOp::Plus => self.traverse_expr(*operand, BTreeSet::new()),
             UnaryOp::Minus => self.traverse_binary(
@@ -1252,7 +1259,7 @@ impl Analyzer {
         ty: Type,
         attrs: BTreeSet<DownExprAttribute>,
         debug_info: DebugInfo,
-    ) -> Result<ConvExpr, CompileError> {
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         match init {
             Initializer::Expr(init) => {
                 let rhs = self.traverse_expr(init, attrs)?;
@@ -1275,7 +1282,7 @@ impl Analyzer {
         &mut self,
         mut ty: Type,
         declarator: &Declarator,
-    ) -> Result<Type, CompileError> {
+    ) -> Result<Type, CompileError<TokenKind>> {
         for _ in 0..declarator.n_star {
             ty = Type::Ptr(Box::new(ty));
         }
@@ -1302,7 +1309,7 @@ impl Analyzer {
                                         .declarator,
                                 )
                             })
-                            .collect::<Result<Vec<_>, CompileError>>()?,
+                            .collect::<Result<Vec<_>, CompileError<TokenKind>>>()?,
                         is_flexible: *is_flexible,
                     };
                     watching_direct_declarator = direct_declarator;
@@ -1328,7 +1335,11 @@ impl Analyzer {
         Ok(ty)
     }
 
-    pub fn fetch_lvar(&self, name: &str, debug_info: DebugInfo) -> Result<ConvExpr, CompileError> {
+    pub fn fetch_lvar(
+        &self,
+        name: &str,
+        debug_info: DebugInfo,
+    ) -> Result<ConvExpr, CompileError<TokenKind>> {
         let var = match self.scope.look_up(&name.to_string()) {
             Some(lvar) => lvar,
             None => {
@@ -1483,7 +1494,7 @@ impl ConvExpr {
         from_ty: Type,
         to_ty: Type,
         debug_info: DebugInfo,
-    ) -> Result<(Type, CastKind), CompileError> {
+    ) -> Result<(Type, CastKind), CompileError<TokenKind>> {
         match (from_ty, to_ty) {
             (Type::Base(from_base), Type::Base(to_base)) if from_base == to_base => {
                 // No Cast
@@ -1529,7 +1540,7 @@ impl ConvExpr {
         }
     }
 
-    pub fn implicit_cast(self, ty: &Type) -> Result<Self, CompileError> {
+    pub fn implicit_cast(self, ty: &Type) -> Result<Self, CompileError<TokenKind>> {
         // self.ty -> ty
         let (new_ty, cast_kind) =
             ConvExpr::type_cast(self.ty.clone(), ty.clone(), self.debug_info.clone())?;
@@ -1539,7 +1550,7 @@ impl ConvExpr {
     pub fn binary_implicit_cast(
         lhs: &mut ConvExpr,
         rhs: &mut ConvExpr,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), CompileError<TokenKind>> {
         if lhs.ty.ty_eq(&rhs.ty) {
             return Ok(());
         }
@@ -1892,7 +1903,7 @@ impl Scope {
         name: &str,
         ty: Type,
         init: Option<ConstInitializer>,
-    ) -> Result<GVar, CompileError> {
+    ) -> Result<GVar, CompileError<TokenKind>> {
         for scope in &self.scopes {
             if scope.contains_key(name) {
                 return Err(CompileError::new_redefined_variable(
@@ -1924,7 +1935,7 @@ impl Scope {
         new_offset: &mut usize,
         name: &str,
         ty: Type,
-    ) -> Result<LVar, CompileError> {
+    ) -> Result<LVar, CompileError<TokenKind>> {
         for scope in &self.scopes {
             if scope.contains_key(name) {
                 return Err(CompileError::new_redefined_variable(
@@ -2181,7 +2192,7 @@ impl ConstExpr {
         }
     }
 
-    pub fn get_num_lit(&self) -> Result<isize, CompileError> {
+    pub fn get_num_lit(&self) -> Result<isize, CompileError<TokenKind>> {
         Ok(match &self.kind {
             ConstExprKind::Int(n) => *n as isize,
             ConstExprKind::Char(n) => *n as isize,
@@ -2194,7 +2205,10 @@ impl ConstExpr {
         })
     }
 
-    pub fn apply_unary_op(&self, unary_op: &ConvUnaryOp) -> Result<ConstExpr, CompileError> {
+    pub fn apply_unary_op(
+        &self,
+        unary_op: &ConvUnaryOp,
+    ) -> Result<ConstExpr, CompileError<TokenKind>> {
         let debug_info = self.debug_info.clone();
         Ok(match unary_op {
             ConvUnaryOp::BitInvert => match &self.kind {
@@ -2234,7 +2248,7 @@ pub enum ConstExprKind {
 
 impl ConstExpr {
     #[allow(clippy::too_many_lines)]
-    fn try_eval_as_const(expr: ConvExpr) -> Result<Self, CompileError> {
+    fn try_eval_as_const(expr: ConvExpr) -> Result<Self, CompileError<TokenKind>> {
         let debug_info = expr.debug_info.clone();
         let ty = expr.ty.clone();
         let kind = expr.kind;
@@ -2528,7 +2542,7 @@ impl Analyzer {
         &mut self,
         ty_spec: &TypeSpec,
         debug_info: DebugInfo,
-    ) -> Result<Type, CompileError> {
+    ) -> Result<Type, CompileError<TokenKind>> {
         Ok(match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
             TypeSpec::Char => Type::Base(BaseType::Char),
@@ -2560,7 +2574,7 @@ impl Analyzer {
                     .map(|struct_declaration| {
                         struct_declaration.get_type(self, struct_declaration.debug_info.clone())
                     })
-                    .collect::<Result<_, CompileError>>()?;
+                    .collect::<Result<_, CompileError<TokenKind>>>()?;
                 let names = vec
                     .iter()
                     .map(|struct_declaration| struct_declaration.ident_name().to_string())
@@ -2600,7 +2614,7 @@ impl Analyzer {
         &mut self,
         ty: Type,
         debug_info: DebugInfo,
-    ) -> Result<Type, CompileError> {
+    ) -> Result<Type, CompileError<TokenKind>> {
         if let Type::InComplete(InCompleteKind::Struct(name)) = ty {
             let got = self.resolve_tag_name(&name);
             match got {

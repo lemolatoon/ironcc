@@ -5,13 +5,12 @@ use std::collections::BTreeSet;
 use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
-use ironcc::error::CompileError;
 use ironcc::parse::*;
 use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[test]
-fn analysis_test() -> Result<(), CompileError> {
+fn analysis_test() {
     let mut analyzer = Analyzer::new();
     let expr = unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
     let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
@@ -58,11 +57,10 @@ fn analysis_test() -> Result<(), CompileError> {
         )
         .kind
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_ident_test() -> Result<(), CompileError> {
+fn analysis_ident_test() {
     let mut analyzer = Analyzer::new();
     let expr = assign(lvar("a"), num(1));
     // dummy fucn defining
@@ -85,11 +83,10 @@ fn analysis_ident_test() -> Result<(), CompileError> {
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_program_test() -> Result<(), CompileError> {
+fn analysis_program_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
@@ -149,11 +146,10 @@ fn analysis_program_test() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_local_variable_test() -> Result<(), CompileError> {
+fn analysis_local_variable_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
@@ -215,11 +211,10 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_func_def_test() -> Result<(), CompileError> {
+fn analysis_func_def_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
@@ -290,11 +285,10 @@ fn analysis_func_def_test() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_ptr_addition() -> Result<(), CompileError> {
+fn analysis_ptr_addition() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
@@ -352,7 +346,6 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
