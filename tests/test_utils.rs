@@ -3,9 +3,10 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
+    preprocess::{self, Preprocessor, PreprocessorTokenStream},
     tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
-use std::{fmt::Debug, rc::Rc};
+use std::{fmt::Debug, rc::Rc, vec::IntoIter};
 
 #[cfg(test)]
 #[macro_export]
@@ -92,7 +93,7 @@ impl<'a> CachedProcessor<'a> {
 
 struct CachedTokenizer<'a> {
     src: &'a str,
-    tokenizer: Tokenizer,
+    tokenizer: Tokenizer<std::vec::IntoIter<Token<preprocess::TokenKind>>>,
     tokens: Option<Result<Vec<Token<TokenKind>>, CompileError<TokenKind>>>,
     token_stream: Option<
         Result<
@@ -104,9 +105,17 @@ struct CachedTokenizer<'a> {
 
 impl<'a> CachedTokenizer<'a> {
     fn new(src: &'a str) -> Self {
+        // TODO:
+        let file_info = Rc::new(FileInfo::new(
+            "not impl name.c".to_string(),
+            src.to_string(),
+        ));
+        let preprocessor = Preprocessor::new("");
+        let tokens = preprocessor.preprocess(file_info);
+        let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
             src,
-            tokenizer: Tokenizer::new(),
+            tokenizer: Tokenizer::new(stream),
             tokens: None,
             token_stream: None,
         }

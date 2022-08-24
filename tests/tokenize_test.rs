@@ -4,13 +4,21 @@ use std::rc::Rc;
 
 use test_utils::kind_eq;
 
-use ironcc::tokenize::*;
+use ironcc::{
+    preprocess::{Preprocessor, PreprocessorTokenStream},
+    tokenize::*,
+};
 
 #[test]
 fn tokenize_plus_minus_test() {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let tokenizer = Tokenizer::new();
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokens = Tokenizer::new(stream.clone()).tokenize(&file_info).unwrap();
+    let mut tokens = TokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer
             .tokenize(&file_info)
@@ -63,7 +71,10 @@ fn tokenize_plus_minus_test() {
     );
     let input = String::from("1 + 4 -       909");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let tokenizer = Tokenizer::new();
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     assert!(kind_eq(
         &tokenizer.tokenize(&file_info).unwrap(),
         &tokens!(
@@ -76,7 +87,10 @@ fn tokenize_plus_minus_test() {
         )
     ));
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
-    let tokenizer = Tokenizer::new();
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     assert!(kind_eq(
         &tokenizer.tokenize(&file_info).unwrap(),
@@ -105,8 +119,11 @@ fn debug_info_with_pos(file_info: Rc<FileInfo>, n_char: usize, n_line: usize) ->
 fn tokenize_pos_test() {
     use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
-    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -127,8 +144,11 @@ fn tokenize_pos_test() {
     );
 
     let input = String::from("1 +1\n\t+5");
-    let tokenizer = Tokenizer::new();
     let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(

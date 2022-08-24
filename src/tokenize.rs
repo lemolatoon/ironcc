@@ -1,18 +1,27 @@
 use crate::error::CompileError;
-use crate::unimplemented_err;
+use crate::preprocess::{Preprocessor, PreprocessorTokenStream};
+use crate::{preprocess, unimplemented_err};
 use std::iter::Peekable;
 
-pub struct Tokenizer {}
+pub struct Tokenizer<I>
+where
+    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+{
+    stream: PreprocessorTokenStream<I>,
+}
 
-impl Tokenizer {
-    pub const fn new() -> Self {
-        Self {}
+impl<I> Tokenizer<I>
+where
+    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+{
+    pub const fn new(stream: PreprocessorTokenStream<I>) -> Self {
+        Self { stream }
     }
 
     #[allow(clippy::too_many_lines)]
     pub fn tokenize(
         &self,
-        file_info: &Rc<FileInfo>,
+        _file_info: &Rc<FileInfo>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError<TokenKind>> {
         let mut tokens = Vec::new();
         let src = file_info.get_file_src();
@@ -717,12 +726,16 @@ pub fn kind_eq(lhs: &[Token<TokenKind>], rhs: &[Token<TokenKind>]) -> bool {
 }
 
 pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError<TokenKind>> {
-    let tokenizer = Tokenizer::new();
+    let file_info = Rc::new(FileInfo {
+        file_name: String::new(),
+        src: input.to_string(),
+    });
+    let preproccor = Preprocessor::new("");
+    let tokens = preproccor.preprocess(file_info.clone());
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokenizer = Tokenizer::new(stream);
     Ok(tokenizer
-        .tokenize(&Rc::new(FileInfo {
-            file_name: String::new(),
-            src: input.to_string(),
-        }))?
+        .tokenize(&file_info)?
         .into_iter()
         .map(Token::kind)
         .collect())

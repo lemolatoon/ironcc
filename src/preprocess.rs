@@ -1,3 +1,12 @@
+use std::iter::Peekable;
+use std::rc::Rc;
+use std::str::Chars;
+
+use crate::tokenize::DebugInfo;
+use crate::tokenize::Eof;
+use crate::tokenize::FileInfo;
+use crate::tokenize::Token;
+
 pub struct Preprocessor<'b> {
     include_dir: &'b str,
 }
@@ -7,8 +16,13 @@ impl<'b> Preprocessor<'b> {
         Self { include_dir }
     }
 
-    pub fn preprocess(&self, input: &str) -> String {
-        input.to_string()
+    pub fn preprocess(&self, main_file_info: Rc<FileInfo>) -> Vec<Token<TokenKind>> {
+        let src = main_file_info.get_file_src();
+        let token = Token::new(
+            TokenKind::Rest(src.to_string()),
+            DebugInfo::default_with_file_info(Rc::clone(&main_file_info)),
+        );
+        vec![token]
     }
 
     // #[allow(clippy::too_many_lines)]
@@ -255,9 +269,101 @@ impl<'b> Preprocessor<'b> {
     //     }
 }
 
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum TokenKind {
     Eof,
     Define,
     HashTag,
     Ident(String),
+    Rest(String),
+}
+
+impl TokenKind {
+    pub fn len(&self) -> usize {
+        match self {
+            TokenKind::Eof => 0,
+            TokenKind::Define => 6,
+            TokenKind::HashTag => 1,
+            TokenKind::Ident(content) => content.len(),
+            TokenKind::Rest(content) => content.len(),
+        }
+    }
+
+    pub fn get_content(&self) -> &str {
+        match self {
+            TokenKind::Eof => "",
+            TokenKind::Define => "define",
+            TokenKind::HashTag => "#",
+            TokenKind::Ident(content) => content,
+            TokenKind::Rest(content) => content,
+        }
+    }
+}
+
+impl Eof for TokenKind {
+    fn is_eof(&self) -> bool {
+        *self == TokenKind::Eof
+    }
+}
+
+use std::fmt::Debug;
+#[derive(Clone, Debug)]
+pub struct PreprocessorTokenStream<I>
+where
+    I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
+{
+    iter: I,
+    current_token_content: String,
+    current_token_debug_info: DebugInfo,
+    cur_in_token: usize,
+}
+
+impl<I> PreprocessorTokenStream<I>
+where
+    I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
+{
+    pub fn new(mut iter: I) -> Self {
+        let current_token = iter.next();
+        match current_token {
+            Some(current_token) => {
+                let current_token_content = current_token.kind.get_content().to_string();
+                let current_token_debug_info = current_token.debug_info.clone(); // this clone uses `Rc::clone` internally, so it's light.
+                let cur_in_token = 0;
+                Self {
+                    iter,
+                    current_token_content,
+                    current_token_debug_info,
+                    cur_in_token,
+                }
+            }
+            None => Self {
+                iter,
+                current_token_content: String::new(),
+                current_token_debug_info: DebugInfo::default(),
+                cur_in_token: 0,
+            },
+        }
+    }
+}
+
+impl<I> Iterator for PreprocessorTokenStream<I>
+where
+    I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
+{
+    type Item = (DebugInfo, char);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.current_token_content.len() == 0 {
+            let current_token = self.iter.next()?;
+            self.current_token_content = current_token.kind.get_content().to_string();
+            self.current_token_debug_info = current_token.debug_info.clone(); // this clone uses `Rc::clone` internally, so it's light.
+            self.cur_in_token = 0;
+        }
+        let ch = self
+            .current_token_content
+            .chars()
+            .nth(self.cur_in_token)
+            .unwrap();
+        Some((self.current_token_debug_info.clone(), ch))
+    }
 }

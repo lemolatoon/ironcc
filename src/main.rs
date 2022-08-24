@@ -10,8 +10,11 @@ use std::rc::Rc;
 
 use ironcc::analyze::Analyzer;
 use ironcc::error::CompileError;
+use ironcc::preprocess;
 use ironcc::preprocess::Preprocessor;
+use ironcc::preprocess::PreprocessorTokenStream;
 use ironcc::tokenize::FileInfo;
+use ironcc::tokenize::Token;
 use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
@@ -38,17 +41,36 @@ fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
         .expect("This source is not valid UTF8");
     input.push('\n');
 
-    let input = preprocess(&input, INCLUDE_DIR);
-    compile(input, file_name, out_f)
+    let main_file_info = Rc::new(FileInfo::new(file_name, input));
+    let tokens = preprocess(main_file_info, INCLUDE_DIR);
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    compile(
+        stream,
+        String::from("This arg-passed input should not be used."),
+        String::from("This arg-passed input should not be used.2"),
+        out_f,
+    )
 }
 
-fn preprocess(input: &str, include_dir: &str) -> String {
+fn preprocess(
+    main_file_info: Rc<FileInfo>,
+    include_dir: &str,
+) -> Vec<Token<preprocess::TokenKind>> {
     let mut preprocessor = Preprocessor::new(include_dir);
-    preprocessor.preprocess(input)
+    preprocessor.preprocess(main_file_info)
 }
 
-fn compile(input: String, file_name: String, out_f: File) -> Result<(), CompileError<TokenKind>> {
-    let tokenizer = Tokenizer::new();
+use std::fmt::Debug;
+fn compile<I>(
+    stream: PreprocessorTokenStream<I>,
+    input: String,
+    file_name: String,
+    out_f: File,
+) -> Result<(), CompileError<TokenKind>>
+where
+    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+{
+    let tokenizer = Tokenizer::new(stream);
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
     let tokens = tokenizer.tokenize(&file_info)?;
     let mut token_stream = TokenStream::new(tokens.into_iter());
