@@ -656,8 +656,7 @@ impl Generator {
     ) -> Result<(), CompileError<TokenKind>> {
         match expr.kind {
             ConvExprKind::LVar(LVar { offset, ty: _ }) => {
-                writeln!(f, "  mov rax, rbp")?;
-                writeln!(f, "  sub rax, {}", offset)?;
+                writeln!(f, "  lea rax, [rbp-{}]", offset)?;
                 // push ptr
                 self.push(f, RegKind::Rax)?;
             }
