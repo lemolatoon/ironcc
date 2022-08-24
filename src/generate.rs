@@ -669,7 +669,7 @@ impl Generator {
                 ty: _,
                 init: _,
             }) => {
-                writeln!(f, "  mov rax, offset {}", name)?;
+                writeln!(f, "  lea rax, [rip+{}]", name)?;
                 self.push(f, RegKind::Rax)?;
             }
             ConvExprKind::Member {
