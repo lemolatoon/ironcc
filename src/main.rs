@@ -35,6 +35,7 @@ const INCLUDE_DIR: &str = "include";
 
 fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
     let args: Vec<String> = env::args().collect();
+    let args = vec!["", "tmp.c"].into_iter().map(|arg| arg.to_string()).collect();
     let (file_name, mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
     in_f.read_to_string(&mut input)
@@ -43,6 +44,7 @@ fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
 
     let main_file_info = Rc::new(FileInfo::new(file_name, input));
     let tokens = preprocess(main_file_info, INCLUDE_DIR);
+    eprintln!("preprocess finished!!");
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     compile(
         stream,
@@ -56,7 +58,7 @@ fn preprocess(
     main_file_info: Rc<FileInfo>,
     include_dir: &str,
 ) -> Vec<Token<preprocess::TokenKind>> {
-    let mut preprocessor = Preprocessor::new(include_dir);
+    let preprocessor = Preprocessor::new(include_dir);
     preprocessor.preprocess(main_file_info)
 }
 
@@ -70,21 +72,25 @@ fn compile<I>(
 where
     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
 {
-    let tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(stream);
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
     let tokens = tokenizer.tokenize(&file_info)?;
+    eprintln!("tokenize finished!!");
     let mut token_stream = TokenStream::new(tokens.into_iter());
 
     let parser = Parser::new();
     let program = parser.parse_program(&mut token_stream)?;
+    eprintln!("parse finished!!");
 
     let mut analyzer = Analyzer::new();
     let converted_program = analyzer.traverse_program(program)?;
+    eprintln!("analyze finished!!");
 
     let mut buf_writer = BufWriter::new(out_f);
     let mut generater = Generator::new();
     generater.gen_head(&mut buf_writer, converted_program)?;
     buf_writer.flush()?;
+    eprintln!("generate finished!!");
 
     Ok(())
 }

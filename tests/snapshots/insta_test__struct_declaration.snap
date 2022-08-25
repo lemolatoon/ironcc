@@ -7,7 +7,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Struct,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -22,7 +22,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -37,7 +37,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -52,7 +52,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -67,7 +67,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -80,7 +80,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -95,7 +95,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -110,7 +110,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -123,7 +123,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -138,7 +138,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -151,7 +151,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -166,7 +166,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -181,7 +181,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -196,7 +196,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -211,7 +211,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -226,7 +226,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -239,7 +239,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Struct,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -254,7 +254,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -269,7 +269,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -282,7 +282,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -297,7 +297,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
@@ -310,7 +310,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eof,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {

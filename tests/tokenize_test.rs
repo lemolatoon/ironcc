@@ -17,8 +17,8 @@ fn tokenize_plus_minus_test() {
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let tokens = Tokenizer::new(stream.clone()).tokenize(&file_info).unwrap();
-    let mut tokens = TokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
+    // let mut tokens = TokenStream::new(tokens.into_iter());
+    let mut tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer
             .tokenize(&file_info)
@@ -70,14 +70,14 @@ fn tokenize_plus_minus_test() {
         )
     );
     let input = String::from("1 + 4 -       909");
-    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let file_info = Rc::new(FileInfo::new(String::new(), input.clone()));
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
-    assert!(kind_eq(
-        &tokenizer.tokenize(&file_info).unwrap(),
-        &tokens!(
+    let mut tokenizer = Tokenizer::new(stream);
+    assert_eq!(
+        tokenize_and_kinds(&input).unwrap(),
+        token_kinds!(
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(4),
@@ -85,16 +85,16 @@ fn tokenize_plus_minus_test() {
             TokenKind::Num(909),
             TokenKind::Eof
         )
-    ));
+    );
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
-    let file_info = Rc::new(FileInfo::new(String::new(), input));
-    assert!(kind_eq(
-        &tokenizer.tokenize(&file_info).unwrap(),
-        &tokens!(
+    let mut tokenizer = Tokenizer::new(stream);
+    let file_info = Rc::new(FileInfo::new(String::new(), input.clone()));
+    assert_eq!(
+        tokenize_and_kinds(&input).unwrap(),
+        token_kinds!(
             TokenKind::Num(0),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(5),
@@ -108,7 +108,7 @@ fn tokenize_plus_minus_test() {
             TokenKind::Num(909),
             TokenKind::Eof
         )
-    ));
+    );
 }
 
 #[cfg(test)]
@@ -123,7 +123,7 @@ fn tokenize_pos_test() {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -148,7 +148,7 @@ fn tokenize_pos_test() {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -519,6 +519,55 @@ fn tokenize_call_func_test() {
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::Semi,
             TokenKind::CloseDelim(DelimToken::Brace),
+            TokenKind::Eof
+        )
+    );
+}
+
+#[test]
+fn tokenize_prototype() {
+    let input = "int printf(const char *msg, ...);";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Int),
+            TokenKind::Ident("printf".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paren),
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("msg".to_string()),
+            TokenKind::Comma,
+            TokenKind::DotDotDot,
+            TokenKind::CloseDelim(DelimToken::Paren),
+            TokenKind::Semi,
+            TokenKind::Eof
+        )
+    );
+}
+
+#[test]
+fn tokenize_reserved() {
+    let input = "char";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(TokenKind::Type(TypeToken::Char), TokenKind::Eof)
+    );
+    let input = "char *";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Eof
+        )
+    );
+    let input = "char *msg";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("msg".to_string()),
             TokenKind::Eof
         )
     );

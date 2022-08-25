@@ -9,7 +9,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -24,7 +24,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -39,7 +39,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -54,7 +54,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -69,7 +69,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -84,7 +84,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -99,7 +99,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -114,7 +114,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -129,7 +129,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -144,7 +144,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -157,7 +157,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -170,7 +170,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Return,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -185,7 +185,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -200,7 +200,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -215,7 +215,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -230,7 +230,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -243,7 +243,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -258,7 +258,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
@@ -271,7 +271,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eof,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {

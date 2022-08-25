@@ -46,7 +46,7 @@ ConvProgram {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                                                 },
                                                                 pos: Position {
@@ -63,7 +63,7 @@ ConvProgram {
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
-                                                            file_name: "",
+                                                            file_name: "not impl name.c",
                                                             src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                                         },
                                                         pos: Position {
@@ -85,7 +85,7 @@ ConvProgram {
                                                                 ),
                                                                 debug_info: DebugInfo {
                                                                     file_info: FileInfo {
-                                                                        file_name: "",
+                                                                        file_name: "not impl name.c",
                                                                         src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                                                     },
                                                                     pos: Position {
@@ -103,7 +103,7 @@ ConvProgram {
                                                                 ),
                                                                 debug_info: DebugInfo {
                                                                     file_info: FileInfo {
-                                                                        file_name: "",
+                                                                        file_name: "not impl name.c",
                                                                         src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                                                     },
                                                                     pos: Position {
@@ -119,7 +119,7 @@ ConvProgram {
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
-                                                            file_name: "",
+                                                            file_name: "not impl name.c",
                                                             src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                                         },
                                                         pos: Position {
@@ -137,7 +137,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                             },
                                             pos: Position {
@@ -152,7 +152,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
                                     },
                                     pos: Position {

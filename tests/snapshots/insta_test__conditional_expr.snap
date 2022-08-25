@@ -9,7 +9,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -24,7 +24,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -39,7 +39,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -54,7 +54,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -69,7 +69,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -84,7 +84,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -99,7 +99,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -112,7 +112,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eq,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -127,7 +127,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -140,7 +140,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -155,7 +155,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -170,7 +170,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -183,7 +183,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eq,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -198,7 +198,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -211,7 +211,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -226,7 +226,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -241,7 +241,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -254,7 +254,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eq,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -269,7 +269,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -284,7 +284,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -299,7 +299,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -312,7 +312,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Question,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -327,7 +327,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -340,7 +340,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Colon,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -355,7 +355,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -368,7 +368,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Semi,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -383,7 +383,7 @@ expression: tester.tokens().as_ref().unwrap()
         ),
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
@@ -396,7 +396,7 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Eof,
         debug_info: DebugInfo {
             file_info: FileInfo {
-                file_name: "",
+                file_name: "not impl name.c",
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {

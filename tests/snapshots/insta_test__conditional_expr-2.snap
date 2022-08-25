@@ -40,7 +40,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                 },
                                                                 pos: Position {
@@ -55,7 +55,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                             },
                                             pos: Position {
@@ -86,7 +86,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                 },
                                                                 pos: Position {
@@ -101,7 +101,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                             },
                                             pos: Position {
@@ -138,7 +138,7 @@ Program {
                                                                                 ),
                                                                                 debug_info: DebugInfo {
                                                                                     file_info: FileInfo {
-                                                                                        file_name: "",
+                                                                                        file_name: "not impl name.c",
                                                                                         src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                                     },
                                                                                     pos: Position {
@@ -153,7 +153,7 @@ Program {
                                                                                 ),
                                                                                 debug_info: DebugInfo {
                                                                                     file_info: FileInfo {
-                                                                                        file_name: "",
+                                                                                        file_name: "not impl name.c",
                                                                                         src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                                     },
                                                                                     pos: Position {
@@ -166,7 +166,7 @@ Program {
                                                                     ),
                                                                     debug_info: DebugInfo {
                                                                         file_info: FileInfo {
-                                                                            file_name: "",
+                                                                            file_name: "not impl name.c",
                                                                             src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                         },
                                                                         pos: Position {
@@ -181,7 +181,7 @@ Program {
                                                                     ),
                                                                     debug_info: DebugInfo {
                                                                         file_info: FileInfo {
-                                                                            file_name: "",
+                                                                            file_name: "not impl name.c",
                                                                             src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                         },
                                                                         pos: Position {
@@ -196,7 +196,7 @@ Program {
                                                                     ),
                                                                     debug_info: DebugInfo {
                                                                         file_info: FileInfo {
-                                                                            file_name: "",
+                                                                            file_name: "not impl name.c",
                                                                             src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                         },
                                                                         pos: Position {
@@ -208,7 +208,7 @@ Program {
                                                             },
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                                                 },
                                                                 pos: Position {
@@ -223,7 +223,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                                             },
                                             pos: Position {
@@ -240,7 +240,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
                 },
                 pos: Position {

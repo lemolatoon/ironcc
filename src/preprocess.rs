@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 use std::rc::Rc;
-use std::str::Chars;
 
+use crate::error::CompileError;
 use crate::tokenize::DebugInfo;
 use crate::tokenize::Eof;
 use crate::tokenize::FileInfo;
@@ -284,8 +284,7 @@ impl TokenKind {
             TokenKind::Eof => 0,
             TokenKind::Define => 6,
             TokenKind::HashTag => 1,
-            TokenKind::Ident(content) => content.len(),
-            TokenKind::Rest(content) => content.len(),
+            TokenKind::Ident(content) | TokenKind::Rest(content) => content.len(),
         }
     }
 
@@ -294,8 +293,7 @@ impl TokenKind {
             TokenKind::Eof => "",
             TokenKind::Define => "define",
             TokenKind::HashTag => "#",
-            TokenKind::Ident(content) => content,
-            TokenKind::Rest(content) => content,
+            TokenKind::Ident(content) | TokenKind::Rest(content) => content,
         }
     }
 }
@@ -312,7 +310,7 @@ pub struct PreprocessorTokenStream<I>
 where
     I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
 {
-    iter: I,
+    iter: Peekable<I>,
     current_token_content: String,
     current_token_debug_info: DebugInfo,
     cur_in_token: usize,
@@ -327,22 +325,82 @@ where
         match current_token {
             Some(current_token) => {
                 let current_token_content = current_token.kind.get_content().to_string();
-                let current_token_debug_info = current_token.debug_info.clone(); // this clone uses `Rc::clone` internally, so it's light.
+                let current_token_debug_info = current_token.debug_info; // this clone uses `Rc::clone` internally, so it's light.
                 let cur_in_token = 0;
                 Self {
-                    iter,
+                    iter: iter.peekable(),
                     current_token_content,
                     current_token_debug_info,
                     cur_in_token,
                 }
             }
             None => Self {
-                iter,
+                iter: iter.peekable(),
                 current_token_content: String::new(),
                 current_token_debug_info: DebugInfo::default(),
                 cur_in_token: 0,
             },
         }
+    }
+
+    pub fn starts_with(&self, prefix: &str) -> bool {
+        let cloned_self = self.clone();
+        let len = prefix.len();
+        cloned_self
+            .take(len)
+            .map(|(_, ch)| ch)
+            .zip(prefix.chars())
+            .all(|(a, b)| a == b)
+    }
+
+    // Returns true if the next char matches '0'..='9'
+    pub fn starts_with_number(&self) -> bool {
+        matches!(self.peek(), Some((_, '0'..='9')))
+    }
+
+    // Returns true if the next char matches 'a'..='z' | 'A'..='Z'
+    pub fn starts_with_alphabet(&self) -> bool {
+        matches!(self.peek(), Some((_, 'a'..='z' | 'A'..='Z')))
+    }
+
+    pub fn advance(&mut self, times: usize) {
+        for _ in 0..times {
+            self.next();
+        }
+    }
+
+    pub fn get_debug_info_and_advance(&mut self, times: usize) -> DebugInfo {
+        let debug_info = self.current_token_debug_info.clone();
+        self.advance(times);
+        debug_info
+    }
+
+    /// Advance this iterator (including sentinel) until sentinel
+    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError<TokenKind>> {
+        loop {
+            match self.next() {
+                Some((_, ch)) if ch == sentinel => return Ok(()),
+                Some(_) => continue,
+                None => {
+                    return Err(CompileError::new_unexpected_eof_tokenize(
+                        self.current_token_debug_info.clone(),
+                    ))
+                }
+            }
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.clone().next().is_none()
+    }
+
+    pub fn peek(&self) -> Option<(DebugInfo, char)> {
+        let mut cloned = self.clone();
+        cloned.next()
+    }
+
+    pub fn get_current_debug_info(&self) -> DebugInfo {
+        self.current_token_debug_info.clone()
     }
 }
 
@@ -353,7 +411,7 @@ where
     type Item = (DebugInfo, char);
 
     fn next(&mut self) -> Option<Self::Item> {
-        while self.current_token_content.len() == 0 {
+        while self.current_token_content.chars().count() == self.cur_in_token {
             let current_token = self.iter.next()?;
             self.current_token_content = current_token.kind.get_content().to_string();
             self.current_token_debug_info = current_token.debug_info.clone(); // this clone uses `Rc::clone` internally, so it's light.
@@ -364,6 +422,26 @@ where
             .chars()
             .nth(self.cur_in_token)
             .unwrap();
-        Some((self.current_token_debug_info.clone(), ch))
+        let debug_info = self.current_token_debug_info.clone();
+        if ch == '\n' {
+            // DebugInfo::new(
+            //     self.current_token_debug_info.get_cloned_file_info(),
+            //     0,
+            //     self.current_token_debug_info.get_n_line() + 1,
+            // );
+            *self.current_token_debug_info.get_n_char_mut() = 0;
+            *self.current_token_debug_info.get_n_line_mut() =
+                self.current_token_debug_info.get_n_line() + 1;
+        } else {
+            // DebugInfo::new(
+            //     self.current_token_debug_info.get_cloned_file_info(),
+            //     self.current_token_debug_info.get_n_char() + 1,
+            //     self.current_token_debug_info.get_n_line(),
+            // );
+            *self.current_token_debug_info.get_n_char_mut() =
+                self.current_token_debug_info.get_n_char() + 1;
+        }
+        self.cur_in_token += 1;
+        Some((debug_info, ch))
     }
 }

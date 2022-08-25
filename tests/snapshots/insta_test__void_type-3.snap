@@ -40,7 +40,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
                                             },
                                             pos: Position {
@@ -83,7 +83,7 @@ ConvProgram {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
                                                             },
                                                             pos: Position {
@@ -108,7 +108,7 @@ ConvProgram {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
                                                     },
                                                     pos: Position {
@@ -136,7 +136,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
                                             },
                                             pos: Position {
@@ -151,7 +151,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
                                     },
                                     pos: Position {

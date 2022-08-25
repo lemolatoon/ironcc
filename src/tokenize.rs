@@ -3,6 +3,7 @@ use crate::preprocess::{Preprocessor, PreprocessorTokenStream};
 use crate::{preprocess, unimplemented_err};
 use std::iter::Peekable;
 
+#[derive(Debug)]
 pub struct Tokenizer<I>
 where
     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
@@ -20,42 +21,31 @@ where
 
     #[allow(clippy::too_many_lines)]
     pub fn tokenize(
-        &self,
+        &mut self,
         _file_info: &Rc<FileInfo>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError<TokenKind>> {
         let mut tokens = Vec::new();
-        let src = file_info.get_file_src();
-        let mut pos = DebugInfo::default_with_file_info(file_info.clone()); // 0, 0
-        let mut input = <&str>::clone(&src);
+        // let src = _file_info.get_file_src();
+        // let mut pos = DebugInfo::default_with_file_info(_file_info.clone()); // 0, 0
+        // let mut input = <&str>::clone(&src);
 
-        'tokenize_loop: while !input.is_empty() {
+        'tokenize_loop: while !self.stream.is_empty() {
+            // dbg!(self.stream.clone().map(|(_, ch)| ch).collect::<String>());
+            // dbg!(self.stream.peek().map(|(_, ch)| ch));
             // skip white spaces
-            if input.starts_with(' ') || input.starts_with('\t') {
-                pos.advance(1);
-                input = &input[1..];
+            if self.stream.starts_with(" ")
+                || self.stream.starts_with("\t")
+                || self.stream.starts_with("\n")
+            {
+                self.stream.advance(1);
                 continue;
-            } else if input.starts_with('\n') {
-                pos.advance_line();
-                input = &input[1..];
-                continue;
-            } else if input.starts_with("//") {
-                let mut input_iter = input.chars();
-                let mut num_this_line_char = 1;
-                while !matches!(input_iter.next(), Some('\n')) {
-                    num_this_line_char += 1;
-                }
-                pos.advance_line();
-                input = &input[num_this_line_char..];
+            } else if self.stream.starts_with("//") {
+                // TODO: remove unwrap
+                self.stream.advance_until('\n').unwrap();
                 continue;
             }
-            if input.starts_with('#') {
-                let mut input_iter = input.chars();
-                let mut num_this_line_char = 1;
-                while !matches!(input_iter.next(), Some('\n')) {
-                    num_this_line_char += 1;
-                }
-                pos.advance_line();
-                input = &input[num_this_line_char..];
+            if self.stream.starts_with("#") {
+                self.stream.advance_until('\n').unwrap();
                 continue;
             }
 
@@ -97,71 +87,57 @@ where
             ];
 
             for (literal, kind) in symbols {
-                if input.starts_with(literal) {
-                    tokens.push(Token::new(kind, pos.get_pos_and_advance(literal.len())));
-                    input = &input[literal.len()..];
+                if self.stream.starts_with(literal) {
+                    let this_token_debug_info =
+                        self.stream.get_debug_info_and_advance(literal.len());
+                    tokens.push(Token::new(kind, this_token_debug_info));
                     continue 'tokenize_loop;
                 }
             }
 
-            if input.starts_with('"') {
+            if self.stream.starts_with("\"") {
                 // string literal
-                let mut chars = input.chars().peekable();
-                chars.next(); // -> "
+                let debug_info = self.stream.get_current_debug_info();
+                self.stream.next(); // -> "
                 let mut str_lit = String::new();
-                let mut len_token = 1;
                 loop {
-                    match chars.peek() {
-                        Some('"') => {
-                            len_token += 1;
-                            chars.next();
+                    match self.stream.next() {
+                        Some((_, '"')) => {
                             break;
                         }
-                        Some('\\') => {
-                            len_token += 1;
-                            chars.next();
-                            match chars.next() {
-                                Some('n') => {
-                                    len_token += 1;
-                                    str_lit.push('\n');
-                                }
-                                Some('e') => {
-                                    len_token += 1;
-                                    str_lit.push(0x1bu8.into());
-                                }
-                                _ => {
-                                    pos.advance(len_token);
-                                    return Err(unimplemented_err!(
-                                        pos,
-                                        "This type of escape Sequences are not currently implemented."
-                                    ));
-                                }
+                        Some((_, '\\')) => match self.stream.next() {
+                            Some((_, 'n')) => {
+                                str_lit.push('\n');
                             }
+                            Some((_, 'e')) => {
+                                str_lit.push(0x1bu8.into());
+                            }
+                            _ => {
+                                let debug_info = self.stream.get_current_debug_info();
+                                return Err(unimplemented_err!(
+                                    debug_info,
+                                    "This type of escape Sequences are not currently implemented."
+                                ));
+                            }
+                        },
+                        Some((_, c)) => {
+                            str_lit.push(c);
                         }
-                        Some(c) => {
-                            len_token += 1;
-                            str_lit.push(*c);
-                            chars.next();
-                        }
-                        None => return Err(CompileError::new_unexpected_eof_tokenize(pos)),
+                        None => return Err(CompileError::new_unexpected_eof_tokenize(debug_info)),
                     }
                 }
-                tokens.push(Token::new(
-                    TokenKind::Str(str_lit),
-                    pos.get_pos_and_advance(len_token),
-                ));
-                input = &input[len_token..];
+                tokens.push(Token::new(TokenKind::Str(str_lit), debug_info));
                 continue;
             }
 
-            if input.starts_with("0b") {
-                input = &input[2..];
-                let mut chars = input.chars().peekable();
+            if self.stream.starts_with("0b") {
+                let debug_info = self.stream.get_current_debug_info();
+                self.stream.advance(2);
                 let mut number = String::new();
-                while let Some(&('0' | '1')) = chars.peek() {
-                    number.push(chars.next().unwrap());
+                while let Some((_, n @ ('0' | '1'))) = self.stream.peek() {
+                    self.stream.next();
+                    number.push(n);
                 }
-                let len_token = number.len();
                 let mut num = 0;
                 for c in number.chars() {
                     num *= 2;
@@ -175,66 +151,39 @@ where
                                 Box::new("'0' | '1'"),
                                 Token {
                                     kind: Box::new(TokenKind::Ident(c.to_string())),
-                                    debug_info: pos,
+                                    debug_info,
                                 },
                             ));
                         }
                     }
                 }
-                tokens.push(Token::new(
-                    TokenKind::Num(num as isize),
-                    pos.get_pos_and_advance(len_token),
-                ));
-                input = &input[len_token..];
+                tokens.push(Token::new(TokenKind::Num(num as isize), debug_info));
                 continue;
             }
 
-            if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
-                let mut chars = input.chars().peekable();
-                let mut number = String::from(chars.next().unwrap());
-                while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
-                    chars.peek()
-                {
-                    number.push(chars.next().unwrap());
+            if self.stream.starts_with_number() {
+                let (debug_info, ch) = self.stream.next().unwrap();
+                let mut number = String::from(ch);
+                while self.stream.starts_with_number() {
+                    let (_, ch) = self.stream.next().unwrap();
+                    number.push(ch);
                 }
-                let len_token = number.len();
                 let num = number
                     .parse::<usize>()
                     .expect("Currently support only a number literal.");
-                tokens.push(Token::new(
-                    TokenKind::Num(num as isize),
-                    pos.get_pos_and_advance(len_token),
-                ));
-                input = &input[len_token..];
+                tokens.push(Token::new(TokenKind::Num(num as isize), debug_info));
                 continue;
-            } else if input.starts_with(
-                &('a'..='z')
-                    .chain('A'..='Z')
-                    .chain(vec!['_'].into_iter())
-                    .collect::<Vec<_>>()[..],
-            ) {
+            } else if self.stream.starts_with_alphabet() || self.stream.starts_with("_") {
                 // Ident or reserved token
-                let mut chars = input.chars().peekable();
-                let mut ident = String::from(chars.next().unwrap());
-                while let Some(
-                    &('a'..='z')
-                    | &('A'..='Z')
-                    | '_'
-                    | '0'
-                    | '1'
-                    | '2'
-                    | '3'
-                    | '4'
-                    | '5'
-                    | '6'
-                    | '7'
-                    | '8'
-                    | '9',
-                ) = chars.peek()
+                let (debug_info, ch) = self.stream.next().unwrap();
+                let mut ident = String::from(ch);
+                while self.stream.starts_with_alphabet()
+                    || self.stream.starts_with("_")
+                    || self.stream.starts_with_number()
                 {
-                    ident.push(chars.next().unwrap());
+                    let (_, ch) = self.stream.next().unwrap();
+                    ident.push(ch);
                 }
-                let len_token = ident.len();
                 tokens.push(Token::new(
                     match ident.as_str() {
                         "return" => TokenKind::Return,
@@ -250,23 +199,21 @@ where
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
-                            input = &input[5..];
-                            pos.get_pos_and_advance(5);
                             continue;
                         }
                         _ => TokenKind::Ident(ident),
                     },
-                    pos.get_pos_and_advance(len_token),
+                    debug_info,
                 ));
-                input = &input[len_token..];
                 continue;
             }
-            return Err(CompileError::new_unexpected_char(
-                pos,
-                input.chars().next().unwrap(),
-            ));
+            let (debug_info, ch) = self.stream.next().unwrap();
+            return Err(CompileError::new_unexpected_char(debug_info, ch));
         }
-        tokens.push(Token::new(TokenKind::Eof, pos.get_pos_and_advance(0)));
+        tokens.push(Token::new(
+            TokenKind::Eof,
+            self.stream.get_current_debug_info(),
+        ));
 
         Ok(tokens)
     }
@@ -452,6 +399,14 @@ impl Position {
     pub const fn get_n_line(&self) -> usize {
         self.n_line
     }
+
+    pub fn get_n_char_mut(&mut self) -> &mut usize {
+        &mut self.n_char
+    }
+
+    pub fn get_n_line_mut(&mut self) -> &mut usize {
+        &mut self.n_line
+    }
 }
 
 impl DebugInfo {
@@ -473,6 +428,10 @@ impl DebugInfo {
         format!("{}:{}", self.file_info.file_name, self.get_n_line(),)
     }
 
+    pub fn get_cloned_file_info(&self) -> Rc<FileInfo> {
+        Rc::clone(&self.file_info)
+    }
+
     pub fn get_file_name(&self) -> String {
         self.file_info.file_name.clone()
     }
@@ -487,6 +446,14 @@ impl DebugInfo {
 
     pub const fn get_n_line(&self) -> usize {
         self.pos.n_line
+    }
+
+    pub fn get_n_char_mut(&mut self) -> &mut usize {
+        &mut self.pos.n_char
+    }
+
+    pub fn get_n_line_mut(&mut self) -> &mut usize {
+        &mut self.pos.n_line
     }
 
     pub fn advance_line(&mut self) {
@@ -733,7 +700,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
     let preproccor = Preprocessor::new("");
     let tokens = preproccor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(stream);
     Ok(tokenizer
         .tokenize(&file_info)?
         .into_iter()

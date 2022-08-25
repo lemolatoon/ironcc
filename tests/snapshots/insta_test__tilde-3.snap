@@ -34,7 +34,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                             },
                                             pos: Position {
@@ -54,7 +54,7 @@ ConvProgram {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                                     },
                                                     pos: Position {
@@ -73,7 +73,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                             },
                                             pos: Position {
@@ -88,7 +88,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                     },
                                     pos: Position {
@@ -118,7 +118,7 @@ ConvProgram {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                                     },
                                                     pos: Position {
@@ -137,7 +137,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                             },
                                             pos: Position {
@@ -152,7 +152,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
                                     },
                                     pos: Position {

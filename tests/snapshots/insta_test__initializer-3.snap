@@ -34,7 +34,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {int a = 5; int *p = &a; return 0;}",
                                             },
                                             pos: Position {
@@ -52,7 +52,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {int a = 5; int *p = &a; return 0;}",
                                             },
                                             pos: Position {
@@ -67,7 +67,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "int main() {int a = 5; int *p = &a; return 0;}",
                                     },
                                     pos: Position {
@@ -98,7 +98,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {int a = 5; int *p = &a; return 0;}",
                                             },
                                             pos: Position {
@@ -123,7 +123,7 @@ ConvProgram {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "int main() {int a = 5; int *p = &a; return 0;}",
                                                     },
                                                     pos: Position {
@@ -140,7 +140,7 @@ ConvProgram {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "int main() {int a = 5; int *p = &a; return 0;}",
                                             },
                                             pos: Position {
@@ -157,7 +157,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "int main() {int a = 5; int *p = &a; return 0;}",
                                     },
                                     pos: Position {
@@ -177,7 +177,7 @@ ConvProgram {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "int main() {int a = 5; int *p = &a; return 0;}",
                                     },
                                     pos: Position {

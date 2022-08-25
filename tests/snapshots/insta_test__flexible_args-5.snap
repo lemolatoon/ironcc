@@ -32,7 +32,7 @@ Program {
                                             ),
                                             debug_info: DebugInfo {
                                                 file_info: FileInfo {
-                                                    file_name: "",
+                                                    file_name: "not impl name.c",
                                                     src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                                                 },
                                                 pos: Position {
@@ -50,7 +50,7 @@ Program {
                     ),
                     debug_info: DebugInfo {
                         file_info: FileInfo {
-                            file_name: "",
+                            file_name: "not impl name.c",
                             src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                         },
                         pos: Position {
@@ -62,7 +62,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                 },
                 pos: Position {
@@ -96,7 +96,7 @@ Program {
                                 ),
                                 debug_info: DebugInfo {
                                     file_info: FileInfo {
-                                        file_name: "",
+                                        file_name: "not impl name.c",
                                         src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                                     },
                                     pos: Position {
@@ -124,7 +124,7 @@ Program {
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
-                                                            file_name: "",
+                                                            file_name: "not impl name.c",
                                                             src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                                                         },
                                                         pos: Position {
@@ -137,7 +137,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                                             },
                                             pos: Position {
@@ -154,7 +154,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
                 },
                 pos: Position {

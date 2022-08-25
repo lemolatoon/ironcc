@@ -16,7 +16,7 @@ Program {
                                 StructDeclaration {
                                     debug_info: DebugInfo {
                                         file_info: FileInfo {
-                                            file_name: "",
+                                            file_name: "not impl name.c",
                                             src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                                         },
                                         pos: Position {
@@ -35,7 +35,7 @@ Program {
                                 StructDeclaration {
                                     debug_info: DebugInfo {
                                         file_info: FileInfo {
-                                            file_name: "",
+                                            file_name: "not impl name.c",
                                             src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                                         },
                                         pos: Position {
@@ -57,7 +57,7 @@ Program {
                     init_declarator: None,
                     debug_info: DebugInfo {
                         file_info: FileInfo {
-                            file_name: "",
+                            file_name: "not impl name.c",
                             src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                         },
                         pos: Position {
@@ -69,7 +69,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                 },
                 pos: Position {
@@ -115,7 +115,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                                             },
                                             pos: Position {
@@ -132,7 +132,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
                 },
                 pos: Position {

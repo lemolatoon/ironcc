@@ -6,7 +6,6 @@ use crate::analyze::Type;
 use crate::tokenize::DebugInfo;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
-use crate::tokenize::TokenKind;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fmt::Display;

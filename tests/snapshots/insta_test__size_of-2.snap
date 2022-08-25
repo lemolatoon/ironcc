@@ -40,7 +40,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                 },
                                                                 pos: Position {
@@ -55,7 +55,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                             },
                                             pos: Position {
@@ -89,7 +89,7 @@ Program {
                                                                         ),
                                                                         debug_info: DebugInfo {
                                                                             file_info: FileInfo {
-                                                                                file_name: "",
+                                                                                file_name: "not impl name.c",
                                                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                             },
                                                                             pos: Position {
@@ -102,7 +102,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                 },
                                                                 pos: Position {
@@ -117,7 +117,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                             },
                                             pos: Position {
@@ -157,7 +157,7 @@ Program {
                                                                         ),
                                                                         debug_info: DebugInfo {
                                                                             file_info: FileInfo {
-                                                                                file_name: "",
+                                                                                file_name: "not impl name.c",
                                                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                             },
                                                                             pos: Position {
@@ -170,7 +170,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                 },
                                                                 pos: Position {
@@ -185,7 +185,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                             },
                                             pos: Position {
@@ -225,7 +225,7 @@ Program {
                                                                         ),
                                                                         debug_info: DebugInfo {
                                                                             file_info: FileInfo {
-                                                                                file_name: "",
+                                                                                file_name: "not impl name.c",
                                                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                             },
                                                                             pos: Position {
@@ -238,7 +238,7 @@ Program {
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
-                                                                    file_name: "",
+                                                                    file_name: "not impl name.c",
                                                                     src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                                                 },
                                                                 pos: Position {
@@ -253,7 +253,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                                             },
                                             pos: Position {
@@ -270,7 +270,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
                 },
                 pos: Position {

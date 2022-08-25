@@ -37,7 +37,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                             },
                                             pos: Position {
@@ -68,7 +68,7 @@ Program {
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
-                                                            file_name: "",
+                                                            file_name: "not impl name.c",
                                                             src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                                         },
                                                         pos: Position {
@@ -102,7 +102,7 @@ Program {
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
-                                                            file_name: "",
+                                                            file_name: "not impl name.c",
                                                             src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                                         },
                                                         pos: Position {
@@ -133,7 +133,7 @@ Program {
                                                                 ),
                                                                 debug_info: DebugInfo {
                                                                     file_info: FileInfo {
-                                                                        file_name: "",
+                                                                        file_name: "not impl name.c",
                                                                         src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                                                     },
                                                                     pos: Position {
@@ -169,7 +169,7 @@ Program {
                                                                 ),
                                                                 debug_info: DebugInfo {
                                                                     file_info: FileInfo {
-                                                                        file_name: "",
+                                                                        file_name: "not impl name.c",
                                                                         src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                                                     },
                                                                     pos: Position {
@@ -186,7 +186,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                                             },
                                             pos: Position {
@@ -203,7 +203,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
                 },
                 pos: Position {

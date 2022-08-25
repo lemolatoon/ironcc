@@ -16,7 +16,7 @@ Program {
                                 StructDeclaration {
                                     debug_info: DebugInfo {
                                         file_info: FileInfo {
-                                            file_name: "",
+                                            file_name: "not impl name.c",
                                             src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                         },
                                         pos: Position {
@@ -39,7 +39,7 @@ Program {
                                 StructDeclaration {
                                     debug_info: DebugInfo {
                                         file_info: FileInfo {
-                                            file_name: "",
+                                            file_name: "not impl name.c",
                                             src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                         },
                                         pos: Position {
@@ -58,7 +58,7 @@ Program {
                                 StructDeclaration {
                                     debug_info: DebugInfo {
                                         file_info: FileInfo {
-                                            file_name: "",
+                                            file_name: "not impl name.c",
                                             src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                         },
                                         pos: Position {
@@ -94,7 +94,7 @@ Program {
                     ),
                     debug_info: DebugInfo {
                         file_info: FileInfo {
-                            file_name: "",
+                            file_name: "not impl name.c",
                             src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                         },
                         pos: Position {
@@ -106,7 +106,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                 },
                 pos: Position {
@@ -152,7 +152,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                             },
                                             pos: Position {
@@ -184,7 +184,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                             },
                                             pos: Position {
@@ -207,7 +207,7 @@ Program {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                             },
                                                             pos: Position {
@@ -220,7 +220,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -237,7 +237,7 @@ Program {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                             },
                                                             pos: Position {
@@ -249,7 +249,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -261,7 +261,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                             },
                                             pos: Position {
@@ -284,7 +284,7 @@ Program {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                             },
                                                             pos: Position {
@@ -297,7 +297,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -312,7 +312,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -324,7 +324,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                             },
                                             pos: Position {
@@ -347,7 +347,7 @@ Program {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                             },
                                                             pos: Position {
@@ -360,7 +360,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -377,7 +377,7 @@ Program {
                                                         ),
                                                         debug_info: DebugInfo {
                                                             file_info: FileInfo {
-                                                                file_name: "",
+                                                                file_name: "not impl name.c",
                                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                             },
                                                             pos: Position {
@@ -389,7 +389,7 @@ Program {
                                                 ),
                                                 debug_info: DebugInfo {
                                                     file_info: FileInfo {
-                                                        file_name: "",
+                                                        file_name: "not impl name.c",
                                                         src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                                     },
                                                     pos: Position {
@@ -401,7 +401,7 @@ Program {
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
-                                                file_name: "",
+                                                file_name: "not impl name.c",
                                                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                                             },
                                             pos: Position {
@@ -418,7 +418,7 @@ Program {
             ),
             debug_info: DebugInfo {
                 file_info: FileInfo {
-                    file_name: "",
+                    file_name: "not impl name.c",
                     src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
                 },
                 pos: Position {
