@@ -698,7 +698,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
         src: input.to_string(),
     });
     let mut preproccor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preproccor.preprocess();
+    let tokens = preproccor.preprocess(None, None);
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer

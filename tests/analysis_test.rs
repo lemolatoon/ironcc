@@ -416,7 +416,7 @@ fn parse_type_test() {
 fn extract_ty(src: &str) -> Type {
     let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preprocessor.preprocess();
+    let tokens = preprocessor.preprocess(None, None);
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
         .tokenize(&file_info)
@@ -440,7 +440,7 @@ fn extract_ty(src: &str) -> Type {
 fn extract_func_ty(src: &str) -> Type {
     let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preprocessor.preprocess();
+    let tokens = preprocessor.preprocess(None, None);
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
         .tokenize(&file_info)

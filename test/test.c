@@ -54,6 +54,7 @@ int test48();
 int test49();
 int test50();
 int test51();
+int test52();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -130,6 +131,7 @@ int main()
     assert(49, 0, test49());
     assert(50, 0, test50());
     assert(51, 0, test51());
+    assert(52, 0, test52());
 
     print_ok();
     return 0;
@@ -1045,4 +1047,34 @@ int test51_renaming_func() {
 int test51() {
     assert(51, 234, TEST51_RENAMED_FUNC());
     return  0;
+}
+
+#define TEST52_DEFINED_CONST
+
+#ifdef TEST52_DEFINED_CONST
+int test52_just_ret() {
+    return 2;
+}
+#else
+int test52_just_ret() {
+    return 3;
+}
+this is てきとう words
+#endif
+
+#undef TEST52_DEFINED_CONST
+#ifdef TEST52_DEFINED_CONST
+int test52_just_ret2() {
+    return 2;
+}
+#else
+int test52_just_ret2() {
+    return 3;
+}
+#endif
+
+int test52() {
+    assert(52, 2, test52_just_ret());
+    assert(52, 3, test52_just_ret2());
+    return 0;
 }

@@ -17,6 +17,20 @@ pub struct Preprocessor<'b> {
     define_table: BTreeMap<String, String>,
     include_table: BTreeMap<String, SrcCursor>,
 }
+#[derive(Debug, Clone, Default)]
+pub struct DerectiveCount {
+    pub ifdef: usize,
+}
+
+impl DerectiveCount {
+    pub fn set_ifdef_flag(&mut self) {
+        self.ifdef += 1;
+    }
+
+    pub fn unset_ifdef_flag(&mut self) {
+        self.ifdef -= 1;
+    }
+}
 
 impl<'b> Preprocessor<'b> {
     pub fn new(main_file_info: Rc<FileInfo>, include_dir: &'b str) -> Self {
@@ -29,9 +43,15 @@ impl<'b> Preprocessor<'b> {
         }
     }
 
-    pub fn preprocess(&mut self) -> Vec<Token<TokenKind>> {
-        let mut tokens: Vec<Token<TokenKind>> = Vec::new();
-        while !self.main_chars.is_empty() {
+    #[allow(clippy::too_many_lines)]
+    pub fn preprocess(
+        &mut self,
+        tokens: Option<Vec<Token<TokenKind>>>,
+        mut derective_count: Option<DerectiveCount>,
+    ) -> Vec<Token<TokenKind>> {
+        let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
+        'preprocess_loop: while !self.main_chars.is_empty() {
+            // dbg!(&self.main_chars.clone().collect::<String>());
             if let Some((debug_info, spaces)) = self
                 .main_chars
                 .get_debug_info_and_skip_white_space_without_new_line()
@@ -60,26 +80,107 @@ impl<'b> Preprocessor<'b> {
                     self.main_chars
                         .get_debug_info_and_skip_white_space_without_new_line();
                     if let Some((_, ident)) = self.main_chars.get_debug_info_and_read_ident() {
-                        if ident == "define" {
-                            self.main_chars
-                                .get_debug_info_and_skip_white_space_without_new_line();
-                            let (_, macro_ident) = self
-                                .main_chars
-                                .get_debug_info_and_read_ident()
-                                .expect("arg(ident) of define must exist.");
-                            self.main_chars
-                                .get_debug_info_and_skip_white_space_without_new_line();
+                        match ident.as_str() {
+                            "define" => {
+                                self.main_chars
+                                    .get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_ident) = self
+                                    .main_chars
+                                    .get_debug_info_and_read_ident()
+                                    .expect("arg(ident) of define must exist.");
+                                self.main_chars
+                                    .get_debug_info_and_skip_white_space_without_new_line();
 
-                            let mut macro_value = self.main_chars.get_debug_info_and_read_ident();
+                                let mut macro_value =
+                                    self.main_chars.get_debug_info_and_read_ident();
 
-                            if macro_value.is_none() {
-                                macro_value = self.main_chars.get_debug_info_and_read_number();
+                                if macro_value.is_none() {
+                                    macro_value = self.main_chars.get_debug_info_and_read_number();
+                                }
+                                // just one operand define macro should be defined as 1 .
+                                let macro_value = macro_value
+                                    .map_or("1".to_string(), |(_, macro_value)| macro_value);
+                                self.define_table.insert(macro_ident, macro_value);
+                                continue;
                             }
-                            let (_, macro_value) =
-                                macro_value.expect("arg(value) of define must exist.");
-                            self.define_table.insert(macro_ident, macro_value);
-                            continue;
+                            ifdefkind @ ("ifdef" | "ifndef") => {
+                                self.main_chars
+                                    .get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_arg) = self
+                                    .main_chars
+                                    .get_debug_info_and_read_ident()
+                                    .expect("arg of `ifdef` must exist.");
+                                let mut ifdef_flag = self.define_table.contains_key(&macro_arg);
+                                if ifdefkind == "ifndef" {
+                                    ifdef_flag = !ifdef_flag;
+                                }
+                                if ifdef_flag {
+                                    let derective_count = derective_count.map_or_else(
+                                        || {
+                                            let mut derective_count = DerectiveCount::default();
+                                            derective_count.set_ifdef_flag();
+                                            derective_count
+                                        },
+                                        |mut derective_count| {
+                                            derective_count.set_ifdef_flag();
+                                            derective_count
+                                        },
+                                    );
+                                    return self.preprocess(Some(tokens), Some(derective_count));
+                                }
+                                loop {
+                                    match self.main_chars.skip_until_macro_keyword().as_str() {
+                                        "endif" => break,
+                                        "else" => {
+                                            let derective_count = derective_count.map_or_else(
+                                                || {
+                                                    let mut derective_count =
+                                                        DerectiveCount::default();
+                                                    derective_count.set_ifdef_flag();
+                                                    derective_count
+                                                },
+                                                |mut derective_count| {
+                                                    derective_count.set_ifdef_flag();
+                                                    derective_count
+                                                },
+                                            );
+                                            return self
+                                                .preprocess(Some(tokens), Some(derective_count));
+                                        }
+                                        _ => continue,
+                                    }
+                                }
+                                continue 'preprocess_loop;
+                            }
+                            "else" => {
+                                if let Some(derective_count) = &mut derective_count {
+                                    derective_count.unset_ifdef_flag();
+                                } else {
+                                    panic!("`ifdef` should be used before `else`");
+                                }
+                                while "endif" != self.main_chars.skip_until_macro_keyword().as_str()
+                                {
+                                }
+                                continue 'preprocess_loop;
+                            }
+                            "endif" => {
+                                if let Some(derective_count) = &mut derective_count {
+                                    derective_count.unset_ifdef_flag();
+                                }
+                                continue 'preprocess_loop;
+                            }
+                            "undef" => {
+                                self.main_chars
+                                    .get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_ident) = self
+                                    .main_chars
+                                    .get_debug_info_and_read_ident()
+                                    .expect("arg(ident) of define must exist.");
+                                self.define_table.remove(&macro_ident);
+                            }
+                            unknown => panic!("unknown derective: {}", unknown),
                         }
+                        continue 'preprocess_loop;
                     } else {
                         continue;
                     }
@@ -110,7 +211,6 @@ impl<'b> Preprocessor<'b> {
                 continue;
             }
 
-            let next = self.main_chars.next();
             panic!(
                 "Unexpected char while preprocessing: {:?}",
                 self.main_chars.next()
@@ -401,6 +501,34 @@ impl SrcCursor {
         None
     }
 
+    pub fn skip_until(&mut self, keyword: &str) {
+        while !self.starts_with(keyword) {
+            self.advance_with_new_line(1);
+        }
+        self.advance_with_new_line(keyword.len()); // -> keyword
+    }
+
+    /// skip until counter this kind of line: `\n# ${keyword}`. this func reads `keyword` itself and return it.
+    pub fn skip_until_macro_keyword(&mut self) -> String {
+        loop {
+            self.skip_until("\n");
+            self.get_debug_info_and_skip_white_space_without_new_line();
+            if self.starts_with("#") {
+                self.advance(1);
+                self.get_debug_info_and_skip_white_space_without_new_line();
+                if let Some((_, ident)) = self.get_debug_info_and_read_ident() {
+                    return ident;
+                }
+                continue;
+            }
+            // In the future, this will be replaced with throwing Result.
+            #[allow(clippy::manual_assert)]
+            if self.is_empty() {
+                panic!("While skipping until specific macro keyword, reach EOF.",);
+            }
+        }
+    }
+
     pub fn get_debug_info_and_read_str_lit(&mut self) -> Option<(DebugInfo, String)> {
         if self.starts_with("\"") {
             let debug_info = self.get_debug_info();
@@ -576,6 +704,21 @@ impl SrcCursor {
         self.debug_info.clone()
     }
 
+    /// advance `self.src` and `self.debug_info`, including the consideration whether there are `\n` in the advanced src or not.
+    pub fn advance_with_new_line(&mut self, n: usize) {
+        for _ in 0..n {
+            match self.next() {
+                Some('\n') => {
+                    self.debug_info.advance_line();
+                }
+                _ => {
+                    self.debug_info.advance(1);
+                }
+            }
+        }
+    }
+
+    /// advance `self.src` and `self.debug_info`, under the assumption that there are no `\n` in the advanced src.
     pub fn advance(&mut self, n: usize) {
         for _ in 0..n {
             self.next();

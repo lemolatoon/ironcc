@@ -60,7 +60,7 @@ fn preprocess(
     include_dir: &str,
 ) -> Vec<Token<preprocess::TokenKind>> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
-    preprocessor.preprocess()
+    preprocessor.preprocess(None, None)
 }
 
 use std::fmt::Debug;
