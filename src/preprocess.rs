@@ -311,7 +311,7 @@ where
     I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
 {
     iter: Peekable<I>,
-    current_token_content: String,
+    current_token_content: Vec<char>,
     current_token_debug_info: DebugInfo,
     cur_in_token: usize,
 }
@@ -329,14 +329,14 @@ where
                 let cur_in_token = 0;
                 Self {
                     iter: iter.peekable(),
-                    current_token_content,
+                    current_token_content: current_token_content.chars().collect(),
                     current_token_debug_info,
                     cur_in_token,
                 }
             }
             None => Self {
                 iter: iter.peekable(),
-                current_token_content: String::new(),
+                current_token_content: Vec::new(),
                 current_token_debug_info: DebugInfo::default(),
                 cur_in_token: 0,
             },
@@ -346,6 +346,9 @@ where
     pub fn starts_with(&self, prefix: &str) -> bool {
         let cloned_self = self.clone();
         let len = prefix.len();
+        if cloned_self.is_empty() {
+            return false;
+        }
         cloned_self
             .take(len)
             .map(|(_, ch)| ch)
@@ -411,19 +414,15 @@ where
     type Item = (DebugInfo, char);
 
     fn next(&mut self) -> Option<Self::Item> {
-        while self.current_token_content.chars().count() == self.cur_in_token {
+        while self.current_token_content.len() == self.cur_in_token {
             let current_token = self.iter.next()?;
-            self.current_token_content = current_token.kind.get_content().to_string();
+            self.current_token_content = current_token.kind.get_content().chars().collect();
             self.current_token_debug_info = current_token.debug_info.clone(); // this clone uses `Rc::clone` internally, so it's light.
             self.cur_in_token = 0;
         }
-        let ch = self
-            .current_token_content
-            .chars()
-            .nth(self.cur_in_token)
-            .unwrap();
+        let ch = self.current_token_content.get(self.cur_in_token).unwrap();
         let debug_info = self.current_token_debug_info.clone();
-        if ch == '\n' {
+        if *ch == '\n' {
             // DebugInfo::new(
             //     self.current_token_debug_info.get_cloned_file_info(),
             //     0,
@@ -442,6 +441,6 @@ where
                 self.current_token_debug_info.get_n_char() + 1;
         }
         self.cur_in_token += 1;
-        Some((debug_info, ch))
+        Some((debug_info, *ch))
     }
 }

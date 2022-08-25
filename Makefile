@@ -4,7 +4,7 @@ MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPILER=$(MAKEFILE_DIR)/target/debug/ironcc
 
 $(COMPILER): FORCE
-	cargo build
+	cargo build 
 
 tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c

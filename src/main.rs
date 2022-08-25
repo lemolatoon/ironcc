@@ -35,7 +35,6 @@ const INCLUDE_DIR: &str = "include";
 
 fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
     let args: Vec<String> = env::args().collect();
-    let args = vec!["", "tmp.c"].into_iter().map(|arg| arg.to_string()).collect();
     let (file_name, mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
     in_f.read_to_string(&mut input)
