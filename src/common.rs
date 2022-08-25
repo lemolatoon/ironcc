@@ -36,8 +36,9 @@ macro_rules! meta {
 }
 
 pub fn read_file(path: &Path) -> Result<String, std::io::Error> {
-    let mut file = File::open(path)?;
+    let mut file = File::open(path).unwrap();
     let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
+    file.read_to_string(&mut contents).unwrap();
+    contents.push('\n');
     Ok(contents)
 }

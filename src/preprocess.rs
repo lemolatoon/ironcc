@@ -16,7 +16,6 @@ pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
     define_table: BTreeMap<String, String>,
-    include_table: BTreeMap<String, SrcCursor>,
 }
 #[derive(Debug, Clone, Default)]
 pub struct DerectiveCount {
@@ -65,7 +64,6 @@ impl<'b> Preprocessor<'b> {
             main_file_info,
             include_dir,
             define_table: BTreeMap::new(),
-            include_table: BTreeMap::new(),
         }
     }
 
@@ -202,40 +200,27 @@ impl<'b> Preprocessor<'b> {
                                 {
                                     str_lit.pop(); // -> "
                                     str_lit.remove(0); // -> "
-                                    let main_file =
-                                        PathBuf::from(self.main_file_info.get_file_name());
-                                    assert!(main_file.is_file());
-                                    let main_file_dir =
-                                        main_file.parent().expect("parent dir should exist.");
-                                    let included_file_path = main_file_dir.join(str_lit);
-                                    let included_file_path = included_file_path.as_path();
-                                    let src = read_file(included_file_path)?;
-                                    dbg!(&src);
-                                    let file_info = Rc::new(FileInfo::new(
-                                        included_file_path.to_str().unwrap().to_string(),
-                                        src.clone(),
-                                    ));
-                                    eprintln!(
-                                        "before preprocess of : {}",
-                                        file_info.get_file_name()
-                                    );
-                                    tokens = self.preprocess(
-                                        file_info.clone().into(),
-                                        Some(tokens),
+                                    tokens = self.include_from_file_dir(
+                                        &str_lit,
+                                        tokens,
                                         derective_count,
                                     )?;
-                                    eprintln!(
-                                        "after preprocess of : {}",
-                                        file_info.get_file_name()
-                                    );
-                                    dbg!(&tokens);
                                     continue 'preprocess_loop;
                                 }
-                                todo!()
+                                let (_, mut file_name) = main_chars
+                                    .get_debug_info_and_read_include_file()
+                                    .expect("arg(ident) of include with `<` `>` must exist.");
+                                file_name.pop(); // -> '>'
+                                file_name.remove(0); // -> '<'
+                                tokens = self.include_from_include_dir(
+                                    &file_name,
+                                    tokens,
+                                    derective_count,
+                                )?;
+                                continue 'preprocess_loop;
                             }
                             unknown => panic!("unknown derective: {}", unknown),
                         }
-                        continue 'preprocess_loop;
                     } else {
                         continue;
                     }
@@ -274,248 +259,45 @@ impl<'b> Preprocessor<'b> {
         Ok(tokens)
     }
 
-    // #[allow(clippy::too_many_lines)]
-    // pub fn preprocess(&self) -> Vec<Token> {
-    //     let mut tokens = Vec::new();
-    //     let mut pos = Position::default(); // 0, 0
-    //     let mut input = <&str>::clone(&self.input);
+    pub fn include_from_file_dir(
+        &mut self,
+        file_path: &str,
+        mut tokens: Vec<Token<TokenKind>>,
+        derective_count: &mut Option<DerectiveCount>,
+    ) -> Result<Vec<Token<TokenKind>>, CompileError> {
+        let main_file = PathBuf::from(self.main_file_info.get_file_name());
+        assert!(main_file.is_file());
+        let main_file_dir = main_file.parent().expect("parent dir should exist.");
+        let included_file_path = main_file_dir.join(file_path);
+        let included_file_path = included_file_path.as_path();
+        let src = read_file(included_file_path)?;
+        let file_info = Rc::new(FileInfo::new(
+            included_file_path.to_str().unwrap().to_string(),
+            src,
+        ));
+        tokens = self.preprocess(file_info.clone().into(), Some(tokens), derective_count)?;
+        Ok(tokens)
+    }
 
-    //         'tokenize_loop: while !input.is_empty() {
-    //             // skip white spaces
-    //             if input.starts_with(' ') || input.starts_with('\t') {
-    //                 pos.advance(1);
-    //                 input = &input[1..];
-    //                 continue;
-    //             } else if input.starts_with('\n') {
-    //                 pos.advance_line();
-    //                 input = &input[1..];
-    //                 continue;
-    //             } else if input.starts_with("//") {
-    //                 let mut input_iter = input.chars();
-    //                 let mut num_this_line_char = 1;
-    //                 while !matches!(input_iter.next(), Some('\n')) {
-    //                     num_this_line_char += 1;
-    //                 }
-    //                 pos.advance_line();
-    //                 input = &input[num_this_line_char..];
-    //                 continue;
-    //             }
-    //             if input.starts_with('#') {
-    //                 let mut input_iter = input.chars();
-    //                 let mut num_this_line_char = 1;
-    //                 while !matches!(input_iter.next(), Some('\n')) {
-    //                     num_this_line_char += 1;
-    //                 }
-    //                 pos.advance_line();
-    //                 input = &input[num_this_line_char..];
-    //                 continue;
-    //             }
-
-    //             let symbols = vec![
-    //                 ("...", TokenKind::DotDotDot),
-    //                 ("<<", TokenKind::BinOp(BinOpToken::LShift)),
-    //                 (">>", TokenKind::BinOp(BinOpToken::RShift)),
-    //                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
-    //                 (">=", TokenKind::BinOp(BinOpToken::Ge)),
-    //                 ("==", TokenKind::BinOp(BinOpToken::EqEq)),
-    //                 ("!=", TokenKind::BinOp(BinOpToken::Ne)),
-    //                 ("||", TokenKind::BinOp(BinOpToken::VerticalVertical)),
-    //                 ("&&", TokenKind::BinOp(BinOpToken::AndAnd)),
-    //                 ("++", TokenKind::PlusPlus),
-    //                 ("--", TokenKind::MinusMinus),
-    //                 ("->", TokenKind::Arrow),
-    //                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
-    //                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
-    //                 ("*", TokenKind::BinOp(BinOpToken::Star)),
-    //                 ("/", TokenKind::BinOp(BinOpToken::Slash)),
-    //                 ("&", TokenKind::BinOp(BinOpToken::And)),
-    //                 ("%", TokenKind::BinOp(BinOpToken::Percent)),
-    //                 ("(", TokenKind::OpenDelim(DelimToken::Paren)),
-    //                 ("{", TokenKind::OpenDelim(DelimToken::Brace)),
-    //                 ("[", TokenKind::OpenDelim(DelimToken::Bracket)),
-    //                 (")", TokenKind::CloseDelim(DelimToken::Paren)),
-    //                 ("}", TokenKind::CloseDelim(DelimToken::Brace)),
-    //                 ("]", TokenKind::CloseDelim(DelimToken::Bracket)),
-    //                 (",", TokenKind::Comma),
-    //                 ("<", TokenKind::BinOp(BinOpToken::Lt)),
-    //                 (">", TokenKind::BinOp(BinOpToken::Gt)),
-    //                 ("~", TokenKind::Tilde),
-    //                 ("!", TokenKind::Exclamation),
-    //                 ("?", TokenKind::Question),
-    //                 (":", TokenKind::Colon),
-    //                 (";", TokenKind::Semi),
-    //                 ("=", TokenKind::Eq),
-    //                 (".", TokenKind::Dot),
-    //             ];
-
-    //             for (literal, kind) in symbols {
-    //                 if input.starts_with(literal) {
-    //                     tokens.push(Token::new(kind, pos.get_pos_and_advance(literal.len())));
-    //                     input = &input[literal.len()..];
-    //                     continue 'tokenize_loop;
-    //                 }
-    //             }
-
-    //             if input.starts_with('"') {
-    //                 // string literal
-    //                 let mut chars = input.chars().peekable();
-    //                 chars.next(); // -> "
-    //                 let mut str_lit = String::new();
-    //                 let mut len_token = 1;
-    //                 loop {
-    //                     match chars.peek() {
-    //                         Some('"') => {
-    //                             len_token += 1;
-    //                             chars.next();
-    //                             break;
-    //                         }
-    //                         Some('\\') => {
-    //                             len_token += 1;
-    //                             chars.next();
-    //                             match chars.next() {
-    //                                 Some('n') => {
-    //                                     len_token += 1;
-    //                                     str_lit.push('\n');
-    //                                 }
-    //                                 Some('e') => {
-    //                                     len_token += 1;
-    //                                     str_lit.push(0x1bu8.into());
-    //                                 }
-    //                                 _ => {
-    //                                     pos.advance(len_token);
-    //                                     return Err(unimplemented_err!(
-    //                                         self.input,
-    //                                         pos,
-    //                                         "This type of escape Sequences are not currently implemented."
-    //                                     ));
-    //                                 }
-    //                             }
-    //                         }
-    //                         Some(c) => {
-    //                             len_token += 1;
-    //                             str_lit.push(*c);
-    //                             chars.next();
-    //                         }
-    //                         None => {
-    //                             return Err(CompileError::new_unexpected_eof_tokenize(self.input, pos))
-    //                         }
-    //                     }
-    //                 }
-    //                 tokens.push(Token::new(
-    //                     TokenKind::Str(str_lit),
-    //                     pos.get_pos_and_advance(len_token),
-    //                 ));
-    //                 input = &input[len_token..];
-    //                 continue;
-    //             }
-
-    //             if input.starts_with("0b") {
-    //                 input = &input[2..];
-    //                 let mut chars = input.chars().peekable();
-    //                 let mut number = String::new();
-    //                 while let Some(&('0' | '1')) = chars.peek() {
-    //                     number.push(chars.next().unwrap());
-    //                 }
-    //                 let len_token = number.len();
-    //                 let mut num = 0;
-    //                 for c in number.chars() {
-    //                     num *= 2;
-    //                     match c {
-    //                         '0' => {}
-    //                         '1' => {
-    //                             num += 1;
-    //                         }
-    //                         _ => {
-    //                             return Err(CompileError::new_expected_failed(
-    //                                 self.input,
-    //                                 Box::new("'0' | '1'"),
-    //                                 Token {
-    //                                     kind: Box::new(TokenKind::Ident(c.to_string())),
-    //                                     pos,
-    //                                 },
-    //                             ));
-    //                         }
-    //                     }
-    //                 }
-    //                 tokens.push(Token::new(
-    //                     TokenKind::Num(num as isize),
-    //                     pos.get_pos_and_advance(len_token),
-    //                 ));
-    //                 input = &input[len_token..];
-    //                 continue;
-    //             }
-
-    //             if input.starts_with(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
-    //                 let mut chars = input.chars().peekable();
-    //                 let mut number = String::from(chars.next().unwrap());
-    //                 while let Some(&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) =
-    //                     chars.peek()
-    //                 {
-    //                     number.push(chars.next().unwrap());
-    //                 }
-    //                 let len_token = number.len();
-    //                 let num = number
-    //                     .parse::<usize>()
-    //                     .expect("Currently support only a number literal.");
-    //                 tokens.push(Token::new(
-    //                     TokenKind::Num(num as isize),
-    //                     pos.get_pos_and_advance(len_token),
-    //                 ));
-    //                 input = &input[len_token..];
-    //                 continue;
-    //             } else if input.starts_with(
-    //                 &('a'..='z')
-    //                     .chain('A'..='Z')
-    //                     .chain(vec!['_'].into_iter())
-    //                     .collect::<Vec<_>>()[..],
-    //             ) {
-    //                 // Ident or reserved token
-    //                 let mut chars = input.chars().peekable();
-    //                 let mut ident = String::from(chars.next().unwrap());
-    //                 while let Some(
-    //                     &('a'..='z')
-    //                     | &('A'..='Z')
-    //                     | '_'
-    //                     | '0'
-    //                     | '1'
-    //                     | '2'
-    //                     | '3'
-    //                     | '4'
-    //                     | '5'
-    //                     | '6'
-    //                     | '7'
-    //                     | '8'
-    //                     | '9',
-    //                 ) = chars.peek()
-    //                 {
-    //                     ident.push(chars.next().unwrap());
-    //                 }
-    //                 let len_token = ident.len();
-    //                 tokens.push(Token::new(
-    //                     match ident.as_str() {
-    //                         "return" => TokenKind::Return,
-    //                         "if" => TokenKind::If,
-    //                         "else" => TokenKind::Else,
-    //                         "while" => TokenKind::While,
-    //                         "for" => TokenKind::For,
-    //                         "int" => TokenKind::Type(TypeToken::Int),
-    //                         "char" => TokenKind::Type(TypeToken::Char),
-    //                         "void" => TokenKind::Type(TypeToken::Void),
-    //                         "sizeof" => TokenKind::SizeOf,
-    //                         "struct" => TokenKind::Struct,
-    //                         _ => TokenKind::Ident(ident),
-    //                     },
-    //                     pos.get_pos_and_advance(len_token),
-    //                 ));
-    //                 input = &input[len_token..];
-    //                 continue;
-    //             }
-    //             return Err(self.new_unexpected_char(pos, input.chars().next().unwrap()));
-    //         }
-    //         tokens.push(Token::new(TokenKind::Eof, pos.get_pos_and_advance(0)));
-
-    //         Ok(tokens)
-    //     }
+    pub fn include_from_include_dir(
+        &mut self,
+        file_path: &str,
+        mut tokens: Vec<Token<TokenKind>>,
+        derective_count: &mut Option<DerectiveCount>,
+    ) -> Result<Vec<Token<TokenKind>>, CompileError> {
+        let include_dir = PathBuf::from(self.include_dir);
+        assert!(include_dir.is_dir(), "include_dir: {:?}", include_dir);
+        let included_file_path = include_dir.join(file_path);
+        let included_file_path = included_file_path.as_path();
+        assert!(included_file_path.exists());
+        let src = read_file(included_file_path)?;
+        let file_info = Rc::new(FileInfo::new(
+            included_file_path.to_str().unwrap().to_string(),
+            src,
+        ));
+        tokens = self.preprocess(file_info.clone().into(), Some(tokens), derective_count)?;
+        Ok(tokens)
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -539,6 +321,20 @@ impl SrcCursor {
 
     pub fn is_empty(&self) -> bool {
         self.src.is_empty()
+    }
+
+    /// Panics
+    /// if this stream does not start with the given prefix.
+    pub fn expect(&mut self, expected: &str) {
+        if self.starts_with(expected) {
+            self.advance_with_new_line(expected.len());
+        } else {
+            panic!(
+                "Expected: {:?}, but got: {:?}",
+                expected,
+                self.clone().take(expected.len()).collect::<String>()
+            );
+        }
     }
 
     pub fn get_debug_info_and_read_ident(&mut self) -> Option<(DebugInfo, String)> {
@@ -595,6 +391,32 @@ impl SrcCursor {
                     Some('"') => {
                         self.advance(1);
                         str_lit.push('"');
+                        break;
+                    }
+                    Some(c) => {
+                        str_lit.push(*c);
+                        self.advance(1);
+                    }
+                    None => return None,
+                }
+            }
+            return Some((debug_info, str_lit));
+        }
+        None
+    }
+
+    pub fn get_debug_info_and_read_include_file(&mut self) -> Option<(DebugInfo, String)> {
+        if self.starts_with("<") {
+            let debug_info = self.get_debug_info();
+            // string literal
+            self.advance(1); // -> "
+            let mut str_lit = String::new();
+            str_lit.push('<');
+            loop {
+                match self.src.front() {
+                    Some('>') => {
+                        self.advance(1);
+                        str_lit.push('>');
                         break;
                     }
                     Some(c) => {

@@ -5,6 +5,7 @@ use std::io::BufWriter;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::exit;
 use std::rc::Rc;
 
@@ -14,10 +15,8 @@ use ironcc::preprocess;
 use ironcc::preprocess::Preprocessor;
 use ironcc::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::SrcCursor;
 use ironcc::tokenize::FileInfo;
 use ironcc::tokenize::Token;
-use ironcc::tokenize::TokenKind;
 use ironcc::tokenize::TokenStream;
 use ironcc::tokenize::Tokenizer;
 use ironcc::{generate::Generator, parse::Parser};
@@ -104,8 +103,12 @@ fn get_io_file(
     if args.len() < 2 {
         panic!("The number of command-line args is invalid: {}", args.len());
     }
-    let input_file_path = Path::new(&args[1]);
-    let input_file = File::open(input_file_path)?;
+    let path_buf = PathBuf::from(&args[1]);
+    let input_file_path = Path::new(&path_buf);
+    assert!(input_file_path.is_file());
+    assert!(input_file_path.is_file());
+    assert!(input_file_path.exists());
+    let input_file = File::open(input_file_path).unwrap();
 
     let mut buffer = OsString::with_capacity(input_file_path.as_os_str().len());
     buffer.push(
@@ -115,6 +118,6 @@ fn get_io_file(
     );
     buffer.push(".s");
     let output_file_path = Path::new(buffer.as_os_str());
-    let output_file = File::create(output_file_path)?;
+    let output_file = File::create(output_file_path).unwrap();
     Ok((args[1].to_string(), input_file, output_file))
 }

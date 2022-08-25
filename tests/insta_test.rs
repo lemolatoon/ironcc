@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, path::Path};
 
 use insta::assert_debug_snapshot;
 pub mod test_utils;
-use ironcc::{error::CompileError, tokenize::TokenKind};
+use ironcc::error::CompileError;
 use test_utils::CachedProcessor;
 
 macro_rules! all {

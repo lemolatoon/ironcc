@@ -11,7 +11,7 @@ use crate::{
         Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
         StructOrUnionSpec, TypeSpec, UnaryOp,
     },
-    tokenize::{DebugInfo, TokenKind},
+    tokenize::DebugInfo,
     unimplemented_err,
 };
 

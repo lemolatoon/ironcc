@@ -1,7 +1,5 @@
 use crate::error::CompileError;
-use crate::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
-};
+use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 

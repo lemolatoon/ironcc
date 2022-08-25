@@ -6,7 +6,6 @@ use crate::analyze::Type;
 use crate::preprocess;
 use crate::tokenize;
 use crate::tokenize::DebugInfo;
-use crate::tokenize::Eof;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
 use std::error::Error;

@@ -20,10 +20,9 @@ test: $(COMPILER)
 	./test/test.sh
 
 testc: $(COMPILER) test/test.c
-	cd test && \
-	$(COMPILER) test.c && \
-	$(CC) test.s $(CFLAGS) -o tmp && \
-	./tmp
+	$(COMPILER) test/test.c && \
+	$(CC) test.s $(CFLAGS) -o a.out && \
+	./a.out
 
 life_game.s: $(COMPILER) life_game.c
 	cargo run life_game.c

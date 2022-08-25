@@ -3,9 +3,7 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    preprocess::{
-        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
-    },
+    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
     tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
 use std::{fmt::Debug, rc::Rc};

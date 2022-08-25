@@ -141,7 +141,7 @@ int main()
 void exit(int status);
 int assertion_failed(int index, int expected, int got)
 {
-    printf("Assertion_failed At test%d\n", index, 0);
+    printf("Assertion_failed At test%d\n", index);
     printf("Expected %d, but got %d\n", expected, got);
     exit(1);
 }

@@ -1,9 +1,7 @@
-// #include <stdio.h>
-// #include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
-int printf(char *msg, ...);
-void *malloc(int size);
 int *alloc4(int a, int b, int c, int d)
 {
     int *p = malloc(sizeof(int) * 4);
