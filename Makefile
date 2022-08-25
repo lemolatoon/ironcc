@@ -1,4 +1,4 @@
-CC=gcc
+CC=clang
 CFLAGS=-g3 -static
 MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPILER=$(MAKEFILE_DIR)/target/debug/ironcc

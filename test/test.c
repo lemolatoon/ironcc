@@ -52,7 +52,8 @@ int test46();
 int test47();
 int test48();
 int test49();
-// actually `void`
+int test50();
+int test51();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -127,6 +128,8 @@ int main()
     assert(47, 0, test47());
     assert(48, 0, test48());
     assert(49, 0, test49());
+    assert(50, 0, test50());
+    assert(51, 0, test51());
 
     print_ok();
     return 0;
@@ -1024,4 +1027,22 @@ int test49() {
     assert(49, 2, ++(*(ret_addr_of_test49_global_bar())));
     assert(49, 2, test49_global_var);
     return 0;
+}
+
+#define CONST_FOR_TEST50 -5111
+
+int test50() {
+    assert(50, -5111, CONST_FOR_TEST50);
+    return 0;
+}
+
+#define TEST51_RENAMED_FUNC test51_renaming_func
+
+int test51_renaming_func() {
+    return 234;
+}
+
+int test51() {
+    assert(51, 234, TEST51_RENAMED_FUNC());
+    return  0;
 }

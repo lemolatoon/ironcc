@@ -29,13 +29,18 @@ impl<'b> Preprocessor<'b> {
         }
     }
 
-    pub fn preprocess(&mut self, main_file_info: Rc<FileInfo>) -> Vec<Token<TokenKind>> {
+    pub fn preprocess(&mut self) -> Vec<Token<TokenKind>> {
         let mut tokens: Vec<Token<TokenKind>> = Vec::new();
-        let mut debug_info = DebugInfo::default_with_file_info(self.main_file_info.clone());
-        'preprocess_loop: while !self.main_chars.is_empty() {
-            if let Some((debug_info, spaces)) =
-                self.main_chars.get_debug_info_and_skip_white_space()
+        while !self.main_chars.is_empty() {
+            if let Some((debug_info, spaces)) = self
+                .main_chars
+                .get_debug_info_and_skip_white_space_without_new_line()
             {
+                tokens.push(Token::new(spaces, debug_info));
+                continue;
+            }
+
+            if let Some((debug_info, spaces)) = self.main_chars.get_debug_info_and_skip_new_line() {
                 tokens.push(Token::new(spaces, debug_info));
                 continue;
             }
@@ -45,8 +50,56 @@ impl<'b> Preprocessor<'b> {
                 continue;
             }
 
+            if let Some((debug_info, str_lit)) = self.main_chars.get_debug_info_and_read_str_lit() {
+                tokens.push(Token::new(TokenKind::StrLit(str_lit), debug_info));
+                continue;
+            }
+
+            match self.main_chars.get_debug_info_and_read_punctuator() {
+                Some((_, TokenKind::HashTag)) => {
+                    self.main_chars
+                        .get_debug_info_and_skip_white_space_without_new_line();
+                    if let Some((_, ident)) = self.main_chars.get_debug_info_and_read_ident() {
+                        if ident == "define" {
+                            self.main_chars
+                                .get_debug_info_and_skip_white_space_without_new_line();
+                            let (_, macro_ident) = self
+                                .main_chars
+                                .get_debug_info_and_read_ident()
+                                .expect("arg(ident) of define must exist.");
+                            self.main_chars
+                                .get_debug_info_and_skip_white_space_without_new_line();
+
+                            let mut macro_value = self.main_chars.get_debug_info_and_read_ident();
+
+                            if macro_value.is_none() {
+                                macro_value = self.main_chars.get_debug_info_and_read_number();
+                            }
+                            let (_, macro_value) =
+                                macro_value.expect("arg(value) of define must exist.");
+                            self.define_table.insert(macro_ident, macro_value);
+                            continue;
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+                Some((debug_info, punctuator)) => {
+                    tokens.push(Token::new(punctuator, debug_info));
+                    continue;
+                }
+                None => {}
+            }
+
             if let Some((debug_info, ident)) = self.main_chars.get_debug_info_and_read_ident() {
-                tokens.push(Token::new(ident, debug_info));
+                if let Some(macro_value) = self.define_table.get(&ident) {
+                    tokens.push(Token::new(
+                        TokenKind::Ident(macro_value.clone()),
+                        debug_info,
+                    ));
+                    continue;
+                }
+                tokens.push(Token::new(TokenKind::Ident(ident), debug_info));
                 continue;
             }
 
@@ -57,6 +110,7 @@ impl<'b> Preprocessor<'b> {
                 continue;
             }
 
+            let next = self.main_chars.next();
             panic!(
                 "Unexpected char while preprocessing: {:?}",
                 self.main_chars.next()
@@ -333,7 +387,7 @@ impl SrcCursor {
         self.src.is_empty()
     }
 
-    pub fn get_debug_info_and_read_ident(&mut self) -> Option<(DebugInfo, TokenKind)> {
+    pub fn get_debug_info_and_read_ident(&mut self) -> Option<(DebugInfo, String)> {
         if let Some(ch @ ('a'..='z' | 'A'..='Z' | '_')) = self.src.front() {
             let debug_info = self.get_debug_info();
             let mut ident = String::from(*ch);
@@ -342,11 +396,86 @@ impl SrcCursor {
                 ident.push(*ch);
                 self.advance(1);
             }
-            return Some((debug_info, TokenKind::Ident(ident)));
+            return Some((debug_info, ident));
         }
         None
     }
 
+    pub fn get_debug_info_and_read_str_lit(&mut self) -> Option<(DebugInfo, String)> {
+        if self.starts_with("\"") {
+            let debug_info = self.get_debug_info();
+            // string literal
+            self.advance(1); // -> "
+            let mut str_lit = String::new();
+            str_lit.push('"');
+            loop {
+                match self.src.front() {
+                    Some('"') => {
+                        self.advance(1);
+                        str_lit.push('"');
+                        break;
+                    }
+                    Some(c) => {
+                        str_lit.push(*c);
+                        self.advance(1);
+                    }
+                    None => return None,
+                }
+            }
+            return Some((debug_info, str_lit));
+        }
+        None
+    }
+
+    pub fn get_debug_info_and_read_number(&mut self) -> Option<(DebugInfo, String)> {
+        if let Some(ch @ ('0'..='9' | '-')) = self.src.front() {
+            let debug_info = self.get_debug_info();
+            let mut ident = String::from(*ch);
+            self.advance(1);
+            while let Some(ch @ ('0'..='9')) = self.src.front() {
+                ident.push(*ch);
+                self.advance(1);
+            }
+            return Some((debug_info, ident));
+        }
+        None
+    }
+
+    pub fn get_debug_info_and_skip_white_space_without_new_line(
+        &mut self,
+    ) -> Option<(DebugInfo, TokenKind)> {
+        let debug_info = self.get_debug_info();
+        let mut space = String::new();
+        while let Some(c) = self.src.front() {
+            match *c {
+                ch @ (' ' | '\t' | 'r') => {
+                    space.push(ch);
+                    self.advance(1);
+                    continue;
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+        if space.is_empty() {
+            return None;
+        }
+        Some((debug_info, TokenKind::Space(space)))
+    }
+    pub fn get_debug_info_and_skip_new_line(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        let debug_info = self.get_debug_info();
+        let mut space = String::new();
+        while self.src.front() == Some(&'\n') {
+            space.push('\n');
+            self.next();
+            self.debug_info.advance_line();
+        }
+        if space.is_empty() {
+            return None;
+        }
+        Some((debug_info, TokenKind::Space(space)))
+    }
     pub fn get_debug_info_and_skip_white_space(&mut self) -> Option<(DebugInfo, TokenKind)> {
         let debug_info = self.get_debug_info();
         let mut space = String::new();
@@ -397,6 +526,23 @@ impl SrcCursor {
             return Some((debug_info, TokenKind::Comment(comment)));
         }
         None
+    }
+
+    pub fn get_debug_info_and_read_punctuator(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        match self.src.front() {
+            Some('#') => {
+                let debug_info = self.get_debug_info();
+                self.advance(1);
+                Some((debug_info, TokenKind::HashTag))
+            }
+            Some(ch @ ('(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | ':')) => {
+                let debug_info = self.get_debug_info();
+                let punctuator = TokenKind::Punctuator(ch.to_string());
+                self.advance(1);
+                Some((debug_info, punctuator))
+            }
+            _ => None,
+        }
     }
 
     pub fn get_debug_info_and_skip_until_white_space(&mut self) -> Option<(DebugInfo, TokenKind)> {
@@ -450,6 +596,8 @@ pub enum TokenKind {
     Eof,
     Define,
     HashTag,
+    StrLit(String),
+    Punctuator(String),
     Space(String),
     Comment(String),
     Ident(String),
@@ -463,6 +611,8 @@ impl TokenKind {
             TokenKind::Define => 6,
             TokenKind::HashTag => 1,
             TokenKind::Comment(content)
+            | TokenKind::StrLit(content)
+            | TokenKind::Punctuator(content)
             | TokenKind::Space(content)
             | TokenKind::Ident(content)
             | TokenKind::Rest(content) => content.len(),
@@ -475,6 +625,8 @@ impl TokenKind {
             TokenKind::Define => "define",
             TokenKind::HashTag => "#",
             TokenKind::Comment(content)
+            | TokenKind::StrLit(content)
+            | TokenKind::Punctuator(content)
             | TokenKind::Space(content)
             | TokenKind::Ident(content)
             | TokenKind::Rest(content) => content,

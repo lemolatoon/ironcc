@@ -25,13 +25,9 @@ impl Tokenizer
         _file_info: &Rc<FileInfo>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError<TokenKind>> {
         let mut tokens = Vec::new();
-        // let src = _file_info.get_file_src();
-        // let mut pos = DebugInfo::default_with_file_info(_file_info.clone()); // 0, 0
-        // let mut input = <&str>::clone(&src);
 
         'tokenize_loop: while !self.stream.is_empty() {
             // dbg!(self.stream.clone().map(|(_, ch)| ch).collect::<String>());
-            // dbg!(self.stream.peek().map(|(_, ch)| ch));
             // skip white spaces
             if self.stream.starts_with(" ")
                 || self.stream.starts_with("\t")
@@ -702,7 +698,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
         src: input.to_string(),
     });
     let mut preproccor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preproccor.preprocess(file_info.clone());
+    let tokens = preproccor.preprocess();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer
