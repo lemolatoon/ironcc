@@ -378,7 +378,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
             },
             pos: Position {
-                n_char: 4,
+                n_char: 3,
                 n_line: 7,
             },
         },

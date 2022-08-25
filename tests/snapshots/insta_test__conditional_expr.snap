@@ -400,7 +400,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "int main() {\n        int a = 1;\n        int b = 2;\n        int c = a > b ? a : b;\n    }",
             },
             pos: Position {
-                n_char: 5,
+                n_char: 4,
                 n_line: 4,
             },
         },

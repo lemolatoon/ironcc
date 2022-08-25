@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
 use ironcc::parse::*;
-use ironcc::preprocess::{Preprocessor, PreprocessorTokenStream};
+use ironcc::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
 use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
@@ -418,7 +418,9 @@ fn extract_ty(src: &str) -> Type {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokens = Tokenizer::new(stream).tokenize(&file_info).unwrap();
+    let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
+        .tokenize(&file_info)
+        .unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter());
     let ast = Parser::new().parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new();
@@ -440,7 +442,9 @@ fn extract_func_ty(src: &str) -> Type {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokens = Tokenizer::new(stream).tokenize(&file_info).unwrap();
+    let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
+        .tokenize(&file_info)
+        .unwrap();
     let mut tokens = TokenStream::new(tokens.into_iter());
     let ast = Parser::new().parse_func_def(&mut tokens).unwrap();
     let (ty_spec, declarator, body, pos) = if let ProgramComponent {

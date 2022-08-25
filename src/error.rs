@@ -600,16 +600,13 @@ fn error_at(mut positions: Vec<DebugInfo>, f: &mut std::fmt::Formatter<'_>) -> s
 
 /// write source annotation which indicates `pos` in `src` with previous lines
 fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    writeln!(f, "====================")?;
-    writeln!(f, "{}", src)?;
-    writeln!(f, "====================")?;
     let splited: Vec<&str> = src.split('\n').collect();
     let last_n_line = splited.len() - 1;
     let n_char = splited.last().map_or(0, |s| s.len());
     let prefix = format!("{}:{}:  ", last_n_line + 1, n_char + 1);
-    for n_line in last_n_line.saturating_sub(2)..=last_n_line {
+    for n_line in last_n_line.saturating_sub(3)..last_n_line {
         let mut num_prefix = String::with_capacity(prefix.len());
-        num_prefix.push_str(&n_line.to_string());
+        num_prefix.push_str(&(n_line + 1).to_string());
         while num_prefix.len() < prefix.len() {
             if num_prefix.len() == prefix.len() - 3 {
                 num_prefix.push(':');

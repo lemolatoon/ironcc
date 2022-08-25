@@ -275,8 +275,8 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
             },
             pos: Position {
-                n_char: 0,
-                n_line: 5,
+                n_char: 5,
+                n_line: 4,
             },
         },
     },

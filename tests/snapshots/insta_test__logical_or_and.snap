@@ -505,7 +505,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
             },
             pos: Position {
-                n_char: 5,
+                n_char: 4,
                 n_line: 5,
             },
         },

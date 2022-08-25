@@ -359,7 +359,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
             },
             pos: Position {
-                n_char: 4,
+                n_char: 3,
                 n_line: 7,
             },
         },

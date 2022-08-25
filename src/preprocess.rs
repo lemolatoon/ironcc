@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::iter::Peekable;
 use std::rc::Rc;
 
@@ -404,6 +405,100 @@ where
 
     pub fn get_current_debug_info(&self) -> DebugInfo {
         self.current_token_debug_info.clone()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct PreprocessorTokenContainerStream {
+    chars: VecDeque<(DebugInfo, char)>,
+    prev_debug_info: DebugInfo,
+}
+
+impl PreprocessorTokenContainerStream {
+    pub fn new(chars: VecDeque<(DebugInfo, char)>) -> Self {
+        Self {
+            chars,
+            prev_debug_info: DebugInfo::default(),
+        }
+    }
+}
+
+impl PreprocessorTokenContainerStream {
+    pub fn peek(&self) -> Option<&(DebugInfo, char)> {
+        self.chars.get(0)
+    }
+
+    pub fn starts_with(&self, prefix: &str) -> bool {
+        if self.chars.is_empty() {
+            return false;
+        }
+        self.chars
+            .iter()
+            .map(|(_, ch)| ch)
+            .take(prefix.len())
+            .zip(prefix.chars())
+            .all(|(a, b)| *a == b)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.chars.is_empty()
+    }
+
+    // Returns true if the next char matches '0'..='9'
+    pub fn starts_with_number(&self) -> bool {
+        matches!(self.peek(), Some((_, '0'..='9')))
+    }
+
+    // Returns true if the next char matches 'a'..='z' | 'A'..='Z'
+    pub fn starts_with_alphabet(&self) -> bool {
+        matches!(self.peek(), Some((_, 'a'..='z' | 'A'..='Z')))
+    }
+
+    pub fn advance(&mut self, times: usize) {
+        for _ in 0..times {
+            self.next();
+        }
+    }
+
+    pub fn get_debug_info_and_advance(&mut self, times: usize) -> Option<DebugInfo> {
+        if times == 0 {
+            return self.peek().map(|(debug_info, _)| debug_info.clone());
+        }
+        let (debug_info, _) = self.next()?;
+        self.advance(times - 1);
+        Some(debug_info)
+    }
+
+    pub fn get_prev_debug_info(&self) -> DebugInfo {
+        self.prev_debug_info.clone()
+    }
+
+    /// Advance this iterator (including sentinel) until sentinel
+    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError<TokenKind>> {
+        loop {
+            match self.next() {
+                Some((_, ch)) if ch == sentinel => return Ok(()),
+                Some(_) => continue,
+                None => {
+                    return Err(CompileError::new_unexpected_eof_tokenize(
+                        self.prev_debug_info.clone(),
+                    ))
+                }
+            }
+        }
+    }
+}
+
+impl Iterator for PreprocessorTokenContainerStream {
+    type Item = (DebugInfo, char);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(item) = self.chars.pop_front() {
+            self.prev_debug_info = item.0.clone();
+            Some(item)
+        } else {
+            None
+        }
     }
 }
 

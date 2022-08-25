@@ -481,8 +481,8 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\nint main() {\n int a;\n        {int *k;}\n        {int *i; {int k;}}\n        int c[2];\n    }\n",
             },
             pos: Position {
-                n_char: 0,
-                n_line: 7,
+                n_char: 5,
+                n_line: 6,
             },
         },
     },

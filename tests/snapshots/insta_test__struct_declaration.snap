@@ -314,7 +314,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
             },
             pos: Position {
-                n_char: 1,
+                n_char: 0,
                 n_line: 9,
             },
         },

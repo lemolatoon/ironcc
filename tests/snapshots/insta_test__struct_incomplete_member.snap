@@ -766,7 +766,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
             },
             pos: Position {
-                n_char: 1,
+                n_char: 0,
                 n_line: 12,
             },
         },

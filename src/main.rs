@@ -12,6 +12,7 @@ use ironcc::analyze::Analyzer;
 use ironcc::error::CompileError;
 use ironcc::preprocess;
 use ironcc::preprocess::Preprocessor;
+use ironcc::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::PreprocessorTokenStream;
 use ironcc::tokenize::FileInfo;
 use ironcc::tokenize::Token;
@@ -35,6 +36,7 @@ const INCLUDE_DIR: &str = "include";
 
 fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
     let args: Vec<String> = env::args().collect();
+    // let args = vec!["", "test/test.c"].into_iter().map(|arg| arg.to_string()).collect(); // for cargo profiler
     let (file_name, mut in_f, out_f) = get_io_file(args)?;
     let mut input = String::new();
     in_f.read_to_string(&mut input)
@@ -71,7 +73,7 @@ fn compile<I>(
 where
     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
 {
-    let mut tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
     let tokens = tokenizer.tokenize(&file_info)?;
     eprintln!("tokenize finished!!");

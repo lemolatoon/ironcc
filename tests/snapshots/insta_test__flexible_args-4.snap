@@ -389,7 +389,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
             },
             pos: Position {
-                n_char: 4,
+                n_char: 3,
                 n_line: 5,
             },
         },

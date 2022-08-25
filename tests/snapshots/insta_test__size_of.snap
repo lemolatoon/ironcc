@@ -529,8 +529,8 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
             },
             pos: Position {
-                n_char: 0,
-                n_line: 7,
+                n_char: 2,
+                n_line: 6,
             },
         },
     },

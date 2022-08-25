@@ -400,7 +400,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
             },
             pos: Position {
-                n_char: 1,
+                n_char: 0,
                 n_line: 9,
             },
         },

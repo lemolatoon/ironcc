@@ -2,10 +2,8 @@ extern crate ironcc;
 pub mod test_utils;
 use std::rc::Rc;
 
-use test_utils::kind_eq;
-
 use ironcc::{
-    preprocess::{Preprocessor, PreprocessorTokenStream},
+    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
     tokenize::*,
 };
 
@@ -16,9 +14,7 @@ fn tokenize_plus_minus_test() {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let tokens = Tokenizer::new(stream.clone()).tokenize(&file_info).unwrap();
-    // let mut tokens = TokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
         tokenizer
             .tokenize(&file_info)
@@ -70,11 +66,6 @@ fn tokenize_plus_minus_test() {
         )
     );
     let input = String::from("1 + 4 -       909");
-    let file_info = Rc::new(FileInfo::new(String::new(), input.clone()));
-    let preprocessor = Preprocessor::new("");
-    let tokens = preprocessor.preprocess(file_info.clone());
-    let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
@@ -87,11 +78,6 @@ fn tokenize_plus_minus_test() {
         )
     );
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
-    let preprocessor = Preprocessor::new("");
-    let tokens = preprocessor.preprocess(file_info.clone());
-    let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
-    let file_info = Rc::new(FileInfo::new(String::new(), input.clone()));
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
@@ -123,7 +109,7 @@ fn tokenize_pos_test() {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -139,7 +125,7 @@ fn tokenize_pos_test() {
                 TokenKind::Num(1),
                 debug_info_with_pos(file_info.clone(), 3, 0)
             ),
-            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 4, 0))
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 3, 0))
         )
     );
 
@@ -148,7 +134,7 @@ fn tokenize_pos_test() {
     let preprocessor = Preprocessor::new("");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
         tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
@@ -172,7 +158,8 @@ fn tokenize_pos_test() {
                 TokenKind::Num(5),
                 debug_info_with_pos(file_info.clone(), 2, 1)
             ),
-            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 3, 1))
+            // Eof's position indicates last char of the file
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 2, 1))
         )
     );
 }

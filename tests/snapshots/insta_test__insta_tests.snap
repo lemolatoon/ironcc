@@ -473,7 +473,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
             },
             pos: Position {
-                n_char: 1,
+                n_char: 0,
                 n_line: 6,
             },
         },

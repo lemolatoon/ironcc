@@ -226,7 +226,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
             },
             pos: Position {
-                n_char: 4,
+                n_char: 3,
                 n_line: 5,
             },
         },

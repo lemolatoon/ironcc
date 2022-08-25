@@ -1,21 +1,21 @@
 use crate::error::CompileError;
-use crate::preprocess::{Preprocessor, PreprocessorTokenStream};
-use crate::{preprocess, unimplemented_err};
+use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use crate::unimplemented_err;
 use std::iter::Peekable;
 
 #[derive(Debug)]
-pub struct Tokenizer<I>
-where
-    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+pub struct Tokenizer
+// where
+//     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
 {
-    stream: PreprocessorTokenStream<I>,
+    stream: PreprocessorTokenContainerStream,
 }
 
-impl<I> Tokenizer<I>
-where
-    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+impl Tokenizer
+// where
+//     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
 {
-    pub const fn new(stream: PreprocessorTokenStream<I>) -> Self {
+    pub const fn new(stream: PreprocessorTokenContainerStream) -> Self {
         Self { stream }
     }
 
@@ -88,8 +88,10 @@ where
 
             for (literal, kind) in symbols {
                 if self.stream.starts_with(literal) {
-                    let this_token_debug_info =
-                        self.stream.get_debug_info_and_advance(literal.len());
+                    let this_token_debug_info = self
+                        .stream
+                        .get_debug_info_and_advance(literal.len())
+                        .unwrap();
                     tokens.push(Token::new(kind, this_token_debug_info));
                     continue 'tokenize_loop;
                 }
@@ -97,8 +99,7 @@ where
 
             if self.stream.starts_with("\"") {
                 // string literal
-                let debug_info = self.stream.get_current_debug_info();
-                self.stream.next(); // -> "
+                let (debug_info, _) = self.stream.next().unwrap(); // -> "
                 let mut str_lit = String::new();
                 loop {
                     match self.stream.next() {
@@ -113,7 +114,11 @@ where
                                 str_lit.push(0x1bu8.into());
                             }
                             _ => {
-                                let debug_info = self.stream.get_current_debug_info();
+                                let debug_info = self
+                                    .stream
+                                    .peek()
+                                    .map(|(debug_info, _)| debug_info.clone())
+                                    .unwrap_or(self.stream.get_prev_debug_info());
                                 return Err(unimplemented_err!(
                                     debug_info,
                                     "This type of escape Sequences are not currently implemented."
@@ -131,12 +136,11 @@ where
             }
 
             if self.stream.starts_with("0b") {
-                let debug_info = self.stream.get_current_debug_info();
-                self.stream.advance(2);
+                let debug_info = self.stream.get_debug_info_and_advance(2).unwrap();
                 let mut number = String::new();
                 while let Some((_, n @ ('0' | '1'))) = self.stream.peek() {
+                    number.push(*n);
                     self.stream.next();
-                    number.push(n);
                 }
                 let mut num = 0;
                 for c in number.chars() {
@@ -212,7 +216,7 @@ where
         }
         tokens.push(Token::new(
             TokenKind::Eof,
-            self.stream.get_current_debug_info(),
+            self.stream.get_prev_debug_info(),
         ));
 
         Ok(tokens)
@@ -700,7 +704,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
     let preproccor = Preprocessor::new("");
     let tokens = preproccor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
-    let mut tokenizer = Tokenizer::new(stream);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer
         .tokenize(&file_info)?
         .into_iter()

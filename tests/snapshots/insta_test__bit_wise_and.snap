@@ -172,7 +172,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
             },
             pos: Position {
-                n_char: 4,
+                n_char: 3,
                 n_line: 4,
             },
         },

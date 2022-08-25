@@ -333,7 +333,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
             },
             pos: Position {
-                n_char: 5,
+                n_char: 4,
                 n_line: 4,
             },
         },

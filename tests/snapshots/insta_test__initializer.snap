@@ -314,7 +314,7 @@ expression: tester.tokens().as_ref().unwrap()
                 src: "int main() {int a = 5; int *p = &a; return 0;}",
             },
             pos: Position {
-                n_char: 46,
+                n_char: 45,
                 n_line: 0,
             },
         },
