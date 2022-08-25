@@ -15,7 +15,7 @@ impl Parser {
     pub fn parse_program<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Program, CompileError<TokenKind>>
+    ) -> Result<Program, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -43,7 +43,7 @@ impl Parser {
     pub fn parse_func_def<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<ProgramComponent, CompileError<TokenKind>>
+    ) -> Result<ProgramComponent, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -64,7 +64,7 @@ impl Parser {
     pub fn parse_declaration<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Declaration, CompileError<TokenKind>>
+    ) -> Result<Declaration, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -99,7 +99,7 @@ impl Parser {
     pub fn parse_declarator<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Declarator, CompileError<TokenKind>>
+    ) -> Result<Declarator, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -112,7 +112,7 @@ impl Parser {
     pub fn parse_direct_declarator<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<DirectDeclarator, CompileError<TokenKind>>
+    ) -> Result<DirectDeclarator, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -180,7 +180,7 @@ impl Parser {
     pub fn parse_initializer<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Initializer, CompileError<TokenKind>>
+    ) -> Result<Initializer, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -203,7 +203,7 @@ impl Parser {
     pub fn parse_type_specifier<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<(TypeSpec, DebugInfo), CompileError<TokenKind>>
+    ) -> Result<(TypeSpec, DebugInfo), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -244,7 +244,7 @@ impl Parser {
     pub fn parse_struct_or_union_specifier<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<StructOrUnionSpec, CompileError<TokenKind>>
+    ) -> Result<StructOrUnionSpec, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -277,7 +277,7 @@ impl Parser {
     pub fn parse_struct_declaration_list<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Vec<StructDeclaration>, CompileError<TokenKind>>
+    ) -> Result<Vec<StructDeclaration>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -301,9 +301,7 @@ impl Parser {
         Ok(list)
     }
 
-    pub fn parse_pointer<I>(
-        tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<usize, CompileError<TokenKind>>
+    pub fn parse_pointer<I>(tokens: &mut TokenStream<I, TokenKind>) -> Result<usize, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -317,7 +315,7 @@ impl Parser {
     pub fn parse_stmt<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Stmt, CompileError<TokenKind>>
+    ) -> Result<Stmt, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -394,7 +392,7 @@ impl Parser {
     pub fn parse_expr<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -404,7 +402,7 @@ impl Parser {
     pub fn parse_assign<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -429,7 +427,7 @@ impl Parser {
     pub fn parse_conditional<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -452,7 +450,7 @@ impl Parser {
     pub fn parse_logical_or<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -468,7 +466,7 @@ impl Parser {
     pub fn parse_logical_and<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -484,7 +482,7 @@ impl Parser {
     pub fn parse_bit_wise_and<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -504,7 +502,7 @@ impl Parser {
     pub fn parse_equality<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -525,7 +523,7 @@ impl Parser {
     pub fn parse_relational<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -549,7 +547,7 @@ impl Parser {
     pub fn parse_shift<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -568,10 +566,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_add<I>(
-        &self,
-        tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    pub fn parse_add<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -589,10 +584,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_mul<I>(
-        &self,
-        tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    pub fn parse_mul<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -615,7 +607,7 @@ impl Parser {
     pub fn parse_unary<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -684,7 +676,7 @@ impl Parser {
     pub fn parse_postfix<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -726,7 +718,7 @@ impl Parser {
     pub fn parse_primary<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Expr, CompileError<TokenKind>>
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -768,7 +760,7 @@ impl Parser {
     pub fn parse_type_name<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<TypeName, CompileError<TokenKind>>
+    ) -> Result<TypeName, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -785,7 +777,7 @@ impl Parser {
     pub fn parse_abstract_declarator<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Option<AbstractDeclarator>, CompileError<TokenKind>>
+    ) -> Result<Option<AbstractDeclarator>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -807,7 +799,7 @@ impl Parser {
     pub fn parse_direct_abstract_declarator<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<Option<DirectAbstractDeclarator>, CompileError<TokenKind>>
+    ) -> Result<Option<DirectAbstractDeclarator>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -986,11 +978,7 @@ impl Declaration {
             .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
-    pub fn ty(
-        &self,
-        analyzer: &mut Analyzer,
-        debug_info: DebugInfo,
-    ) -> Result<Type, CompileError<TokenKind>> {
+    pub fn ty(&self, analyzer: &mut Analyzer, debug_info: DebugInfo) -> Result<Type, CompileError> {
         let converted_type =
             analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info.clone())?;
         analyzer.get_type(
@@ -1074,14 +1062,14 @@ pub enum Initializer {
 impl Initializer {
     pub fn map(
         self,
-        mut f: impl FnMut(Expr) -> Result<ConstExpr, CompileError<TokenKind>>,
-    ) -> Result<ConstInitializer, CompileError<TokenKind>> {
+        mut f: impl FnMut(Expr) -> Result<ConstExpr, CompileError>,
+    ) -> Result<ConstInitializer, CompileError> {
         match self {
             Initializer::Expr(expr) => Ok(ConstInitializer::Expr(f(expr)?)),
             Initializer::Array(vec) => Ok(ConstInitializer::Array(
                 vec.into_iter()
                     .map(f)
-                    .collect::<Result<Vec<ConstExpr>, CompileError<TokenKind>>>()?,
+                    .collect::<Result<Vec<ConstExpr>, CompileError>>()?,
             )),
         }
     }
@@ -1117,7 +1105,7 @@ impl StructDeclaration {
         &self,
         analyzer: &mut Analyzer,
         debug_info: DebugInfo,
-    ) -> Result<Type, CompileError<TokenKind>> {
+    ) -> Result<Type, CompileError> {
         let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info)?;
         analyzer.get_type(conveted_type, &self.declarator)
     }

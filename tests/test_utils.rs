@@ -3,7 +3,9 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{
+        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    },
     tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
 use std::{fmt::Debug, rc::Rc};
@@ -76,16 +78,16 @@ impl<'a> CachedProcessor<'a> {
 }
 
 impl<'a> CachedProcessor<'a> {
-    pub fn program(&mut self) -> Result<&Program, CompileError<TokenKind>> {
+    pub fn program(&mut self) -> Result<&Program, CompileError> {
         let stream = self.tokenizer.stream()?;
         self.parser.program(stream)
     }
 
-    pub fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError<TokenKind>> {
+    pub fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError> {
         self.tokenizer.tokens()
     }
 
-    pub fn conv_program(&mut self) -> Result<&ConvProgram, CompileError<TokenKind>> {
+    pub fn conv_program(&mut self) -> Result<&ConvProgram, CompileError> {
         let program = self.program()?.clone();
         self.analyzer.conv_program(program)
     }
@@ -94,13 +96,9 @@ impl<'a> CachedProcessor<'a> {
 struct CachedTokenizer<'a> {
     src: &'a str,
     tokenizer: Tokenizer,
-    tokens: Option<Result<Vec<Token<TokenKind>>, CompileError<TokenKind>>>,
-    token_stream: Option<
-        Result<
-            TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>,
-            CompileError<TokenKind>,
-        >,
-    >,
+    tokens: Option<Result<Vec<Token<TokenKind>>, CompileError>>,
+    token_stream:
+        Option<Result<TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>>,
 }
 
 impl<'a> CachedTokenizer<'a> {
@@ -111,7 +109,9 @@ impl<'a> CachedTokenizer<'a> {
             src.to_string(),
         ));
         let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-        let tokens = preprocessor.preprocess(None, None);
+        let tokens = preprocessor
+            .preprocess(file_info.clone().into(), None, &mut None)
+            .unwrap();
         let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
             src,
@@ -121,7 +121,7 @@ impl<'a> CachedTokenizer<'a> {
         }
     }
 
-    fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError<TokenKind>> {
+    fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError> {
         self.tokens
             .get_or_insert_with(|| {
                 self.tokenizer
@@ -133,10 +133,8 @@ impl<'a> CachedTokenizer<'a> {
 
     fn stream(
         &mut self,
-    ) -> Result<
-        &mut TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>,
-        CompileError<TokenKind>,
-    > {
+    ) -> Result<&mut TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>
+    {
         let iter = self.tokens().map(|vec| vec.clone().into_iter())?;
         self.token_stream
             .get_or_insert_with(|| Ok(TokenStream::new(iter)))
@@ -147,7 +145,7 @@ impl<'a> CachedTokenizer<'a> {
 
 struct CachedParser {
     parser: Parser,
-    program: Option<Result<Program, CompileError<TokenKind>>>,
+    program: Option<Result<Program, CompileError>>,
 }
 
 impl CachedParser {
@@ -161,7 +159,7 @@ impl CachedParser {
     pub fn program<I>(
         &mut self,
         stream: &mut TokenStream<I, TokenKind>,
-    ) -> Result<&Program, CompileError<TokenKind>>
+    ) -> Result<&Program, CompileError>
     where
         I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
     {
@@ -174,7 +172,7 @@ impl CachedParser {
 
 struct CachedAnalyzer {
     analyzer: Analyzer,
-    program: Option<Result<ConvProgram, CompileError<TokenKind>>>,
+    program: Option<Result<ConvProgram, CompileError>>,
 }
 
 impl CachedAnalyzer {
@@ -185,10 +183,7 @@ impl CachedAnalyzer {
         }
     }
 
-    pub fn conv_program(
-        &mut self,
-        program: Program,
-    ) -> Result<&ConvProgram, CompileError<TokenKind>> {
+    pub fn conv_program(&mut self, program: Program) -> Result<&ConvProgram, CompileError> {
         self.program
             .get_or_insert_with(|| self.analyzer.traverse_program(program))
             .as_ref()

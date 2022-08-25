@@ -2,8 +2,10 @@ use core::panic;
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
 use std::iter::Peekable;
+use std::path::PathBuf;
 use std::rc::Rc;
 
+use crate::common::read_file;
 use crate::error::CompileError;
 use crate::tokenize::DebugInfo;
 use crate::tokenize::Eof;
@@ -13,7 +15,6 @@ use crate::tokenize::Token;
 pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
-    main_chars: SrcCursor,
     define_table: BTreeMap<String, String>,
     include_table: BTreeMap<String, SrcCursor>,
 }
@@ -32,10 +33,35 @@ impl DerectiveCount {
     }
 }
 
+pub enum SrcCursorGenerator {
+    FromFile(Rc<FileInfo>),
+    FromSrcCursor(SrcCursor),
+}
+
+impl From<Rc<FileInfo>> for SrcCursorGenerator {
+    fn from(file_info: Rc<FileInfo>) -> Self {
+        Self::FromFile(file_info)
+    }
+}
+
+impl From<SrcCursor> for SrcCursorGenerator {
+    fn from(src_cursor: SrcCursor) -> Self {
+        Self::FromSrcCursor(src_cursor)
+    }
+}
+
+impl SrcCursorGenerator {
+    pub fn into_cursor(self) -> SrcCursor {
+        match self {
+            SrcCursorGenerator::FromFile(file_info) => SrcCursor::new(file_info),
+            SrcCursorGenerator::FromSrcCursor(cursor) => cursor,
+        }
+    }
+}
+
 impl<'b> Preprocessor<'b> {
     pub fn new(main_file_info: Rc<FileInfo>, include_dir: &'b str) -> Self {
         Self {
-            main_chars: SrcCursor::new(main_file_info.clone()),
             main_file_info,
             include_dir,
             define_table: BTreeMap::new(),
@@ -46,56 +72,52 @@ impl<'b> Preprocessor<'b> {
     #[allow(clippy::too_many_lines)]
     pub fn preprocess(
         &mut self,
+        src_cursor_generator: SrcCursorGenerator,
         tokens: Option<Vec<Token<TokenKind>>>,
-        mut derective_count: Option<DerectiveCount>,
-    ) -> Vec<Token<TokenKind>> {
+        derective_count: &mut Option<DerectiveCount>,
+    ) -> Result<Vec<Token<TokenKind>>, CompileError> {
+        let mut main_chars = src_cursor_generator.into_cursor();
         let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
-        'preprocess_loop: while !self.main_chars.is_empty() {
-            // dbg!(&self.main_chars.clone().collect::<String>());
-            if let Some((debug_info, spaces)) = self
-                .main_chars
-                .get_debug_info_and_skip_white_space_without_new_line()
+        'preprocess_loop: while !main_chars.is_empty() {
+            // dbg!(&main_chars.clone().collect::<String>());
+            if let Some((debug_info, spaces)) =
+                main_chars.get_debug_info_and_skip_white_space_without_new_line()
             {
                 tokens.push(Token::new(spaces, debug_info));
                 continue;
             }
 
-            if let Some((debug_info, spaces)) = self.main_chars.get_debug_info_and_skip_new_line() {
+            if let Some((debug_info, spaces)) = main_chars.get_debug_info_and_skip_new_line() {
                 tokens.push(Token::new(spaces, debug_info));
                 continue;
             }
 
-            if let Some((debug_info, comment)) = self.main_chars.get_debug_info_and_skip_comment() {
+            if let Some((debug_info, comment)) = main_chars.get_debug_info_and_skip_comment() {
                 tokens.push(Token::new(comment, debug_info));
                 continue;
             }
 
-            if let Some((debug_info, str_lit)) = self.main_chars.get_debug_info_and_read_str_lit() {
+            if let Some((debug_info, str_lit)) = main_chars.get_debug_info_and_read_str_lit() {
                 tokens.push(Token::new(TokenKind::StrLit(str_lit), debug_info));
                 continue;
             }
 
-            match self.main_chars.get_debug_info_and_read_punctuator() {
+            match main_chars.get_debug_info_and_read_punctuator() {
                 Some((_, TokenKind::HashTag)) => {
-                    self.main_chars
-                        .get_debug_info_and_skip_white_space_without_new_line();
-                    if let Some((_, ident)) = self.main_chars.get_debug_info_and_read_ident() {
+                    main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                    if let Some((_, ident)) = main_chars.get_debug_info_and_read_ident() {
                         match ident.as_str() {
                             "define" => {
-                                self.main_chars
-                                    .get_debug_info_and_skip_white_space_without_new_line();
-                                let (_, macro_ident) = self
-                                    .main_chars
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_ident) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect("arg(ident) of define must exist.");
-                                self.main_chars
-                                    .get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
 
-                                let mut macro_value =
-                                    self.main_chars.get_debug_info_and_read_ident();
+                                let mut macro_value = main_chars.get_debug_info_and_read_ident();
 
                                 if macro_value.is_none() {
-                                    macro_value = self.main_chars.get_debug_info_and_read_number();
+                                    macro_value = main_chars.get_debug_info_and_read_number();
                                 }
                                 // just one operand define macro should be defined as 1 .
                                 let macro_value = macro_value
@@ -104,10 +126,8 @@ impl<'b> Preprocessor<'b> {
                                 continue;
                             }
                             ifdefkind @ ("ifdef" | "ifndef") => {
-                                self.main_chars
-                                    .get_debug_info_and_skip_white_space_without_new_line();
-                                let (_, macro_arg) = self
-                                    .main_chars
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_arg) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect("arg of `ifdef` must exist.");
                                 let mut ifdef_flag = self.define_table.contains_key(&macro_arg);
@@ -115,37 +135,36 @@ impl<'b> Preprocessor<'b> {
                                     ifdef_flag = !ifdef_flag;
                                 }
                                 if ifdef_flag {
-                                    let derective_count = derective_count.map_or_else(
-                                        || {
-                                            let mut derective_count = DerectiveCount::default();
-                                            derective_count.set_ifdef_flag();
-                                            derective_count
-                                        },
-                                        |mut derective_count| {
-                                            derective_count.set_ifdef_flag();
-                                            derective_count
-                                        },
+                                    if let Some(derective_count) = derective_count {
+                                        derective_count.set_ifdef_flag();
+                                    } else {
+                                        let mut new_derective_count = DerectiveCount::default();
+                                        new_derective_count.set_ifdef_flag();
+                                        *derective_count = Some(new_derective_count)
+                                    }
+                                    return self.preprocess(
+                                        main_chars.into(),
+                                        Some(tokens),
+                                        derective_count,
                                     );
-                                    return self.preprocess(Some(tokens), Some(derective_count));
                                 }
                                 loop {
-                                    match self.main_chars.skip_until_macro_keyword().as_str() {
+                                    match main_chars.skip_until_macro_keyword().as_str() {
                                         "endif" => break,
                                         "else" => {
-                                            let derective_count = derective_count.map_or_else(
-                                                || {
-                                                    let mut derective_count =
-                                                        DerectiveCount::default();
-                                                    derective_count.set_ifdef_flag();
-                                                    derective_count
-                                                },
-                                                |mut derective_count| {
-                                                    derective_count.set_ifdef_flag();
-                                                    derective_count
-                                                },
+                                            if let Some(derective_count) = derective_count {
+                                                derective_count.set_ifdef_flag();
+                                            } else {
+                                                let mut new_derective_count =
+                                                    DerectiveCount::default();
+                                                new_derective_count.set_ifdef_flag();
+                                                *derective_count = Some(new_derective_count);
+                                            }
+                                            return self.preprocess(
+                                                main_chars.into(),
+                                                Some(tokens),
+                                                derective_count,
                                             );
-                                            return self
-                                                .preprocess(Some(tokens), Some(derective_count));
                                         }
                                         _ => continue,
                                     }
@@ -153,30 +172,66 @@ impl<'b> Preprocessor<'b> {
                                 continue 'preprocess_loop;
                             }
                             "else" => {
-                                if let Some(derective_count) = &mut derective_count {
+                                if let Some(derective_count) = derective_count {
                                     derective_count.unset_ifdef_flag();
                                 } else {
                                     panic!("`ifdef` should be used before `else`");
                                 }
-                                while "endif" != self.main_chars.skip_until_macro_keyword().as_str()
-                                {
-                                }
+                                while "endif" != main_chars.skip_until_macro_keyword().as_str() {}
                                 continue 'preprocess_loop;
                             }
                             "endif" => {
-                                if let Some(derective_count) = &mut derective_count {
+                                if let Some(derective_count) = derective_count {
                                     derective_count.unset_ifdef_flag();
                                 }
                                 continue 'preprocess_loop;
                             }
                             "undef" => {
-                                self.main_chars
-                                    .get_debug_info_and_skip_white_space_without_new_line();
-                                let (_, macro_ident) = self
-                                    .main_chars
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                let (_, macro_ident) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect("arg(ident) of define must exist.");
                                 self.define_table.remove(&macro_ident);
+                                continue 'preprocess_loop;
+                            }
+                            "include" => {
+                                // e.g) # include "mylib.h";
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                if let Some((_, mut str_lit)) =
+                                    main_chars.get_debug_info_and_read_str_lit()
+                                {
+                                    str_lit.pop(); // -> "
+                                    str_lit.remove(0); // -> "
+                                    let main_file =
+                                        PathBuf::from(self.main_file_info.get_file_name());
+                                    assert!(main_file.is_file());
+                                    let main_file_dir =
+                                        main_file.parent().expect("parent dir should exist.");
+                                    let included_file_path = main_file_dir.join(str_lit);
+                                    let included_file_path = included_file_path.as_path();
+                                    let src = read_file(included_file_path)?;
+                                    dbg!(&src);
+                                    let file_info = Rc::new(FileInfo::new(
+                                        included_file_path.to_str().unwrap().to_string(),
+                                        src.clone(),
+                                    ));
+                                    eprintln!(
+                                        "before preprocess of : {}",
+                                        file_info.get_file_name()
+                                    );
+                                    tokens = self.preprocess(
+                                        file_info.clone().into(),
+                                        Some(tokens),
+                                        derective_count,
+                                    )?;
+                                    eprintln!(
+                                        "after preprocess of : {}",
+                                        file_info.get_file_name()
+                                    );
+                                    dbg!(&tokens);
+                                    continue 'preprocess_loop;
+                                }
+                                todo!()
                             }
                             unknown => panic!("unknown derective: {}", unknown),
                         }
@@ -187,12 +242,12 @@ impl<'b> Preprocessor<'b> {
                 }
                 Some((debug_info, punctuator)) => {
                     tokens.push(Token::new(punctuator, debug_info));
-                    continue;
+                    continue 'preprocess_loop;
                 }
                 None => {}
             }
 
-            if let Some((debug_info, ident)) = self.main_chars.get_debug_info_and_read_ident() {
+            if let Some((debug_info, ident)) = main_chars.get_debug_info_and_read_ident() {
                 if let Some(macro_value) = self.define_table.get(&ident) {
                     tokens.push(Token::new(
                         TokenKind::Ident(macro_value.clone()),
@@ -201,11 +256,10 @@ impl<'b> Preprocessor<'b> {
                     continue;
                 }
                 tokens.push(Token::new(TokenKind::Ident(ident), debug_info));
-                continue;
+                continue 'preprocess_loop;
             }
 
-            if let Some((debug_info, rest)) =
-                self.main_chars.get_debug_info_and_skip_until_white_space()
+            if let Some((debug_info, rest)) = main_chars.get_debug_info_and_skip_until_white_space()
             {
                 tokens.push(Token::new(rest, debug_info));
                 continue;
@@ -213,11 +267,11 @@ impl<'b> Preprocessor<'b> {
 
             panic!(
                 "Unexpected char while preprocessing: {:?}",
-                self.main_chars.next()
+                main_chars.next()
             );
         }
 
-        tokens
+        Ok(tokens)
     }
 
     // #[allow(clippy::too_many_lines)]
@@ -823,7 +877,7 @@ where
     }
 
     /// Advance this iterator (including sentinel) until sentinel
-    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError<TokenKind>> {
+    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError> {
         loop {
             match self.next() {
                 Some((_, ch)) if ch == sentinel => return Ok(()),
@@ -917,7 +971,7 @@ impl PreprocessorTokenContainerStream {
     }
 
     /// Advance this iterator (including sentinel) until sentinel
-    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError<TokenKind>> {
+    pub fn advance_until(&mut self, sentinel: char) -> Result<(), CompileError> {
         loop {
             match self.next() {
                 Some((_, ch)) if ch == sentinel => return Ok(()),

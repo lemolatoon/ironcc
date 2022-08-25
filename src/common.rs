@@ -1,3 +1,5 @@
+use std::{fs::File, io::Read, path::Path};
+
 /// return `CompilerError` whose kind is `Unimplemented`
 ///  - 1st arg: `input`:&str
 ///  - 2nd arg: `pos`: Position
@@ -31,4 +33,11 @@ macro_rules! meta {
     () => {
         concat!(file!(), ":", line!(), ":", column!(), ": ")
     };
+}
+
+pub fn read_file(path: &Path) -> Result<String, std::io::Error> {
+    let mut file = File::open(path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
 }

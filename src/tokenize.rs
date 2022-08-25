@@ -1,5 +1,7 @@
 use crate::error::CompileError;
-use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use crate::preprocess::{
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
@@ -23,7 +25,7 @@ impl Tokenizer
     pub fn tokenize(
         &mut self,
         _file_info: &Rc<FileInfo>,
-    ) -> Result<Vec<Token<TokenKind>>, CompileError<TokenKind>> {
+    ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let mut tokens = Vec::new();
 
         'tokenize_loop: while !self.stream.is_empty() {
@@ -542,7 +544,10 @@ where
     }
 
     /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: K) -> Result<(), CompileError<K>> {
+    pub fn expect(&mut self, kind: K) -> Result<(), CompileError>
+    where
+        Token<K>: Into<crate::error::Tokens>,
+    {
         let peeked_token = self.next();
         match peeked_token {
             Some(Token {
@@ -593,7 +598,7 @@ impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenK
         false
     }
 
-    pub fn expect_number(&mut self) -> Result<isize, CompileError<TokenKind>> {
+    pub fn expect_number(&mut self) -> Result<isize, CompileError> {
         let token = self.next();
         // let next = token.map(|token| *token.kind);
         match token {
@@ -615,7 +620,7 @@ impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenK
     }
 
     /// if next token is ident, then return its name and Position, otherwise return Err(_)
-    pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError<TokenKind>> {
+    pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError> {
         let token = self.next();
         match token {
             Some(token) => match *token.kind {
@@ -692,13 +697,14 @@ pub fn kind_eq(lhs: &[Token<TokenKind>], rhs: &[Token<TokenKind>]) -> bool {
         })
 }
 
-pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError<TokenKind>> {
+pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileError> {
     let file_info = Rc::new(FileInfo {
         file_name: String::new(),
         src: input.to_string(),
     });
     let mut preproccor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preproccor.preprocess(None, None);
+    let derective_count = &mut None;
+    let tokens = preproccor.preprocess(file_info.clone().into(), None, derective_count)?;
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer

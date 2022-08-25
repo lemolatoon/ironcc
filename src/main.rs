@@ -14,6 +14,7 @@ use ironcc::preprocess;
 use ironcc::preprocess::Preprocessor;
 use ironcc::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::PreprocessorTokenStream;
+use ironcc::preprocess::SrcCursor;
 use ironcc::tokenize::FileInfo;
 use ironcc::tokenize::Token;
 use ironcc::tokenize::TokenKind;
@@ -34,7 +35,7 @@ fn main() {
 
 const INCLUDE_DIR: &str = "include";
 
-fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
+fn preprocess_and_compile() -> Result<(), CompileError> {
     let args: Vec<String> = env::args().collect();
     // let args = vec!["", "test/test.c"].into_iter().map(|arg| arg.to_string()).collect(); // for cargo profiler
     let (file_name, mut in_f, out_f) = get_io_file(args)?;
@@ -44,7 +45,7 @@ fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
     input.push('\n');
 
     let main_file_info = Rc::new(FileInfo::new(file_name, input));
-    let tokens = preprocess(main_file_info, INCLUDE_DIR);
+    let tokens = preprocess(main_file_info, INCLUDE_DIR)?;
     eprintln!("preprocess finished!!");
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     compile(
@@ -58,9 +59,10 @@ fn preprocess_and_compile() -> Result<(), CompileError<TokenKind>> {
 fn preprocess(
     main_file_info: Rc<FileInfo>,
     include_dir: &str,
-) -> Vec<Token<preprocess::TokenKind>> {
+) -> Result<Vec<Token<preprocess::TokenKind>>, CompileError> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
-    preprocessor.preprocess(None, None)
+    let derective_count = &mut None;
+    preprocessor.preprocess(main_file_info.into(), None, derective_count)
 }
 
 use std::fmt::Debug;
@@ -69,7 +71,7 @@ fn compile<I>(
     input: String,
     file_name: String,
     out_f: File,
-) -> Result<(), CompileError<TokenKind>>
+) -> Result<(), CompileError>
 where
     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
 {

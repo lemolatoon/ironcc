@@ -10,7 +10,7 @@ tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
 
 a.out: tmp.s link.c
-	$(CC) tmp.s tmp_linked.c -o a.out $(CFLAGS)
+	$(CC) tmp.s -o a.out $(CFLAGS)
 
 run: a.out $(COMPILER)
 	./a.out
@@ -22,7 +22,7 @@ test: $(COMPILER)
 testc: $(COMPILER) test/test.c
 	cd test && \
 	$(COMPILER) test.c && \
-	$(CC) test.s test_utils.c $(CFLAGS) -o tmp && \
+	$(CC) test.s $(CFLAGS) -o tmp && \
 	./tmp
 
 life_game.s: $(COMPILER) life_game.c

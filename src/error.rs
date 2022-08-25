@@ -3,7 +3,10 @@ use crate::analyze::ConvExpr;
 use crate::analyze::ConvExprKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
+use crate::preprocess;
+use crate::tokenize;
 use crate::tokenize::DebugInfo;
+use crate::tokenize::Eof;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
 use std::error::Error;
@@ -12,27 +15,27 @@ use std::fmt::Display;
 use std::io;
 
 #[derive(Clone)]
-pub struct CompileError<K: PartialEq + Debug + Clone> {
-    pub kind: CompileErrorKind<K>,
+pub struct CompileError {
+    pub kind: CompileErrorKind,
 }
 
-impl<K: PartialEq + Debug + Clone> CompileError<K> {
-    pub const fn new(kind: CompileErrorKind<K>) -> Self {
+impl CompileError {
+    pub const fn new(kind: CompileErrorKind) -> Self {
         Self { kind }
     }
 }
 
 #[derive(Debug)]
-pub enum CompileErrorKind<K: PartialEq + Debug> {
+pub enum CompileErrorKind {
     TokenizeError(TokenizeErrorKind),
-    ParseError(ParseErrorKind<K>),
+    ParseError(ParseErrorKind),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
     Unimplemented(Option<DebugInfo>, String),
     IOError(Box<dyn Debug>),
 }
 
-impl<K: PartialEq + Debug + Clone> Clone for CompileErrorKind<K> {
+impl Clone for CompileErrorKind {
     fn clone(&self) -> Self {
         match self {
             Self::TokenizeError(arg0) => Self::TokenizeError(arg0.clone()),
@@ -45,9 +48,9 @@ impl<K: PartialEq + Debug + Clone> Clone for CompileErrorKind<K> {
     }
 }
 
-impl<K: PartialEq + Debug + Clone> Error for CompileError<K> {}
+impl Error for CompileError {}
 
-impl<K: PartialEq + Debug + Clone> From<io::Error> for CompileError<K> {
+impl From<io::Error> for CompileError {
     fn from(err: io::Error) -> Self {
         Self {
             kind: CompileErrorKind::IOError(Box::new(err)),
@@ -55,29 +58,48 @@ impl<K: PartialEq + Debug + Clone> From<io::Error> for CompileError<K> {
     }
 }
 
-impl<K: PartialEq + Debug + Clone> CompileError<K> {
-    pub const fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError<K> {
+impl From<Token<preprocess::TokenKind>> for Tokens {
+    fn from(token: Token<preprocess::TokenKind>) -> Self {
+        Tokens::Preprocess(token)
+    }
+}
+impl From<Token<tokenize::TokenKind>> for Tokens {
+    fn from(token: Token<tokenize::TokenKind>) -> Self {
+        Tokens::Tokenize(token)
+    }
+}
+
+impl CompileError {
+    pub const fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError {
         CompileError::new(CompileErrorKind::TokenizeError(
             TokenizeErrorKind::UnexpectedChar(debug_info, c),
         ))
     }
-    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError<K> {
+    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
             input, kind,
         )))
     }
 
-    pub fn new_expected_failed(expect: Box<dyn Debug>, got: Token<K>) -> CompileError<K> {
+    pub fn new_expected_failed<K>(expect: Box<dyn Debug>, got: Token<K>) -> CompileError
+    where
+        K: PartialEq + Debug + Clone,
+        Token<K>: Into<Tokens>,
+    {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
             expect,
-            got,
+            got: got.into(),
         }))
     }
 
-    pub fn new_expected_failed_with_box(expect: Box<dyn Debug>, got: Token<K>) -> CompileError<K> {
+    pub fn new_expected_failed_with_box<K>(expect: Box<dyn Debug>, got: Token<K>) -> CompileError
+    where
+        K: PartialEq + Debug + Clone,
+        Token<K>: Into<Tokens>,
+    {
         CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
             expect,
-            got,
+            got: got.into(),
         }))
     }
 
@@ -213,17 +235,39 @@ pub enum TokenizeErrorKind {
     UnexpectedEof(DebugInfo),
 }
 
+#[derive(Debug, Clone)]
+pub enum Tokens {
+    Preprocess(Token<preprocess::TokenKind>),
+    Tokenize(Token<tokenize::TokenKind>),
+}
+
+impl Tokens {
+    pub fn get_debug_info(&self) -> DebugInfo {
+        match self {
+            Tokens::Preprocess(token) => token.debug_info.clone(),
+            Tokens::Tokenize(token) => token.debug_info.clone(),
+        }
+    }
+
+    pub fn get_kind_str(&self) -> String {
+        match self {
+            Tokens::Preprocess(token) => format!("{:?}", token.kind),
+            Tokens::Tokenize(token) => format!("{:?}", token.kind),
+        }
+    }
+}
+
 #[derive(Debug)]
-pub enum ParseErrorKind<K: PartialEq + Debug> {
+pub enum ParseErrorKind {
     /// An error returned when an operation could not be completed because an "end of file" was reached prematurely.
     UnexpectedEof(/* src */ Option<String>, Box<dyn Debug>),
     ExpectFailed {
         expect: Box<dyn Debug>,
-        got: Token<K>,
+        got: Tokens,
     },
 }
 
-impl<K: PartialEq + Debug + Clone> Clone for ParseErrorKind<K> {
+impl Clone for ParseErrorKind {
     fn clone(&self) -> Self {
         match self {
             Self::UnexpectedEof(src, arg0) => {
@@ -237,13 +281,13 @@ impl<K: PartialEq + Debug + Clone> Clone for ParseErrorKind<K> {
     }
 }
 
-impl<K: PartialEq + Debug + Clone> Display for CompileError<K> {
+impl Display for CompileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         <Self as Debug>::fmt(self, f)
     }
 }
 
-impl<K: PartialEq + Debug + Clone> Debug for CompileError<K> {
+impl Debug for CompileError {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use CompileErrorKind::{
@@ -265,8 +309,13 @@ impl<K: PartialEq + Debug + Clone> Debug for CompileError<K> {
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(vec![got.debug_info.clone()], f)?;
-                writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
+                error_at(vec![got.get_debug_info().clone()], f)?;
+                writeln!(
+                    f,
+                    "Expected `{:?}`, but got `{:?}`.",
+                    expect,
+                    got.get_kind_str(),
+                )?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
                 TypeExpectedFailedKind::UnexpectedVoid(debug_info, msg),

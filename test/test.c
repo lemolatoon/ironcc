@@ -1,3 +1,4 @@
+#include "test_utils.c"
 int test0();
 int test0_2();
 int test0_3();
@@ -138,7 +139,6 @@ int main()
 }
 
 void exit(int status);
-int printf(char *msg, ...);
 int assertion_failed(int index, int expected, int got)
 {
     printf("Assertion_failed At test%d\n", index, 0);
@@ -146,7 +146,7 @@ int assertion_failed(int index, int expected, int got)
     exit(1);
 }
 
-int passed(int index) { printf("Test %d passed\n", index); }
+void passed(int index) { printf("Test %d passed\n", index); }
 
 void print_ok()
 {
@@ -815,7 +815,6 @@ int test40()
     return 0;
 }
 
-void *malloc(int size);
 int test41()
 {
     struct List

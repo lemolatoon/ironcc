@@ -39,7 +39,7 @@ fn read_file(path: String) -> Result<String, std::io::Error> {
 }
 
 #[test]
-fn insta_tests() -> Result<(), CompileError<TokenKind>> {
+fn insta_tests() -> Result<(), CompileError> {
     let src = "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}";
     let mut tester = CachedProcessor::new(src);
     all!(tester);
@@ -47,7 +47,7 @@ fn insta_tests() -> Result<(), CompileError<TokenKind>> {
 }
 
 #[test]
-fn initializer() -> Result<(), CompileError<TokenKind>> {
+fn initializer() -> Result<(), CompileError> {
     let src = "int main() {int a = 5; int *p = &a; return 0;}";
     let mut tester = CachedProcessor::new(src);
     all!(tester);
@@ -55,7 +55,7 @@ fn initializer() -> Result<(), CompileError<TokenKind>> {
 }
 
 #[test]
-fn size_of() -> Result<(), CompileError<TokenKind>> {
+fn size_of() -> Result<(), CompileError> {
     let src = "\n\
     int main() {\n \
         int a = 5;\n \
@@ -70,7 +70,7 @@ fn size_of() -> Result<(), CompileError<TokenKind>> {
 }
 
 #[test]
-fn array_syntax_sugar() -> Result<(), CompileError<TokenKind>> {
+fn array_syntax_sugar() -> Result<(), CompileError> {
     let src = "\n\
     int main() {\n \
         int array[5];
