@@ -3,7 +3,7 @@ pub mod test_utils;
 use std::rc::Rc;
 
 use ironcc::{
-    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
     tokenize::*,
 };
 
@@ -557,5 +557,43 @@ fn tokenize_reserved() {
             TokenKind::Ident("msg".to_string()),
             TokenKind::Eof
         )
+    );
+}
+
+#[test]
+fn tokenize_multi_token_input() {
+    let input = String::from("0 + 0 + 11  -4");
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let preprocessor = Preprocessor::new("");
+    let tokens = preprocessor.preprocess(file_info.clone());
+    let tokens_iter = vec![
+        preprocess::TokenKind::Rest("0 ".to_string()),
+        preprocess::TokenKind::Rest("+ 0 + 1".to_string()),
+        preprocess::TokenKind::Rest("1  -4".to_string()),
+    ]
+    .into_iter()
+    .map(|kind| Token::new(kind, DebugInfo::default()));
+    let stream = PreprocessorTokenStream::new(tokens_iter);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
+    assert_eq!(
+        tokenizer
+            .tokenize(&file_info)
+            .unwrap()
+            .into_iter()
+            .map(|token| token.kind())
+            .collect::<Vec<_>>(),
+        tokens!(
+            TokenKind::Num(0),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(0),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(11),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(4),
+            TokenKind::Eof
+        )
+        .into_iter()
+        .map(|token| token.kind())
+        .collect::<Vec<_>>()
     );
 }
