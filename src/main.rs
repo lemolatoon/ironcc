@@ -59,7 +59,7 @@ fn preprocess(
     main_file_info: Rc<FileInfo>,
     include_dir: &str,
 ) -> Vec<Token<preprocess::TokenKind>> {
-    let preprocessor = Preprocessor::new(include_dir);
+    let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
     preprocessor.preprocess(main_file_info)
 }
 

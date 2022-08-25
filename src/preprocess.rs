@@ -1,3 +1,5 @@
+use core::panic;
+use std::collections::BTreeMap;
 use std::collections::VecDeque;
 use std::iter::Peekable;
 use std::rc::Rc;
@@ -9,21 +11,59 @@ use crate::tokenize::FileInfo;
 use crate::tokenize::Token;
 
 pub struct Preprocessor<'b> {
+    main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
+    main_chars: SrcCursor,
+    define_table: BTreeMap<String, String>,
+    include_table: BTreeMap<String, SrcCursor>,
 }
 
 impl<'b> Preprocessor<'b> {
-    pub const fn new(include_dir: &'b str) -> Self {
-        Self { include_dir }
+    pub fn new(main_file_info: Rc<FileInfo>, include_dir: &'b str) -> Self {
+        Self {
+            main_chars: SrcCursor::new(main_file_info.clone()),
+            main_file_info,
+            include_dir,
+            define_table: BTreeMap::new(),
+            include_table: BTreeMap::new(),
+        }
     }
 
-    pub fn preprocess(&self, main_file_info: Rc<FileInfo>) -> Vec<Token<TokenKind>> {
-        let src = main_file_info.get_file_src();
-        let token = Token::new(
-            TokenKind::Rest(src.to_string()),
-            DebugInfo::default_with_file_info(Rc::clone(&main_file_info)),
-        );
-        vec![token]
+    pub fn preprocess(&mut self, main_file_info: Rc<FileInfo>) -> Vec<Token<TokenKind>> {
+        let mut tokens: Vec<Token<TokenKind>> = Vec::new();
+        let mut debug_info = DebugInfo::default_with_file_info(self.main_file_info.clone());
+        'preprocess_loop: while !self.main_chars.is_empty() {
+            if let Some((debug_info, spaces)) =
+                self.main_chars.get_debug_info_and_skip_white_space()
+            {
+                tokens.push(Token::new(spaces, debug_info));
+                continue;
+            }
+
+            if let Some((debug_info, comment)) = self.main_chars.get_debug_info_and_skip_comment() {
+                tokens.push(Token::new(comment, debug_info));
+                continue;
+            }
+
+            if let Some((debug_info, ident)) = self.main_chars.get_debug_info_and_read_ident() {
+                tokens.push(Token::new(ident, debug_info));
+                continue;
+            }
+
+            if let Some((debug_info, rest)) =
+                self.main_chars.get_debug_info_and_skip_until_white_space()
+            {
+                tokens.push(Token::new(rest, debug_info));
+                continue;
+            }
+
+            panic!(
+                "Unexpected char while preprocessing: {:?}",
+                self.main_chars.next()
+            );
+        }
+
+        tokens
     }
 
     // #[allow(clippy::too_many_lines)]
@@ -271,10 +311,147 @@ impl<'b> Preprocessor<'b> {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct SrcCursor {
+    src: VecDeque<char>,
+    debug_info: DebugInfo,
+}
+
+impl SrcCursor {
+    pub fn new(file_info: Rc<FileInfo>) -> Self {
+        let src = file_info.get_file_src().chars().collect();
+        SrcCursor {
+            src,
+            debug_info: DebugInfo::default_with_file_info(file_info),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.src.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.src.is_empty()
+    }
+
+    pub fn get_debug_info_and_read_ident(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        if let Some(ch @ ('a'..='z' | 'A'..='Z' | '_')) = self.src.front() {
+            let debug_info = self.get_debug_info();
+            let mut ident = String::from(*ch);
+            self.advance(1);
+            while let Some(ch @ ('a'..='z' | 'A'..='Z' | '_' | '0'..='9')) = self.src.front() {
+                ident.push(*ch);
+                self.advance(1);
+            }
+            return Some((debug_info, TokenKind::Ident(ident)));
+        }
+        None
+    }
+
+    pub fn get_debug_info_and_skip_white_space(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        let debug_info = self.get_debug_info();
+        let mut space = String::new();
+        while let Some(c) = self.src.front() {
+            if c.is_whitespace() {
+                match self.next().unwrap() {
+                    ch @ (' ' | '\t' | 'r') => {
+                        space.push(ch);
+                        self.debug_info.advance(1);
+                        continue;
+                    }
+                    '\n' => {
+                        space.push('\n');
+                        self.debug_info.advance_line();
+                    }
+                    _ => {
+                        unreachable!()
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        if space.is_empty() {
+            return None;
+        }
+        Some((debug_info, TokenKind::Space(space)))
+    }
+
+    pub fn get_debug_info_and_skip_comment(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        if self.starts_with("//") {
+            let debug_info = self.get_debug_info();
+            let mut comment = String::from("//");
+            self.advance(2);
+            while let Some(&c) = self.src.front() {
+                if c == '\n' {
+                    comment.push('\n');
+                    self.debug_info.advance_line();
+                    self.next();
+                    break;
+                }
+                comment.push(c);
+                self.advance(1);
+            }
+            if comment.is_empty() {
+                return None;
+            }
+            return Some((debug_info, TokenKind::Comment(comment)));
+        }
+        None
+    }
+
+    pub fn get_debug_info_and_skip_until_white_space(&mut self) -> Option<(DebugInfo, TokenKind)> {
+        let debug_info = self.get_debug_info();
+        let mut rest = String::new();
+        while let Some(c) = self.src.front() {
+            if c.is_whitespace() {
+                break;
+            }
+            rest.push(*c);
+            self.advance(1);
+        }
+        if rest.is_empty() {
+            return None;
+        }
+        Some((debug_info, TokenKind::Rest(rest)))
+    }
+
+    pub fn starts_with(&self, prefix: &str) -> bool {
+        if self.is_empty() {
+            return false;
+        }
+        self.src
+            .iter()
+            .take(prefix.len())
+            .zip(prefix.chars())
+            .all(|(a, b)| *a == b)
+    }
+
+    pub fn get_debug_info(&self) -> DebugInfo {
+        self.debug_info.clone()
+    }
+
+    pub fn advance(&mut self, n: usize) {
+        for _ in 0..n {
+            self.next();
+        }
+        self.debug_info.advance(n);
+    }
+}
+
+impl Iterator for SrcCursor {
+    type Item = char;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.src.pop_front()
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum TokenKind {
     Eof,
     Define,
     HashTag,
+    Space(String),
+    Comment(String),
     Ident(String),
     Rest(String),
 }
@@ -285,7 +462,10 @@ impl TokenKind {
             TokenKind::Eof => 0,
             TokenKind::Define => 6,
             TokenKind::HashTag => 1,
-            TokenKind::Ident(content) | TokenKind::Rest(content) => content.len(),
+            TokenKind::Comment(content)
+            | TokenKind::Space(content)
+            | TokenKind::Ident(content)
+            | TokenKind::Rest(content) => content.len(),
         }
     }
 
@@ -294,7 +474,10 @@ impl TokenKind {
             TokenKind::Eof => "",
             TokenKind::Define => "define",
             TokenKind::HashTag => "#",
-            TokenKind::Ident(content) | TokenKind::Rest(content) => content,
+            TokenKind::Comment(content)
+            | TokenKind::Space(content)
+            | TokenKind::Ident(content)
+            | TokenKind::Rest(content) => content,
         }
     }
 }
@@ -342,41 +525,6 @@ where
                 cur_in_token: 0,
             },
         }
-    }
-
-    pub fn starts_with(&self, prefix: &str) -> bool {
-        let cloned_self = self.clone();
-        let len = prefix.len();
-        if cloned_self.is_empty() {
-            return false;
-        }
-        cloned_self
-            .take(len)
-            .map(|(_, ch)| ch)
-            .zip(prefix.chars())
-            .all(|(a, b)| a == b)
-    }
-
-    // Returns true if the next char matches '0'..='9'
-    pub fn starts_with_number(&self) -> bool {
-        matches!(self.peek(), Some((_, '0'..='9')))
-    }
-
-    // Returns true if the next char matches 'a'..='z' | 'A'..='Z'
-    pub fn starts_with_alphabet(&self) -> bool {
-        matches!(self.peek(), Some((_, 'a'..='z' | 'A'..='Z')))
-    }
-
-    pub fn advance(&mut self, times: usize) {
-        for _ in 0..times {
-            self.next();
-        }
-    }
-
-    pub fn get_debug_info_and_advance(&mut self, times: usize) -> DebugInfo {
-        let debug_info = self.current_token_debug_info.clone();
-        self.advance(times);
-        debug_info
     }
 
     /// Advance this iterator (including sentinel) until sentinel
@@ -518,20 +666,10 @@ where
         let ch = self.current_token_content.get(self.cur_in_token).unwrap();
         let debug_info = self.current_token_debug_info.clone();
         if *ch == '\n' {
-            // DebugInfo::new(
-            //     self.current_token_debug_info.get_cloned_file_info(),
-            //     0,
-            //     self.current_token_debug_info.get_n_line() + 1,
-            // );
             *self.current_token_debug_info.get_n_char_mut() = 0;
             *self.current_token_debug_info.get_n_line_mut() =
                 self.current_token_debug_info.get_n_line() + 1;
         } else {
-            // DebugInfo::new(
-            //     self.current_token_debug_info.get_cloned_file_info(),
-            //     self.current_token_debug_info.get_n_char() + 1,
-            //     self.current_token_debug_info.get_n_line(),
-            // );
             *self.current_token_debug_info.get_n_char_mut() =
                 self.current_token_debug_info.get_n_char() + 1;
         }

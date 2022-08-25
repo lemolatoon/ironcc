@@ -11,7 +11,7 @@ use ironcc::{
 fn tokenize_plus_minus_test() {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let preprocessor = Preprocessor::new("");
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -106,7 +106,7 @@ fn tokenize_pos_test() {
     use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let preprocessor = Preprocessor::new("");
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -131,7 +131,7 @@ fn tokenize_pos_test() {
 
     let input = String::from("1 +1\n\t+5");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let preprocessor = Preprocessor::new("");
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -564,8 +564,6 @@ fn tokenize_reserved() {
 fn tokenize_multi_token_input() {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
-    let preprocessor = Preprocessor::new("");
-    let tokens = preprocessor.preprocess(file_info.clone());
     let tokens_iter = vec![
         preprocess::TokenKind::Rest("0 ".to_string()),
         preprocess::TokenKind::Rest("+ 0 + 1".to_string()),

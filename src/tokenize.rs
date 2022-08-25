@@ -341,10 +341,10 @@ pub struct Token<K: PartialEq + Debug> {
 }
 
 impl<K: PartialEq + Debug + Eof> Token<K> {
-    pub fn new(token_kind: K, pos: DebugInfo) -> Self {
+    pub fn new(token_kind: K, debug_info: DebugInfo) -> Self {
         Self {
             kind: Box::new(token_kind),
-            debug_info: pos,
+            debug_info,
         }
     }
 
@@ -701,7 +701,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
         file_name: String::new(),
         src: input.to_string(),
     });
-    let preproccor = Preprocessor::new("");
+    let mut preproccor = Preprocessor::new(file_info.clone(), "");
     let tokens = preproccor.preprocess(file_info.clone());
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
