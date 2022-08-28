@@ -1,16 +1,15 @@
 use std::{fs::File, io::Read, path::Path};
 
 /// return `CompilerError` whose kind is `Unimplemented`
-///  - 1st arg: `input`:&str
-///  - 2nd arg: `pos`: Position
-///  - 3rd arg: `msg`: error message
+///  - 1st arg: `debug_info: DebugInfo`
+///  - 2rd arg: `msg`: T` `where T: Display`  // error message
 ///
 /// Also no args provided is allowed.
 #[macro_export]
 macro_rules! unimplemented_err {
-    ($pos: expr, $msg: expr) => {
+    ($debug_info: expr, $msg: expr) => {
         CompileError::new($crate::error::CompileErrorKind::Unimplemented(
-            Some($pos),
+            Some($debug_info),
             format!("{}{}", $crate::meta!(), $msg),
         ))
     };
@@ -35,6 +34,7 @@ macro_rules! meta {
     };
 }
 
+/// read file of given path as text and return it as `String`
 pub fn read_file(path: &Path) -> Result<String, std::io::Error> {
     let mut file = File::open(path).unwrap();
     let mut contents = String::new();
