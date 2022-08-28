@@ -638,53 +638,129 @@
 <span id="632">632</span>
 <span id="633">633</span>
 <span id="634">634</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">CompileError</span>, <span class="ident">CompileErrorKind</span>, <span class="ident">TokenizeErrorKind</span>};
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::CompileError</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::preprocess</span>::{<span class="ident">Preprocessor</span>, <span class="ident">PreprocessorTokenContainerStream</span>, <span class="ident">PreprocessorTokenStream</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tokenizer</span>
+<span class="comment">// where</span>
+<span class="comment">//     I: Iterator&lt;Item = Token&lt;preprocess::TokenKind&gt;&gt; + Clone + Debug,</span>
+{
+    <span class="ident">stream</span>: <span class="ident">PreprocessorTokenContainerStream</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">input</span> }
+<span class="kw">impl</span> <span class="ident">Tokenizer</span>
+<span class="comment">// where</span>
+<span class="comment">//     I: Iterator&lt;Item = Token&lt;preprocess::TokenKind&gt;&gt; + Clone + Debug,</span>
+{
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">PreprocessorTokenContainerStream</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">stream</span> }
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_lines</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tokenize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tokenize</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">_file_info</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FileInfo</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::default</span>(); <span class="comment">// 0, 0</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="ident">::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input</span>);
 
-        <span class="lifetime">&#39;tokenize_loop</span>: <span class="kw">while</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">is_empty</span>() {
+        <span class="lifetime">&#39;tokenize_loop</span>: <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">is_empty</span>() {
+            <span class="comment">// dbg!(self.stream.clone().map(|(_, ch)| ch).collect::&lt;String&gt;());</span>
             <span class="comment">// skip white spaces</span>
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39; &#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;\t&#39;</span>) {
-                <span class="ident">pos</span>.<span class="ident">advance</span>(<span class="number">1</span>);
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..];
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot; &quot;</span>)
+                <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;\t&quot;</span>)
+                <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;\n&quot;</span>)
+            {
+                <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;\n&#39;</span>) {
-                <span class="ident">pos</span>.<span class="ident">advance_line</span>();
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..];
-                <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_iter</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_this_line_char</span> <span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">while</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">input_iter</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>)) {
-                    <span class="ident">num_this_line_char</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                }
-                <span class="ident">pos</span>.<span class="ident">advance_line</span>();
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">num_this_line_char</span>..];
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) {
+                <span class="comment">// TODO: remove unwrap</span>
+                <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance_until</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">unwrap</span>();
                 <span class="kw">continue</span>;
             }
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;#&#39;</span>) {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_iter</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_this_line_char</span> <span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">while</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">input_iter</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>)) {
-                    <span class="ident">num_this_line_char</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                }
-                <span class="ident">pos</span>.<span class="ident">advance_line</span>();
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">num_this_line_char</span>..];
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;#&quot;</span>) {
+                <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance_until</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">unwrap</span>();
                 <span class="kw">continue</span>;
             }
 
@@ -726,74 +802,61 @@
             ];
 
             <span class="kw">for</span> (<span class="ident">literal</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">symbols</span> {
-                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="ident">literal</span>) {
-                    <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">kind</span>, <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">literal</span>.<span class="ident">len</span>())));
-                    <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">literal</span>.<span class="ident">len</span>()..];
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="ident">literal</span>) {
+                    <span class="kw">let</span> <span class="ident">this_token_debug_info</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">stream</span>
+                        .<span class="ident">get_debug_info_and_advance</span>(<span class="ident">literal</span>.<span class="ident">len</span>())
+                        .<span class="ident">unwrap</span>();
+                    <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">kind</span>, <span class="ident">this_token_debug_info</span>));
                     <span class="kw">continue</span> <span class="lifetime">&#39;tokenize_loop</span>;
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&#39;&quot;&#39;</span>) {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;\&quot;&quot;</span>) {
                 <span class="comment">// string literal</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
-                <span class="ident">chars</span>.<span class="ident">next</span>(); <span class="comment">// -&gt; &quot;</span>
+                <span class="kw">let</span> (<span class="ident">debug_info</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(); <span class="comment">// -&gt; &quot;</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">str_lit</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">loop</span> {
-                    <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
-                        <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) =&gt; {
-                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                            <span class="ident">chars</span>.<span class="ident">next</span>();
+                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>() {
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; {
                             <span class="kw">break</span>;
                         }
-                        <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; {
-                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                            <span class="ident">chars</span>.<span class="ident">next</span>();
-                            <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                                <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) =&gt; {
-                                    <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                                    <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
-                                }
-                                <span class="prelude-val">Some</span>(<span class="string">&#39;e&#39;</span>) =&gt; {
-                                    <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                                    <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="number">0x1bu8</span>.<span class="ident">into</span>());
-                                }
-                                <span class="kw">_</span> =&gt; {
-                                    <span class="ident">pos</span>.<span class="ident">advance</span>(<span class="ident">len_token</span>);
-                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
-                                        <span class="self">self</span>.<span class="ident">input</span>,
-                                        <span class="ident">pos</span>,
-                                        <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;</span>
-                                    ));
-                                }
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>() {
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; {
+                                <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
                             }
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;e&#39;</span>)) =&gt; {
+                                <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="number">0x1bu8</span>.<span class="ident">into</span>());
+                            }
+                            <span class="kw">_</span> =&gt; {
+                                <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span> <span class="self">self</span>
+                                    .<span class="ident">stream</span>
+                                    .<span class="ident">peek</span>()
+                                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">debug_info</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">debug_info</span>.<span class="ident">clone</span>())
+                                    .<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_prev_debug_info</span>());
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
+                                    <span class="ident">debug_info</span>,
+                                    <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;</span>
+                                ));
+                            }
+                        },
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) =&gt; {
+                            <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="ident">c</span>);
                         }
-                        <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; {
-                            <span class="ident">len_token</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                            <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">c</span>);
-                            <span class="ident">chars</span>.<span class="ident">next</span>();
-                        }
-                        <span class="prelude-val">None</span> =&gt; {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof_tokenize</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">pos</span>))
-                        }
+                        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof_tokenize</span>(<span class="ident">debug_info</span>)),
                     }
                 }
-                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
-                    <span class="ident">TokenKind::Str</span>(<span class="ident">str_lit</span>),
-                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
-                ));
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Str</span>(<span class="ident">str_lit</span>), <span class="ident">debug_info</span>));
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) {
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span>..];
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) {
+                <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_debug_info_and_advance</span>(<span class="number">2</span>).<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;0&#39;</span> <span class="op">|</span> <span class="string">&#39;1&#39;</span>)) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
-                    <span class="ident">number</span>.<span class="ident">push</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">n</span> @ (<span class="string">&#39;0&#39;</span> <span class="op">|</span> <span class="string">&#39;1&#39;</span>))) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">peek</span>() {
+                    <span class="ident">number</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">n</span>);
+                    <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>();
                 }
-                <span class="kw">let</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">len</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">number</span>.<span class="ident">chars</span>() {
                     <span class="ident">num</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>;
@@ -804,70 +867,42 @@
                         }
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
-                                <span class="self">self</span>.<span class="ident">input</span>,
                                 <span class="ident">Box::new</span>(<span class="string">&quot;&#39;0&#39; | &#39;1&#39;&quot;</span>),
                                 <span class="ident">Token</span> {
                                     <span class="ident">kind</span>: <span class="ident">Box::new</span>(<span class="ident">TokenKind::Ident</span>(<span class="ident">c</span>.<span class="ident">to_string</span>())),
-                                    <span class="ident">pos</span>,
+                                    <span class="ident">debug_info</span>,
                                 },
                             ));
                         }
                     }
                 }
-                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
-                    <span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>),
-                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
-                ));
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>), <span class="ident">debug_info</span>));
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>([<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>, <span class="string">&#39;4&#39;</span>, <span class="string">&#39;5&#39;</span>, <span class="string">&#39;6&#39;</span>, <span class="string">&#39;7&#39;</span>, <span class="string">&#39;8&#39;</span>, <span class="string">&#39;9&#39;</span>]) {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;0&#39;</span> <span class="op">|</span> <span class="string">&#39;1&#39;</span> <span class="op">|</span> <span class="string">&#39;2&#39;</span> <span class="op">|</span> <span class="string">&#39;3&#39;</span> <span class="op">|</span> <span class="string">&#39;4&#39;</span> <span class="op">|</span> <span class="string">&#39;5&#39;</span> <span class="op">|</span> <span class="string">&#39;6&#39;</span> <span class="op">|</span> <span class="string">&#39;7&#39;</span> <span class="op">|</span> <span class="string">&#39;8&#39;</span> <span class="op">|</span> <span class="string">&#39;9&#39;</span>)) <span class="op">=</span>
-                    <span class="ident">chars</span>.<span class="ident">peek</span>()
-                {
-                    <span class="ident">number</span>.<span class="ident">push</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with_number</span>() {
+                <span class="kw">let</span> (<span class="ident">debug_info</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">ch</span>);
+                <span class="kw">while</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with_number</span>() {
+                    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                    <span class="ident">number</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
                 }
-                <span class="kw">let</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">len</span>();
                 <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">number</span>
                     .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;Currently support only a number literal.&quot;</span>);
-                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
-                    <span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>),
-                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
-                ));
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Num</span>(<span class="ident">num</span> <span class="kw">as</span> <span class="ident">isize</span>), <span class="ident">debug_info</span>));
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(
-                <span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>)
-                    .<span class="ident">chain</span>(<span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span>)
-                    .<span class="ident">chain</span>(<span class="macro">vec!</span>[<span class="string">&#39;_&#39;</span>].<span class="ident">into_iter</span>())
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()[..],
-            ) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with_alphabet</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;_&quot;</span>) {
                 <span class="comment">// Ident or reserved token</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(
-                    <span class="kw-2">&amp;</span>(<span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span>)
-                    <span class="op">|</span> <span class="kw-2">&amp;</span>(<span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span>)
-                    <span class="op">|</span> <span class="string">&#39;_&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;0&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;1&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;2&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;3&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;4&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;5&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;6&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;7&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;8&#39;</span>
-                    <span class="op">|</span> <span class="string">&#39;9&#39;</span>,
-                ) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>()
+                <span class="kw">let</span> (<span class="ident">debug_info</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">ch</span>);
+                <span class="kw">while</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with_alphabet</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;_&quot;</span>)
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with_number</span>()
                 {
-                    <span class="ident">ident</span>.<span class="ident">push</span>(<span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+                    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                    <span class="ident">ident</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
                 }
-                <span class="kw">let</span> <span class="ident">len_token</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">len</span>();
                 <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
                     <span class="kw">match</span> <span class="ident">ident</span>.<span class="ident">as_str</span>() {
                         <span class="string">&quot;return&quot;</span> =&gt; <span class="ident">TokenKind::Return</span>,
@@ -880,25 +915,26 @@
                         <span class="string">&quot;void&quot;</span> =&gt; <span class="ident">TokenKind::Type</span>(<span class="ident">TypeToken::Void</span>),
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
                         <span class="string">&quot;struct&quot;</span> =&gt; <span class="ident">TokenKind::Struct</span>,
+                        <span class="string">&quot;const&quot;</span> =&gt; {
+                            <span class="comment">// TODO: support const</span>
+                            <span class="macro">eprintln!</span>(<span class="string">&quot;WARNING: `const` is just ignored this time.&quot;</span>);
+                            <span class="kw">continue</span>;
+                        }
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
                     },
-                    <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="ident">len_token</span>),
+                    <span class="ident">debug_info</span>,
                 ));
-                <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len_token</span>..];
                 <span class="kw">continue</span>;
             }
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">new_unexpected_char</span>(<span class="ident">pos</span>, <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()));
+            <span class="kw">let</span> (<span class="ident">debug_info</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_char</span>(<span class="ident">debug_info</span>, <span class="ident">ch</span>));
         }
-        <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Eof</span>, <span class="ident">pos</span>.<span class="ident">get_pos_and_advance</span>(<span class="number">0</span>)));
+        <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(
+            <span class="ident">TokenKind::Eof</span>,
+            <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_prev_debug_info</span>(),
+        ));
 
         <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unexpected_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">CompileError</span> {
-        <span class="ident">CompileError::new</span>(
-            <span class="self">self</span>.<span class="ident">input</span>,
-            <span class="ident">CompileErrorKind::TokenizeError</span>(<span class="ident">TokenizeErrorKind::UnexpectedChar</span>(<span class="ident">pos</span>, <span class="ident">c</span>)),
-        )
     }
 }
 
@@ -1014,27 +1050,53 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span> {
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">pos</span>: <span class="ident">Position</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Token</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">token_kind</span>: <span class="ident">TokenKind</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eof</span><span class="op">&gt;</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">token_kind</span>: <span class="ident">K</span>, <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">Box::new</span>(<span class="ident">token_kind</span>),
-            <span class="ident">pos</span>,
+            <span class="ident">debug_info</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">rhs</span>.<span class="ident">kind</span>
     }
 
     <span class="comment">// clippy gives incorrect warning</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_const_for_fn</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">kind</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugInfo</span> {
+    <span class="ident">file_info</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FileInfo</span><span class="op">&gt;</span>,
+    <span class="ident">pos</span>: <span class="ident">Position</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileInfo</span> {
+    <span class="ident">file_name</span>: <span class="ident">String</span>,
+    <span class="ident">src</span>: <span class="ident">String</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">FileInfo</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file_name</span>: <span class="ident">String</span>, <span class="ident">src</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">file_name</span>, <span class="ident">src</span> }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">file_name</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file_src</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">src</span>
     }
 }
 
@@ -1049,37 +1111,113 @@
         <span class="self">Self</span> { <span class="ident">n_char</span>, <span class="ident">n_line</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="self">self</span>.<span class="ident">n_line</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">get_n_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">n_char</span>
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">get_n_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">n_line</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_n_char_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">usize</span> {
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">n_char</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_n_line_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">usize</span> {
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">n_line</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">DebugInfo</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file_info</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FileInfo</span><span class="op">&gt;</span>, <span class="ident">n_char</span>: <span class="ident">usize</span>, <span class="ident">n_line</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">file_info</span>,
+            <span class="ident">pos</span>: <span class="ident">Position</span> { <span class="ident">n_char</span>, <span class="ident">n_line</span> },
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_with_file_info</span>(<span class="ident">file_info</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FileInfo</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">file_info</span>,
+            <span class="ident">pos</span>: <span class="ident">Position::default</span>(),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_error_msg_prefix_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
+        <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="self">self</span>.<span class="ident">file_info</span>.<span class="ident">file_name</span>, <span class="self">self</span>.<span class="ident">get_n_line</span>(),)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cloned_file_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FileInfo</span><span class="op">&gt;</span> {
+        <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">file_info</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">file_info</span>.<span class="ident">file_name</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file_src</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">file_info</span>.<span class="ident">src</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">get_n_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_char</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">get_n_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_line</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_n_char_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">usize</span> {
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_char</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_n_line_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">usize</span> {
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_line</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_char</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_line</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::return_self_not_must_use</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pos_and_advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len_token</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">return_struct</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
-        <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
+        <span class="kw">let</span> <span class="ident">return_struct</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
         <span class="ident">return_struct</span>
     }
 
     <span class="doccomment">/// just advance `self.n_char` by `len_token`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len_token</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
+        <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">n_char</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len_token</span>;
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Eof</span>,
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span>,
 {
     <span class="ident">iter</span>: <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Eof</span> {
+    <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">Eof</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
+    <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">TokenKind::Eof</span>
+    }
 }
 
 <span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Eof</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
@@ -1090,17 +1228,19 @@
         )
     }
 }
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Eof</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span>,
+{
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">iter</span>: <span class="ident">iter</span>.<span class="ident">peekable</span>(),
-            <span class="ident">input</span>,
         }
     }
 
     <span class="doccomment">/// if next token is passed kind consume it and return true, else do nothing and return false</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">kind</span> {
                 <span class="self">self</span>.<span class="ident">next</span>();
@@ -1111,7 +1251,7 @@
     }
 
     <span class="doccomment">/// if next token is passed kind, then return true, otherwise return false (Not consume)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">kind</span> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
@@ -1120,6 +1260,53 @@
         <span class="bool-val">false</span>
     }
 
+    <span class="doccomment">/// if next token is expected kind, do nothing, otherwise `panic`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::error::Tokens</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">peeked_token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
+        <span class="kw">match</span> <span class="ident">peeked_token</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Token</span> {
+                <span class="ident">kind</span>: <span class="ident">got</span>,
+                <span class="ident">debug_info</span>,
+            }) <span class="kw">if</span> <span class="ident">got</span>.<span class="ident">is_eof</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">kind</span>.<span class="ident">is_eof</span>() =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
+                <span class="prelude-val">Some</span>(<span class="ident">debug_info</span>.<span class="ident">get_file_src</span>()),
+                <span class="ident">Box::new</span>(<span class="ident">kind</span>),
+            )),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="prelude-val">None</span>, <span class="ident">Box::new</span>(<span class="ident">kind</span>))),
+            <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(<span class="ident">Box::new</span>(<span class="ident">kind</span>), <span class="ident">token</span>));
+                }
+                <span class="prelude-val">Ok</span>(())
+            }
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">clone</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>)
+    }
+
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// when `token_stream` does not have next token</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_kind</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">is_eof</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;This stream is already used.&quot;</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">TokenKind</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Return next token is `TokenKind::Type` or not.(Not consume)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
@@ -1132,86 +1319,45 @@
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
         <span class="comment">// let next = token.map(|token| *token.kind);</span>
         <span class="kw">match</span> <span class="ident">token</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Token</span> { <span class="ident">kind</span>, <span class="ident">pos</span> }) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kind</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Token</span> {
+                <span class="ident">kind</span>,
+                <span class="ident">debug_info</span>: <span class="ident">pos</span>,
+            }) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kind</span> {
                 <span class="ident">TokenKind::Num</span>(<span class="ident">num</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">num</span>),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
-                    <span class="self">self</span>.<span class="ident">input</span>,
                     <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>),
                     <span class="ident">Token::new</span>(<span class="kw-2">*</span><span class="ident">kind</span>, <span class="ident">pos</span>),
                 )),
             },
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
-                <span class="self">self</span>.<span class="ident">input</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
+                <span class="prelude-val">None</span>,
                 <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_)&quot;</span>),
             )),
         }
     }
 
     <span class="doccomment">/// if next token is ident, then return its name and Position, otherwise return Err(_)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Position</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">DebugInfo</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
         <span class="kw">match</span> <span class="ident">token</span> {
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">pos</span>)),
+                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">debug_info</span>)),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
-                    <span class="self">self</span>.<span class="ident">input</span>,
                     <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
                     <span class="ident">token</span>,
                 )),
             },
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
-                <span class="self">self</span>.<span class="ident">input</span>,
+                <span class="prelude-val">None</span>,
                 <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
             )),
         }
     }
-
-    <span class="doccomment">/// if next token is expected kind, do nothing, otherwise `panic`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">TokenKind</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">peeked_token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
-        <span class="kw">match</span> <span class="ident">peeked_token</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Token</span> { <span class="ident">kind</span>: <span class="ident">got</span>, <span class="ident">pos</span>: <span class="kw">_</span> })
-                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="ident">got</span>, <span class="ident">TokenKind::Eof</span>) <span class="op">&amp;&amp;</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TokenKind::Eof</span> =&gt;
-            {
-                <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">Box::new</span>(<span class="ident">kind</span>)))
-            }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">Box::new</span>(<span class="ident">kind</span>))),
-            <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
-                        <span class="self">self</span>.<span class="ident">input</span>,
-                        <span class="ident">Box::new</span>(<span class="ident">kind</span>),
-                        <span class="ident">token</span>,
-                    ));
-                }
-                <span class="prelude-val">Ok</span>(())
-            }
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">clone</span>())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>)
-    }
-
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// when `token_stream` does not have next token</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_kind</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="macro">matches!</span>(<span class="ident">token</span>, <span class="ident">TokenKind::Eof</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;This stream is already used.&quot;</span>),
-        }
-    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Eof</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Iterator</span>
+    <span class="kw">for</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>
+{
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
@@ -1260,7 +1406,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind_eq</span>(<span class="ident">lhs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Token</span>], <span class="ident">rhs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Token</span>]) -&gt; <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind_eq</span>(<span class="ident">lhs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span>], <span class="ident">rhs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span>]) -&gt; <span class="ident">bool</span> {
     <span class="ident">lhs</span>.<span class="ident">iter</span>()
         .<span class="ident">zip</span>(<span class="ident">rhs</span>.<span class="ident">iter</span>())
         .<span class="ident">fold</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">acc</span>, (<span class="ident">l_token</span>, <span class="ident">r_token</span>)<span class="op">|</span> {
@@ -1269,8 +1415,20 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tokenize_and_kinds</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">tokenizer</span> <span class="op">=</span> <span class="ident">Tokenizer::new</span>(<span class="ident">input</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">tokenizer</span>.<span class="ident">tokenize</span>()<span class="question-mark">?</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Token::kind</span>).<span class="ident">collect</span>())
+    <span class="kw">let</span> <span class="ident">file_info</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">FileInfo</span> {
+        <span class="ident">file_name</span>: <span class="ident">String::new</span>(),
+        <span class="ident">src</span>: <span class="ident">input</span>.<span class="ident">to_string</span>(),
+    });
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">preproccor</span> <span class="op">=</span> <span class="ident">Preprocessor::new</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>(), <span class="string">&quot;&quot;</span>);
+    <span class="kw">let</span> <span class="ident">derective_count</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>;
+    <span class="kw">let</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">preproccor</span>.<span class="ident">preprocess</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="prelude-val">None</span>, <span class="ident">derective_count</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">PreprocessorTokenStream::new</span>(<span class="ident">tokens</span>.<span class="ident">into_iter</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokenizer</span> <span class="op">=</span> <span class="ident">Tokenizer::new</span>(<span class="ident">PreprocessorTokenContainerStream::new</span>(<span class="ident">stream</span>.<span class="ident">collect</span>()));
+    <span class="prelude-val">Ok</span>(<span class="ident">tokenizer</span>
+        .<span class="ident">tokenize</span>(<span class="kw-2">&amp;</span><span class="ident">file_info</span>)<span class="question-mark">?</span>
+        .<span class="ident">into_iter</span>()
+        .<span class="ident">map</span>(<span class="ident">Token::kind</span>)
+        .<span class="ident">collect</span>())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>

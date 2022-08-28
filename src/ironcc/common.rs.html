@@ -47,40 +47,33 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
-</pre><pre class="rust"><code><span class="doccomment">/// return `CompilerError` whose kind is `Unimplemented`</span>
-<span class="doccomment">///  - 1st arg: `input`:&amp;str</span>
-<span class="doccomment">///  - 2nd arg: `pos`: Position</span>
-<span class="doccomment">///  - 3rd arg: `msg`: error message</span>
+<span id="44">44</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::Read</span>, <span class="ident">path::Path</span>};
+
+<span class="doccomment">/// return `CompilerError` whose kind is `Unimplemented`</span>
+<span class="doccomment">///  - 1st arg: `debug_info: DebugInfo`</span>
+<span class="doccomment">///  - 2rd arg: `msg`: T` `where T: Display`  // error message</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Also no args provided is allowed.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">unimplemented_err</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">input</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
-        <span class="ident">CompileError::new</span>(
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">input</span>,
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
-                <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>),
-                <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
-            ),
-        )
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">debug_info</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
+        <span class="ident">CompileError::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
+            <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">debug_info</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
+        ))
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>: <span class="ident">expr</span>) =&gt; {
-        <span class="ident">CompileError::new</span>(
-            <span class="string">&quot;&quot;</span>,
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
-                <span class="prelude-val">None</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
-            ),
-        )
+        <span class="ident">CompileError::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
+            <span class="prelude-val">None</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>),
+        ))
     };
     () =&gt; {
-        <span class="ident">CompileError::new</span>(
-            <span class="string">&quot;&quot;</span>,
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
-                <span class="prelude-val">None</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;{} Not yet implemented.&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>()),
-            ),
-        )
+        <span class="ident">CompileError::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::error::CompileErrorKind::Unimplemented</span>(
+            <span class="prelude-val">None</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;{} Not yet implemented.&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::meta!</span>()),
+        ))
     };
 }
 
@@ -89,6 +82,15 @@
     () =&gt; {
         <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;:&quot;</span>, <span class="macro">line!</span>(), <span class="string">&quot;:&quot;</span>, <span class="macro">column!</span>(), <span class="string">&quot;: &quot;</span>)
     };
+}
+
+<span class="doccomment">/// read file of given path as text and return it as `String`</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_file</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">std::io::Error</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="ident">file</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;mut</span> <span class="ident">contents</span>).<span class="ident">unwrap</span>();
+    <span class="ident">contents</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+    <span class="prelude-val">Ok</span>(<span class="ident">contents</span>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>

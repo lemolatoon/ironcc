@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["BinOpToken",""],["DelimToken",""],["TokenKind",""],["TypeToken",""]],"fn":[["tokenize_and_kinds",""]],"struct":[["Position",""],["Token",""],["TokenStream",""],["Tokenizer",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["BinOpToken",""],["DelimToken",""],["TokenKind",""],["TypeToken",""]],"fn":[["tokenize_and_kinds",""]],"struct":[["DebugInfo",""],["FileInfo",""],["Position",""],["Token",""],["TokenStream",""],["Tokenizer",""]],"trait":[["Eof",""]]};

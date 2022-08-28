@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["SrcCursorGenerator",""],["TokenKind",""]],"struct":[["DerectiveCount",""],["Preprocessor",""],["PreprocessorTokenContainerStream",""],["PreprocessorTokenStream",""],["SrcCursor",""]]};
