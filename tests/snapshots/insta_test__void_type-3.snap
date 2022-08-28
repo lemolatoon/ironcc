@@ -38,9 +38,15 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -75,9 +81,15 @@ ConvProgram {
                                                                 ),
                                                             ),
                                                         ),
-                                                        pos: Position {
-                                                            n_char: 13,
-                                                            n_line: 3,
+                                                        debug_info: DebugInfo {
+                                                            file_info: FileInfo {
+                                                                file_name: "not impl name.c",
+                                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                                            },
+                                                            pos: Position {
+                                                                n_char: 13,
+                                                                n_line: 3,
+                                                            },
                                                         },
                                                     },
                                                 ),
@@ -94,9 +106,15 @@ ConvProgram {
                                                         ),
                                                     ),
                                                 ),
-                                                pos: Position {
-                                                    n_char: 12,
-                                                    n_line: 3,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 12,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                             ToVoidPtr {
@@ -116,18 +134,30 @@ ConvProgram {
                                         ty: Ptr(
                                             Void,
                                         ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                            },
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Ptr(
                                     Void,
                                 ),
-                                pos: Position {
-                                    n_char: 10,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+                                    },
+                                    pos: Position {
+                                        n_char: 10,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),

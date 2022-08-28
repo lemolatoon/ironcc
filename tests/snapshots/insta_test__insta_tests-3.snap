@@ -35,9 +35,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 0,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 0,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -47,18 +53,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 2,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 2,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),
@@ -84,9 +102,15 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -103,9 +127,15 @@ ConvProgram {
                                                 ty: Base(
                                                     Int,
                                                 ),
-                                                pos: Position {
-                                                    n_char: 13,
-                                                    n_line: 4,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 13,
+                                                        n_line: 4,
+                                                    },
                                                 },
                                             },
                                         ),
@@ -114,9 +144,15 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -125,9 +161,15 @@ ConvProgram {
                                         Int,
                                     ),
                                 ),
-                                pos: Position {
-                                    n_char: 10,
-                                    n_line: 4,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 10,
+                                        n_line: 4,
+                                    },
                                 },
                             },
                         ),
@@ -153,9 +195,15 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 9,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 9,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -178,9 +226,15 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 14,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 14,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                                 rhs: ConvExpr {
@@ -199,9 +253,15 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: Position {
-                                                                    n_char: 18,
-                                                                    n_line: 5,
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 18,
+                                                                        n_line: 5,
+                                                                    },
                                                                 },
                                                             },
                                                             rhs: ConvExpr {
@@ -211,9 +271,15 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: Position {
-                                                                    n_char: 16,
-                                                                    n_line: 5,
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 16,
+                                                                        n_line: 5,
+                                                                    },
                                                                 },
                                                             },
                                                         },
@@ -221,9 +287,15 @@ ConvProgram {
                                                     ty: Base(
                                                         Int,
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 16,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 16,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                             },
@@ -233,9 +305,15 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 16,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                 ),
@@ -244,9 +322,15 @@ ConvProgram {
                                         Int,
                                     ),
                                 ),
-                                pos: Position {
-                                    n_char: 12,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 12,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                         ),

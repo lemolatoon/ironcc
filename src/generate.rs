@@ -11,19 +11,14 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Generator<'a> {
-    input: &'a str,
+pub struct Generator {
     label: usize,
     depth: usize,
 }
 
-impl<'a> Generator<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self {
-            input,
-            label: 0,
-            depth: 0,
-        }
+impl Generator {
+    pub const fn new() -> Self {
+        Self { label: 0, depth: 0 }
     }
 
     /// this function has the same function as `push`, but in the future this function will have the function, cast(with sign extension) and push
@@ -81,7 +76,6 @@ impl<'a> Generator<'a> {
 
     /// *lhs = rhs
     pub fn assign<W: Write>(
-        &mut self,
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
@@ -92,7 +86,7 @@ impl<'a> Generator<'a> {
             1 => ("BYTE PTR", lhs.qword(), rhs.byte()),
             4 => ("DWORD PTR", lhs.qword(), rhs.dword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            _ => return Err(CompileError::new_type_size_error(self.input, status)),
+            _ => return Err(CompileError::new_type_size_error(status)),
         };
         writeln!(f, "  mov {} [{}], {}", prefix, lhs, rhs)?;
         Ok(())
@@ -100,7 +94,6 @@ impl<'a> Generator<'a> {
 
     /// lhs = *rhs
     pub fn deref<W: Write>(
-        &mut self,
         f: &mut BufWriter<W>,
         lhs: RegKind,
         rhs: RegKind,
@@ -111,7 +104,7 @@ impl<'a> Generator<'a> {
             1 => ("BYTE PTR", lhs.byte(), rhs.qword()),
             4 => ("DWORD PTR", lhs.dword(), rhs.qword()),
             8 => ("QWORD PTR", lhs.qword(), rhs.qword()),
-            _ => return Err(CompileError::new_type_size_error(self.input, status)),
+            _ => return Err(CompileError::new_type_size_error(status)),
         };
         writeln!(f, "  mov {}, {} [{}]", lhs, prefix, rhs)?;
         Ok(())
@@ -158,7 +151,7 @@ impl<'a> Generator<'a> {
                     for (idx, LVar { offset, ty }) in args.into_iter().enumerate() {
                         writeln!(f, "  mov rax, rbp")?;
                         writeln!(f, "  sub rax, {}", offset)?; // rax = &arg
-                        self.assign(
+                        Self::assign(
                             f,
                             RegKind::Rax,
                             arg_reg[idx],
@@ -187,7 +180,6 @@ impl<'a> Generator<'a> {
                         4 => Ok("long"),
                         8 => Ok("quad"),
                         _ => Err(CompileError::new_type_size_error(
-                            self.input,
                             UnexpectedTypeSizeStatus::Global(gvar),
                         )),
                     };
@@ -196,14 +188,14 @@ impl<'a> Generator<'a> {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             // TODO : ptr init
-                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(self.input, init.get_pos(), "Ptr Initializer should not be array."))?)?,
+                            Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
                             Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
                             Type::Array(ty, size) => {match init {
                                 ConstInitializer::Array(vec) => {
                                     let size_of = ty.size_of();
                                     let size_explanation = size_hint(*ty)?;
                                     for i in 0..size {
-                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, pos: _ }) = vec.get(i) {
+                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, debug_info: _ }) = vec.get(i) {
                                             writeln!(f, ".{} {}", size_explanation, val)?;
                                         } else {
                                             writeln!(f, ".zero {}", size_of)?;
@@ -211,7 +203,7 @@ impl<'a> Generator<'a> {
                                 }},
                                 ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
                             }},
-                            Type::Struct(_) => return Err(unimplemented_err!(self.input, init.get_pos(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
+                            Type::Struct(_) => return Err(unimplemented_err!(init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
                             Type::InComplete(_) => todo!(),
                         },
@@ -349,7 +341,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -359,7 +351,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, expr)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), expr)?,
                 )?;
             }
             ConvExprKind::Assign(lhs, rhs) => {
@@ -368,7 +360,7 @@ impl<'a> Generator<'a> {
                 self.gen_expr(f, *rhs.clone())?;
                 self.pop(f, RegKind::Rdi)?; // rhs; rdi = rhs
                 self.pop(f, RegKind::Rax)?; // lhs's addr; rax = &lhs
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -380,7 +372,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rdi,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *rhs)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), *rhs)?,
                 )?;
             }
             ConvExprKind::Func(name, args, is_flexible_length, n_floating) => {
@@ -426,12 +418,12 @@ impl<'a> Generator<'a> {
                     | Type::Array(_, _)
                     | Type::Struct(_)
                     | Type::InComplete(_)
-                    | Type::Void => return Err(CompileError::new_deref_error(self.input, *expr)),
+                    | Type::Void => return Err(CompileError::new_deref_error(*expr)),
                     Type::Ptr(base) => *base,
                 };
                 self.gen_expr(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -441,7 +433,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(ty.size_of(), self.input, *expr)?,
+                    RegSize::try_new_with_error(ty.size_of(), *expr)?,
                 )?;
             }
             ConvExprKind::Addr(expr) => {
@@ -454,7 +446,6 @@ impl<'a> Generator<'a> {
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
                         return Err(CompileError::new_type_size_error(
-                            self.input,
                             UnexpectedTypeSizeStatus::Global(GVar { name, ty, init }),
                         ))
                     }
@@ -474,7 +465,7 @@ impl<'a> Generator<'a> {
                 self.gen_lvalue(f, *struct_expr.clone())?;
                 self.pop(f, RegKind::Rax)?;
                 writeln!(f, "  add rax, {}", minus_offset)?;
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rax,
                     RegKind::Rax,
@@ -484,7 +475,7 @@ impl<'a> Generator<'a> {
                 self.push_with_sign_extension(
                     f,
                     RegKind::Rax,
-                    RegSize::try_new_with_error(expr.ty.size_of(), self.input, *struct_expr)?,
+                    RegSize::try_new_with_error(expr.ty.size_of(), *struct_expr)?,
                 )?;
             }
             ConvExprKind::Conditional { cond, then, els } => {
@@ -510,7 +501,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -519,7 +510,7 @@ impl<'a> Generator<'a> {
                 )?; // rdi = *rax
                 self.push(f, RegKind::Rdi)?; // push expr's value
                 writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -533,7 +524,7 @@ impl<'a> Generator<'a> {
                 let ty = expr.ty.clone();
                 self.gen_lvalue(f, *expr.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -542,7 +533,7 @@ impl<'a> Generator<'a> {
                 )?; // rdi = *rax
                 self.push(f, RegKind::Rdi)?; // push expr's value
                 writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -574,7 +565,7 @@ impl<'a> Generator<'a> {
             ConvUnaryOp::Increment(value) => {
                 self.gen_lvalue(f, operand.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -582,7 +573,7 @@ impl<'a> Generator<'a> {
                     UnexpectedTypeSizeStatus::Expr(operand.clone()),
                 )?; // rdi = *rax
                 writeln!(f, "  add rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -594,7 +585,7 @@ impl<'a> Generator<'a> {
             ConvUnaryOp::Decrement(value) => {
                 self.gen_lvalue(f, operand.clone())?;
                 self.pop(f, RegKind::Rax)?; // rax = &expr
-                self.deref(
+                Self::deref(
                     f,
                     RegKind::Rdi,
                     RegKind::Rax,
@@ -602,7 +593,7 @@ impl<'a> Generator<'a> {
                     UnexpectedTypeSizeStatus::Expr(operand.clone()),
                 )?; // rdi = *rax
                 writeln!(f, "  sub rdi, {}", value)?; // rdi = rdi + value
-                self.assign(
+                Self::assign(
                     f,
                     RegKind::Rax,
                     RegKind::Rdi,
@@ -664,8 +655,7 @@ impl<'a> Generator<'a> {
     ) -> Result<(), CompileError> {
         match expr.kind {
             ConvExprKind::LVar(LVar { offset, ty: _ }) => {
-                writeln!(f, "  mov rax, rbp")?;
-                writeln!(f, "  sub rax, {}", offset)?;
+                writeln!(f, "  lea rax, [rbp-{}]", offset)?;
                 // push ptr
                 self.push(f, RegKind::Rax)?;
             }
@@ -677,7 +667,7 @@ impl<'a> Generator<'a> {
                 ty: _,
                 init: _,
             }) => {
-                writeln!(f, "  mov rax, offset {}", name)?;
+                writeln!(f, "  lea rax, [rip+{}]", name)?;
                 self.push(f, RegKind::Rax)?;
             }
             ConvExprKind::Member {
@@ -689,7 +679,7 @@ impl<'a> Generator<'a> {
                 writeln!(f, "  add rax, {}", minus_offset)?;
                 self.push(f, RegKind::Rax)?;
             }
-            _ => return Err(CompileError::new_lvalue_error(self.input, expr)),
+            _ => return Err(CompileError::new_lvalue_error(expr)),
         }
         Ok(())
     }
@@ -944,18 +934,16 @@ impl RegSize {
             _ => return None,
         })
     }
-    pub fn try_new_with_error(
-        size: usize,
-        src: &str,
-        expr: ConvExpr,
-    ) -> Result<Self, CompileError> {
+
+    // clippy complains about this, but it's wrong
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn try_new_with_error(size: usize, expr: ConvExpr) -> Result<Self, CompileError> {
         Ok(match size {
             1 => Self::Byte,
             4 => Self::Dword,
             8 => Self::Qword,
             _ => {
                 return Err(CompileError::new_type_size_error(
-                    src,
                     UnexpectedTypeSizeStatus::Expr(expr),
                 ));
             }

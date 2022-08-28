@@ -38,18 +38,30 @@ Program {
                                                             kind: Num(
                                                                 1,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 2,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 2,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -62,15 +74,27 @@ Program {
                                                 kind: LVar(
                                                     "a",
                                                 ),
-                                                pos: Position {
-                                                    n_char: 8,
-                                                    n_line: 3,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 8,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
@@ -83,15 +107,27 @@ Program {
                                                 kind: LVar(
                                                     "a",
                                                 ),
-                                                pos: Position {
-                                                    n_char: 8,
-                                                    n_line: 4,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 8,
+                                                        n_line: 4,
+                                                    },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -100,9 +136,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                },
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
     ],

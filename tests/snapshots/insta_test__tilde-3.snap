@@ -32,9 +32,15 @@ ConvProgram {
                                         ty: Base(
                                             Char,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -46,9 +52,15 @@ ConvProgram {
                                                 ty: Base(
                                                     Int,
                                                 ),
-                                                pos: Position {
-                                                    n_char: 17,
-                                                    n_line: 2,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 17,
+                                                        n_line: 2,
+                                                    },
                                                 },
                                             },
                                             Base2Base(
@@ -59,18 +71,30 @@ ConvProgram {
                                         ty: Base(
                                             Char,
                                         ),
-                                        pos: Position {
-                                            n_char: 17,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 17,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Char,
                                 ),
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 2,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 2,
+                                    },
                                 },
                             },
                         ),
@@ -92,9 +116,15 @@ ConvProgram {
                                                 ty: Base(
                                                     Char,
                                                 ),
-                                                pos: Position {
-                                                    n_char: 16,
-                                                    n_line: 3,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 16,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                             Base2Base(
@@ -105,18 +135,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 16,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 16,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 16,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                             "main",

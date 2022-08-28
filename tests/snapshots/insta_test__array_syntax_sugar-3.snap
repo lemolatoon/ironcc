@@ -44,9 +44,15 @@ ConvProgram {
                                                             ty: Base(
                                                                 Int,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 15,
-                                                                n_line: 3,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 15,
+                                                                    n_line: 3,
+                                                                },
                                                             },
                                                         },
                                                     ),
@@ -55,9 +61,15 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 3,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 3,
+                                                        },
                                                     },
                                                 },
                                                 rhs: ConvExpr {
@@ -71,9 +83,15 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: Position {
-                                                                    n_char: 21,
-                                                                    n_line: 3,
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 21,
+                                                                        n_line: 3,
+                                                                    },
                                                                 },
                                                             },
                                                             rhs: ConvExpr {
@@ -83,9 +101,15 @@ ConvProgram {
                                                                 ty: Base(
                                                                     Int,
                                                                 ),
-                                                                pos: Position {
-                                                                    n_char: 15,
-                                                                    n_line: 3,
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 15,
+                                                                        n_line: 3,
+                                                                    },
                                                                 },
                                                             },
                                                         },
@@ -93,9 +117,15 @@ ConvProgram {
                                                     ty: Base(
                                                         Int,
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 3,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 3,
+                                                        },
                                                     },
                                                 },
                                             },
@@ -105,18 +135,30 @@ ConvProgram {
                                                 Int,
                                             ),
                                         ),
-                                        pos: Position {
-                                            n_char: 15,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                             "main",

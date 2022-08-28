@@ -32,9 +32,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 1,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -44,18 +50,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 9,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 9,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 1,
-                                    n_line: 2,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                    },
+                                    pos: Position {
+                                        n_char: 1,
+                                        n_line: 2,
+                                    },
                                 },
                             },
                         ),
@@ -74,9 +92,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 1,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -86,18 +110,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 9,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 9,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 1,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                    },
+                                    pos: Position {
+                                        n_char: 1,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),
@@ -116,9 +152,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 1,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -128,18 +170,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 9,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 9,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 1,
-                                    n_line: 4,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                    },
+                                    pos: Position {
+                                        n_char: 1,
+                                        n_line: 4,
+                                    },
                                 },
                             },
                         ),
@@ -158,9 +212,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 1,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -170,18 +230,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 9,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 9,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 1,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\nint main() {\n int a = 5;\n int b = sizeof (a);\n int c = sizeof (int);\n int d = sizeof (int*);\n }\n",
+                                    },
+                                    pos: Position {
+                                        n_char: 1,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                         ),

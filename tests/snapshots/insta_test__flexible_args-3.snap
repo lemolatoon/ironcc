@@ -23,9 +23,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -35,9 +41,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -47,9 +59,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -59,9 +77,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -71,9 +95,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -83,9 +113,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -95,9 +131,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -107,9 +149,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -119,9 +167,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -131,9 +185,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -143,9 +203,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -155,9 +221,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -167,9 +239,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -179,9 +257,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -191,9 +275,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                             ConstExpr {
@@ -203,9 +293,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 15,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 15,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                         ],
@@ -241,9 +337,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -253,18 +355,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 16,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 4,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 4,
+                                    },
                                 },
                             },
                         ),
@@ -295,9 +409,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -307,9 +427,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -319,9 +445,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -331,9 +463,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -343,9 +481,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -355,9 +499,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -367,9 +517,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -379,9 +535,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -391,9 +553,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -403,9 +571,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -415,9 +589,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -427,9 +607,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -439,9 +625,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -451,9 +643,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -463,9 +661,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                         ConstExpr {
@@ -475,9 +679,15 @@ ConvProgram {
                                                                             ty: Base(
                                                                                 Int,
                                                                             ),
-                                                                            pos: Position {
-                                                                                n_char: 15,
-                                                                                n_line: 5,
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 15,
+                                                                                    n_line: 5,
+                                                                                },
                                                                             },
                                                                         },
                                                                     ],
@@ -488,9 +698,15 @@ ConvProgram {
                                                     ty: Base(
                                                         Char,
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                             ),
@@ -499,9 +715,15 @@ ConvProgram {
                                                     Char,
                                                 ),
                                             ),
-                                            pos: Position {
-                                                n_char: 15,
-                                                n_line: 5,
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                },
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 5,
+                                                },
                                             },
                                         },
                                         ConvExpr {
@@ -516,9 +738,15 @@ ConvProgram {
                                             ty: Base(
                                                 Int,
                                             ),
-                                            pos: Position {
-                                                n_char: 35,
-                                                n_line: 5,
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                },
+                                                pos: Position {
+                                                    n_char: 35,
+                                                    n_line: 5,
+                                                },
                                             },
                                         },
                                     ],
@@ -526,9 +754,15 @@ ConvProgram {
                                     0,
                                 ),
                                 ty: Void,
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 5,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 5,
+                                    },
                                 },
                             },
                         ),

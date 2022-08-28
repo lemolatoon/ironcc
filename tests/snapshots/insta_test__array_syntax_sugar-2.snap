@@ -37,9 +37,15 @@ Program {
                                                                 kind: Num(
                                                                     5,
                                                                 ),
-                                                                pos: Position {
-                                                                    n_char: 11,
-                                                                    n_line: 2,
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 11,
+                                                                        n_line: 2,
+                                                                    },
                                                                 },
                                                             },
                                                         ),
@@ -48,9 +54,15 @@ Program {
                                                 initializer: None,
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 1,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 1,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -63,24 +75,42 @@ Program {
                                                 kind: LVar(
                                                     "array",
                                                 ),
-                                                pos: Position {
-                                                    n_char: 15,
-                                                    n_line: 3,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 15,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                             Expr {
                                                 kind: Num(
                                                     0,
                                                 ),
-                                                pos: Position {
-                                                    n_char: 21,
-                                                    n_line: 3,
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 21,
+                                                        n_line: 3,
+                                                    },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 15,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                                            },
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
@@ -89,9 +119,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 1,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\nint main() {\n int array[5];\n        return array[0];\n    }\n",
+                },
+                pos: Position {
+                    n_char: 0,
+                    n_line: 1,
+                },
             },
         },
     ],

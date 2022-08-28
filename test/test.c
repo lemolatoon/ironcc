@@ -1,3 +1,4 @@
+#include "test_utils.c"
 int test0();
 int test0_2();
 int test0_3();
@@ -52,7 +53,9 @@ int test46();
 int test47();
 int test48();
 int test49();
-// actually `void`
+int test50();
+int test51();
+int test52();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -127,21 +130,23 @@ int main()
     assert(47, 0, test47());
     assert(48, 0, test48());
     assert(49, 0, test49());
+    assert(50, 0, test50());
+    assert(51, 0, test51());
+    assert(52, 0, test52());
 
     print_ok();
     return 0;
 }
 
 void exit(int status);
-int printf(char *msg, ...);
 int assertion_failed(int index, int expected, int got)
 {
-    printf("Assertion_failed At test%d\n", index, 0);
+    printf("Assertion_failed At test%d\n", index);
     printf("Expected %d, but got %d\n", expected, got);
     exit(1);
 }
 
-int passed(int index) { printf("Test %d passed\n", index); }
+void passed(int index) { printf("Test %d passed\n", index); }
 
 void print_ok()
 {
@@ -810,7 +815,6 @@ int test40()
     return 0;
 }
 
-void *malloc(int size);
 int test41()
 {
     struct List
@@ -1023,5 +1027,53 @@ int *ret_addr_of_test49_global_bar() {
 int test49() {
     assert(49, 2, ++(*(ret_addr_of_test49_global_bar())));
     assert(49, 2, test49_global_var);
+    return 0;
+}
+
+#define CONST_FOR_TEST50 -5111
+
+int test50() {
+    assert(50, -5111, CONST_FOR_TEST50);
+    return 0;
+}
+
+#define TEST51_RENAMED_FUNC test51_renaming_func
+
+int test51_renaming_func() {
+    return 234;
+}
+
+int test51() {
+    assert(51, 234, TEST51_RENAMED_FUNC());
+    return  0;
+}
+
+#define TEST52_DEFINED_CONST
+
+#ifdef TEST52_DEFINED_CONST
+int test52_just_ret() {
+    return 2;
+}
+#else
+int test52_just_ret() {
+    return 3;
+}
+this is てきとう words
+#endif
+
+#undef TEST52_DEFINED_CONST
+#ifdef TEST52_DEFINED_CONST
+int test52_just_ret2() {
+    return 2;
+}
+#else
+int test52_just_ret2() {
+    return 3;
+}
+#endif
+
+int test52() {
+    assert(52, 2, test52_just_ret());
+    assert(52, 3, test52_just_ret2());
     return 0;
 }

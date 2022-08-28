@@ -5,400 +5,688 @@ expression: tester.tokens().as_ref().unwrap()
 [
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 0,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 7,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Bracket,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Num(
             2,
         ),
-        pos: Position {
-            n_char: 10,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 10,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Bracket,
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 12,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Type(
             Char,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "b",
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 10,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 10,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Ident(
             "c",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 9,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 1,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 1,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 7,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 7,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 7,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 7,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 7,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 8,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 8,
+            },
         },
     },
     Token {
         kind: Struct,
-        pos: Position {
-            n_char: 4,
-            n_line: 9,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "A",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 9,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 9,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 14,
-            n_line: 9,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 9,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 5,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Ident(
             "b",
         ),
-        pos: Position {
-            n_char: 6,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 8,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Num(
             2,
         ),
-        pos: Position {
-            n_char: 10,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 10,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 11,
-            n_line: 10,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 10,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 5,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 6,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Bracket,
         ),
-        pos: Position {
-            n_char: 7,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 7,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Num(
             1,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Bracket,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 11,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Num(
             1,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 14,
-            n_line: 11,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 11,
+            },
         },
     },
     Token {
         kind: Return,
-        pos: Position {
-            n_char: 4,
-            n_line: 12,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 12,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: Dot,
-        pos: Position {
-            n_char: 12,
-            n_line: 12,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: Ident(
             "c",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 12,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 14,
-            n_line: 12,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 12,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 13,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 13,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 1,
-            n_line: 13,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 13,
+            },
         },
     },
 ]

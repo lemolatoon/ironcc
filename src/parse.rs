@@ -1,28 +1,23 @@
 use crate::{
     analyze::{Analyzer, BaseType, ConstExpr, ConstInitializer, InCompleteKind, Type},
     error::CompileError,
-    tokenize::{BinOpToken, DelimToken, Position, Token, TokenKind, TokenStream, TypeToken},
+    tokenize::{BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream, TypeToken},
     unimplemented_err,
 };
 use std::fmt::Debug;
 
-pub struct Parser<'a> {
-    /// input source code
-    /// this member is only used when macro `unimplemented_err` is called
-    #[allow(dead_code)]
-    input: &'a str,
-}
+pub struct Parser {}
 
-impl<'a> Parser<'a> {
-    pub const fn new(input: &'a str) -> Self {
-        Self { input }
+impl Parser {
+    pub const fn new() -> Self {
+        Self {}
     }
-    pub fn parse_program<'b, I>(
+    pub fn parse_program<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Program, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
@@ -32,8 +27,8 @@ impl<'a> Parser<'a> {
                 if Some(TokenKind::Semi) == tmp_tokens.peek_kind() {
                     tmp_tokens.expect(TokenKind::Semi).unwrap();
                     *tokens = tmp_tokens;
-                    let pos = declaration.pos;
-                    ProgramComponent::new(ProgramKind::Declaration(declaration), pos)
+                    let debug_info = declaration.debug_info.clone();
+                    ProgramComponent::new(ProgramKind::Declaration(declaration), debug_info)
                 } else {
                     self.parse_func_def(tokens)?
                 }
@@ -45,14 +40,14 @@ impl<'a> Parser<'a> {
         Ok(program)
     }
 
-    pub fn parse_func_def<'b, I>(
+    pub fn parse_func_def<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<ProgramComponent, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (type_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (type_spec, debug_info) = self.parse_type_specifier(tokens)?;
         let n_star = Self::parse_pointer(tokens)?;
         let direct_declarator = self.parse_direct_declarator(tokens)?;
         // have to be block stmt
@@ -63,19 +58,19 @@ impl<'a> Parser<'a> {
         }
         let body = Stmt::new_block(stmts);
         let kind = ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body);
-        Ok(ProgramComponent::new(kind, pos))
+        Ok(ProgramComponent::new(kind, debug_info))
     }
 
-    pub fn parse_declaration<'b, I>(
+    pub fn parse_declaration<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Declaration, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         // <declaration-specifiers> := <type-specifiers>
         // first element of direct declarator is Ident
-        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
         // <pointer>*
         let n_star = Self::parse_pointer(tokens)?;
         if tokens.peek_expect(&TokenKind::Semi) {
@@ -83,7 +78,7 @@ impl<'a> Parser<'a> {
             return Ok(Declaration {
                 ty_spec,
                 init_declarator: None,
-                pos,
+                debug_info,
             });
         }
         let direct_declarator = self.parse_direct_declarator(tokens)?;
@@ -97,16 +92,16 @@ impl<'a> Parser<'a> {
             n_star,
             direct_declarator,
             init,
-            pos,
+            debug_info,
         ))
     }
 
-    pub fn parse_declarator<'b, I>(
+    pub fn parse_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Declarator, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         Ok(Declarator::new(
             Self::parse_pointer(tokens)?,
@@ -114,12 +109,12 @@ impl<'a> Parser<'a> {
         ))
     }
 
-    pub fn parse_direct_declarator<'b, I>(
+    pub fn parse_direct_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<DirectDeclarator, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut direct_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
             // "(" <declaration> ")"
@@ -182,12 +177,12 @@ impl<'a> Parser<'a> {
         Ok(direct_declarator)
     }
 
-    pub fn parse_initializer<'b, I>(
+    pub fn parse_initializer<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Initializer, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             let mut exprs = vec![self.parse_assign(tokens)?];
@@ -207,41 +202,40 @@ impl<'a> Parser<'a> {
 
     pub fn parse_type_specifier<I>(
         &self,
-        tokens: &mut TokenStream<I>,
-    ) -> Result<(TypeSpec, Position), CompileError>
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<(TypeSpec, DebugInfo), CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let peeked = tokens.peek().cloned();
         match peeked {
-            Some(Token { kind, pos }) => match *kind {
+            Some(Token { kind, debug_info }) => match *kind {
                 TokenKind::Type(TypeToken::Int) => {
                     tokens.next();
-                    Ok((TypeSpec::Int, pos))
+                    Ok((TypeSpec::Int, debug_info))
                 }
                 TokenKind::Type(TypeToken::Char) => {
                     tokens.next();
-                    Ok((TypeSpec::Char, pos))
+                    Ok((TypeSpec::Char, debug_info))
                 }
                 TokenKind::Type(TypeToken::Void) => {
                     tokens.next();
-                    Ok((TypeSpec::Void, pos))
+                    Ok((TypeSpec::Void, debug_info))
                 }
                 TokenKind::Struct => {
                     tokens.next();
                     Ok((
                         TypeSpec::StructOrUnion(self.parse_struct_or_union_specifier(tokens)?),
-                        pos,
+                        debug_info,
                     ))
                 }
                 _ => Err(CompileError::new_expected_failed(
-                    self.input,
                     Box::new("TokenKind::Type(_)"),
-                    Token::new(*kind, pos),
+                    Token::new(*kind, debug_info),
                 )),
             },
             None => Err(CompileError::new_unexpected_eof(
-                self.input,
+                None,
                 Box::new("ToKenKind::Type(_)"),
             )),
         }
@@ -249,10 +243,10 @@ impl<'a> Parser<'a> {
 
     pub fn parse_struct_or_union_specifier<I>(
         &self,
-        tokens: &mut TokenStream<I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<StructOrUnionSpec, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         if let Ok((name, _)) = tokens.consume_ident() {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
@@ -271,35 +265,34 @@ impl<'a> Parser<'a> {
 
         match tokens.peek() {
             Some(token) => Err(CompileError::new_expected_failed(
-                self.input,
                 Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
                 token.clone(),
             )),
             None => Err(CompileError::new_unexpected_eof(
-                self.input,
+                None,
                 Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
             )),
         }
     }
     pub fn parse_struct_declaration_list<I>(
         &self,
-        tokens: &mut TokenStream<I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Vec<StructDeclaration>, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
-            pos,
+            debug_info,
             ty_spec,
             declarator,
         }];
         tokens.expect(TokenKind::Semi)?;
-        while let Ok((ty_spec, pos)) = self.parse_type_specifier(tokens) {
+        while let Ok((ty_spec, debug_info)) = self.parse_type_specifier(tokens) {
             let declarator = self.parse_declarator(tokens)?;
             list.push(StructDeclaration {
-                pos,
+                debug_info,
                 ty_spec,
                 declarator,
             });
@@ -308,9 +301,9 @@ impl<'a> Parser<'a> {
         Ok(list)
     }
 
-    pub fn parse_pointer<I>(tokens: &mut TokenStream<I>) -> Result<usize, CompileError>
+    pub fn parse_pointer<I>(tokens: &mut TokenStream<I, TokenKind>) -> Result<usize, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut n_star = 0;
         while tokens.consume(&TokenKind::BinOp(BinOpToken::Star)) {
@@ -319,9 +312,12 @@ impl<'a> Parser<'a> {
         Ok(n_star)
     }
 
-    pub fn parse_stmt<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Stmt, CompileError>
+    pub fn parse_stmt<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Stmt, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         if tokens.consume(&TokenKind::Return) {
             // return stmt
@@ -393,137 +389,147 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_expr<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_expr<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         self.parse_assign(tokens)
     }
 
-    pub fn parse_assign<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_assign<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let lhs = self.parse_conditional(tokens)?;
-        let (kind, &pos) = match tokens.peek() {
-            Some(Token { kind, pos }) => (kind, pos),
-            None => {
-                return Err(CompileError::new_unexpected_eof(
-                    self.input,
-                    Box::new("Token"),
-                ))
-            }
+        let (kind, debug_info) = match tokens.peek() {
+            Some(Token { kind, debug_info }) => (kind, debug_info.clone()),
+            None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
         match **kind {
             TokenKind::Eq => {
                 tokens.next();
-                Ok(Expr::new_assign(lhs, self.parse_assign(tokens)?, pos))
+                Ok(Expr::new_assign(
+                    lhs,
+                    self.parse_assign(tokens)?,
+                    debug_info,
+                ))
             }
             _ => Ok(lhs),
         }
     }
 
-    pub fn parse_conditional<'b, I>(
+    pub fn parse_conditional<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let cond = self.parse_logical_or(tokens)?;
         if tokens.consume(&TokenKind::Question) {
             let then_expr = self.parse_expr(tokens)?;
             tokens.expect(TokenKind::Colon)?;
             let else_expr = self.parse_conditional(tokens)?;
-            let cond_pos = cond.pos;
-            Ok(Expr::new_conditional(cond, then_expr, else_expr, cond_pos))
+            let cond_debug_info = cond.debug_info.clone();
+            Ok(Expr::new_conditional(
+                cond,
+                then_expr,
+                else_expr,
+                cond_debug_info,
+            ))
         } else {
             Ok(cond)
         }
     }
-    pub fn parse_logical_or<'b, I>(
+    pub fn parse_logical_or<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_logical_and(tokens)?;
         while tokens.consume(&TokenKind::BinOp(BinOpToken::VerticalVertical)) {
             let rhs = self.parse_logical_and(tokens)?;
-            let pos = lhs.pos;
-            lhs = Expr::new_binary(BinOpKind::LogicalOr, lhs, rhs, pos);
+            let debug_info = lhs.debug_info.clone();
+            lhs = Expr::new_binary(BinOpKind::LogicalOr, lhs, rhs, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_logical_and<'b, I>(
+    pub fn parse_logical_and<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_bit_wise_and(tokens)?;
         while tokens.consume(&TokenKind::BinOp(BinOpToken::AndAnd)) {
             let rhs = self.parse_bit_wise_and(tokens)?;
-            let pos = lhs.pos;
-            lhs = Expr::new_binary(BinOpKind::LogicalAnd, lhs, rhs, pos);
+            let debug_info = lhs.debug_info.clone();
+            lhs = Expr::new_binary(BinOpKind::LogicalAnd, lhs, rhs, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_bit_wise_and<'b, I>(
+    pub fn parse_bit_wise_and<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_equality(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::And) => BinOpKind::BitWiseAnd,
                 _ => break,
             };
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_equality(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_equality(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_equality<'b, I>(
+    pub fn parse_equality<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_relational(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::EqEq) => BinOpKind::Eq,
                 TokenKind::BinOp(BinOpToken::Ne) => BinOpKind::Ne,
                 _ => break,
             };
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_relational(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_relational(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_relational<'b, I>(
+    pub fn parse_relational<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_shift(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Lt) => BinOpKind::Lt,
                 TokenKind::BinOp(BinOpToken::Le) => BinOpKind::Le,
@@ -531,108 +537,109 @@ impl<'a> Parser<'a> {
                 TokenKind::BinOp(BinOpToken::Ge) => BinOpKind::Ge,
                 _ => break,
             };
-            let pos = pos;
+            let debug_info = debug_info;
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_shift(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_shift(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_shift<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_shift<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_add(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::LShift) => BinOpKind::LShift,
                 TokenKind::BinOp(BinOpToken::RShift) => BinOpKind::RShift,
                 _ => break,
             };
-            let pos = pos;
+            let debug_info = debug_info;
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_add(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_add(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_add<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_add<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_mul(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Plus) => BinOpKind::Add,
                 TokenKind::BinOp(BinOpToken::Minus) => BinOpKind::Sub,
                 _ => break,
             };
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_mul(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_mul<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_mul<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut lhs = self.parse_unary(tokens)?;
-        while let Some(Token { kind, pos }) = tokens.peek() {
-            let pos = *pos;
+        while let Some(Token { kind, debug_info }) = tokens.peek() {
+            let debug_info = debug_info.clone();
             let op = match &**kind {
                 TokenKind::BinOp(BinOpToken::Star) => BinOpKind::Mul,
                 TokenKind::BinOp(BinOpToken::Slash) => BinOpKind::Div,
                 TokenKind::BinOp(BinOpToken::Percent) => BinOpKind::Rem,
                 _ => break,
             };
-            let pos = pos;
+            let debug_info = debug_info;
             tokens.next();
-            lhs = Expr::new_binary(op, lhs, self.parse_unary(tokens)?, pos);
+            lhs = Expr::new_binary(op, lhs, self.parse_unary(tokens)?, debug_info);
         }
         Ok(lhs)
     }
 
-    pub fn parse_unary<'b, I>(&self, tokens: &mut TokenStream<'b, I>) -> Result<Expr, CompileError>
+    pub fn parse_unary<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (kind, pos) = match tokens.peek() {
-            Some(Token { kind, pos }) => (kind, pos),
-            None => {
-                return Err(CompileError::new_unexpected_eof(
-                    self.input,
-                    Box::new("Token"),
-                ))
-            }
+        let (kind, debug_info) = match tokens.peek() {
+            Some(Token { kind, debug_info }) => (kind, debug_info),
+            None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
-        let pos = *pos;
+        let debug_info = debug_info.clone();
         Ok(match **kind {
             TokenKind::BinOp(BinOpToken::Plus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::BinOp(BinOpToken::Minus) => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Minus, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Minus, self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::Tilde => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::BitInvert, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::BitInvert, self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::Exclamation => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::LogicalNot, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::LogicalNot, self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::BinOp(BinOpToken::Star) => {
                 tokens.next();
-                Expr::new_deref(self.parse_unary(tokens)?, pos)
+                Expr::new_deref(self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::BinOp(BinOpToken::And) => {
                 tokens.next();
-                Expr::new_addr(self.parse_unary(tokens)?, pos)
+                Expr::new_addr(self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::SizeOf => {
                 tokens.next();
@@ -646,124 +653,61 @@ impl<'a> Parser<'a> {
                 ) {
                     // e.g) sizeof(int)
                     tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
+                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, debug_info);
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
                     expr
                 } else {
                     // e.g) sizeof (5)
-                    Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
+                    Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info)
                 }
             }
             TokenKind::PlusPlus => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Increment, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Increment, self.parse_unary(tokens)?, debug_info)
             }
             TokenKind::MinusMinus => {
                 tokens.next();
-                Expr::new_unary(UnaryOp::Decrement, self.parse_unary(tokens)?, pos)
+                Expr::new_unary(UnaryOp::Decrement, self.parse_unary(tokens)?, debug_info)
             }
             _ => self.parse_postfix(tokens)?,
         })
-        // let mut op_vec = Vec::new();
-        // loop {
-        //     let (kind, pos) = match tokens.peek() {
-        //         Some(Token { kind, pos }) => (kind, pos),
-        //         None => {
-        //             return Err(CompileError::new_unexpected_eof(
-        //                 self.input,
-        //                 Box::new("Token"),
-        //             ))
-        //         }
-        //     };
-        //     let pos = *pos;
-        //     match **kind {
-        //         TokenKind::BinOp(BinOpToken::Plus) => {
-        //             tokens.next();
-        //             Expr::new_unary(UnaryOp::Plus, self.parse_unary(tokens), pos);
-        //             op_vec.push(TokenKind::BinOp(UnaryOp::Plus));
-        //         }
-        //         TokenKind::BinOp(BinOpToken::Minus) => {
-        //             tokens.next();
-        //             // Expr::new_unary(UnaryOp::Minus, self.parse_mul(tokens)?, pos)
-        //             // op_vec.push(TokenKind::BinOp(UnaryOp::Minus));
-        //         }
-        //         TokenKind::Tilde => {
-        //             tokens.next();
-        //             // Expr::new_unary(UnaryOp::BitInvert, self.parse_mul(tokens)?, pos)
-        //             // op_vec.push(TokenKind::Tilde);
-        //         }
-        //         TokenKind::Exclamation => {
-        //             tokens.next();
-        //             Expr::new_unary(UnaryOp::LogicalNot, self.parse_mul(tokens)?, pos)
-        //         }
-        //         TokenKind::BinOp(BinOpToken::Star) => {
-        //             tokens.next();
-        //             Expr::new_deref(self.parse_mul(tokens)?, pos)
-        //         }
-        //         TokenKind::BinOp(BinOpToken::And) => {
-        //             tokens.next();
-        //             Expr::new_addr(self.parse_mul(tokens)?, pos)
-        //         }
-        //         TokenKind::SizeOf => {
-        //             tokens.next();
-        //             let mut tmp_tokens = tokens.clone();
-        //             if let (
-        //                 Some(TokenKind::OpenDelim(DelimToken::Paren)),
-        //                 Some(TokenKind::Type(_) | TokenKind::Struct),
-        //             ) = (
-        //                 tmp_tokens.next().map(|token| *token.kind()),
-        //                 tmp_tokens.next().map(|token| *token.kind()),
-        //             ) {
-        //                 // e.g) sizeof(int)
-        //                 tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-        //                 let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, pos);
-        //                 tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
-        //                 expr
-        //             } else {
-        //                 // e.g) sizeof (5)
-        //                 Expr::new_expr_sizeof(self.parse_unary(tokens)?, pos)
-        //             }
-        //         }
-        //         _ => self.parse_postfix(tokens)?,
-        //     }
-        // }
     }
 
-    pub fn parse_postfix<'b, I>(
+    pub fn parse_postfix<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let mut expr = self.parse_primary(tokens)?;
-        let mut pos = expr.pos;
+        let mut debug_info = expr.debug_info.clone();
 
         loop {
             match tokens.peek_kind() {
                 Some(TokenKind::OpenDelim(DelimToken::Bracket)) => {
                     tokens.next();
-                    expr = Expr::new_array(expr, self.parse_expr(tokens)?, pos);
-                    pos = expr.pos;
+                    expr = Expr::new_array(expr, self.parse_expr(tokens)?, debug_info);
+                    debug_info = expr.debug_info.clone();
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Bracket))?;
                 }
                 Some(TokenKind::Dot) => {
                     tokens.next();
-                    let (member, pos) = tokens.consume_ident()?;
-                    expr = Expr::new_member(expr, member, pos);
+                    let (member, debug_info) = tokens.consume_ident()?;
+                    expr = Expr::new_member(expr, member, debug_info);
                 }
                 Some(TokenKind::Arrow) => {
                     tokens.next();
-                    let (member, pos) = tokens.consume_ident()?;
-                    expr = Expr::new_arrow(expr, member, pos);
+                    let (member, debug_info) = tokens.consume_ident()?;
+                    expr = Expr::new_arrow(expr, member, debug_info);
                 }
                 Some(TokenKind::PlusPlus) => {
                     tokens.next();
-                    expr = Expr::new_postfix_increment(expr, pos);
+                    expr = Expr::new_postfix_increment(expr, debug_info.clone());
                 }
                 Some(TokenKind::MinusMinus) => {
                     tokens.next();
-                    expr = Expr::new_postfix_decrement(expr, pos);
+                    expr = Expr::new_postfix_decrement(expr, debug_info.clone());
                 }
                 _ => break,
             };
@@ -771,17 +715,17 @@ impl<'a> Parser<'a> {
         Ok(expr)
     }
 
-    pub fn parse_primary<'b, I>(
+    pub fn parse_primary<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         match tokens.next() {
-            Some(Token { kind, pos }) => Ok(match *kind {
-                TokenKind::Num(num) => Expr::new_num(num, pos),
-                TokenKind::Str(letters) => Expr::new_str_lit(letters, pos),
+            Some(Token { kind, debug_info }) => Ok(match *kind {
+                TokenKind::Num(num) => Expr::new_num(num, debug_info),
+                TokenKind::Str(letters) => Expr::new_str_lit(letters, debug_info),
                 TokenKind::OpenDelim(DelimToken::Paren) => {
                     let expr = self.parse_expr(tokens)?;
                     tokens.expect(TokenKind::CloseDelim(DelimToken::Paren))?;
@@ -792,43 +736,50 @@ impl<'a> Parser<'a> {
                         // func call
                         let mut args = Vec::new();
                         if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
-                            return Ok(Expr::new_func(name, args, pos));
+                            return Ok(Expr::new_func(name, args, debug_info));
                         }
                         args.push(self.parse_expr(tokens)?);
                         while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                             tokens.expect(TokenKind::Comma)?;
                             args.push(self.parse_expr(tokens)?);
                         }
-                        return Ok(Expr::new_func(name, args, pos));
+                        return Ok(Expr::new_func(name, args, debug_info));
                     }
                     // local variable
-                    Expr::new_lvar(name, pos)
+                    Expr::new_lvar(name, debug_info)
                 }
-                TokenKind::Eof => return Err(CompileError::new_unexpected_eof(self.input, Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
-                _ => return Err(CompileError::new_expected_failed(self.input, Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, pos))),
+                TokenKind::Eof => return Err(CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
+                _ => return Err(CompileError::new_expected_failed( Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
             }),
-            None => Err(CompileError::new_unexpected_eof(self.input, Box::new(
+            None => Err(CompileError::new_unexpected_eof(None, Box::new(
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",
             ))),
         }
     }
 
-    pub fn parse_type_name<I>(&self, tokens: &mut TokenStream<I>) -> Result<TypeName, CompileError>
+    pub fn parse_type_name<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<TypeName, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (ty_spec, pos) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
         // TODO: support DirectAbstractDeclarator
         let abstract_declarator = self.parse_abstract_declarator(tokens)?;
-        Ok(TypeName::new(SpecQual(ty_spec), abstract_declarator, pos))
+        Ok(TypeName::new(
+            SpecQual(ty_spec),
+            abstract_declarator,
+            debug_info,
+        ))
     }
 
-    pub fn parse_abstract_declarator<'b, I>(
+    pub fn parse_abstract_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Option<AbstractDeclarator>, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let n_star = Self::parse_pointer(tokens)?;
         let direct_abstract_declarator =
@@ -845,12 +796,12 @@ impl<'a> Parser<'a> {
         )))
     }
 
-    pub fn parse_direct_abstract_declarator<'b, I>(
+    pub fn parse_direct_abstract_declarator<I>(
         &self,
-        tokens: &mut TokenStream<'b, I>,
+        tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Option<DirectAbstractDeclarator>, CompileError>
     where
-        I: Clone + Debug + Iterator<Item = Token>,
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let direct_abstract_declarator = if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren))
         {
@@ -961,12 +912,12 @@ impl IntoIterator for Program {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct ProgramComponent {
     pub kind: ProgramKind,
-    pub pos: Position,
+    pub debug_info: DebugInfo,
 }
 
 impl ProgramComponent {
-    pub const fn new(kind: ProgramKind, pos: Position) -> Self {
-        Self { kind, pos }
+    pub const fn new(kind: ProgramKind, debug_info: DebugInfo) -> Self {
+        Self { kind, debug_info }
     }
 }
 
@@ -999,7 +950,7 @@ pub struct Declaration {
     pub ty_spec: TypeSpec,
     // init-declarator
     pub init_declarator: Option<InitDeclarator>,
-    pub pos: Position,
+    pub debug_info: DebugInfo,
 }
 
 impl Declaration {
@@ -1009,7 +960,7 @@ impl Declaration {
         n_star: usize,
         direct_declarator: DirectDeclarator,
         initializer: Option<Initializer>,
-        pos: Position,
+        debug_info: DebugInfo,
     ) -> Self {
         Self {
             ty_spec,
@@ -1017,7 +968,7 @@ impl Declaration {
                 declarator: Declarator::new(n_star, direct_declarator),
                 initializer,
             }),
-            pos,
+            debug_info,
         }
     }
 
@@ -1027,19 +978,16 @@ impl Declaration {
             .map(|init_declarator| init_declarator.declarator.direct_declarator.ident_name())
     }
 
-    pub fn ty(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
-        let converted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
+    pub fn ty(&self, analyzer: &mut Analyzer, debug_info: DebugInfo) -> Result<Type, CompileError> {
+        let converted_type =
+            analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info.clone())?;
         analyzer.get_type(
             converted_type,
             &self
                 .init_declarator
                 .as_ref()
                 .ok_or_else(|| {
-                    unimplemented_err!(
-                        analyzer.input,
-                        pos,
-                        "get_type for struct is not yet implemented."
-                    )
+                    unimplemented_err!(debug_info, "get_type for struct is not yet implemented.")
                 })?
                 .declarator,
         )
@@ -1143,7 +1091,7 @@ pub enum StructOrUnionSpec {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct StructDeclaration {
-    pub pos: Position,
+    pub debug_info: DebugInfo,
     ty_spec: TypeSpec,
     declarator: Declarator,
 }
@@ -1153,8 +1101,12 @@ impl StructDeclaration {
         self.declarator.direct_declarator.ident_name()
     }
 
-    pub fn get_type(&self, analyzer: &mut Analyzer, pos: Position) -> Result<Type, CompileError> {
-        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, pos)?;
+    pub fn get_type(
+        &self,
+        analyzer: &mut Analyzer,
+        debug_info: DebugInfo,
+    ) -> Result<Type, CompileError> {
+        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info)?;
         analyzer.get_type(conveted_type, &self.declarator)
     }
 }
@@ -1214,19 +1166,19 @@ pub struct TypeName {
     // TODO: actually Vec
     spec_quals: SpecQual,
     abstract_declarator: Option<AbstractDeclarator>,
-    pos: Position,
+    debug_info: DebugInfo,
 }
 
 impl TypeName {
     pub const fn new(
         spec_quals: SpecQual,
         abstract_declarator: Option<AbstractDeclarator>,
-        pos: Position,
+        debug_info: DebugInfo,
     ) -> Self {
         Self {
             spec_quals,
             abstract_declarator,
-            pos,
+            debug_info,
         }
     }
 
@@ -1305,7 +1257,7 @@ pub enum ForInitKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Expr {
     pub kind: ExprKind,
-    pub pos: Position,
+    pub debug_info: DebugInfo,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1351,138 +1303,138 @@ pub enum UnaryOp {
 }
 
 impl Expr {
-    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, pos: Position) -> Self {
+    pub fn new_conditional(cond: Expr, then: Expr, els: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Conditional {
                 cond: Box::new(cond),
                 then: Box::new(then),
                 els: Box::new(els),
             },
-            pos,
+            debug_info,
         }
     }
-    pub fn new_member(expr: Expr, ident: String, pos: Position) -> Self {
+    pub fn new_member(expr: Expr, ident: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Member(Box::new(expr), ident),
-            pos,
+            debug_info,
         }
     }
-    pub fn new_arrow(expr: Expr, ident: String, pos: Position) -> Self {
+    pub fn new_arrow(expr: Expr, ident: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Arrow(Box::new(expr), ident),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_postfix_increment(expr: Expr, pos: Position) -> Self {
+    pub fn new_postfix_increment(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::PostfixIncrement(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_postfix_decrement(expr: Expr, pos: Position) -> Self {
+    pub fn new_postfix_decrement(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::PostfixDecrement(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_unary_increment(expr: Expr, pos: Position) -> Self {
+    pub fn new_unary_increment(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::UnaryIncrement(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_unary_decrement(expr: Expr, pos: Position) -> Self {
+    pub fn new_unary_decrement(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::UnaryDecrement(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
-    pub fn new_array(expr: Expr, index: Expr, pos: Position) -> Self {
+    pub fn new_array(expr: Expr, index: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Array(Box::new(expr), Box::new(index)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_binary(kind: BinOpKind, lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn new_binary(kind: BinOpKind, lhs: Expr, rhs: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Binary(Binary::new(kind, Box::new(lhs), Box::new(rhs))),
-            pos,
+            debug_info,
         }
     }
 
-    pub const fn new_num(num: isize, pos: Position) -> Self {
+    pub const fn new_num(num: isize, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Num(num),
-            pos,
+            debug_info,
         }
     }
 
-    pub const fn new_str_lit(letters: String, pos: Position) -> Self {
+    pub const fn new_str_lit(letters: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::StrLit(letters),
-            pos,
+            debug_info,
         }
     }
 
-    pub const fn new_lvar(name: String, pos: Position) -> Self {
+    pub const fn new_lvar(name: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::LVar(name),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_unary(kind: UnaryOp, expr: Expr, pos: Position) -> Self {
+    pub fn new_unary(kind: UnaryOp, expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Unary(kind, Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_assign(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn new_assign(lhs: Expr, rhs: Expr, debug_info: DebugInfo) -> Self {
         // pos is Position of TokenKind::Eq (i.e. `=`)
         Self {
             kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_func(name: String, args: Vec<Expr>, pos: Position) -> Self {
+    pub fn new_func(name: String, args: Vec<Expr>, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Func(name, args),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_deref(expr: Expr, pos: Position) -> Self {
+    pub fn new_deref(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Deref(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_addr(expr: Expr, pos: Position) -> Self {
+    pub fn new_addr(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Addr(Box::new(expr)),
-            pos,
+            debug_info,
         }
     }
 
-    pub fn new_expr_sizeof(expr: Expr, pos: Position) -> Self {
+    pub fn new_expr_sizeof(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Expr(Box::new(expr))),
-            pos,
+            debug_info,
         }
     }
 
-    pub const fn new_type_sizeof(type_name: TypeName, pos: Position) -> Self {
+    pub const fn new_type_sizeof(type_name: TypeName, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)),
-            pos,
+            debug_info,
         }
     }
 

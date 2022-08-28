@@ -7,197 +7,335 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 0,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 9,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 11,
-            n_line: 0,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 0,
+            },
         },
     },
     Token {
         kind: Type(
             Void,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "p",
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 15,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 16,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 16,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 17,
-            n_line: 2,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 17,
+                n_line: 2,
+            },
         },
     },
     Token {
         kind: Ident(
             "p",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 10,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 10,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: BinOp(
             And,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "a",
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 14,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 5,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 4,
+            },
         },
     },
 ]

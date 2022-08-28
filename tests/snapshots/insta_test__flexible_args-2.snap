@@ -30,9 +30,15 @@ Program {
                                                     initializer: None,
                                                 },
                                             ),
-                                            pos: Position {
-                                                n_char: 16,
-                                                n_line: 1,
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                },
+                                                pos: Position {
+                                                    n_char: 16,
+                                                    n_line: 1,
+                                                },
                                             },
                                         },
                                     ],
@@ -42,15 +48,27 @@ Program {
                             initializer: None,
                         },
                     ),
-                    pos: Position {
-                        n_char: 4,
-                        n_line: 1,
+                    debug_info: DebugInfo {
+                        file_info: FileInfo {
+                            file_name: "not impl name.c",
+                            src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                        },
+                        pos: Position {
+                            n_char: 4,
+                            n_line: 1,
+                        },
                     },
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                },
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
         ProgramComponent {
@@ -87,18 +105,30 @@ Program {
                                                             kind: Num(
                                                                 2,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 4,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 4,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -113,25 +143,43 @@ Program {
                                                     kind: StrLit(
                                                         "Hello World:%d\n",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                                 Expr {
                                                     kind: LVar(
                                                         "a",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 35,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 35,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                             ],
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                 ),
@@ -140,9 +188,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 3,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\n    void printf(char *msg, ...);\n    \n    int main() {\n        int a = 2;\n        printf(\"Hello World:%d\\n\", a);\n    }\n    ",
+                },
+                pos: Position {
+                    n_char: 4,
+                    n_line: 3,
+                },
             },
         },
     ],

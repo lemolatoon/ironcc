@@ -1,16 +1,25 @@
 extern crate ironcc;
 pub mod test_utils;
-use test_utils::kind_eq;
+use std::rc::Rc;
 
-use ironcc::{error::CompileError, tokenize::*};
+use ironcc::{
+    preprocess::{self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    tokenize::*,
+};
 
 #[test]
-fn tokenize_plus_minus_test() -> Result<(), CompileError> {
+fn tokenize_plus_minus_test() {
     let input = String::from("0 + 0 + 11  -4");
-    let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+    let tokens = preprocessor
+        .preprocess(file_info.clone().into(), None, &mut None)
+        .unwrap();
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
         tokenizer
-            .tokenize()
+            .tokenize(&file_info)
             .unwrap()
             .into_iter()
             .map(|token| token.kind())
@@ -59,10 +68,9 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
         )
     );
     let input = String::from("1 + 4 -       909");
-    let tokenizer = Tokenizer::new(&input);
-    assert!(kind_eq(
-        &tokenizer.tokenize().unwrap(),
-        &tokens!(
+    assert_eq!(
+        tokenize_and_kinds(&input).unwrap(),
+        token_kinds!(
             TokenKind::Num(1),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(4),
@@ -70,12 +78,11 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
             TokenKind::Num(909),
             TokenKind::Eof
         )
-    ));
+    );
     let input = String::from("0\t + 5+1+9-3 -  \n     909");
-    let tokenizer = Tokenizer::new(&input);
-    assert!(kind_eq(
-        &tokenizer.tokenize().unwrap(),
-        &tokens!(
+    assert_eq!(
+        tokenize_and_kinds(&input).unwrap(),
+        token_kinds!(
             TokenKind::Num(0),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(5),
@@ -89,42 +96,82 @@ fn tokenize_plus_minus_test() -> Result<(), CompileError> {
             TokenKind::Num(909),
             TokenKind::Eof
         )
-    ));
-    Ok(())
+    );
 }
 
+#[cfg(test)]
+fn debug_info_with_pos(file_info: Rc<FileInfo>, n_char: usize, n_line: usize) -> DebugInfo {
+    DebugInfo::new(file_info, n_char, n_line)
+}
 #[test]
-fn tokenize_pos_test() -> Result<(), CompileError> {
+fn tokenize_pos_test() {
+    use pretty_assertions::assert_eq;
     let input = String::from("1 +1");
-    let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+    let tokens = preprocessor
+        .preprocess(file_info.clone().into(), None, &mut None)
+        .unwrap();
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
-        tokenizer.tokenize().unwrap(),
+        tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
-            (TokenKind::Num(1), Position::new(0, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
-            (TokenKind::Num(1), Position::new(3, 0)),
-            (TokenKind::Eof, Position::new(4, 0))
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 0, 0)
+            ),
+            (
+                TokenKind::BinOp(BinOpToken::Plus),
+                debug_info_with_pos(file_info.clone(), 2, 0)
+            ),
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 3, 0)
+            ),
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 3, 0))
         )
     );
 
     let input = String::from("1 +1\n\t+5");
-    let tokenizer = Tokenizer::new(&input);
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+    let tokens = preprocessor
+        .preprocess(file_info.clone().into(), None, &mut None)
+        .unwrap();
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     assert_eq!(
-        tokenizer.tokenize().unwrap(),
+        tokenizer.tokenize(&file_info).unwrap(),
         token_poses!(
-            (TokenKind::Num(1), Position::new(0, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(2, 0)),
-            (TokenKind::Num(1), Position::new(3, 0)),
-            (TokenKind::BinOp(BinOpToken::Plus), Position::new(1, 1)),
-            (TokenKind::Num(5), Position::new(2, 1)),
-            (TokenKind::Eof, Position::new(3, 1))
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 0, 0)
+            ),
+            (
+                TokenKind::BinOp(BinOpToken::Plus),
+                debug_info_with_pos(file_info.clone(), 2, 0)
+            ),
+            (
+                TokenKind::Num(1),
+                debug_info_with_pos(file_info.clone(), 3, 0)
+            ),
+            (
+                TokenKind::BinOp(BinOpToken::Plus),
+                debug_info_with_pos(file_info.clone(), 1, 1)
+            ),
+            (
+                TokenKind::Num(5),
+                debug_info_with_pos(file_info.clone(), 2, 1)
+            ),
+            // Eof's position indicates last char of the file
+            (TokenKind::Eof, debug_info_with_pos(file_info.clone(), 2, 1))
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_compare_op_test() -> Result<(), CompileError> {
+fn tokenize_compare_op_test() {
     let input = String::from("1 == 2");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -185,11 +232,10 @@ fn tokenize_compare_op_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_tokens_test() -> Result<(), CompileError> {
+fn tokenize_tokens_test() {
     let input = String::from("a = 2");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -211,11 +257,10 @@ fn tokenize_tokens_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_ident_test() -> Result<(), CompileError> {
+fn tokenize_ident_test() {
     let input = String::from("a");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -247,11 +292,10 @@ fn tokenize_ident_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_stmt_test() -> Result<(), CompileError> {
+fn tokenize_stmt_test() {
     let input = String::from("a;");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -277,11 +321,10 @@ fn tokenize_stmt_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_reserved_test() -> Result<(), CompileError> {
+fn tokenize_reserved_test() {
     let input = String::from("returnx = 1;\nreturn returnx;");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -451,11 +494,10 @@ fn tokenize_reserved_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
 }
 
 #[test]
-fn tokenize_call_func_test() -> Result<(), CompileError> {
+fn tokenize_call_func_test() {
     let input = String::from("{return foo(1, 2);}");
     assert_eq!(
         tokenize_and_kinds(&input).unwrap(),
@@ -473,5 +515,89 @@ fn tokenize_call_func_test() -> Result<(), CompileError> {
             TokenKind::Eof
         )
     );
-    Ok(())
+}
+
+#[test]
+fn tokenize_prototype() {
+    let input = "int printf(const char *msg, ...);";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Int),
+            TokenKind::Ident("printf".to_string()),
+            TokenKind::OpenDelim(DelimToken::Paren),
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("msg".to_string()),
+            TokenKind::Comma,
+            TokenKind::DotDotDot,
+            TokenKind::CloseDelim(DelimToken::Paren),
+            TokenKind::Semi,
+            TokenKind::Eof
+        )
+    );
+}
+
+#[test]
+fn tokenize_reserved() {
+    let input = "char";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(TokenKind::Type(TypeToken::Char), TokenKind::Eof)
+    );
+    let input = "char *";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Eof
+        )
+    );
+    let input = "char *msg";
+    assert_eq!(
+        tokenize_and_kinds(input).unwrap(),
+        token_kinds!(
+            TokenKind::Type(TypeToken::Char),
+            TokenKind::BinOp(BinOpToken::Star),
+            TokenKind::Ident("msg".to_string()),
+            TokenKind::Eof
+        )
+    );
+}
+
+#[test]
+fn tokenize_multi_token_input() {
+    let input = String::from("0 + 0 + 11  -4");
+    let file_info = Rc::new(FileInfo::new(String::new(), input));
+    let tokens_iter = vec![
+        preprocess::TokenKind::Rest("0 ".to_string()),
+        preprocess::TokenKind::Rest("+ 0 + 1".to_string()),
+        preprocess::TokenKind::Rest("1  -4".to_string()),
+    ]
+    .into_iter()
+    .map(|kind| Token::new(kind, DebugInfo::default()));
+    let stream = PreprocessorTokenStream::new(tokens_iter);
+    let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
+    assert_eq!(
+        tokenizer
+            .tokenize(&file_info)
+            .unwrap()
+            .into_iter()
+            .map(|token| token.kind())
+            .collect::<Vec<_>>(),
+        tokens!(
+            TokenKind::Num(0),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(0),
+            TokenKind::BinOp(BinOpToken::Plus),
+            TokenKind::Num(11),
+            TokenKind::BinOp(BinOpToken::Minus),
+            TokenKind::Num(4),
+            TokenKind::Eof
+        )
+        .into_iter()
+        .map(|token| token.kind())
+        .collect::<Vec<_>>()
+    );
 }

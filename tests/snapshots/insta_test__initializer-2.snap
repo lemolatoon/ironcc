@@ -38,18 +38,30 @@ Program {
                                                             kind: Num(
                                                                 5,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 20,
-                                                                n_line: 0,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 20,
+                                                                    n_line: 0,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 12,
-                                            n_line: 0,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                            },
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                 ),
@@ -74,24 +86,42 @@ Program {
                                                                     kind: LVar(
                                                                         "a",
                                                                     ),
-                                                                    pos: Position {
-                                                                        n_char: 33,
-                                                                        n_line: 0,
+                                                                    debug_info: DebugInfo {
+                                                                        file_info: FileInfo {
+                                                                            file_name: "not impl name.c",
+                                                                            src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                                                        },
+                                                                        pos: Position {
+                                                                            n_char: 33,
+                                                                            n_line: 0,
+                                                                        },
                                                                     },
                                                                 },
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 32,
-                                                                n_line: 0,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 32,
+                                                                    n_line: 0,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 23,
-                                            n_line: 0,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                            },
+                                            pos: Position {
+                                                n_char: 23,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                 ),
@@ -102,9 +132,15 @@ Program {
                                         kind: Num(
                                             0,
                                         ),
-                                        pos: Position {
-                                            n_char: 43,
-                                            n_line: 0,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
+                                            },
+                                            pos: Position {
+                                                n_char: 43,
+                                                n_line: 0,
+                                            },
                                         },
                                     },
                                 ),
@@ -113,9 +149,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 0,
-                n_line: 0,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "int main() {int a = 5; int *p = &a; return 0;}",
+                },
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
             },
         },
     ],

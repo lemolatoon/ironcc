@@ -7,224 +7,380 @@ expression: tester.tokens().as_ref().unwrap()
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "printf",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Char,
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 20,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 20,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Ident(
             "msg",
         ),
-        pos: Position {
-            n_char: 21,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 21,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 24,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 24,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 25,
-            n_line: 1,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 25,
+                n_line: 1,
+            },
         },
     },
     Token {
         kind: Type(
             Int,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Ident(
             "main",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 12,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 3,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 3,
+            },
         },
     },
     Token {
         kind: Type(
             Char,
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: BinOp(
             Star,
         ),
-        pos: Position {
-            n_char: 13,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Ident(
             "msg",
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Eq,
-        pos: Position {
-            n_char: 18,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 18,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Str(
             "Hello World",
         ),
-        pos: Position {
-            n_char: 20,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 20,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 33,
-            n_line: 4,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 33,
+                n_line: 4,
+            },
         },
     },
     Token {
         kind: Ident(
             "printf",
         ),
-        pos: Position {
-            n_char: 8,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: OpenDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 14,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: Ident(
             "msg",
         ),
-        pos: Position {
-            n_char: 15,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Paren,
         ),
-        pos: Position {
-            n_char: 18,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 18,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: Semi,
-        pos: Position {
-            n_char: 19,
-            n_line: 5,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 19,
+                n_line: 5,
+            },
         },
     },
     Token {
         kind: CloseDelim(
             Brace,
         ),
-        pos: Position {
-            n_char: 4,
-            n_line: 6,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 6,
+            },
         },
     },
     Token {
         kind: Eof,
-        pos: Position {
-            n_char: 4,
-            n_line: 7,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+            },
+            pos: Position {
+                n_char: 3,
+                n_line: 7,
+            },
         },
     },
 ]

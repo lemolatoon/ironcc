@@ -3,6 +3,9 @@ use crate::analyze::ConvExpr;
 use crate::analyze::ConvExprKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
+use crate::preprocess;
+use crate::tokenize;
+use crate::tokenize::DebugInfo;
 use crate::tokenize::Position;
 use crate::tokenize::Token;
 use std::error::Error;
@@ -13,15 +16,11 @@ use std::io;
 #[derive(Clone)]
 pub struct CompileError {
     pub kind: CompileErrorKind,
-    pub src: String,
 }
 
 impl CompileError {
-    pub fn new(src: &str, kind: CompileErrorKind) -> Self {
-        Self {
-            kind,
-            src: src.to_string(),
-        }
+    pub const fn new(kind: CompileErrorKind) -> Self {
+        Self { kind }
     }
 }
 
@@ -31,7 +30,7 @@ pub enum CompileErrorKind {
     ParseError(ParseErrorKind),
     AnalyzeError(AnalyzeErrorKind),
     GenerateError(GenerateErrorKind),
-    Unimplemented(Option<Position>, String),
+    Unimplemented(Option<DebugInfo>, String),
     IOError(Box<dyn Debug>),
 }
 
@@ -42,7 +41,7 @@ impl Clone for CompileErrorKind {
             Self::ParseError(arg0) => Self::ParseError(arg0.clone()),
             Self::AnalyzeError(arg0) => Self::AnalyzeError(arg0.clone()),
             Self::GenerateError(arg0) => Self::GenerateError(arg0.clone()),
-            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(*arg0, arg1.clone()),
+            Self::Unimplemented(arg0, arg1) => Self::Unimplemented(arg0.clone(), arg1.clone()),
             Self::IOError(arg0) => Self::IOError(Box::new(format!("{:?}", arg0))),
         }
     }
@@ -54,220 +53,225 @@ impl From<io::Error> for CompileError {
     fn from(err: io::Error) -> Self {
         Self {
             kind: CompileErrorKind::IOError(Box::new(err)),
-            src: String::new(), // no source
         }
     }
 }
 
+impl From<Token<preprocess::TokenKind>> for Tokens {
+    fn from(token: Token<preprocess::TokenKind>) -> Self {
+        Tokens::Preprocess(token)
+    }
+}
+impl From<Token<tokenize::TokenKind>> for Tokens {
+    fn from(token: Token<tokenize::TokenKind>) -> Self {
+        Tokens::Tokenize(token)
+    }
+}
+
 impl CompileError {
-    pub fn new_unexpected_eof(input: &str, kind: Box<dyn Debug>) -> CompileError {
-        CompileError::new(
-            input,
-            CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(kind)),
-        )
+    pub const fn new_unexpected_char(debug_info: DebugInfo, c: char) -> CompileError {
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedChar(debug_info, c),
+        ))
+    }
+    pub fn new_unexpected_eof(input: Option<String>, kind: Box<dyn Debug>) -> CompileError {
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
+            input, kind,
+        )))
     }
 
-    pub fn new_expected_failed(input: &str, expect: Box<dyn Debug>, got: Token) -> CompileError {
-        CompileError::new(
-            input,
-            CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed { expect, got }),
-        )
-    }
-    pub fn new_unexpected_eof_tokenize(src: &str, pos: Position) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)),
-        )
+    pub fn new_expected_failed<K>(expect: Box<dyn Debug>, got: Token<K>) -> CompileError
+    where
+        K: PartialEq + Debug + Clone,
+        Token<K>: Into<Tokens>,
+    {
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
+            expect,
+            got: got.into(),
+        }))
     }
 
-    pub fn new_unexpected_void(src: &str, pos: Position, msg: String) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::UnexpectedVoid(pos, msg),
-            )),
-        )
+    pub fn new_expected_failed_with_box<K>(expect: Box<dyn Debug>, got: Token<K>) -> CompileError
+    where
+        K: PartialEq + Debug + Clone,
+        Token<K>: Into<Tokens>,
+    {
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
+            expect,
+            got: got.into(),
+        }))
     }
 
-    pub fn new_redefined_variable(
-        src: &str,
-        name: String,
-        pos: Position,
-        kind: VariableKind,
-    ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)),
-        )
+    pub const fn new_unexpected_eof_tokenize(pos: DebugInfo) -> Self {
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedEof(pos),
+        ))
     }
 
-    pub fn new_no_such_member(
-        src: &str,
+    pub const fn new_unexpected_void(pos: DebugInfo, msg: String) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::UnexpectedVoid(pos, msg)),
+        ))
+    }
+
+    pub const fn new_redefined_variable(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::RedefinedError(name, pos, kind),
+        ))
+    }
+
+    pub const fn new_no_such_member(
         tag_name: Option<String>,
-        pos: Position,
+        pos: DebugInfo,
         got_member_name: String,
     ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::NoSuchMemberError {
                 tag_name,
                 pos,
                 got_member_name,
-            }),
-        )
+            },
+        ))
     }
 
-    pub fn new_undeclared_error(
-        src: &str,
-        name: String,
-        pos: Position,
-        kind: VariableKind,
-    ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)),
-        )
+    pub const fn new_undeclared_error(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::UndeclaredError(name, pos, kind),
+        ))
     }
 
-    pub fn new_args_error(
-        src: &str,
+    pub const fn new_args_error(
         name: String,
-        pos: Position,
+        debug_info: DebugInfo,
         expected: usize,
         got: usize,
-        declared_pos: Position,
+        declared_debug_info: DebugInfo,
     ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::FuncArgsError(
-                name,
-                pos,
-                expected,
-                got,
-                declared_pos,
-            )),
-        )
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::FuncArgsError(name, debug_info, expected, got, declared_debug_info),
+        ))
     }
 
-    pub fn new_type_error<T: Into<String>>(
-        src: &str,
-        lhs: ConvExpr,
-        rhs: ConvExpr,
-        msg: Option<T>,
-    ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-                TypeErrorKind::Expr { lhs, rhs },
-                msg.map(std::convert::Into::into),
-            )),
-        )
+    pub fn new_type_error<T: Into<String>>(lhs: ConvExpr, rhs: ConvExpr, msg: Option<T>) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::Expr { lhs, rhs },
+            msg.map(std::convert::Into::into),
+        )))
     }
 
     pub fn new_type_error_const<T: Into<String>>(
-        src: &str,
         expr0: ConstExpr,
         expr1: ConstExpr,
         msg: Option<T>,
     ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-                TypeErrorKind::ConstExpr(expr0, expr1),
-                msg.map(std::convert::Into::into),
-            )),
-        )
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::ConstExpr(expr0, expr1),
+            msg.map(std::convert::Into::into),
+        )))
     }
 
     pub fn new_type_error_types<T: Into<String>>(
-        src: &str,
-        pos0: Position,
-        pos1: Position,
+        pos0: DebugInfo,
+        pos1: DebugInfo,
         ty0: Type,
         ty1: Type,
         msg: Option<T>,
     ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-                TypeErrorKind::Type(pos0, pos1, ty0, ty1),
-                msg.map(std::convert::Into::into),
-            )),
-        )
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::Type(pos0, pos1, ty0, ty1),
+            msg.map(std::convert::Into::into),
+        )))
     }
 
-    pub fn new_type_expect_failed(src: &str, pos: Position, expected: Type, got: Type) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::Type { pos, expected, got },
-            )),
-        )
+    pub const fn new_type_expect_failed(pos: DebugInfo, expected: Type, got: Type) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type { pos, expected, got }),
+        ))
     }
 
-    pub fn new_type_expect_failed_with_str(
-        src: &str,
-        pos: Position,
+    pub const fn new_type_expect_failed_with_str(
+        debug_info: DebugInfo,
         expected: String,
         got: Type,
     ) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
-            )),
-        )
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::TypeWithPatternStr {
+                pos: debug_info,
+                expected,
+                got,
+            }),
+        ))
     }
 
-    pub fn new_const_expr_error(src: &str, pos: Position, kind: ConvExprKind) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)),
-        )
+    pub const fn new_const_expr_error(debug_info: DebugInfo, kind: ConvExprKind) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::ConstExprError(debug_info, kind),
+        ))
     }
 
-    pub fn new_deref_error(src: &str, expr: ConvExpr) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::GenerateError(GenerateErrorKind::DerefError(expr)),
-        )
+    pub const fn new_deref_error(expr: ConvExpr) -> Self {
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::DerefError(expr),
+        ))
     }
 
-    pub fn new_lvalue_error(src: &str, expr: ConvExpr) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::GenerateError(GenerateErrorKind::LeftValueError(expr)),
-        )
+    pub const fn new_lvalue_error(expr: ConvExpr) -> Self {
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::LeftValueError(expr),
+        ))
     }
 
-    pub fn new_type_size_error(src: &str, status: UnexpectedTypeSizeStatus) -> Self {
-        CompileError::new(
-            src,
-            CompileErrorKind::GenerateError(GenerateErrorKind::UnexpectedTypeSize(status)),
-        )
+    pub const fn new_type_size_error(status: UnexpectedTypeSizeStatus) -> Self {
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::UnexpectedTypeSize(status),
+        ))
     }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TokenizeErrorKind {
-    UnexpectedChar(Position, char),
-    UnexpectedEof(Position),
+    UnexpectedChar(DebugInfo, char),
+    UnexpectedEof(DebugInfo),
+}
+
+#[derive(Debug, Clone)]
+pub enum Tokens {
+    Preprocess(Token<preprocess::TokenKind>),
+    Tokenize(Token<tokenize::TokenKind>),
+}
+
+impl Tokens {
+    pub fn get_debug_info(&self) -> DebugInfo {
+        match self {
+            Tokens::Preprocess(token) => token.debug_info.clone(),
+            Tokens::Tokenize(token) => token.debug_info.clone(),
+        }
+    }
+
+    pub fn get_kind_str(&self) -> String {
+        match self {
+            Tokens::Preprocess(token) => format!("{:?}", token.kind),
+            Tokens::Tokenize(token) => format!("{:?}", token.kind),
+        }
+    }
 }
 
 #[derive(Debug)]
 pub enum ParseErrorKind {
     /// An error returned when an operation could not be completed because an "end of file" was reached prematurely.
-    UnexpectedEof(Box<dyn Debug>),
+    UnexpectedEof(/* src */ Option<String>, Box<dyn Debug>),
     ExpectFailed {
         expect: Box<dyn Debug>,
-        got: Token,
+        got: Tokens,
     },
 }
 
 impl Clone for ParseErrorKind {
     fn clone(&self) -> Self {
         match self {
-            Self::UnexpectedEof(arg0) => Self::UnexpectedEof(Box::new(format!("{:?}", arg0))),
+            Self::UnexpectedEof(src, arg0) => {
+                Self::UnexpectedEof(src.clone(), Box::new(format!("{:?}", arg0)))
+            }
             Self::ExpectFailed { expect, got } => Self::ExpectFailed {
                 expect: Box::new(format!("{:?}", expect)),
                 got: got.clone(),
@@ -289,42 +293,49 @@ impl Debug for CompileError {
             AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
         };
         match &self.kind {
-            TokenizeError(TokenizeErrorKind::UnexpectedEof(pos)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            TokenizeError(TokenizeErrorKind::UnexpectedEof(debug_info)) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "Got Unexpected Eof while tokenizing")?;
             }
-            TokenizeError(TokenizeErrorKind::UnexpectedChar(pos, c)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            TokenizeError(TokenizeErrorKind::UnexpectedChar(debug_info, c)) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "Got Unexpected char while tokenizing: `{}`", c)?;
             }
-            ParseError(ParseErrorKind::UnexpectedEof(expect)) => {
-                error_at_eof(&self.src, f)?;
+            ParseError(ParseErrorKind::UnexpectedEof(src, expect)) => {
+                if let Some(src) = src {
+                    error_at_eof(src.as_str(), f)?;
+                }
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(&self.src, vec![got.pos], f)?;
-                writeln!(f, "Expected `{:?}`, but got `{:?}`.", expect, got.kind)?;
+                error_at(vec![got.get_debug_info().clone()], f)?;
+                writeln!(
+                    f,
+                    "Expected `{:?}`, but got `{:?}`.",
+                    expect,
+                    got.get_kind_str(),
+                )?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::UnexpectedVoid(pos, msg),
+                TypeExpectedFailedKind::UnexpectedVoid(debug_info, msg),
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?}", msg)?;
             }
-            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, debug_info, kind)) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} Variable `{}` Undeclared", kind, name)?;
             }
-            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, debug_info, kind)) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} Variable `{}` Redefined", kind, name)?;
             }
             AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
                 tag_name,
-                pos,
+                pos: debug_info,
                 got_member_name,
             }) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(vec![debug_info.clone()], f)?;
                 if let Some(tag_name) = tag_name {
                     writeln!(
                         f,
@@ -340,22 +351,26 @@ impl Debug for CompileError {
                 }
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type {
-                pos,
+                pos: debug_info,
                 expected,
                 got,
             })) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
-                TypeExpectedFailedKind::TypeWithPatternStr { pos, expected, got },
+                TypeExpectedFailedKind::TypeWithPatternStr {
+                    pos: debug_info,
+                    expected,
+                    got,
+                },
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{:?} type expected, but got {:?}", expected, got)?;
             }
             AnalyzeError(AnalyzeErrorKind::TypeError(error, msg)) => {
                 let poses = error.positions();
-                error_at(&self.src, vec![poses.0, poses.1], f)?;
+                error_at(vec![poses.0, poses.1], f)?;
                 let types = error.types();
                 writeln!(
                     f,
@@ -368,22 +383,22 @@ impl Debug for CompileError {
             }
             AnalyzeError(AnalyzeErrorKind::FuncArgsError(
                 name,
-                pos,
+                debug_info,
                 expected,
                 got,
                 declared_pos,
             )) => {
-                error_at(&self.src, vec![*pos], f)?;
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "In {:?}'s calling, {} args expected, but got {}",
                     name, expected, got
                 )?;
-                error_at(&self.src, vec![*declared_pos], f)?;
+                error_at(vec![declared_pos.clone()], f)?;
                 writeln!(f, "{} is first declared here.", name)?;
             }
-            AnalyzeError(AnalyzeErrorKind::ConstExprError(pos, kind)) => {
-                error_at(&self.src, vec![*pos], f)?;
+            AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This kind({:?}) of Expr cannot be evaluated as constants.",
@@ -391,11 +406,11 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(vec![expr.debug_info.clone()], f)?;
                 writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
             }
             GenerateError(GenerateErrorKind::LeftValueError(expr)) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(vec![expr.debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This expr cannot be used for generate address(Not left value). Type: {:?}",
@@ -405,7 +420,7 @@ impl Debug for CompileError {
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
                 UnexpectedTypeSizeStatus::Expr(expr),
             )) => {
-                error_at(&self.src, vec![expr.pos], f)?;
+                error_at(vec![expr.debug_info.clone()], f)?;
                 writeln!(
                     f,
                     "This expr's type size is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}",
@@ -435,8 +450,8 @@ impl Debug for CompileError {
             )) => {
                 writeln!(f, "this type size is unexpected. size: {}", size)?;
             }
-            Unimplemented(Some(pos), msg) => {
-                error_at(&self.src, vec![*pos], f)?;
+            Unimplemented(Some(debug_info), msg) => {
+                error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{}", msg)?;
             }
             Unimplemented(None, msg) => {
@@ -450,47 +465,49 @@ impl Debug for CompileError {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum AnalyzeErrorKind {
-    RedefinedError(String, Position, VariableKind),
-    UndeclaredError(String, Position, VariableKind),
+    RedefinedError(String, DebugInfo, VariableKind),
+    UndeclaredError(String, DebugInfo, VariableKind),
     NoSuchMemberError {
         tag_name: Option<String>,
-        pos: Position,
+        pos: DebugInfo,
         got_member_name: String,
     },
-    FuncArgsError(String, Position, usize, usize, Position),
+    FuncArgsError(String, DebugInfo, usize, usize, DebugInfo),
     TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(TypeExpectedFailedKind),
-    ConstExprError(Position, ConvExprKind),
+    ConstExprError(DebugInfo, ConvExprKind),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TypeExpectedFailedKind {
     Type {
-        pos: Position,
+        pos: DebugInfo,
         expected: Type,
         got: Type,
     },
     TypeWithPatternStr {
-        pos: Position,
+        pos: DebugInfo,
         expected: String,
         got: Type,
     },
-    UnexpectedVoid(Position, String),
+    UnexpectedVoid(DebugInfo, String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum TypeErrorKind {
     Expr { lhs: ConvExpr, rhs: ConvExpr },
     ConstExpr(ConstExpr, ConstExpr),
-    Type(Position, Position, Type, Type),
+    Type(DebugInfo, DebugInfo, Type, Type),
 }
 
 impl TypeErrorKind {
-    pub const fn positions(&self) -> (Position, Position) {
+    pub fn positions(&self) -> (DebugInfo, DebugInfo) {
         match self {
-            TypeErrorKind::Expr { lhs, rhs } => (lhs.pos, rhs.pos),
-            TypeErrorKind::ConstExpr(expr0, expr1) => (expr0.pos, expr1.pos),
-            TypeErrorKind::Type(pos0, pos1, _, _) => (*pos0, *pos1),
+            TypeErrorKind::Expr { lhs, rhs } => (lhs.debug_info.clone(), rhs.debug_info.clone()),
+            TypeErrorKind::ConstExpr(expr0, expr1) => {
+                (expr0.debug_info.clone(), expr1.debug_info.clone())
+            }
+            TypeErrorKind::Type(pos0, pos1, _, _) => (pos0.clone(), pos1.clone()),
         }
     }
 
@@ -527,89 +544,117 @@ pub enum UnexpectedTypeSizeStatus {
 }
 
 /// write source annotation which indicates `pos` in `src`
-fn error_at(
-    src: &str,
-    mut positions: Vec<Position>,
-    f: &mut std::fmt::Formatter<'_>,
-) -> std::fmt::Result {
+fn error_at(mut positions: Vec<DebugInfo>, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     writeln!(f, "\n")?;
-    positions.sort_by(|a, b| (a.n_line, a.n_char).cmp(&(b.n_line, b.n_char)));
-    let mut same_line_positions = Vec::new();
+    positions.sort_by(|a, b| {
+        (a.get_file_name(), a.get_n_line(), a.get_n_char()).cmp(&(
+            b.get_file_name(),
+            b.get_n_line(),
+            b.get_n_char(),
+        ))
+    });
+    let max_prefix_len = positions
+        .iter()
+        .map(|debug_info| debug_info.to_error_msg_prefix_string().len())
+        .max()
+        .unwrap_or(0)
+        + 3;
+    let collect_by_lines = |same_file_name_info_vec: Vec<DebugInfo>| {
+        let mut same_line_positions = Vec::new();
+        let mut tmp_vec = Vec::new();
+        // TOOD: handle None well
+        let mut tmp_line = same_file_name_info_vec
+            .first()
+            .map_or(0, DebugInfo::get_n_line);
+        for pos in same_file_name_info_vec {
+            if pos.get_n_line() == tmp_line {
+                tmp_vec.push(pos);
+            } else {
+                tmp_line = pos.get_n_line();
+                same_line_positions.push(tmp_vec);
+                tmp_vec = vec![pos];
+            }
+        }
+        same_line_positions.push(tmp_vec);
+        same_line_positions
+    };
+    let mut collected_by_file_name_by_lines_debug_infos = Vec::new();
     let mut tmp_vec = Vec::new();
-    // TOOD: handle None well
-    let mut tmp_line = positions.first().map_or(0, |pos| pos.n_line);
-    for pos in positions {
-        if pos.n_line == tmp_line {
-            tmp_vec.push(pos);
+    let mut tmp_file_name = positions.first().unwrap().get_file_name();
+    for debug_info in positions {
+        if debug_info.get_file_name() == tmp_file_name {
+            tmp_vec.push(debug_info);
         } else {
-            tmp_line = pos.n_line;
-            same_line_positions.push(tmp_vec);
-            tmp_vec = vec![pos];
+            tmp_file_name = debug_info.get_file_name();
+            collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+            tmp_vec = vec![debug_info];
         }
     }
-    same_line_positions.push(tmp_vec);
-    let max_prefix_len = same_line_positions
-        .last()
-        .unwrap()
-        .first()
-        .unwrap()
-        .n_line
-        .to_string()
-        .len()
-        + 3;
-    for same_line_pos in same_line_positions {
-        let mut splited = src.split('\n');
-        let n_line = same_line_pos.first().unwrap().n_line;
-        let mut num_prefix = String::with_capacity(max_prefix_len);
-        num_prefix.push_str(&(n_line + 1).to_string());
-        while num_prefix.len() < max_prefix_len {
-            if num_prefix.len() == max_prefix_len - 2 {
-                num_prefix.push(':');
-                continue;
+    collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+    // let max_prefix_len = same_line_positions
+    //     .last()
+    //     .unwrap()
+    //     .first()
+    //     .unwrap()
+    //     .get_n_line()
+    //     .to_string()
+    //     .len()
+    //     + 3;
+    for same_line_positions in collected_by_file_name_by_lines_debug_infos {
+        let file_info = &same_line_positions[0][0];
+        let file_name = file_info.get_file_name();
+        let src = file_info.get_file_src();
+        for same_line_pos in same_line_positions {
+            let mut splited = src.split('\n');
+            let n_line = same_line_pos.first().unwrap().get_n_line();
+            let mut prefix = String::with_capacity(max_prefix_len);
+            prefix.push_str(&format!("{}:{}", &file_name, n_line + 1));
+            while prefix.len() < max_prefix_len {
+                if prefix.len() == max_prefix_len - 2 {
+                    prefix.push(':');
+                    continue;
+                }
+                prefix.push(' ');
             }
-            num_prefix.push(' ');
-        }
-        if let Some(line) = splited.nth(n_line) {
-            writeln!(f, "{}{}", num_prefix, line)
-        } else {
-            writeln!(
+            if let Some(line) = splited.nth(n_line) {
+                writeln!(f, "{}{}", prefix, line)
+            } else {
+                writeln!(
                 f,
-                "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
+                "[While Dealing Error, another error occured.] DebugInfo is illegal,\nPosition: {:?}",
                 same_line_pos.first().unwrap()
             )
-        }?;
-        let n_iter = same_line_pos.last().unwrap().n_char + max_prefix_len;
-        let mut buffer = String::with_capacity(n_iter + 1);
-        let mut point = same_line_pos
-            .into_iter()
-            .map(|pos| pos.n_char + max_prefix_len)
-            .peekable();
-        for idx in 0..=n_iter {
-            match point.peek() {
-                Some(&next) if next == idx => {
-                    point.next();
-                    buffer.push('^');
+            }?;
+            let n_iter = same_line_pos.last().unwrap().get_n_char() + max_prefix_len;
+            let mut buffer = String::with_capacity(n_iter + 1);
+            let mut point = same_line_pos
+                .into_iter()
+                .map(|pos| pos.get_n_char() + max_prefix_len)
+                .peekable();
+            for idx in 0..=n_iter {
+                match point.peek() {
+                    Some(&next) if next == idx => {
+                        point.next();
+                        buffer.push('^');
+                    }
+                    _ => buffer.push(' '),
                 }
-                _ => buffer.push(' '),
             }
+            writeln!(f, "{}", buffer)?;
         }
-        writeln!(f, "{}", buffer)?;
     }
     Ok(())
 }
 
 /// write source annotation which indicates `pos` in `src` with previous lines
 fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    writeln!(f, "====================")?;
-    writeln!(f, "{}", src)?;
-    writeln!(f, "====================")?;
     let splited: Vec<&str> = src.split('\n').collect();
     let last_n_line = splited.len() - 1;
     let n_char = splited.last().map_or(0, |s| s.len());
     let prefix = format!("{}:{}:  ", last_n_line + 1, n_char + 1);
-    for n_line in last_n_line.saturating_sub(2)..=last_n_line {
+    for n_line in last_n_line.saturating_sub(3)..last_n_line {
         let mut num_prefix = String::with_capacity(prefix.len());
-        num_prefix.push_str(&n_line.to_string());
+        num_prefix.push_str(&(n_line + 1).to_string());
         while num_prefix.len() < prefix.len() {
             if num_prefix.len() == prefix.len() - 3 {
                 num_prefix.push(':');
@@ -623,7 +668,7 @@ fn error_at_eof(src: &str, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
             None => writeln!(
                 f,
                 "[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}",
-                Position::new(n_char, n_line)
+                Position { n_char, n_line }
             ),
         }?;
     }

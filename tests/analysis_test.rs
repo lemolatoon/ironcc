@@ -2,17 +2,17 @@ extern crate ironcc;
 pub mod test_utils;
 
 use std::collections::BTreeSet;
+use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
-use ironcc::error::CompileError;
 use ironcc::parse::*;
-use ironcc::tokenize::{Position, TokenStream, Tokenizer};
+use ironcc::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[test]
-fn analysis_test() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_test() {
+    let mut analyzer = Analyzer::new();
     let expr = unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
     let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
@@ -31,8 +31,7 @@ fn analysis_test() -> Result<(), CompileError> {
         .kind
     );
 
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+    let mut analyzer = Analyzer::new();
     let expr = bin(BinOpKind::Ge, num(1), num(2));
     let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
@@ -46,8 +45,7 @@ fn analysis_test() -> Result<(), CompileError> {
         .kind
     );
 
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+    let mut analyzer = Analyzer::new();
     let expr = bin(BinOpKind::Gt, num(1), num(2));
     let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
     assert_eq!(
@@ -60,13 +58,11 @@ fn analysis_test() -> Result<(), CompileError> {
         )
         .kind
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_ident_test() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_ident_test() {
+    let mut analyzer = Analyzer::new();
     let expr = assign(lvar("a"), num(1));
     // dummy fucn defining
     let mut offset = 0;
@@ -74,8 +70,7 @@ fn analysis_ident_test() -> Result<(), CompileError> {
     analyzer
         .scope
         .register_lvar(
-            &input,
-            Position::default(),
+            DebugInfo::default(),
             &mut offset,
             "a",
             Type::Base(BaseType::Int),
@@ -89,13 +84,11 @@ fn analysis_ident_test() -> Result<(), CompileError> {
         converted_expr.kind,
         cassign(clvar("a", Type::Base(BaseType::Int), 0), cnum(1)).kind
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_program_test() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_program_test() {
+    let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
@@ -119,7 +112,7 @@ fn analysis_program_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("a"), bin(BinOpKind::Ge, num(1), lvar("k")))),
             expr_stmt(lvar("b")),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -154,13 +147,11 @@ fn analysis_program_test() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_local_variable_test() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_local_variable_test() {
+    let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
@@ -185,7 +176,7 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("c"), num(3))),
             expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -221,94 +212,11 @@ fn analysis_local_variable_test() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_func_def_test() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
-    let program = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
-        0,
-        func_dd(
-            "main",
-            vec!["a", "b", "c"]
-                .into_iter()
-                .map(|s| declare(TypeSpec::Int, 0, DirectDeclarator::Ident(s.to_string())))
-                .collect(),
-            false,
-        ),
-        block(vec![
-            declare_stmt(declare(
-                TypeSpec::Int,
-                0,
-                DirectDeclarator::Ident("k".to_string()),
-            )), // int k;
-            expr_stmt(assign(lvar("a"), assign(lvar("k"), num(1)))),
-            expr_stmt(assign(lvar("c"), num(3))),
-            expr_stmt(bin(BinOpKind::Div, lvar("a"), lvar("k"))),
-            ret(bin(BinOpKind::Div, lvar("b"), lvar("c"))),
-        ]),
-        Position::default(),
-    )]);
-    let converted_program = analyzer.traverse_program(program).unwrap();
-    assert_eq!(
-        converted_program,
-        cprog(vec![cfunc_def(
-            Type::Func {
-                ret_ty: Box::new(Type::Base(BaseType::Int)),
-                args: vec![
-                    Type::Base(BaseType::Int),
-                    Type::Base(BaseType::Int),
-                    Type::Base(BaseType::Int)
-                ],
-                is_flexible: false
-            },
-            "main",
-            vec![
-                clvar_strct("a", Type::Base(BaseType::Int), 0),
-                clvar_strct("b", Type::Base(BaseType::Int), 4),
-                clvar_strct("c", Type::Base(BaseType::Int), 8)
-            ],
-            cblock(vec![
-                cblock(vec![]),
-                cexpr_stmt(cassign(
-                    clvar("a", Type::Base(BaseType::Int), 0),
-                    cassign(clvar("k", Type::Base(BaseType::Int), 12), cnum(1))
-                )),
-                cexpr_stmt(cassign(clvar("c", Type::Base(BaseType::Int), 8), cnum(3))),
-                cexpr_stmt(cbin(
-                    ConvBinOpKind::Div,
-                    clvar("a", Type::Base(BaseType::Int), 0),
-                    clvar("k", Type::Base(BaseType::Int), 12),
-                    Type::Base(BaseType::Int),
-                )),
-                cret(
-                    cbin(
-                        ConvBinOpKind::Div,
-                        clvar("b", Type::Base(BaseType::Int), 4),
-                        clvar("c", Type::Base(BaseType::Int), 8),
-                        Type::Base(BaseType::Int),
-                    ),
-                    "main"
-                ),
-            ]),
-            vec![
-                clvar_strct("a", Type::Base(BaseType::Int), 0),
-                clvar_strct("b", Type::Base(BaseType::Int), 4),
-                clvar_strct("c", Type::Base(BaseType::Int), 8),
-                clvar_strct("k", Type::Base(BaseType::Int), 12)
-            ]
-        )])
-    );
-    Ok(())
-}
-
-#[test]
-fn analysis_declaration() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_func_def_test() {
+    let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
@@ -336,7 +244,7 @@ fn analysis_declaration() -> Result<(), CompileError> {
             )), // int x;
             expr_stmt(bin(BinOpKind::Add, lvar("a"), lvar("k"))), // a + k
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -378,13 +286,11 @@ fn analysis_declaration() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
-fn analysis_ptr_addition() -> Result<(), CompileError> {
-    let input = String::new();
-    let mut analyzer = Analyzer::new(&input);
+fn analysis_ptr_addition() {
+    let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
         TypeSpec::Int,
         0,
@@ -403,7 +309,7 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
             expr_stmt(assign(lvar("p"), bin(BinOpKind::Add, lvar("k"), num(1)))), // p = k + 1;
             ret(num(0)),
         ]),
-        Position::default(),
+        DebugInfo::default(),
     )]);
     let converted_program = analyzer.traverse_program(program).unwrap();
     assert_eq!(
@@ -441,7 +347,6 @@ fn analysis_ptr_addition() -> Result<(), CompileError> {
             ]
         )])
     );
-    Ok(())
 }
 
 #[test]
@@ -509,10 +414,19 @@ fn parse_type_test() {
 }
 
 fn extract_ty(src: &str) -> Type {
-    let tokens = Tokenizer::new(src).tokenize().unwrap();
-    let mut tokens = TokenStream::new(tokens.into_iter(), src);
-    let ast = Parser::new(src).parse_stmt(&mut tokens).unwrap();
-    let mut analyzer = Analyzer::new(src);
+    let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+    let derective_count = &mut None;
+    let tokens = preprocessor
+        .preprocess(file_info.clone().into(), None, derective_count)
+        .unwrap();
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
+        .tokenize(&file_info)
+        .unwrap();
+    let mut tokens = TokenStream::new(tokens.into_iter());
+    let ast = Parser::new().parse_stmt(&mut tokens).unwrap();
+    let mut analyzer = Analyzer::new();
     let conv_stmt = analyzer.traverse_stmt(ast, "main".to_string()).unwrap();
     if let ConvStmt::Block(vec) = conv_stmt {
         let second_stmt = vec.get(1).unwrap();
@@ -527,19 +441,28 @@ fn extract_ty(src: &str) -> Type {
 }
 
 fn extract_func_ty(src: &str) -> Type {
-    let tokens = Tokenizer::new(src).tokenize().unwrap();
-    let mut tokens = TokenStream::new(tokens.into_iter(), src);
-    let ast = Parser::new(src).parse_func_def(&mut tokens).unwrap();
+    let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
+    let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+    let derective_count = &mut None;
+    let tokens = preprocessor
+        .preprocess(file_info.clone().into(), None, derective_count)
+        .unwrap();
+    let stream = PreprocessorTokenStream::new(tokens.into_iter());
+    let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
+        .tokenize(&file_info)
+        .unwrap();
+    let mut tokens = TokenStream::new(tokens.into_iter());
+    let ast = Parser::new().parse_func_def(&mut tokens).unwrap();
     let (ty_spec, declarator, body, pos) = if let ProgramComponent {
         kind: ProgramKind::FuncDef(ty_spec, declarator, body),
-        pos,
+        debug_info,
     } = ast
     {
-        (ty_spec, declarator, body, pos)
+        (ty_spec, declarator, body, debug_info)
     } else {
         panic!("ProgramKind::Func expected.")
     };
-    let mut analyzer = Analyzer::new(src);
+    let mut analyzer = Analyzer::new();
     // return Declaration::new(ty_spec, declarator.n_star, declarator.direct_declarator, None, pos)
     //     .ty(&analyzer)
     //     .unwrap();
@@ -592,25 +515,25 @@ fn cblock(stmts: Vec<ConvStmt>) -> ConvStmt {
 
 fn clvar(name: &str, ty: Type, mut offset: usize) -> ConvExpr {
     let offset = &mut offset;
-    let mut analyzer = Analyzer::new("");
+    let mut analyzer = Analyzer::new();
     analyzer.scope.push_scope();
     let lvar = analyzer
         .scope
-        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .register_lvar(DebugInfo::default(), offset, name, ty)
         .unwrap();
 
     analyzer.scope.pop_scope(offset);
     let ty = lvar.ty.clone();
-    ConvExpr::new_lvar_raw(lvar, ty, Position::default())
+    ConvExpr::new_lvar_raw(lvar, ty, DebugInfo::default())
 }
 
 fn clvar_strct(name: &str, ty: Type, mut offset: usize) -> LVar {
     let offset = &mut offset;
-    let mut analyzer = Analyzer::new("");
+    let mut analyzer = Analyzer::new();
     analyzer.scope.push_scope();
     analyzer
         .scope
-        .register_lvar("", Position::default(), offset, &name.to_string(), ty)
+        .register_lvar(DebugInfo::default(), offset, name, ty)
         .unwrap()
 }
 
@@ -646,12 +569,12 @@ fn _cfunc(name: &str, args: Vec<ConvExpr>, is_flexible: bool) -> ConvExpr {
         args,
         Type::Base(BaseType::Int),
         is_flexible,
-        Position::default(),
+        DebugInfo::default(),
     )
 }
 
 fn cassign(lhs: ConvExpr, rhs: ConvExpr) -> ConvExpr {
-    ConvExpr::new_assign(lhs, rhs, Position::default())
+    ConvExpr::new_assign(lhs, rhs, DebugInfo::default())
 }
 
 fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
@@ -662,10 +585,10 @@ fn cbin(op: ConvBinOpKind, lhs: ConvExpr, rhs: ConvExpr, ty: Type) -> ConvExpr {
             rhs: Box::new(rhs),
         }),
         ty,
-        pos: Position::default(),
+        debug_info: DebugInfo::default(),
     }
 }
 
 fn cnum(n: isize) -> ConvExpr {
-    ConvExpr::new_num(n, Position::default())
+    ConvExpr::new_num(n, DebugInfo::default())
 }

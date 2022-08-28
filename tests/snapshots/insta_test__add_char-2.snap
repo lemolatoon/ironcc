@@ -38,18 +38,30 @@ Program {
                                                             kind: Num(
                                                                 2,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 2,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 2,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -72,18 +84,30 @@ Program {
                                                             kind: LVar(
                                                                 "a",
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 17,
-                                                                n_line: 3,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 17,
+                                                                    n_line: 3,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                 ),
@@ -98,25 +122,43 @@ Program {
                                                     kind: LVar(
                                                         "a",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 8,
-                                                        n_line: 4,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 8,
+                                                            n_line: 4,
+                                                        },
                                                     },
                                                 },
                                                 rhs: Expr {
                                                     kind: LVar(
                                                         "b",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 12,
-                                                        n_line: 4,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 12,
+                                                            n_line: 4,
+                                                        },
                                                     },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 10,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 10,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                 ),
@@ -131,25 +173,43 @@ Program {
                                                     kind: LVar(
                                                         "b",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 8,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 8,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                                 rhs: Expr {
                                                     kind: LVar(
                                                         "a",
                                                     ),
-                                                    pos: Position {
-                                                        n_char: 12,
-                                                        n_line: 5,
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 12,
+                                                            n_line: 5,
+                                                        },
                                                     },
                                                 },
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 10,
-                                            n_line: 5,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 10,
+                                                n_line: 5,
+                                            },
                                         },
                                     },
                                 ),
@@ -158,9 +218,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                },
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
     ],

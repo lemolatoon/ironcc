@@ -32,9 +32,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                     ConvExpr {
@@ -44,18 +50,30 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 16,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 2,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 2,
+                                    },
                                 },
                             },
                         ),
@@ -74,9 +92,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 3,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
                                         },
                                     },
                                     1,
@@ -84,9 +108,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 3,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 3,
+                                    },
                                 },
                             },
                         ),
@@ -105,9 +135,15 @@ ConvProgram {
                                         ty: Base(
                                             Int,
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 4,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
                                         },
                                     },
                                     1,
@@ -115,9 +151,15 @@ ConvProgram {
                                 ty: Base(
                                     Int,
                                 ),
-                                pos: Position {
-                                    n_char: 8,
-                                    n_line: 4,
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "\n    int main() {\n        int a = 1;\n        a++;\n        a--;\n    }\n    ",
+                                    },
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 4,
+                                    },
                                 },
                             },
                         ),

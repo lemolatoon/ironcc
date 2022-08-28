@@ -38,18 +38,30 @@ Program {
                                                             kind: Num(
                                                                 15,
                                                             ),
-                                                            pos: Position {
-                                                                n_char: 16,
-                                                                n_line: 2,
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "\n    int main() {\n        int a = 0b1111;\n    }\n    ",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 16,
+                                                                    n_line: 2,
+                                                                },
                                                             },
                                                         },
                                                     ),
                                                 ),
                                             },
                                         ),
-                                        pos: Position {
-                                            n_char: 8,
-                                            n_line: 2,
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "\n    int main() {\n        int a = 0b1111;\n    }\n    ",
+                                            },
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
                                         },
                                     },
                                 ),
@@ -58,9 +70,15 @@ Program {
                     ),
                 },
             ),
-            pos: Position {
-                n_char: 4,
-                n_line: 1,
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "\n    int main() {\n        int a = 0b1111;\n    }\n    ",
+                },
+                pos: Position {
+                    n_char: 4,
+                    n_line: 1,
+                },
             },
         },
     ],

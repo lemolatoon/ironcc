@@ -3,9 +3,10 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    tokenize::{Token, TokenStream, Tokenizer},
+    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 #[cfg(test)]
 #[macro_export]
@@ -13,7 +14,7 @@ macro_rules! tokens {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = Position::default();
+            let pos = DebugInfo::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -21,7 +22,8 @@ macro_rules! tokens {
 }
 
 #[cfg(test)]
-pub fn kind_eq(lhs: &[Token], rhs: &[Token]) -> bool {
+use ironcc::tokenize::TokenKind;
+pub fn kind_eq(lhs: &[Token<TokenKind>], rhs: &[Token<TokenKind>]) -> bool {
     lhs.iter()
         .zip(rhs.iter())
         .fold(true, |acc, (l_token, r_token)| {
@@ -47,7 +49,7 @@ macro_rules! token_kinds {
     ( $( $token_kind:expr ), *) => {{
         let mut temp_vec = Vec::new();
         $(
-            let pos = Position::default();
+            let pos = DebugInfo::default();
             temp_vec.push(Token::new($token_kind, pos));
         )*
         temp_vec
@@ -59,16 +61,16 @@ macro_rules! token_kinds {
 
 pub struct CachedProcessor<'a> {
     tokenizer: CachedTokenizer<'a>,
-    parser: CachedParser<'a>,
-    analyzer: CachedAnalyzer<'a>,
+    parser: CachedParser,
+    analyzer: CachedAnalyzer,
 }
 
 impl<'a> CachedProcessor<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             tokenizer: CachedTokenizer::new(src),
-            parser: CachedParser::new(src),
-            analyzer: CachedAnalyzer::new(src),
+            parser: CachedParser::new(),
+            analyzer: CachedAnalyzer::new(),
         }
     }
 }
@@ -79,7 +81,7 @@ impl<'a> CachedProcessor<'a> {
         self.parser.program(stream)
     }
 
-    pub fn tokens(&mut self) -> Result<&Vec<Token>, CompileError> {
+    pub fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError> {
         self.tokenizer.tokens()
     }
 
@@ -91,53 +93,73 @@ impl<'a> CachedProcessor<'a> {
 
 struct CachedTokenizer<'a> {
     src: &'a str,
-    tokenizer: Tokenizer<'a>,
-    tokens: Option<Result<Vec<Token>, CompileError>>,
-    token_stream: Option<Result<TokenStream<'a, std::vec::IntoIter<Token>>, CompileError>>,
+    tokenizer: Tokenizer,
+    tokens: Option<Result<Vec<Token<TokenKind>>, CompileError>>,
+    token_stream:
+        Option<Result<TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>>,
 }
 
 impl<'a> CachedTokenizer<'a> {
     fn new(src: &'a str) -> Self {
+        // TODO:
+        let file_info = Rc::new(FileInfo::new(
+            "not impl name.c".to_string(),
+            src.to_string(),
+        ));
+        let mut preprocessor = Preprocessor::new(file_info.clone(), "");
+        let tokens = preprocessor
+            .preprocess(file_info.clone().into(), None, &mut None)
+            .unwrap();
+        let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
             src,
-            tokenizer: Tokenizer::new(src),
+            tokenizer: Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect())),
             tokens: None,
             token_stream: None,
         }
     }
 
-    fn tokens(&mut self) -> Result<&Vec<Token>, CompileError> {
+    fn tokens(&mut self) -> Result<&Vec<Token<TokenKind>>, CompileError> {
         self.tokens
-            .get_or_insert_with(|| self.tokenizer.tokenize())
+            .get_or_insert_with(|| {
+                self.tokenizer
+                    .tokenize(&Rc::new(FileInfo::new(String::new(), self.src.to_string())))
+            })
             .as_ref()
             .map_err(|err| err.clone())
     }
 
-    fn stream(&mut self) -> Result<&mut TokenStream<'a, std::vec::IntoIter<Token>>, CompileError> {
+    fn stream(
+        &mut self,
+    ) -> Result<&mut TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>
+    {
         let iter = self.tokens().map(|vec| vec.clone().into_iter())?;
         self.token_stream
-            .get_or_insert_with(|| Ok(TokenStream::new(iter, self.src)))
+            .get_or_insert_with(|| Ok(TokenStream::new(iter)))
             .as_mut()
             .map_err(|err| err.clone())
     }
 }
 
-struct CachedParser<'a> {
-    parser: Parser<'a>,
+struct CachedParser {
+    parser: Parser,
     program: Option<Result<Program, CompileError>>,
 }
 
-impl<'a> CachedParser<'a> {
-    pub fn new(input: &'a str) -> Self {
+impl CachedParser {
+    pub fn new() -> Self {
         Self {
-            parser: Parser::new(input),
+            parser: Parser::new(),
             program: None,
         }
     }
 
-    pub fn program<I>(&mut self, stream: &mut TokenStream<'a, I>) -> Result<&Program, CompileError>
+    pub fn program<I>(
+        &mut self,
+        stream: &mut TokenStream<I, TokenKind>,
+    ) -> Result<&Program, CompileError>
     where
-        I: Iterator<Item = Token> + Clone + Debug,
+        I: Iterator<Item = Token<TokenKind>> + Clone + Debug,
     {
         self.program
             .get_or_insert_with(|| self.parser.parse_program(stream))
@@ -146,15 +168,15 @@ impl<'a> CachedParser<'a> {
     }
 }
 
-struct CachedAnalyzer<'a> {
-    analyzer: Analyzer<'a>,
+struct CachedAnalyzer {
+    analyzer: Analyzer,
     program: Option<Result<ConvProgram, CompileError>>,
 }
 
-impl<'a> CachedAnalyzer<'a> {
-    pub fn new(input: &'a str) -> Self {
+impl CachedAnalyzer {
+    pub fn new() -> Self {
         Self {
-            analyzer: Analyzer::new(input),
+            analyzer: Analyzer::new(),
             program: None,
         }
     }
@@ -168,13 +190,13 @@ impl<'a> CachedAnalyzer<'a> {
 }
 
 pub mod ast {
-    use ironcc::{parse::*, tokenize::Position};
+    use ironcc::{parse::*, tokenize::DebugInfo};
     pub fn deref(expr: Expr) -> Expr {
-        Expr::new_deref(expr, Position::default())
+        Expr::new_deref(expr, DebugInfo::default())
     }
 
     pub fn addr(expr: Expr) -> Expr {
-        Expr::new_addr(expr, Position::default())
+        Expr::new_addr(expr, DebugInfo::default())
     }
 
     pub fn func_def(
@@ -182,7 +204,7 @@ pub mod ast {
         n_star: usize,
         direct_declarator: DirectDeclarator,
         body: Stmt,
-        pos: Position,
+        pos: DebugInfo,
     ) -> ProgramComponent {
         ProgramComponent::new(
             ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body),
@@ -204,7 +226,7 @@ pub mod ast {
             n_star,
             direct_declarator,
             None,
-            Position::default(),
+            DebugInfo::default(),
         )
     }
 
@@ -219,7 +241,7 @@ pub mod ast {
             n_star,
             direct_declarator,
             Some(init),
-            Position::default(),
+            DebugInfo::default(),
         )
     }
 
@@ -256,26 +278,26 @@ pub mod ast {
     }
 
     pub fn func(name: &str, args: Vec<Expr>) -> Expr {
-        Expr::new_func(name.to_string(), args, Position::default())
+        Expr::new_func(name.to_string(), args, DebugInfo::default())
     }
 
     pub fn lvar(name: &str) -> Expr {
-        Expr::new_lvar(name.to_string(), Position::default())
+        Expr::new_lvar(name.to_string(), DebugInfo::default())
     }
 
     pub fn assign(lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_assign(lhs, rhs, Position::default())
+        Expr::new_assign(lhs, rhs, DebugInfo::default())
     }
 
     pub fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_binary(op, lhs, rhs, Position::default())
+        Expr::new_binary(op, lhs, rhs, DebugInfo::default())
     }
 
     pub fn num(n: isize) -> Expr {
-        Expr::new_num(n, Position::default())
+        Expr::new_num(n, DebugInfo::default())
     }
 
     pub fn unary(op: UnaryOp, operand: Expr) -> Expr {
-        Expr::new_unary(op, operand, Position::default())
+        Expr::new_unary(op, operand, DebugInfo::default())
     }
 }

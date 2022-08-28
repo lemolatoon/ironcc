@@ -12,6 +12,8 @@
 /.vscode/
 /src.c
 /src.s
+/samples/run.sh
+/samples/tmp.c
 a.out
 link.c
 
