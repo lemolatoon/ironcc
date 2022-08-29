@@ -72,7 +72,7 @@ Program {
                                     Expr {
                                         kind: Array(
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "array",
                                                 ),
                                                 debug_info: DebugInfo {

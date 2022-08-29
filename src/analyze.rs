@@ -7,8 +7,8 @@ use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     generate::RegSize,
     parse::{
-        BinOpKind, Binary, Declarator, DirectDeclarator, Expr, ExprKind, ForInitKind, Initializer,
-        Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
+        BinOpKind, Binary, Declarator, DirectDeclarator, EnumSpec, Expr, ExprKind, ForInitKind,
+        Initializer, Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
         StructOrUnionSpec, TypeSpec, UnaryOp,
     },
     tokenize::DebugInfo,
@@ -127,6 +127,7 @@ impl Analyzer {
                                 )?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
+                            Type::InComplete(InCompleteKind::Enum(tag_name)) => todo!(),
                         }
                     } else {
                         // struct declaration
@@ -243,6 +244,12 @@ impl Analyzer {
                         "Global Variable Initialization with struct is not currently supported."
                     ))
                 }
+                // Type::Enum(_) => {
+                //     return Err(unimplemented_err!(
+                //         debug_info,
+                //         "Global Variable Initialization with enum is not currently supported."
+                //     ))
+                // }
                 Type::Array(base, _) => {
                     if !base.ty_eq(&init_ty) {
                         if base.is_base() && init_ty.is_base() {
@@ -662,7 +669,7 @@ impl Analyzer {
                 let rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
                 Self::new_assign_expr_with_type_check(lhs, rhs, debug_info)
             }
-            ExprKind::LVar(name) => self.fetch_lvar(&name, debug_info),
+            ExprKind::Ident(name) => self.fetch_lvar(&name, debug_info),
             ExprKind::Func(name, args) => {
                 self.new_call_func_with_type_check(name, args, debug_info, &attrs)
             }
@@ -677,6 +684,7 @@ impl Analyzer {
                         is_flexible: _,
                     }
                     | Type::Struct(_)
+                    // | Type::Enum(_)
                     | Type::Void) => {
                         Err(CompileError::new_type_expect_failed_with_str(
                             conv_expr.debug_info,
@@ -774,7 +782,9 @@ impl Analyzer {
                         args: _,
                         is_flexible: _,
                     }
-                    | Type::Struct(_) => {
+                    | Type::Struct(_)
+                    // | Type::Enum(_) => {
+                        => {
                         return Err(CompileError::new_type_expect_failed_with_str(
                             debug_info,
                             "Type::Base(_) | Type::Ptr(_)".to_string(),
@@ -800,7 +810,9 @@ impl Analyzer {
                         args: _,
                         is_flexible: _,
                     }
-                    | Type::Struct(_) => {
+                    | Type::Struct(_)
+                    // | Type::Enum(_) => {
+                       => {
                         return Err(CompileError::new_type_expect_failed_with_str(
                             debug_info,
                             "Type::Base(_) | Type::Ptr(_)".to_string(),
@@ -1062,8 +1074,12 @@ impl Analyzer {
                 )),
                 (_, Type::Struct(_)) | (Type::Struct(_), _) => Err(unimplemented_err!(
                     debug_info,
-                    "binary expr of function is illegal operation."
+                    "binary expr of struct is illegal operation."
                 )),
+                // (_, Type::Enum(_)) | (Type::Enum(_), _) => Err(unimplemented_err!(
+                //     debug_info,
+                //     "binary expr of enum is illegal operation."
+                // )),
                 (_, Type::Array(_, _)) | (Type::Array(_, _), _) => {
                     unreachable!(
                         "binary expr's operands(one of which is array) must be casted to ptr."
@@ -2040,6 +2056,13 @@ pub struct StructMember {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Enum {
+    // TODO
+    tag: Option<String>,
+    members: Vec<StructMember>,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct GVar {
     pub name: String,
     pub ty: Type,
@@ -2437,6 +2460,7 @@ pub enum Type {
     Array(Box<Type>, usize),
     // Tag resolved struct
     Struct(Struct),
+    // Enum(Enum),
 }
 
 impl Type {
@@ -2486,6 +2510,7 @@ impl Type {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum InCompleteKind {
     Struct(String),
+    Enum(String),
 }
 
 impl Type {
@@ -2592,6 +2617,68 @@ impl Analyzer {
                     |name| Type::InComplete(InCompleteKind::Struct(name.clone())),
                 )
             }
+            TypeSpec::Enum(EnumSpec::WithTag(tag)) => {
+                todo!();
+                match self.look_up_struct_tag(tag.as_str()) {
+                    Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members: _ }))) => {
+                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
+                    }
+                    Some(Taged::Struct(StructTagKind::OnlyTag(tag))) => {
+                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
+                    }
+                    None => {
+                        // TODO: support struct which has the self-type member
+                        return Err(unimplemented_err!(
+                            debug_info,
+                            "tag of struct declaration with should be declared before."
+                        ));
+                    }
+                }
+            }
+            TypeSpec::Enum(EnumSpec::WithList(name, vec)) => {
+                todo!();
+                // register tag for now
+                // if let Some(name) = name {
+                //     self.register_struct_tag(name.to_string());
+                // }
+                // let types = vec
+                //     .iter()
+                //     .map(|struct_declaration| {
+                //         struct_declaration.get_type(self, struct_declaration.debug_info.clone())
+                //     })
+                //     .collect::<Result<_, CompileError>>()?;
+                // let names = vec
+                //     .iter()
+                //     .map(|struct_declaration| struct_declaration.ident_name().to_string())
+                //     .collect::<Vec<String>>();
+                // let constructed_members = Struct::construct_members(names, types);
+                // // tag compatibility check
+                // if let Some(name) = name {
+                //     if let Some(Taged::Struct(StructTagKind::Struct(Struct {
+                //         tag: _,
+                //         members: looked_up_members,
+                //     }))) = self.look_up_struct_tag(name.as_str())
+                //     {
+                //         if *looked_up_members != constructed_members {
+                //             return Err(unimplemented_err!( debug_info, "this declaration's tag is incompatible with another tag whose tag-name is same."));
+                //         }
+                //     } else {
+                //         self.tag_scope.last_mut().expect(
+                //             "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
+                //         ).insert(name.clone(), Taged::Struct(StructTagKind::Struct(Struct {tag: Some(name.clone()), members: constructed_members.clone()})));
+                //     }
+                // }
+
+                // name.as_ref().map_or_else(
+                //     || {
+                //         Type::Struct(Struct {
+                //             tag: None,
+                //             members: constructed_members,
+                //         })
+                //     },
+                //     |name| Type::InComplete(InCompleteKind::Struct(name.clone())),
+                // )
+            }
         })
     }
 
@@ -2626,6 +2713,7 @@ impl Analyzer {
             TypeSpec::Int
             | TypeSpec::Char
             | TypeSpec::Void
+            | TypeSpec::Enum(_)
             | TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {}
             TypeSpec::StructOrUnion(
                 StructOrUnionSpec::WithList(Some(name), _) | StructOrUnionSpec::WithTag(name),

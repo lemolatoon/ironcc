@@ -8,10 +8,18 @@
 <type-specifiers>           := "int"
                                 | "char"
                                 | <struct-or-union-specifier>
+                                | <enum-specifier>
 
-<struct-or-union-specifier> := struct <ident>? "{" <struct-declaration-list> "}"
-                                | struct <ident>
+<struct-or-union-specifier> := "struct" <ident>? "{" <struct-declaration-list> "}"
+                                | "struct" <ident>
 <struct-declaration-list>   := <struct-declaration-list> <type-specifier> <declarator>
+
+<enum-specifier>            := "enum" <ident>? { <enumerator-list> ","? }
+                            := "enum" <ident>
+<enumerator-list>           := <enumerator>
+                                | <enumerator-list> "," <enumerator>
+<enumerator>                := <enumeration-constant>
+<enumeration-constant>      := <ident>
 
 <init-declarator>           := <declarator> ("=" <initializer>)?
 <declarator>                := "*"* <direct-declarator>

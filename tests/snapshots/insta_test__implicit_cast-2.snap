@@ -81,7 +81,7 @@ Program {
                                                 initializer: Some(
                                                     Expr(
                                                         Expr {
-                                                            kind: LVar(
+                                                            kind: Ident(
                                                                 "a",
                                                             ),
                                                             debug_info: DebugInfo {
@@ -117,7 +117,7 @@ Program {
                                     Expr {
                                         kind: Assign(
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "b",
                                                 ),
                                                 debug_info: DebugInfo {

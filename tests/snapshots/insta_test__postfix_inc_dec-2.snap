@@ -71,7 +71,7 @@ Program {
                                     Expr {
                                         kind: PostfixIncrement(
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {
@@ -104,7 +104,7 @@ Program {
                                     Expr {
                                         kind: PostfixDecrement(
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {

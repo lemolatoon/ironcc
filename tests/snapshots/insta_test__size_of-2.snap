@@ -84,7 +84,7 @@ Program {
                                                             kind: SizeOf(
                                                                 Expr(
                                                                     Expr {
-                                                                        kind: LVar(
+                                                                        kind: Ident(
                                                                             "a",
                                                                         ),
                                                                         debug_info: DebugInfo {

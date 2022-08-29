@@ -120,7 +120,7 @@ Program {
                                     Expr {
                                         kind: Assign(
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "msg",
                                                 ),
                                                 debug_info: DebugInfo {
@@ -170,7 +170,7 @@ Program {
                                             "printf",
                                             [
                                                 Expr {
-                                                    kind: LVar(
+                                                    kind: Ident(
                                                         "msg",
                                                     ),
                                                     debug_info: DebugInfo {

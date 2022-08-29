@@ -133,7 +133,7 @@ Program {
                                                                         Binary {
                                                                             kind: Gt,
                                                                             lhs: Expr {
-                                                                                kind: LVar(
+                                                                                kind: Ident(
                                                                                     "a",
                                                                                 ),
                                                                                 debug_info: DebugInfo {
@@ -148,7 +148,7 @@ Program {
                                                                                 },
                                                                             },
                                                                             rhs: Expr {
-                                                                                kind: LVar(
+                                                                                kind: Ident(
                                                                                     "b",
                                                                                 ),
                                                                                 debug_info: DebugInfo {
@@ -176,7 +176,7 @@ Program {
                                                                     },
                                                                 },
                                                                 then: Expr {
-                                                                    kind: LVar(
+                                                                    kind: Ident(
                                                                         "a",
                                                                     ),
                                                                     debug_info: DebugInfo {
@@ -191,7 +191,7 @@ Program {
                                                                     },
                                                                 },
                                                                 els: Expr {
-                                                                    kind: LVar(
+                                                                    kind: Ident(
                                                                         "b",
                                                                     ),
                                                                     debug_info: DebugInfo {

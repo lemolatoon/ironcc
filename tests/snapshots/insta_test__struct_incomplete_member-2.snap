@@ -202,7 +202,7 @@ Program {
                                             Expr {
                                                 kind: Member(
                                                     Expr {
-                                                        kind: LVar(
+                                                        kind: Ident(
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
@@ -232,7 +232,7 @@ Program {
                                             Expr {
                                                 kind: Addr(
                                                     Expr {
-                                                        kind: LVar(
+                                                        kind: Ident(
                                                             "a1",
                                                         ),
                                                         debug_info: DebugInfo {
@@ -279,7 +279,7 @@ Program {
                                             Expr {
                                                 kind: Member(
                                                     Expr {
-                                                        kind: LVar(
+                                                        kind: Ident(
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
@@ -342,7 +342,7 @@ Program {
                                             Expr {
                                                 kind: Member(
                                                     Expr {
-                                                        kind: LVar(
+                                                        kind: Ident(
                                                             "global_doubly_linked_list",
                                                         ),
                                                         debug_info: DebugInfo {
@@ -372,7 +372,7 @@ Program {
                                             Expr {
                                                 kind: Addr(
                                                     Expr {
-                                                        kind: LVar(
+                                                        kind: Ident(
                                                             "a2",
                                                         ),
                                                         debug_info: DebugInfo {
