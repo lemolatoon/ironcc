@@ -1097,5 +1097,4 @@ int test53() {
     assert(53, 1, TEST53_ENUM_B);
     assert(53, 2, TEST53_ENUM_C);
     return 0;
-
 }

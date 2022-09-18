@@ -495,6 +495,7 @@ impl Analyzer {
                             ))
                         }
                     };
+                    unreachable!()
                 }
                 let ty = declaration.ty(self, declaration.debug_info.clone())?;
                 // TODO check: Function pointer declaration is allowed here (or not)?

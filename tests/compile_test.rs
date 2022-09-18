@@ -264,6 +264,53 @@ fn scopes() {
         "{:?}",
         tester.conv_program()
     );
+
+    let src = "
+    int main() {
+        {
+            enum A {
+                A1,
+                A2
+            };
+            return A1;
+        }
+        return 0;
+    }
+    ";
+    let mut tester = CachedProcessor::new(src);
+    assert!(
+        matches!(tester.conv_program(), Ok(_)),
+        "{:?}",
+        tester.conv_program()
+    );
+
+    let src = "
+    int main() {
+        {
+            enum A {
+                A1,
+                A2
+            };
+        }
+        return A2;
+    }
+    ";
+
+    let mut tester = CachedProcessor::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                    _,
+                    _,
+                    VariableKind::Local,
+                )),
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
 }
 
 #[test]
