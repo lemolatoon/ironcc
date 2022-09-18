@@ -7,9 +7,9 @@ use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     generate::RegSize,
     parse::{
-        BinOpKind, Binary, Declarator, DirectDeclarator, EnumSpec, Expr, ExprKind, ForInitKind,
-        Initializer, Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind,
-        StructOrUnionSpec, TypeSpec, UnaryOp,
+        BinOpKind, Binary, Declarator, DirectDeclarator, EnumConstant, EnumSpec, Expr, ExprKind,
+        ForInitKind, Initializer, Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt,
+        StmtKind, StructOrUnionSpec, TypeSpec, UnaryOp,
     },
     tokenize::DebugInfo,
     unimplemented_err,
@@ -20,7 +20,6 @@ pub struct Analyzer {
     offset: usize,
     func_map: BTreeMap<String, Func>,
     pub scope: Scope,
-    pub tag_scope: Vec<BTreeMap<String, Taged>>,
     pub conv_program: ConvProgram,
     lc_label: usize,
 }
@@ -31,7 +30,6 @@ impl Analyzer {
         Self {
             offset: 0,
             func_map,
-            tag_scope: Vec::new(),
             scope: Scope::new(),
             conv_program: ConvProgram::new(),
             lc_label: 0,
@@ -44,18 +42,9 @@ impl Analyzer {
         lc_label
     }
 
-    pub fn look_up_struct_tag(&self, name: &str) -> Option<&Taged> {
-        for map in self.tag_scope.iter().rev() {
-            if let Some(taged) = map.get(name) {
-                return Some(taged);
-            }
-        }
-        None
-    }
-
     #[allow(clippy::too_many_lines)]
     pub fn traverse_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
-        self.tag_scope.push(BTreeMap::new());
+        self.scope.push_tag_scope();
         for component in program {
             match component {
                 ProgramComponent {
@@ -130,7 +119,7 @@ impl Analyzer {
                             Type::InComplete(InCompleteKind::Enum(tag_name)) => todo!(),
                         }
                     } else {
-                        // struct declaration
+                        // struct or enum declaration
 
                         self.register_struct_tag_from_type_specifier(&declaration.ty_spec);
                         match declaration.ty_spec {
@@ -151,27 +140,41 @@ impl Analyzer {
                                         struct_declaration.ident_name().to_string()
                                     })
                                     .collect::<Vec<String>>();
-                                self.tag_scope
-                                    .last_mut()
-                                    .expect("INTERNAL COMPILER ERROR.")
-                                    .insert(
-                                        name.clone(),
-                                        Taged::new_struct_tag(name, names, types),
-                                    );
+                                self.scope.register_tag(
+                                    name.clone(),
+                                    Taged::new_struct_tag(name, names, types),
+                                );
+                            }
+                            TypeSpec::Enum(EnumSpec::WithList(Some(name), vec)) => {
+                                let enum_ident_map: BTreeMap<String, usize> = vec
+                                    .into_iter()
+                                    .map(
+                                        |EnumConstant {
+                                             ident,
+                                             debug_info: _,
+                                         }| ident,
+                                    )
+                                    .enumerate()
+                                    .map(|(idx, ident)| (ident, idx))
+                                    .collect();
+                                self.scope.register_tag(
+                                    name.to_string(),
+                                    Taged::new_enum_tag(name, enum_ident_map),
+                                );
                             }
                             _ => {
+                                eprintln!("{:?}", &declaration.ty_spec);
                                 return Err(unimplemented_err!(
                                     debug_info,
                                     "Expected struct declaration with name and list."
-                                ))
+                                ));
                             }
                         }
                     }
                 }
             }
         }
-        self.tag_scope.pop();
-        assert!(self.tag_scope.is_empty());
+        self.scope.pop_tag_scope();
         Ok(self.conv_program.clone())
     }
 
@@ -312,7 +315,6 @@ impl Analyzer {
             ));
         };
         self.scope.push_scope();
-        self.tag_scope.push(BTreeMap::new());
         let body = if let StmtKind::Block(stmts) = body.kind {
             for arg in args {
                 // register func args as lvar
@@ -349,7 +351,6 @@ impl Analyzer {
             ));
         };
         self.scope.pop_scope(&mut self.offset);
-        self.tag_scope.pop();
         let stack_size = self.scope.get_stack_size(); // this_func_map.into_values().collect::<BTreeSet<_>>(),
         Ok(ConvProgramKind::Func(ConvFuncDef::new(
             ty,
@@ -433,7 +434,10 @@ impl Analyzer {
                 if declaration.init_declarator.is_none() {
                     match declaration.ty_spec {
                         TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(Some(name), vec)) => {
-                            self.register_struct_tag(name.clone());
+                            self.scope.register_tag(
+                                name.to_string(),
+                                Taged::Struct(StructTagKind::OnlyTag(name.to_string())),
+                            );
                             let types = vec
                                 .iter()
                                 .map(|struct_declaration| {
@@ -447,16 +451,41 @@ impl Analyzer {
                                     struct_declaration.ident_name().to_string()
                                 })
                                 .collect::<Vec<String>>();
-                            self.tag_scope
-                                .last_mut()
-                                .expect("INTERNAL COMPILER ERROR.")
-                                .insert(name.clone(), Taged::new_struct_tag(name, names, types));
+                            self.scope.register_tag(
+                                name.clone(),
+                                Taged::new_struct_tag(name, names, types),
+                            );
+                            return Ok(ConvStmt::new_block(vec![]));
+                        }
+                        TypeSpec::Enum(EnumSpec::WithList(Some(ref tag), ref variants)) => {
+                            let enum_ident_map: BTreeMap<String, usize> = variants
+                                .clone()
+                                .into_iter()
+                                .map(
+                                    |EnumConstant {
+                                         ident,
+                                         debug_info: _,
+                                     }| ident,
+                                )
+                                .enumerate()
+                                .map(|(idx, ident)| (ident, idx))
+                                .collect();
+                            self.scope.register_tag(
+                                tag.to_string(),
+                                Taged::new_enum_tag(tag.clone(), enum_ident_map),
+                            );
                             return Ok(ConvStmt::new_block(vec![]));
                         }
                         TypeSpec::StructOrUnion(_) => {
                             return Err(unimplemented_err!(
                                 declaration.debug_info,
-                                "Expected struct declaration with name and list."
+                                "Expected struct or enum declaration with name and list."
+                            ))
+                        }
+                        TypeSpec::Enum(EnumSpec::WithTag(_)) => {
+                            return Err(unimplemented_err!(
+                                declaration.debug_info,
+                                "Expected enum declaration with name and list."
                             ))
                         }
                         _ => {
@@ -1362,6 +1391,9 @@ impl Analyzer {
                 let ty = local.ty.clone();
                 ConvExpr::new_lvar_raw(local, ty, debug_info)
             }
+            Var::EnumVariant(EnumVariant { name: _, value }) => {
+                ConvExpr::new_num(value as isize, debug_info)
+            }
         })
     }
 }
@@ -1842,6 +1874,7 @@ impl LVar {
 pub struct Scope {
     global: BTreeMap<String, GVar>,
     pub scopes: Vec<BTreeMap<String, LVar>>,
+    pub tag_scope: Vec<BTreeMap<String, Taged>>,
     max_stack_size: usize,
     diff: Vec<usize>,
 }
@@ -1851,21 +1884,58 @@ impl Scope {
         Self {
             global: BTreeMap::new(),
             scopes: Vec::new(),
+            tag_scope: Vec::new(),
             max_stack_size: 0,
             diff: Vec::new(),
         }
     }
+
+    pub fn register_tag(&mut self, name: String, taged: Taged) {
+        self.tag_scope
+            .last_mut()
+            .expect("INTERNAL COMPILER ERROR.")
+            .insert(name, taged);
+    }
+
+    pub fn push_tag_scope(&mut self) {
+        self.tag_scope.push(BTreeMap::new());
+    }
+
+    pub fn pop_tag_scope(&mut self) {
+        self.tag_scope.pop();
+    }
+
     pub fn push_scope(&mut self) {
         self.diff.push(0);
         self.scopes.push(BTreeMap::new());
+        self.tag_scope.push(BTreeMap::new());
     }
 
     pub fn pop_scope(&mut self, offset: &mut usize) {
         assert!(!self.scopes.is_empty());
+        assert!(!self.tag_scope.is_empty());
         self.scopes.pop();
+        self.tag_scope.pop();
         *offset -= self.diff.pop().expect("diff has to exist.");
     }
 
+    pub fn look_up_struct_tag(&self, name: &str) -> Option<&Taged> {
+        for map in self.tag_scope.iter().rev() {
+            if let Some(taged) = map.get(name) {
+                return Some(taged);
+            }
+        }
+        None
+    }
+
+    pub fn resolve_tag_name(&self, tag_name: &String) -> Option<&Taged> {
+        for map in self.tag_scope.iter().rev() {
+            if let Some(map) = map.get(tag_name) {
+                return Some(map);
+            }
+        }
+        None
+    }
     pub const fn get_stack_size(&self) -> usize {
         self.max_stack_size
     }
@@ -1881,7 +1951,34 @@ impl Scope {
                 return Some(Var::LVar(lvar.clone()));
             }
         }
-        self.global.get(name).map(|gvar| Var::GVar(gvar.clone()))
+        if let Some(gvar) = self.global.get(name).map(|gvar| Var::GVar(gvar.clone())) {
+            return Some(gvar);
+        }
+
+        if let Some(enum_variant) = self.resolve_enum_variant_name(name) {
+            return Some(Var::EnumVariant(enum_variant));
+        }
+
+        None
+    }
+
+    pub fn resolve_enum_variant_name(&self, name: &String) -> Option<EnumVariant> {
+        for map in self.tag_scope.iter().rev() {
+            let mut map_iter = map.values();
+            while let Some(Taged::Enum(EnumTagKind::Enum(Enum {
+                tag: _,
+                members: map,
+            }))) = map_iter.next()
+            {
+                if let Some(value) = map.get(name) {
+                    return Some(EnumVariant {
+                        name: name.clone(),
+                        value: *value,
+                    });
+                }
+            }
+        }
+        None
     }
 
     fn insert_lvar_to_current_scope(&mut self, name: String, lvar: LVar) {
@@ -1991,17 +2088,31 @@ impl Default for Scope {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Taged {
     Struct(StructTagKind),
+    Enum(EnumTagKind),
 }
 
 impl Taged {
     pub fn new_struct_tag(tag: String, names: Vec<String>, types: Vec<Type>) -> Self {
         Self::Struct(StructTagKind::Struct(Struct::new(tag, names, types)))
     }
+
+    pub fn new_enum_tag(tag: String, enum_ident_map: BTreeMap<String, usize>) -> Self {
+        Self::Enum(EnumTagKind::Enum(Enum {
+            tag: Some(tag),
+            members: enum_ident_map,
+        }))
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum StructTagKind {
     Struct(Struct),
+    OnlyTag(String),
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum EnumTagKind {
+    Enum(Enum),
     OnlyTag(String),
 }
 
@@ -2057,9 +2168,9 @@ pub struct StructMember {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Enum {
-    // TODO
     tag: Option<String>,
-    members: Vec<StructMember>,
+    // Map of enum identifier to value
+    members: BTreeMap<String, usize>,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2070,9 +2181,16 @@ pub struct GVar {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct EnumVariant {
+    pub name: String,
+    pub value: usize,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum Var {
     GVar(GVar),
     LVar(LVar),
+    EnumVariant(EnumVariant),
 }
 
 impl Var {
@@ -2080,6 +2198,7 @@ impl Var {
         match self {
             Var::GVar(gvar) => gvar.ty.clone(),
             Var::LVar(lvar) => lvar.ty.clone(),
+            Var::EnumVariant(_) => Type::Base(BaseType::Int),
         }
     }
 }
@@ -2558,12 +2677,16 @@ impl Analyzer {
             TypeSpec::Char => Type::Base(BaseType::Char),
             TypeSpec::Void => Type::Void,
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithTag(tag)) => {
-                match self.look_up_struct_tag(tag.as_str()) {
+                match self.scope.look_up_struct_tag(tag.as_str()) {
                     Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members: _ }))) => {
                         Type::InComplete(InCompleteKind::Struct(tag.clone()))
                     }
                     Some(Taged::Struct(StructTagKind::OnlyTag(tag))) => {
                         Type::InComplete(InCompleteKind::Struct(tag.clone()))
+                    }
+                    Some(Taged::Enum(_)) => {
+                        // All enum variant has type of int
+                        Type::Base(BaseType::Int)
                     }
                     None => {
                         // TODO: support struct which has the self-type member
@@ -2577,7 +2700,10 @@ impl Analyzer {
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(name, vec)) => {
                 // register tag for now
                 if let Some(name) = name {
-                    self.register_struct_tag(name.to_string());
+                    self.scope.register_tag(
+                        name.to_string(),
+                        Taged::Struct(StructTagKind::OnlyTag(name.to_string())),
+                    );
                 }
                 let types = vec
                     .iter()
@@ -2595,15 +2721,19 @@ impl Analyzer {
                     if let Some(Taged::Struct(StructTagKind::Struct(Struct {
                         tag: _,
                         members: looked_up_members,
-                    }))) = self.look_up_struct_tag(name.as_str())
+                    }))) = self.scope.look_up_struct_tag(name.as_str())
                     {
                         if *looked_up_members != constructed_members {
                             return Err(unimplemented_err!( debug_info, "this declaration's tag is incompatible with another tag whose tag-name is same."));
                         }
                     } else {
-                        self.tag_scope.last_mut().expect(
-                            "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
-                        ).insert(name.clone(), Taged::Struct(StructTagKind::Struct(Struct {tag: Some(name.clone()), members: constructed_members.clone()})));
+                        self.scope.register_tag(
+                            name.clone(),
+                            Taged::Struct(StructTagKind::Struct(Struct {
+                                tag: Some(name.clone()),
+                                members: constructed_members.clone(),
+                            })),
+                        );
                     }
                 }
 
@@ -2617,68 +2747,16 @@ impl Analyzer {
                     |name| Type::InComplete(InCompleteKind::Struct(name.clone())),
                 )
             }
-            TypeSpec::Enum(EnumSpec::WithTag(tag)) => {
-                todo!();
-                match self.look_up_struct_tag(tag.as_str()) {
-                    Some(Taged::Struct(StructTagKind::Struct(Struct { tag: _, members: _ }))) => {
-                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
-                    }
-                    Some(Taged::Struct(StructTagKind::OnlyTag(tag))) => {
-                        Type::InComplete(InCompleteKind::Struct(tag.clone()))
-                    }
-                    None => {
-                        // TODO: support struct which has the self-type member
-                        return Err(unimplemented_err!(
-                            debug_info,
-                            "tag of struct declaration with should be declared before."
-                        ));
-                    }
+            TypeSpec::Enum(EnumSpec::WithList(Some(name), _) | EnumSpec::WithTag(name)) => {
+                if self.scope.resolve_tag_name(name).is_none() {
+                    return Err(unimplemented_err!(
+                        debug_info,
+                        "While resolving enum tag, tag is not found in the scope."
+                    ));
                 }
+                Type::Base(BaseType::Int)
             }
-            TypeSpec::Enum(EnumSpec::WithList(name, vec)) => {
-                todo!();
-                // register tag for now
-                // if let Some(name) = name {
-                //     self.register_struct_tag(name.to_string());
-                // }
-                // let types = vec
-                //     .iter()
-                //     .map(|struct_declaration| {
-                //         struct_declaration.get_type(self, struct_declaration.debug_info.clone())
-                //     })
-                //     .collect::<Result<_, CompileError>>()?;
-                // let names = vec
-                //     .iter()
-                //     .map(|struct_declaration| struct_declaration.ident_name().to_string())
-                //     .collect::<Vec<String>>();
-                // let constructed_members = Struct::construct_members(names, types);
-                // // tag compatibility check
-                // if let Some(name) = name {
-                //     if let Some(Taged::Struct(StructTagKind::Struct(Struct {
-                //         tag: _,
-                //         members: looked_up_members,
-                //     }))) = self.look_up_struct_tag(name.as_str())
-                //     {
-                //         if *looked_up_members != constructed_members {
-                //             return Err(unimplemented_err!( debug_info, "this declaration's tag is incompatible with another tag whose tag-name is same."));
-                //         }
-                //     } else {
-                //         self.tag_scope.last_mut().expect(
-                //             "INTERNAL COMPILER ERROR. tag_scope should have at least one scope.",
-                //         ).insert(name.clone(), Taged::Struct(StructTagKind::Struct(Struct {tag: Some(name.clone()), members: constructed_members.clone()})));
-                //     }
-                // }
-
-                // name.as_ref().map_or_else(
-                //     || {
-                //         Type::Struct(Struct {
-                //             tag: None,
-                //             members: constructed_members,
-                //         })
-                //     },
-                //     |name| Type::InComplete(InCompleteKind::Struct(name.clone())),
-                // )
-            }
+            TypeSpec::Enum(EnumSpec::WithList(None, _)) => Type::Base(BaseType::Int),
         })
     }
 
@@ -2688,7 +2766,7 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
         if let Type::InComplete(InCompleteKind::Struct(name)) = ty {
-            let got = self.resolve_tag_name(&name);
+            let got = self.scope.resolve_tag_name(&name);
             match got {
                 Some(Taged::Struct(StructTagKind::Struct(structure))) => {
                     Ok(Type::Struct(structure.clone()))
@@ -2700,6 +2778,14 @@ impl Analyzer {
                         VariableKind::Struct,
                     ))
                 }
+                Some(Taged::Enum(EnumTagKind::OnlyTag(name))) => {
+                    Err(CompileError::new_undeclared_error(
+                        name.clone(),
+                        debug_info,
+                        VariableKind::Enum,
+                    ))
+                }
+                Some(Taged::Enum(EnumTagKind::Enum(enumuration))) => Ok(Type::Base(BaseType::Int)),
                 None => todo!(),
             }
         } else {
@@ -2713,33 +2799,17 @@ impl Analyzer {
             TypeSpec::Int
             | TypeSpec::Char
             | TypeSpec::Void
-            | TypeSpec::Enum(_)
+            | TypeSpec::Enum(_) // Enum has no necessary to register tag before analyze its variants.
             | TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {}
             TypeSpec::StructOrUnion(
                 StructOrUnionSpec::WithList(Some(name), _) | StructOrUnionSpec::WithTag(name),
             ) => {
-                self.register_struct_tag(name.to_string());
+                self.scope.register_tag(
+                    name.to_string(),
+                    Taged::Struct(StructTagKind::OnlyTag(name.to_string())),
+                );
             }
         }
-    }
-
-    pub fn register_struct_tag(&mut self, tag_name: String) {
-        self.tag_scope
-            .last_mut()
-            .expect("INTERNAL COMPILER ERROR. tag_scope should have at least one scope.")
-            .insert(
-                tag_name.clone(),
-                Taged::Struct(StructTagKind::OnlyTag(tag_name)),
-            );
-    }
-
-    pub fn resolve_tag_name(&self, tag_name: &String) -> Option<&Taged> {
-        for map in self.tag_scope.iter().rev() {
-            if let Some(map) = map.get(tag_name) {
-                return Some(map);
-            }
-        }
-        None
     }
 }
 

@@ -1091,6 +1091,7 @@ impl Declaration {
                 .init_declarator
                 .as_ref()
                 .ok_or_else(|| {
+                    panic!();
                     unimplemented_err!(debug_info, "get_type for struct is not yet implemented.")
                 })?
                 .declarator,

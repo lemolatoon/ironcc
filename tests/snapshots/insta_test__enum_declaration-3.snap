@@ -1,0 +1,116 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Global(
+            GVar {
+                name: "enum_global_var",
+                ty: Base(
+                    Int,
+                ),
+                init: None,
+            },
+        ),
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 4,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 11,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            0,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 15,
+                                                n_line: 11,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 11,
+                                    },
+                                },
+                            },
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Num(
+                                    1,
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 12,
+                                    },
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 4,
+            },
+        ),
+    ],
+}
