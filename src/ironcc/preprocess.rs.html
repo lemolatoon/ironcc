@@ -854,6 +854,13 @@
 <span id="848">848</span>
 <span id="849">849</span>
 <span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::panic</span>;
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
@@ -972,6 +979,10 @@
 
                                 <span class="kw">if</span> <span class="ident">macro_value</span>.<span class="ident">is_none</span>() {
                                     <span class="ident">macro_value</span> <span class="op">=</span> <span class="ident">main_chars</span>.<span class="ident">get_debug_info_and_read_number</span>();
+                                }
+
+                                <span class="kw">if</span> <span class="ident">macro_value</span>.<span class="ident">is_none</span>() {
+                                    <span class="ident">macro_value</span> <span class="op">=</span> <span class="ident">main_chars</span>.<span class="ident">get_debug_info_and_read_str_lit</span>();
                                 }
                                 <span class="comment">// just one operand define macro should be defined as 1 .</span>
                                 <span class="kw">let</span> <span class="ident">macro_value</span> <span class="op">=</span> <span class="ident">macro_value</span>
@@ -1151,7 +1162,7 @@
             <span class="ident">included_file_path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
             <span class="ident">src</span>,
         ));
-        <span class="ident">tokens</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">preprocess</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">tokens</span>), <span class="ident">derective_count</span>)<span class="question-mark">?</span>;
+        <span class="ident">tokens</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">preprocess</span>(<span class="ident">file_info</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">tokens</span>), <span class="ident">derective_count</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>)
     }
 }
@@ -1395,7 +1406,10 @@
                 <span class="self">self</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="prelude-val">Some</span>((<span class="ident">debug_info</span>, <span class="ident">TokenKind::HashTag</span>))
             }
-            <span class="prelude-val">Some</span>(<span class="ident">ch</span> @ (<span class="string">&#39;(&#39;</span> <span class="op">|</span> <span class="string">&#39;)&#39;</span> <span class="op">|</span> <span class="string">&#39;[&#39;</span> <span class="op">|</span> <span class="string">&#39;]&#39;</span> <span class="op">|</span> <span class="string">&#39;{&#39;</span> <span class="op">|</span> <span class="string">&#39;}&#39;</span> <span class="op">|</span> <span class="string">&#39;,&#39;</span> <span class="op">|</span> <span class="string">&#39;;&#39;</span> <span class="op">|</span> <span class="string">&#39;:&#39;</span>)) =&gt; {
+            <span class="prelude-val">Some</span>(
+                <span class="ident">ch</span> @ (<span class="string">&#39;(&#39;</span> <span class="op">|</span> <span class="string">&#39;)&#39;</span> <span class="op">|</span> <span class="string">&#39;[&#39;</span> <span class="op">|</span> <span class="string">&#39;]&#39;</span> <span class="op">|</span> <span class="string">&#39;{&#39;</span> <span class="op">|</span> <span class="string">&#39;}&#39;</span> <span class="op">|</span> <span class="string">&#39;,&#39;</span> <span class="op">|</span> <span class="string">&#39;;&#39;</span> <span class="op">|</span> <span class="string">&#39;:&#39;</span> <span class="op">|</span> <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;/&#39;</span>
+                <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span>),
+            ) =&gt; {
                 <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_debug_info</span>();
                 <span class="kw">let</span> <span class="ident">punctuator</span> <span class="op">=</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">ch</span>.<span class="ident">to_string</span>());
                 <span class="self">self</span>.<span class="ident">advance</span>(<span class="number">1</span>);
