@@ -229,8 +229,15 @@ impl Parser {
                         debug_info,
                     ))
                 }
+                TokenKind::Enum => {
+                    tokens.next();
+                    Ok((
+                        TypeSpec::Enum(self.parse_enum_specifier(tokens)?),
+                        debug_info,
+                    ))
+                }
                 _ => Err(CompileError::new_expected_failed(
-                    Box::new("TokenKind::Type(_)"),
+                    Box::new("TokenKind::Type(_) | TokenKind::Struct".to_string()),
                     Token::new(*kind, debug_info),
                 )),
             },
@@ -239,6 +246,103 @@ impl Parser {
                 Box::new("ToKenKind::Type(_)"),
             )),
         }
+    }
+    pub fn parse_enum_specifier<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<EnumSpec, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        let peeked = if let Some(peeked) = tokens.peek_kind() {
+            peeked
+        } else {
+            return Err(CompileError::new_unexpected_eof(
+                None,
+                Box::new("TokenKind::Ident".to_string()),
+            ));
+        };
+        if matches!(peeked, TokenKind::Ident(_)) {
+            // with tag
+            let (name, _) = tokens.consume_ident()?;
+            if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
+                // <enumerator-list>
+                let list = self.parse_enumerator_list(tokens)?;
+                tokens.expect(TokenKind::CloseDelim(DelimToken::Brace))?;
+                return Ok(EnumSpec::WithList(Some(name), list));
+            }
+            return Ok(EnumSpec::WithTag(name));
+        } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
+            // <enumerator-list>
+            let list = self.parse_enumerator_list(tokens)?;
+            tokens.expect(TokenKind::CloseDelim(DelimToken::Brace))?;
+            return Ok(EnumSpec::WithList(None, list));
+        }
+
+        match tokens.peek() {
+            Some(token) => Err(CompileError::new_expected_failed(
+                Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
+                token.clone(),
+            )),
+            None => Err(CompileError::new_unexpected_eof(
+                None,
+                Box::new("TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Brace)"),
+            )),
+        }
+    }
+
+    pub fn parse_enumerator_list<I>(
+        &self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Vec<EnumConstant>, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        let mut list = Vec::new();
+        loop {
+            if matches!(tokens.peek_kind(), Some(TokenKind::Ident(_))) {
+                let (ident, debug_info) = tokens.consume_ident().unwrap();
+                list.push(EnumConstant { ident, debug_info });
+                if !tokens.consume(&TokenKind::Comma) {
+                    break;
+                }
+                if tokens.peek_expect(&TokenKind::CloseDelim(DelimToken::Brace)) {
+                    break;
+                }
+
+                if tokens.peek_expect(&TokenKind::Comma) {
+                    let mut tmp_tokens = tokens.clone();
+                    tmp_tokens.next();
+                    if Some(TokenKind::CloseDelim(DelimToken::Brace)) == tmp_tokens.peek_kind() {
+                        break;
+                    }
+                    continue;
+                }
+            } else {
+                if tokens.peek_expect(&TokenKind::Comma)
+                    || tokens.peek_expect(&TokenKind::CloseDelim(DelimToken::Brace))
+                {
+                    break;
+                }
+                if let Some(token) = tokens.next() {
+                    return Err(CompileError::new_expected_failed(
+                        Box::new("TokenKind::Ident(_)"),
+                        token,
+                    ));
+                }
+                return Err(CompileError::new_unexpected_eof(
+                    None,
+                    Box::new("TokenKind::Ident(_)"),
+                ));
+            };
+        }
+        if !tokens.peek_expect(&TokenKind::CloseDelim(DelimToken::Brace)) {
+            return Err(CompileError::new_expected_failed(
+                Box::new(TokenKind::CloseDelim(DelimToken::Brace)),
+                tokens.next().unwrap(),
+            ));
+        }
+        Ok(list)
     }
 
     pub fn parse_struct_or_union_specifier<I>(
@@ -987,6 +1091,7 @@ impl Declaration {
                 .init_declarator
                 .as_ref()
                 .ok_or_else(|| {
+                    panic!();
                     unimplemented_err!(debug_info, "get_type for struct is not yet implemented.")
                 })?
                 .declarator,
@@ -1081,6 +1186,7 @@ pub enum TypeSpec {
     Char,
     Void,
     StructOrUnion(StructOrUnionSpec),
+    Enum(EnumSpec),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1109,6 +1215,12 @@ impl StructDeclaration {
         let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info)?;
         analyzer.get_type(conveted_type, &self.declarator)
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct EnumConstant {
+    pub ident: String,
+    pub debug_info: DebugInfo,
 }
 
 impl Stmt {
@@ -1160,7 +1272,16 @@ impl Stmt {
     }
 }
 
-/// \<type-name\> := \<specifier-qualifier-list\> \<abstract-declarator\>?
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum EnumSpec {
+    WithList(
+        Option<String>,
+        /* <enumerator-list> */ Vec<EnumConstant>,
+    ),
+    WithTag(String),
+}
+
+/// <type-name> := <specifier-qualifier-list> <abstract-declarator>?
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct TypeName {
     // TODO: actually Vec
@@ -1194,6 +1315,10 @@ impl TypeName {
             TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {
                 todo!()
             }
+            TypeSpec::Enum(EnumSpec::WithTag(name) | EnumSpec::WithList(Some(name), _)) => {
+                Type::InComplete(InCompleteKind::Enum(name.clone()))
+            }
+            TypeSpec::Enum(EnumSpec::WithList(None, _)) => todo!(),
         };
         if let Some(ref abstract_declarator) = self.abstract_declarator {
             for _ in 0..abstract_declarator.n_star {
@@ -1267,7 +1392,7 @@ pub enum ExprKind {
     StrLit(String),
     Unary(UnaryOp, Box<Expr>),
     Assign(Box<Expr>, Box<Expr>),
-    LVar(String),
+    Ident(String),
     Func(String, Vec<Expr>),
     Deref(Box<Expr>),
     Addr(Box<Expr>),
@@ -1383,7 +1508,7 @@ impl Expr {
 
     pub const fn new_lvar(name: String, debug_info: DebugInfo) -> Self {
         Self {
-            kind: ExprKind::LVar(name),
+            kind: ExprKind::Ident(name),
             debug_info,
         }
     }

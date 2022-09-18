@@ -4,17 +4,11 @@ use crate::unimplemented_err;
 use std::iter::Peekable;
 
 #[derive(Debug)]
-pub struct Tokenizer
-// where
-//     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
-{
+pub struct Tokenizer {
     stream: PreprocessorTokenContainerStream,
 }
 
-impl Tokenizer
-// where
-//     I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
-{
+impl Tokenizer {
     pub const fn new(stream: PreprocessorTokenContainerStream) -> Self {
         Self { stream }
     }
@@ -196,6 +190,7 @@ impl Tokenizer
                         "void" => TokenKind::Type(TypeToken::Void),
                         "sizeof" => TokenKind::SizeOf,
                         "struct" => TokenKind::Struct,
+                        "enum" => TokenKind::Enum,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
@@ -250,6 +245,8 @@ pub enum TokenKind {
     SizeOf,
     /// `struct`, reserved word
     Struct,
+    /// `enum`, reserved word
+    Enum,
     /// `=` assign
     Eq,
     /// `,`
@@ -588,10 +585,13 @@ where
 }
 
 impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenKind> {
-    /// Return next token is `TokenKind::Type` or not.(Not consume)
+    /// Return next token is the beginning of `type-specifier` or not.(Not consume)
     pub fn is_type(&mut self) -> bool {
         if let Some(token) = self.peek() {
-            return matches!(*token.kind, TokenKind::Type(_) | TokenKind::Struct);
+            return matches!(
+                *token.kind,
+                TokenKind::Type(_) | TokenKind::Struct | TokenKind::Enum
+            );
         }
         false
     }

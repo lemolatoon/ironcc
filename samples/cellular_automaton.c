@@ -1,31 +1,23 @@
-void printf(char *msg, ...);
-void *malloc(int size);
-void exit(int status);
 
-void clear() {
-  printf("\e[2J");
-}
+#include<stdio.h>
+#include<stdlib.h>
 
-void reset_cursor() {
-  printf("\e[0;0H");
-  printf("\e[0;0f");
-}
+#include "draw_utils.c"
 
-const int block_width = 1;
+#define BLOCK_WIDTH 1
+#define BLOCK_CHAR "_"
 
-const int board_size = 23;
-int (*make_array())[board_size];
-void init_array(int (*array_will_be_init)[board_size], int *init_value_array);
-void print_array(int (*board)[board_size]);
+#define BOARD_SIZE 23
+int (*make_array())[BOARD_SIZE];
+void init_array(int (*array_will_be_init)[BOARD_SIZE], int *init_value_array);
+void print_array(int (*board)[BOARD_SIZE]);
 void usleep(int utime);
-void process(int (*array1)[board_size], int (*array2)[board_size]);
+void process(int (*array1)[BOARD_SIZE], int (*array2)[BOARD_SIZE]);
 
 const int N_STEPS = 50;
 const int SLEEP_TIME = 500000;
 int main() {
-  // clear();
-  // reset_cursor();
-//  int init_value_array[board_size] = {
+//  int init_value_array[BOARD_SIZE] = {
 //      0b00000000000000000000,
 //      0b00000000000000000000,
 //      0b00000000000000000000,
@@ -47,7 +39,7 @@ int main() {
 //      0b00000000000000000000,
 //      0b00000000000000000000,
 //  };
-  int init_value_array[board_size] = {
+  int init_value_array[BOARD_SIZE] = {
       0b00000000000000000000000,
       0b00000000000000110000000,
       0b00000000000111011000000,
@@ -72,10 +64,10 @@ int main() {
       0b00000000000000110000000,
       0b00000000000000000000000,
   };
-  int array1[board_size][board_size];
+  int array1[BOARD_SIZE][BOARD_SIZE];
   init_array(array1, init_value_array);
 
-  int array2[board_size][board_size];
+  int array2[BOARD_SIZE][BOARD_SIZE];
   for (int i = 0; i < N_STEPS / 2; i++) {
     print_array(array1);
     process(array1, array2);
@@ -88,12 +80,12 @@ int main() {
   return 0;
 }
 
-int get_with_boundary_check(int (*array)[board_size], int i, int j);
-int get_n_neighbourhood(int (*array)[board_size], int i, int j);
+int get_with_boundary_check(int (*array)[BOARD_SIZE], int i, int j);
+int get_n_neighbourhood(int (*array)[BOARD_SIZE], int i, int j);
 
-void process(int (*array1)[board_size], int (*array2)[board_size]) {
-  for (int i = 0; i < board_size; i++) {
-    for (int j = 0; j < board_size; j++) {
+void process(int (*array1)[BOARD_SIZE], int (*array2)[BOARD_SIZE]) {
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    for (int j = 0; j < BOARD_SIZE; j++) {
       int count = get_n_neighbourhood(array1, i, j);
       if (count <= 1) {
         array2[i][j] = 0;
@@ -109,7 +101,7 @@ void process(int (*array1)[board_size], int (*array2)[board_size]) {
 }
 
 
-int get_n_neighbourhood(int (*array)[board_size], int i, int j) {
+int get_n_neighbourhood(int (*array)[BOARD_SIZE], int i, int j) {
   int count = 0;
   count = count + get_with_boundary_check(array, i - 1, j - 1);
   count = count + get_with_boundary_check(array, i, j - 1);
@@ -122,23 +114,23 @@ int get_n_neighbourhood(int (*array)[board_size], int i, int j) {
   return count;
 }
 
-int get_with_boundary_check(int (*array)[board_size], int i, int j) {
-  if (i < 0 || i >= board_size || j < 0 || j >= board_size) {
+int get_with_boundary_check(int (*array)[BOARD_SIZE], int i, int j) {
+  if (i < 0 || i >= BOARD_SIZE || j < 0 || j >= BOARD_SIZE) {
     return 0;
   } else {
     return array[i][j];
   }
 }
 
-void print_array(int (*board)[board_size]){
+void print_array(int (*board)[BOARD_SIZE]){
   clear();
   reset_cursor();
-  for (int i = 0; i < board_size; i++) {
-    for (int k1 = 0; k1 < block_width; k1++) {
-      for (int j = 0; j < board_size; j++) {
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    for (int k1 = 0; k1 < BLOCK_WIDTH; k1++) {
+      for (int j = 0; j < BOARD_SIZE; j++) {
           printf("\e[4%dm", board[i][j] + 3);
-          for (int k2 = 0; k2 < block_width; k2++) {
-            printf("#");
+          for (int k2 = 0; k2 < BLOCK_WIDTH; k2++) {
+            printf(BLOCK_CHAR);
           }
           printf("\e[0m");
       }
@@ -148,10 +140,10 @@ void print_array(int (*board)[board_size]){
 }
 
 
-void init_array(int (*array_will_be_init)[board_size], int *init_value_array) {
-  for (int i = 0; i < board_size; i++) {
-    for (int j = 0; j < board_size; j++) {
-      array_will_be_init[i][j] = (init_value_array[i] >> (board_size - j - 1)) & 1;
+void init_array(int (*array_will_be_init)[BOARD_SIZE], int *init_value_array) {
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    for (int j = 0; j < BOARD_SIZE; j++) {
+      array_will_be_init[i][j] = (init_value_array[i] >> (BOARD_SIZE - j - 1)) & 1;
     }
   }
 }

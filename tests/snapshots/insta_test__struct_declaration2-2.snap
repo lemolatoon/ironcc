@@ -119,7 +119,7 @@ Program {
                                         kind: SizeOf(
                                             Expr(
                                                 Expr {
-                                                    kind: LVar(
+                                                    kind: Ident(
                                                         "mine",
                                                     ),
                                                     debug_info: DebugInfo {

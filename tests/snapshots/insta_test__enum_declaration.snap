@@ -1,0 +1,488 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: Enum,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A1",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Comma,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Comma,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 1,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Enum,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "B1",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Comma,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "B2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 7,
+            },
+        },
+    },
+    Token {
+        kind: Comma,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 7,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 8,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "enum_global_var",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 2,
+                n_line: 8,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 17,
+                n_line: 8,
+            },
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: Enum,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "a",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Eq,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A1",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 17,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Return,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 12,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "A2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 12,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 12,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 13,
+            },
+        },
+    },
+    Token {
+        kind: Eof,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 13,
+            },
+        },
+    },
+]

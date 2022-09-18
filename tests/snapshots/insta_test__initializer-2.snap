@@ -83,7 +83,7 @@ Program {
                                                         Expr {
                                                             kind: Addr(
                                                                 Expr {
-                                                                    kind: LVar(
+                                                                    kind: Ident(
                                                                         "a",
                                                                     ),
                                                                     debug_info: DebugInfo {

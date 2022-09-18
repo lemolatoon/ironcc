@@ -72,7 +72,7 @@ Program {
                                         kind: Unary(
                                             LogicalNot,
                                             Expr {
-                                                kind: LVar(
+                                                kind: Ident(
                                                     "a",
                                                 ),
                                                 debug_info: DebugInfo {

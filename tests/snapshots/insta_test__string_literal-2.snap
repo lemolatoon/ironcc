@@ -140,7 +140,7 @@ Program {
                                             "printf",
                                             [
                                                 Expr {
-                                                    kind: LVar(
+                                                    kind: Ident(
                                                         "msg",
                                                     ),
                                                     debug_info: DebugInfo {

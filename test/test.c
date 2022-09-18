@@ -56,6 +56,7 @@ int test49();
 int test50();
 int test51();
 int test52();
+int test53();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -133,6 +134,7 @@ int main()
     assert(50, 0, test50());
     assert(51, 0, test51());
     assert(52, 0, test52());
+    assert(53, 0, test53());
 
     print_ok();
     return 0;
@@ -1075,5 +1077,24 @@ int test52_just_ret2() {
 int test52() {
     assert(52, 2, test52_just_ret());
     assert(52, 3, test52_just_ret2());
+    return 0;
+}
+
+enum test53_enum {
+    TEST53_ENUM_A,
+    TEST53_ENUM_B,
+    TEST53_ENUM_C,
+};
+int test53() {
+    enum A { 
+        A1,
+        A2,
+        A3
+    };
+    assert(53, A1, 0);
+    assert(53, A3, 2);
+    assert(53, 0, TEST53_ENUM_A);
+    assert(53, 1, TEST53_ENUM_B);
+    assert(53, 2, TEST53_ENUM_C);
     return 0;
 }

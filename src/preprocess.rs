@@ -117,6 +117,10 @@ impl<'b> Preprocessor<'b> {
                                 if macro_value.is_none() {
                                     macro_value = main_chars.get_debug_info_and_read_number();
                                 }
+
+                                if macro_value.is_none() {
+                                    macro_value = main_chars.get_debug_info_and_read_str_lit();
+                                }
                                 // just one operand define macro should be defined as 1 .
                                 let macro_value = macro_value
                                     .map_or("1".to_string(), |(_, macro_value)| macro_value);
@@ -295,7 +299,7 @@ impl<'b> Preprocessor<'b> {
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.clone().into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
         Ok(tokens)
     }
 }
@@ -539,7 +543,10 @@ impl SrcCursor {
                 self.advance(1);
                 Some((debug_info, TokenKind::HashTag))
             }
-            Some(ch @ ('(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | ':')) => {
+            Some(
+                ch @ ('(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | ':' | '+' | '-' | '*' | '/'
+                | '<' | '>'),
+            ) => {
                 let debug_info = self.get_debug_info();
                 let punctuator = TokenKind::Punctuator(ch.to_string());
                 self.advance(1);
