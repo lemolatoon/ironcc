@@ -16,222 +16,246 @@ ConvProgram {
                 init: Some(
                     Array(
                         [
-                            ConstExpr {
-                                kind: Int(
-                                    72,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    101,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        72,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    108,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    108,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        101,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    111,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    32,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        108,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    87,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    111,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        108,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    114,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    108,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        111,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    100,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
-                                    },
-                                },
-                            },
-                            ConstExpr {
-                                kind: Int(
-                                    0,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 20,
-                                        n_line: 4,
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        32,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        87,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        111,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        114,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        108,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        100,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
+                            Expr(
+                                ConstExpr {
+                                    kind: Char(
+                                        0,
+                                    ),
+                                    ty: Base(
+                                        Char,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 20,
+                                            n_line: 4,
+                                        },
+                                    },
+                                },
+                            ),
                         ],
                     ),
                 ),
@@ -295,222 +319,246 @@ ConvProgram {
                                                         init: Some(
                                                             Array(
                                                                 [
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            72,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            101,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                72,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            108,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            108,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                101,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            111,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            32,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            87,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            111,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            114,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            108,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                111,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            100,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    ConstExpr {
-                                                                        kind: Int(
-                                                                            0,
-                                                                        ),
-                                                                        ty: Base(
-                                                                            Int,
-                                                                        ),
-                                                                        debug_info: DebugInfo {
-                                                                            file_info: FileInfo {
-                                                                                file_name: "not impl name.c",
-                                                                                src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
-                                                                            },
-                                                                            pos: Position {
-                                                                                n_char: 20,
-                                                                                n_line: 4,
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                32,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
                                                                             },
                                                                         },
-                                                                    },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                87,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                111,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                114,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                108,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                100,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                    Expr(
+                                                                        ConstExpr {
+                                                                            kind: Char(
+                                                                                0,
+                                                                            ),
+                                                                            ty: Base(
+                                                                                Char,
+                                                                            ),
+                                                                            debug_info: DebugInfo {
+                                                                                file_info: FileInfo {
+                                                                                    file_name: "not impl name.c",
+                                                                                    src: "\n    int printf(char *msg);\n\n    int main() {\n        char *msg = \"Hello World\";\n        printf(msg);\n    }\n    ",
+                                                                                },
+                                                                                pos: Position {
+                                                                                    n_char: 20,
+                                                                                    n_line: 4,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
                                                                 ],
                                                             ),
                                                         ),

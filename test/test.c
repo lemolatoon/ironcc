@@ -57,6 +57,8 @@ int test50();
 int test51();
 int test52();
 int test53();
+int test54();
+int test55();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -135,6 +137,8 @@ int main()
     assert(51, 0, test51());
     assert(52, 0, test52());
     assert(53, 0, test53());
+    assert(54, 0, test54());
+    assert(55, 0, test55());
 
     print_ok();
     return 0;
@@ -1096,5 +1100,46 @@ int test53() {
     assert(53, 0, TEST53_ENUM_A);
     assert(53, 1, TEST53_ENUM_B);
     assert(53, 2, TEST53_ENUM_C);
+    return 0;
+}
+
+int test54() {
+    int two = 2;
+    char fifteen = 11;
+    int arr[5][3] = {
+        {1, two, 3},
+        {4, 5, 6},
+        {7, 8, 9},
+        {10, fifteen, 12},
+        {13, 14, 15},
+    };
+    assert(54, 4 * 5 * 3, sizeof(arr));
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 3; j++) {
+            assert(54, i * 3 + j + 1, arr[i][j]);
+        }
+    }
+    return 0;
+}
+
+int test55_global_array[5][2] = 
+{
+    {1, 2},
+    {3, 4},
+    {5},
+    {7, 8},
+    {9, 10},
+};
+
+int test55() {
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 2; j++) {
+            if (i == 2 && j == 1) {
+                assert(55, 0, test55_global_array[i][j]);
+            } else {
+                assert(55, i * 2 + j + 1, test55_global_array[i][j]);
+            }
+        }
+    }
     return 0;
 }

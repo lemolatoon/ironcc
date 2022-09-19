@@ -189,93 +189,18 @@ impl Analyzer {
     ) -> Result<GVar, CompileError> {
         let init = init
             .map(|expr| {
-                expr.clone().map(|expr| {
-                    ConstExpr::try_eval_as_const(self.traverse_expr(expr, BTreeSet::new())?)
+                let cast_to = match expr {
+                    Initializer::Expr(_) => ty.clone(),
+                    Initializer::Array(_) => ty.get_array_base_recursively().clone(),
+                };
+                expr.clone().map(&mut |expr| {
+                    ConstExpr::try_eval_as_const(Self::new_cast_expr_with_type_check(
+                        self.traverse_expr(expr, BTreeSet::new())?,
+                        cast_to.clone(),
+                    )?)
                 })
             })
             .transpose()?;
-        let init_debug_info_ty = match &init {
-            Some(ConstInitializer::Array(exprs)) => {
-                // array initializer's items have the same types each or not.
-                let mut unequal_type_index = 0;
-                if !exprs.get(0).map_or(true, |first| {
-                    exprs
-                        .iter()
-                        .map(|expr| &expr.ty)
-                        .enumerate()
-                        .all(|(idx, ty)| {
-                            unequal_type_index = idx;
-                            ty.ty_eq(&first.ty)
-                        })
-                }) {
-                    return Err(CompileError::new_type_error_const(
-                        exprs[0].clone(),
-                        exprs[unequal_type_index].clone(),
-                        Some("Array Initializer has incompatible types"),
-                    ));
-                }
-                Some((exprs[0].debug_info.clone(), exprs[0].ty.clone()))
-            }
-            Some(ConstInitializer::Expr(expr)) => Some((expr.debug_info.clone(), expr.ty.clone())),
-            None => None,
-        };
-        if let Some((init_debug_info, init_ty)) = init_debug_info_ty {
-            // type check
-            match ty.clone() {
-                Type::Base(_) | Type::Ptr(_) => {
-                    if !ty.ty_eq(&init_ty) {
-                        if ty.is_base() && init_ty.is_base() {
-                        } else {
-                            return Err(CompileError::new_type_error_types(
-                                debug_info,
-                                init_debug_info,
-                                ty,
-                                init_ty,
-                                Some("Incompatible type at expr initializer"),
-                            ));
-                        }
-                    }
-                }
-                Type::Func {
-                    ret_ty: _,
-                    args: _,
-                    is_flexible: _,
-                } => unreachable!(),
-                Type::Struct(_) => {
-                    return Err(unimplemented_err!(
-                        debug_info,
-                        "Global Variable Initialization with struct is not currently supported."
-                    ))
-                }
-                // Type::Enum(_) => {
-                //     return Err(unimplemented_err!(
-                //         debug_info,
-                //         "Global Variable Initialization with enum is not currently supported."
-                //     ))
-                // }
-                Type::Array(base, _) => {
-                    if !base.ty_eq(&init_ty) {
-                        if base.is_base() && init_ty.is_base() {
-                        } else {
-                            return Err(CompileError::new_type_error_types(
-                                debug_info,
-                                init_debug_info,
-                                *base,
-                                init_ty,
-                                Some("Incompatible type at array initializer"),
-                            ));
-                        }
-                    }
-                }
-                Type::Void => {
-                    return Err(CompileError::new_unexpected_void(
-                        debug_info,
-                        "void type global variable found.".to_string(),
-                    ))
-                }
-                Type::InComplete(_) => todo!(),
-            };
-        }
 
         self.scope.register_gvar(debug_info, name, ty, init)
     }
@@ -505,66 +430,72 @@ impl Analyzer {
                     declaration.debug_info.clone(),
                     &mut self.offset,
                     name,
-                    ty.clone(),
+                    ty,
                 )?;
                 match declaration
                     .init_declarator
                     .and_then(|init_declarator| init_declarator.initializer)
                 {
-                    Some(Initializer::Expr(init)) => {
-                        let rhs = self.traverse_expr(init, BTreeSet::new())?;
-                        ConvStmt::new_expr(Self::new_assign_expr_with_type_check(
-                            // Safety:
-                            // the lvar is generated by `register_lvar` which initializes lvar_map
-                            ConvExpr::new_lvar_raw(lvar, ty, declaration.debug_info.clone()),
-                            rhs,
-                            declaration.debug_info,
-                        )?)
-                    }
-                    Some(Initializer::Array(vec)) => {
-                        ConvStmt::new_block(
-                            vec.into_iter()
-                                .enumerate()
-                                .map(|(idx, expr)| {
-                                    let expr_debug_info = expr.debug_info.clone();
-                                    let rhs = self.traverse_expr(expr, BTreeSet::new())?;
-                                    Ok(ConvStmt::new_expr(Self::new_assign_expr_with_type_check(
-                                        ConvExpr::new_deref(
-                                            ConvExpr::new_binary(
-                                                ConvBinOpKind::Add,
-                                                // Safety:
-                                                // the lvar is generated by `register_lvar` which initializes lvar_map
-                                                // this lvar is ptr converted array
-                                                ConvExpr::new_addr(
-                                                    ConvExpr::new_lvar_raw(
-                                                        lvar.clone(),
-                                                        ty.base_type().clone(),
-                                                        expr_debug_info.clone(),
-                                                    ),
-                                                    expr_debug_info.clone(),
-                                                ),
-                                                ConvExpr::new_num(
-                                                    (ty.base_type().size_of() * idx) as isize,
-                                                    declaration.debug_info.clone(),
-                                                ),
-                                                ty.base_type().clone(),
-                                                expr_debug_info,
-                                            ),
-                                            ty.base_type().clone(),
-                                            declaration.debug_info.clone(),
-                                        ),
-                                        rhs,
-                                        declaration.debug_info.clone(),
-                                    )?))
-                                })
-                                .collect::<Result<Vec<_>, CompileError>>()?,
-                        )
+                    Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
+                        let debug_info = declaration.debug_info.clone();
+                        let left_ty = lvar.ty.clone();
+                        init.gen_assign_exprs_stmt(self, lvar, left_ty, debug_info)?
                     }
                     // just declaration does nothing
                     None => ConvStmt::new_block(vec![]),
                 }
             }
         })
+    }
+
+    pub fn new_cast_expr_with_type_check(
+        expr: ConvExpr,
+        cast_to: Type,
+    ) -> Result<ConvExpr, CompileError> {
+        if expr.ty.ty_eq(&cast_to) {
+            return Ok(expr);
+        }
+        let expr_ty = expr.ty.clone();
+        let expr_ptr_to = expr_ty.get_ptr_to();
+        let cast_to_ptr_to = cast_to.get_ptr_to();
+        if expr_ty.is_void_ptr() && cast_to_ptr_to.is_some() {
+            // Safety: `rhs_ptr_to.is_some()` is true on this branch
+            let ptr_to = cast_to_ptr_to.unwrap().clone();
+            let expr = ConvExpr::new_cast(
+                expr,
+                Type::Ptr(Box::new(Type::Void)),
+                CastKind::ToVoidPtr { ptr_to },
+            );
+            return Ok(expr);
+        } else if expr_ptr_to.is_some() && cast_to.is_void_ptr() {
+            let expr = ConvExpr::new_cast(
+                expr,
+                Type::Ptr(Box::new(Type::Void)),
+                CastKind::FromVoidPtr {
+                    ptr_to: expr_ptr_to.unwrap().clone(),
+                },
+            );
+            return Ok(expr);
+        }
+        match (expr_ty.clone().get_base(), cast_to.get_base()) {
+            (Some(lhs_base), Some(rhs_base)) => {
+                let rhs_base = *rhs_base;
+                let expr =
+                    ConvExpr::new_cast(expr, expr_ty, CastKind::Base2Base(rhs_base, *lhs_base));
+                return Ok(expr);
+            }
+            _ => {
+                let debug_info0 = expr.debug_info.clone();
+                let debug_info1 = debug_info0.clone();
+                return Err(CompileError::new_type_error_types(
+                    debug_info0,
+                    debug_info1,
+                    expr.ty,
+                    cast_to,
+                    Some("Trying to cast, but have incompatible types"),
+                ));
+            }
+        }
     }
 
     pub fn new_assign_expr_with_type_check(
@@ -578,7 +509,7 @@ impl Analyzer {
             let rhs_ptr_to = rhs.ty.get_ptr_to();
             if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
                 // Safety: `rhs_ptr_to.is_some()` is true on this branch
-                let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
+                let ptr_to = rhs_ptr_to.unwrap().clone();
                 rhs = ConvExpr::new_cast(
                     rhs,
                     Type::Ptr(Box::new(Type::Void)),
@@ -675,7 +606,10 @@ impl Analyzer {
                     letters
                         .chars()
                         .map(|c| {
-                            Expr::new_num(u8::try_from(c).unwrap() as isize, debug_info.clone())
+                            Initializer::Expr(Expr::new_num(
+                                u8::try_from(c).unwrap() as isize,
+                                debug_info.clone(),
+                            ))
                         })
                         .collect(),
                 ));
@@ -1843,7 +1777,7 @@ pub enum ConvUnaryOp {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum CastKind {
-    Base2Base(BaseType, BaseType),
+    Base2Base(BaseType /* to */, BaseType /* from */),
     NoCast,
     Ptr2Ptr {
         from: Type,
@@ -2251,7 +2185,7 @@ impl FuncArgs {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ConstInitializer {
     Expr(ConstExpr),
-    Array(Vec<ConstExpr>),
+    Array(Vec<ConstInitializer>),
 }
 
 impl ConstInitializer {
@@ -2285,7 +2219,7 @@ impl ConstInitializer {
             ConstInitializer::Expr(expr) => expr.debug_info.clone(),
             ConstInitializer::Array(vec) => vec
                 .first()
-                .map(|expr| expr.debug_info.clone())
+                .map(|expr| expr.get_debug_info())
                 .unwrap_or_default(),
         }
     }
@@ -2381,10 +2315,16 @@ impl ConstExpr {
         let ty = expr.ty.clone();
         let kind = expr.kind;
         let bool_to_isize = |b| if b { 1 } else { 0 };
-        let num_expr = |num: isize, debug_info| ConstExpr {
-            kind: ConstExprKind::Int(num as i32),
-            ty,
-            debug_info,
+        let num_expr = |num: isize, debug_info, ty: BaseType| {
+            let kind = match ty {
+                BaseType::Int => ConstExprKind::Int(num as i32),
+                BaseType::Char => ConstExprKind::Char(num as i8),
+            };
+            ConstExpr {
+                kind,
+                ty: Type::Base(ty),
+                debug_info,
+            }
         };
         Ok(match kind {
             ConvExprKind::Binary(ConvBinary {
@@ -2395,16 +2335,20 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     + Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Sub,
                 lhs,
                 rhs,
-            }) => num_expr(
-                Self::try_eval_as_const(*lhs)?.get_num_lit()?
-                    - Self::try_eval_as_const(*rhs)?.get_num_lit()?,
-                debug_info,
-            ),
+            }) => {
+                num_expr(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        - Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                    debug_info,
+                    ty.get_base().unwrap().clone(), // This Option is always `Some`, because literal or not is checked in `get_num_lit`.
+                )
+            }
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Mul,
                 lhs,
@@ -2413,6 +2357,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     * Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Div,
@@ -2422,6 +2367,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     / Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Rem,
@@ -2431,6 +2377,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     % Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Eq,
@@ -2442,6 +2389,7 @@ impl ConstExpr {
                         == Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Ne,
@@ -2453,6 +2401,7 @@ impl ConstExpr {
                         != Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Lt,
@@ -2464,6 +2413,7 @@ impl ConstExpr {
                         < Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
+                ty.get_base().unwrap().clone(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Le,
@@ -2475,6 +2425,7 @@ impl ConstExpr {
                         <= Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::LShift,
@@ -2484,6 +2435,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     << Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::RShift,
@@ -2493,6 +2445,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     >> Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::BitWiseAnd,
@@ -2502,6 +2455,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     & Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::GVar(ref gvar) => {
                 // TODO: check if gvar is const or not
@@ -2511,11 +2465,11 @@ impl ConstExpr {
                     .map_or(None, |init| Some(init.get_num_lit()?))
                 {
                     eprintln!("Have to check {:?} is const or not.", &gvar);
-                    return Ok(num_expr(val, debug_info));
+                    return Ok(num_expr(val, debug_info, BaseType::Int));
                 }
                 return Err(CompileError::new_const_expr_error(debug_info, kind));
             }
-            ConvExprKind::Num(num) => num_expr(num, debug_info),
+            ConvExprKind::Num(num) => num_expr(num, debug_info, ty.get_base().unwrap().clone()),
             ConvExprKind::LVar(_)
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(..)
@@ -2523,10 +2477,35 @@ impl ConstExpr {
             | ConvExprKind::Member {
                 struct_expr: _,
                 minus_offset: _,
+            } => return Err(CompileError::new_const_expr_error(debug_info, kind)),
+            ConvExprKind::Cast(expr, CastKind::Base2Base(to, _)) => num_expr(
+                Self::try_eval_as_const(*expr)?.get_num_lit()?,
+                debug_info,
+                to,
+            ),
+            ConvExprKind::Cast(expr, CastKind::FromVoidPtr { ptr_to }) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(ptr_to));
+                const_expr
             }
-            | ConvExprKind::Cast(_, _) => {
-                return Err(CompileError::new_const_expr_error(debug_info, kind))
+            ConvExprKind::Cast(expr, CastKind::ToVoidPtr { ptr_to: _ }) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(Type::Void));
+                const_expr
             }
+            ConvExprKind::Cast(
+                expr,
+                CastKind::Ptr2Ptr {
+                    from: _,
+                    to,
+                    cast_kind: _,
+                },
+            ) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(to));
+                const_expr
+            }
+            ConvExprKind::Cast(expr, CastKind::NoCast) => Self::try_eval_as_const(*expr)?,
             ConvExprKind::Addr(expr) => {
                 let expr_debug_info = expr.debug_info;
                 let expr_ty = expr.ty.clone();
@@ -2662,6 +2641,30 @@ impl Type {
             | Type::Struct(_)
             | Type::Void => None,
             Type::Ptr(ptr_to) => Some(ptr_to),
+            Type::InComplete(_) => todo!(),
+        }
+    }
+
+    /// Get the base type of array recursively, if the type is not an array just return its reference.
+    pub const fn get_array_base_recursively(&self) -> &Type {
+        match self {
+            Type::Array(base_ty, _) => base_ty.get_array_base_recursively(),
+            _ => self,
+        }
+    }
+
+    pub const fn get_array_base(&self) -> Option<&Type> {
+        match self {
+            Type::Base(_)
+            | Type::Func {
+                ret_ty: _,
+                args: _,
+                is_flexible: _,
+            }
+            | Type::Struct(_)
+            | Type::Void
+            | Type::Ptr(_) => None,
+            Type::Array(base, _) => Some(base),
             Type::InComplete(_) => todo!(),
         }
     }

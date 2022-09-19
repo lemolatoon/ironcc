@@ -539,7 +539,7 @@ where
     }
 
     /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: K) -> Result<(), CompileError>
+    pub fn expect(&mut self, kind: &K) -> Result<(), CompileError>
     where
         Token<K>: Into<crate::error::Tokens>,
     {
@@ -550,12 +550,18 @@ where
                 debug_info,
             }) if got.is_eof() && !kind.is_eof() => Err(CompileError::new_unexpected_eof(
                 Some(debug_info.get_file_src()),
-                Box::new(kind),
+                Box::new(kind.clone()),
             )),
-            None => Err(CompileError::new_unexpected_eof(None, Box::new(kind))),
+            None => Err(CompileError::new_unexpected_eof(
+                None,
+                Box::new(kind.clone()),
+            )),
             Some(token) => {
-                if kind != *token.kind {
-                    return Err(CompileError::new_expected_failed(Box::new(kind), token));
+                if *kind != *token.kind {
+                    return Err(CompileError::new_expected_failed(
+                        Box::new(kind.clone()),
+                        token,
+                    ));
                 }
                 Ok(())
             }
