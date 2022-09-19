@@ -190,36 +190,9 @@ impl Generator {
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
                             Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
                             Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("INTERNAL COMPILER ERROR. Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
-                            Type::Array(ty, size) => {
-                                match init {
-                                ConstInitializer::Array(vec) => {
-                                    let size_of = ty.size_of();
-                                    let size_explanation = size_hint(&*ty);
-                                    for i in 0..size {
-                                        match vec.get(i) {
-                                            Some(ConstInitializer::Expr(ConstExpr {kind: ConstExprKind::Int(val), ty: _, debug_info: _})) => {
-                                                writeln!(f, ".long {}",  val)?;
-                                            }
-                                            Some(ConstInitializer::Expr(ConstExpr {kind: ConstExprKind::Char(val), ty: _, debug_info: _})) => {
-                                                writeln!(f, ".byte {}", val)?;
-                                            }
-                                            Some(ConstInitializer::Expr(ConstExpr {kind: ConstExprKind::Addr(gvar), ty: _, debug_info: _})) => {
-                                                writeln!(f, ".quad {}", gvar.name)?;
-                                            }
-                                            Some(ConstInitializer::Array(init_list)) => {
-                                                todo!()
-                                            }
-                                            None => {
-                                                writeln!(f, ".zero {}", size_of)?;
-                                            }
-                                        }
-                                        // if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, debug_info: _ }) = vec.get(i) {
-                                        // } else {
-                                        //     writeln!(f, ".zero {}", size_of)?;
-                                        // }
-                                }},
-                                ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
-                            }},
+                            ty @ Type::Array(_, _) => {
+                                self.gen_const_init_array(f,init, ty)?;
+                            },
                             Type::Struct(_) => return Err(unimplemented_err!(init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
                             Type::InComplete(_) => todo!(),
@@ -236,9 +209,38 @@ impl Generator {
     pub fn gen_const_init_array<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
-        values: &mut Vec<isize>,
+        initializer: ConstInitializer,
+        ty: Type,
     ) -> Result<(), CompileError> {
-        todo!()
+        match initializer {
+            ConstInitializer::Array(vec) => {
+                if let Type::Array(ty, size) = ty {
+                    for idx in 0..size {
+                        if let Some(init) = vec.get(idx) {
+                            self.gen_const_init_array(f, init.clone(), *ty.clone())?;
+                        } else {
+                            writeln!(f, ".zero {}", ty.size_of() * (size - idx))?;
+                        }
+                    }
+                } else {
+                    unreachable!(
+                        "INTERNAL COMPILER ERROR: initializer is array but type is not array."
+                    );
+                }
+            }
+            ConstInitializer::Expr(ConstExpr {
+                kind,
+                ty: _,
+                debug_info: _,
+            }) => {
+                match kind {
+                    ConstExprKind::Int(val) => writeln!(f, ".long {}", val)?,
+                    ConstExprKind::Char(val) => writeln!(f, ".byte {}", val)?,
+                    ConstExprKind::Addr(gvar) => writeln!(f, ".quad {}", gvar.name)?,
+                };
+            }
+        }
+        Ok(())
     }
 
     pub fn gen_stmt<W: Write>(
