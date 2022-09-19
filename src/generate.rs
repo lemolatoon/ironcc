@@ -170,20 +170,6 @@ impl Generator {
                 ConvProgramKind::Global(GVar { name, ty, init }) => {
                     writeln!(f, ".data")?;
                     writeln!(f, "{}:", name)?;
-                    let gvar = GVar {
-                        name: name.clone(),
-                        ty: ty.clone(),
-                        init: init.clone(),
-                    };
-                    let size_hint = |ty: &Type| match ty.base_type().size_of() {
-                        // TODO: byte or string
-                        1 => Ok("byte"),
-                        4 => Ok("long"),
-                        8 => Ok("quad"),
-                        _ => Err(CompileError::new_type_size_error(
-                            UnexpectedTypeSizeStatus::Global(gvar.clone()),
-                        )),
-                    };
                     match init {
                         Some(init) => match ty {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,

@@ -116,7 +116,7 @@ impl Analyzer {
                                 )?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
-                            Type::InComplete(InCompleteKind::Enum(tag_name)) => todo!(),
+                            Type::InComplete(InCompleteKind::Enum(_)) => todo!(),
                         }
                     } else {
                         // struct or enum declaration
@@ -420,7 +420,6 @@ impl Analyzer {
                             ))
                         }
                     };
-                    unreachable!()
                 }
                 let ty = declaration.ty(self, declaration.debug_info.clone())?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
@@ -439,7 +438,7 @@ impl Analyzer {
                     Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
                         let debug_info = declaration.debug_info.clone();
                         let left_ty = lvar.ty.clone();
-                        init.gen_assign_exprs_stmt(self, lvar, left_ty, debug_info)?
+                        init.gen_assign_exprs_stmt(self, lvar, &left_ty, debug_info)?
                     }
                     // just declaration does nothing
                     None => ConvStmt::new_block(vec![]),
@@ -460,7 +459,7 @@ impl Analyzer {
         let cast_to_ptr_to = cast_to.get_ptr_to();
         if expr_ty.is_void_ptr() && cast_to_ptr_to.is_some() {
             // Safety: `rhs_ptr_to.is_some()` is true on this branch
-            let ptr_to = cast_to_ptr_to.unwrap().clone();
+            let ptr_to = unsafe { cast_to_ptr_to.unwrap_unchecked() }.clone();
             let expr = ConvExpr::new_cast(
                 expr,
                 Type::Ptr(Box::new(Type::Void)),
@@ -477,24 +476,20 @@ impl Analyzer {
             );
             return Ok(expr);
         }
-        match (expr_ty.clone().get_base(), cast_to.get_base()) {
-            (Some(lhs_base), Some(rhs_base)) => {
-                let rhs_base = *rhs_base;
-                let expr =
-                    ConvExpr::new_cast(expr, expr_ty, CastKind::Base2Base(rhs_base, *lhs_base));
-                return Ok(expr);
-            }
-            _ => {
-                let debug_info0 = expr.debug_info.clone();
-                let debug_info1 = debug_info0.clone();
-                return Err(CompileError::new_type_error_types(
-                    debug_info0,
-                    debug_info1,
-                    expr.ty,
-                    cast_to,
-                    Some("Trying to cast, but have incompatible types"),
-                ));
-            }
+        if let (Some(lhs_base), Some(rhs_base)) = (expr_ty.clone().get_base(), cast_to.get_base()) {
+            let rhs_base = *rhs_base;
+            let expr = ConvExpr::new_cast(expr, expr_ty, CastKind::Base2Base(rhs_base, *lhs_base));
+            Ok(expr)
+        } else {
+            let debug_info0 = expr.debug_info.clone();
+            let debug_info1 = debug_info0.clone();
+            Err(CompileError::new_type_error_types(
+                debug_info0,
+                debug_info1,
+                expr.ty,
+                cast_to,
+                Some("Trying to cast, but have incompatible types"),
+            ))
         }
     }
 
@@ -509,7 +504,7 @@ impl Analyzer {
             let rhs_ptr_to = rhs.ty.get_ptr_to();
             if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
                 // Safety: `rhs_ptr_to.is_some()` is true on this branch
-                let ptr_to = rhs_ptr_to.unwrap().clone();
+                let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
                 rhs = ConvExpr::new_cast(
                     rhs,
                     Type::Ptr(Box::new(Type::Void)),
@@ -731,7 +726,7 @@ impl Analyzer {
                 let cond = self.traverse_expr(*cond, BTreeSet::new())?;
                 let then = self.traverse_expr(*then, BTreeSet::new())?;
                 let els = self.traverse_expr(*els, BTreeSet::new())?;
-                self.new_conditional_with_type_checking(cond, then, els)
+                Self::new_conditional_with_type_checking(cond, then, els)
             }
             ExprKind::PostfixIncrement(expr) => {
                 let expr = self.traverse_expr(*expr, BTreeSet::new())?;
@@ -789,8 +784,7 @@ impl Analyzer {
                     expr, value, expr_ty, debug_info,
                 ))
             }
-            ExprKind::UnaryIncrement(_) => todo!(),
-            ExprKind::UnaryDecrement(_) => todo!(),
+            ExprKind::UnaryIncrement(_) | ExprKind::UnaryDecrement(_) => todo!(),
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -883,7 +877,6 @@ impl Analyzer {
     }
 
     pub fn new_conditional_with_type_checking(
-        &self,
         cond: ConvExpr,
         mut then: ConvExpr,
         mut els: ConvExpr,
@@ -1330,6 +1323,12 @@ impl Analyzer {
                 ConvExpr::new_num(value as isize, debug_info)
             }
         })
+    }
+}
+
+impl Default for Analyzer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -2219,7 +2218,7 @@ impl ConstInitializer {
             ConstInitializer::Expr(expr) => expr.debug_info.clone(),
             ConstInitializer::Array(vec) => vec
                 .first()
-                .map(|expr| expr.get_debug_info())
+                .map(ConstInitializer::get_debug_info)
                 .unwrap_or_default(),
         }
     }
@@ -2285,10 +2284,14 @@ impl ConstExpr {
             },
             ConvUnaryOp::Increment(value) => {
                 let n = self.get_num_lit()?;
+                // This const expr has type `int`, so truncations is ok.
+                #[allow(clippy::cast_possible_truncation)]
                 ConstExpr::new_int(n as i32 + *value as i32, debug_info)
             }
             ConvUnaryOp::Decrement(value) => {
                 let n = self.get_num_lit()?;
+                // This const expr has type `int`, so truncations is ok.
+                #[allow(clippy::cast_possible_truncation)]
                 ConstExpr::new_int(n as i32 - *value as i32, debug_info)
             }
         })
@@ -2317,7 +2320,10 @@ impl ConstExpr {
         let bool_to_isize = |b| if b { 1 } else { 0 };
         let num_expr = |num: isize, debug_info, ty: BaseType| {
             let kind = match ty {
+                // Truncations are ok because each const expr's type has its bit size.
+                #[allow(clippy::cast_possible_truncation)]
                 BaseType::Int => ConstExprKind::Int(num as i32),
+                #[allow(clippy::cast_possible_truncation)]
                 BaseType::Char => ConstExprKind::Char(num as i8),
             };
             ConstExpr {
@@ -2335,7 +2341,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     + Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Sub,
@@ -2346,7 +2352,7 @@ impl ConstExpr {
                     Self::try_eval_as_const(*lhs)?.get_num_lit()?
                         - Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                     debug_info,
-                    ty.get_base().unwrap().clone(), // This Option is always `Some`, because literal or not is checked in `get_num_lit`.
+                    *ty.get_base().unwrap(), // This Option is always `Some`, because literal or not is checked in `get_num_lit`.
                 )
             }
             ConvExprKind::Binary(ConvBinary {
@@ -2357,7 +2363,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     * Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Div,
@@ -2367,7 +2373,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     / Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Rem,
@@ -2377,7 +2383,7 @@ impl ConstExpr {
                 Self::try_eval_as_const(*lhs)?.get_num_lit()?
                     % Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Eq,
@@ -2389,7 +2395,7 @@ impl ConstExpr {
                         == Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Ne,
@@ -2401,7 +2407,7 @@ impl ConstExpr {
                         != Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Lt,
@@ -2413,7 +2419,7 @@ impl ConstExpr {
                         < Self::try_eval_as_const(*rhs)?.get_num_lit()?,
                 ),
                 debug_info,
-                ty.get_base().unwrap().clone(),
+                *ty.get_base().unwrap(),
             ),
             ConvExprKind::Binary(ConvBinary {
                 kind: ConvBinOpKind::Le,
@@ -2459,17 +2465,13 @@ impl ConstExpr {
             ),
             ConvExprKind::GVar(ref gvar) => {
                 // TODO: check if gvar is const or not
-                if let Some(val) = gvar
-                    .init
-                    .as_ref()
-                    .map_or(None, |init| Some(init.get_num_lit()?))
-                {
+                if let Some(val) = gvar.init.as_ref().and_then(ConstInitializer::get_num_lit) {
                     eprintln!("Have to check {:?} is const or not.", &gvar);
                     return Ok(num_expr(val, debug_info, BaseType::Int));
                 }
                 return Err(CompileError::new_const_expr_error(debug_info, kind));
             }
-            ConvExprKind::Num(num) => num_expr(num, debug_info, ty.get_base().unwrap().clone()),
+            ConvExprKind::Num(num) => num_expr(num, debug_info, *ty.get_base().unwrap()),
             ConvExprKind::LVar(_)
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(..)
@@ -2534,6 +2536,8 @@ impl ConstExpr {
             ConvExprKind::PostfixIncrement(expr, _) | ConvExprKind::PostfixDecrement(expr, _) => {
                 let expr_debug_info = expr.debug_info.clone();
                 let value = Self::try_eval_as_const(*expr)?.get_num_lit()?;
+                // This truncation is ok because this const expr has the type `int`
+                #[allow(clippy::cast_possible_truncation)]
                 ConstExpr {
                     kind: ConstExprKind::Int(value as i32),
                     ty: Type::Base(BaseType::Int),
@@ -2676,6 +2680,8 @@ impl Analyzer {
         ty_spec: &TypeSpec,
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
+        // In this case, the enum specifier and int specifier have no relationships.
+        #[allow(clippy::match_same_arms)]
         Ok(match ty_spec {
             TypeSpec::Int => Type::Base(BaseType::Int),
             TypeSpec::Char => Type::Base(BaseType::Char),
@@ -2789,7 +2795,7 @@ impl Analyzer {
                         VariableKind::Enum,
                     ))
                 }
-                Some(Taged::Enum(EnumTagKind::Enum(enumuration))) => Ok(Type::Base(BaseType::Int)),
+                Some(Taged::Enum(EnumTagKind::Enum(_))) => Ok(Type::Base(BaseType::Int)),
                 None => todo!(),
             }
         } else {

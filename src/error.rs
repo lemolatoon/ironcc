@@ -308,7 +308,7 @@ impl Debug for CompileError {
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(vec![got.get_debug_info().clone()], f)?;
+                error_at(vec![got.get_debug_info()], f)?;
                 writeln!(
                     f,
                     "Expected `{:?}`, but got `{:?}`.",

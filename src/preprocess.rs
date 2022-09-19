@@ -137,12 +137,14 @@ impl<'b> Preprocessor<'b> {
                                     ifdef_flag = !ifdef_flag;
                                 }
                                 if ifdef_flag {
-                                    if let Some(derective_count) = derective_count {
-                                        derective_count.set_ifdef_flag();
+                                    // clippy's suggestion is wrong.
+                                    #[allow(clippy::option_if_let_else)]
+                                    if let Some(derective_count2) = derective_count {
+                                        derective_count2.set_ifdef_flag();
                                     } else {
                                         let mut new_derective_count = DerectiveCount::default();
                                         new_derective_count.set_ifdef_flag();
-                                        *derective_count = Some(new_derective_count)
+                                        *derective_count = Some(new_derective_count);
                                     }
                                     return self.preprocess(
                                         main_chars.into(),
@@ -154,6 +156,8 @@ impl<'b> Preprocessor<'b> {
                                     match main_chars.skip_until_macro_keyword().as_str() {
                                         "endif" => break,
                                         "else" => {
+                                            // clippy's suggestion is wrong.
+                                            #[allow(clippy::option_if_let_else)]
                                             if let Some(derective_count) = derective_count {
                                                 derective_count.set_ifdef_flag();
                                             } else {
@@ -174,6 +178,8 @@ impl<'b> Preprocessor<'b> {
                                 continue 'preprocess_loop;
                             }
                             "else" => {
+                                // clippy's suggestion is wrong.
+                                #[allow(clippy::option_if_let_else)]
                                 if let Some(derective_count) = derective_count {
                                     derective_count.unset_ifdef_flag();
                                 } else {
@@ -279,7 +285,7 @@ impl<'b> Preprocessor<'b> {
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.clone().into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
         Ok(tokens)
     }
 
@@ -643,6 +649,11 @@ impl TokenKind {
             | TokenKind::Ident(content)
             | TokenKind::Rest(content) => content.len(),
         }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn get_content(&self) -> &str {

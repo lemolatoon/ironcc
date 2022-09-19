@@ -104,11 +104,10 @@ impl Tokenizer {
                                 str_lit.push(0x1bu8.into());
                             }
                             _ => {
-                                let debug_info = self
-                                    .stream
-                                    .peek()
-                                    .map(|(debug_info, _)| debug_info.clone())
-                                    .unwrap_or(self.stream.get_prev_debug_info());
+                                let debug_info = self.stream.peek().map_or(
+                                    self.stream.get_prev_debug_info(),
+                                    |(debug_info, _)| debug_info.clone(),
+                                );
                                 return Err(unimplemented_err!(
                                     debug_info,
                                     "This type of escape Sequences are not currently implemented."

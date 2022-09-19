@@ -7,7 +7,7 @@ use crate::{
     tokenize::{BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream, TypeToken},
     unimplemented_err,
 };
-use std::{array, collections::BTreeSet, fmt::Debug};
+use std::{collections::BTreeSet, fmt::Debug};
 
 pub struct Parser {}
 
@@ -252,7 +252,7 @@ impl Parser {
                 TokenKind::Enum => {
                     tokens.next();
                     Ok((
-                        TypeSpec::Enum(self.parse_enum_specifier(tokens)?),
+                        TypeSpec::Enum(Self::parse_enum_specifier(tokens)?),
                         debug_info,
                     ))
                 }
@@ -268,7 +268,6 @@ impl Parser {
         }
     }
     pub fn parse_enum_specifier<I>(
-        &self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<EnumSpec, CompileError>
     where
@@ -287,14 +286,14 @@ impl Parser {
             let (name, _) = tokens.consume_ident()?;
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
                 // <enumerator-list>
-                let list = self.parse_enumerator_list(tokens)?;
+                let list = Self::parse_enumerator_list(tokens)?;
                 tokens.expect(&TokenKind::CloseDelim(DelimToken::Brace))?;
                 return Ok(EnumSpec::WithList(Some(name), list));
             }
             return Ok(EnumSpec::WithTag(name));
         } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             // <enumerator-list>
-            let list = self.parse_enumerator_list(tokens)?;
+            let list = Self::parse_enumerator_list(tokens)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Brace))?;
             return Ok(EnumSpec::WithList(None, list));
         }
@@ -312,7 +311,6 @@ impl Parser {
     }
 
     pub fn parse_enumerator_list<I>(
-        &self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Vec<EnumConstant>, CompileError>
     where
@@ -948,7 +946,7 @@ impl Parser {
                     Box::new(abstract_declarator.unwrap()),
                 );
                 *tokens = tmp_tokens;
-                tokens.expect(&&TokenKind::CloseDelim(DelimToken::Paren))?;
+                tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
                 direct_abstract_declarator
             }
         } else {
@@ -960,6 +958,7 @@ impl Parser {
         loop {
             if tokens.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
                 // function declaration
+                #[allow(clippy::branches_sharing_code)]
                 if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                     // e.g) `main()`
                     // direct_abstract_declarator = DirectAbstractDeclarator::Func(
@@ -977,6 +976,7 @@ impl Parser {
                     // direct_declarator = DirectDeclarator::Func(Box::new(direct_declarator), args);
                     // tokens.expect(TokenKind::CloseDelim(DelimToken::Paran))?;
                     // TODO: support function type direct_abstract_declarator
+                    todo!()
                 }
             } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Bracket)) {
                 // these branches should be parsed differently, but now both are not yet implemented
@@ -1198,41 +1198,19 @@ impl Initializer {
                     .collect::<Result<Vec<_>, _>>()?,
             ),
         })
-        // match self {
-        //     Initializer::Expr(expr) => Ok(ConstInitializer::Expr(f(expr)?)),
-        //     Initializer::Array(init_list) => {
-        //         let mut const_init_list = Vec::with_capacity(init_list.len());
-        //         let mut watching_init_list = init_list;
-        //         loop {
-        //             for init in watching_init_list.clone() {
-        //                 let mut array_flag = false;
-        //                 let const_init = match init {
-        //                     Initializer::Expr(expr) => ConstInitializer::Expr(f(expr)?),
-        //                     Initializer::Array(init_list) => {
-        //                         const_init_list.push(ConstInitializer::Array(vec![])); // tmp
-        //                         watching_init_list = init_list;
-        //                         array_flag = true;
-        //                     }
-        //                 };
-        //                 const_init_list.push(const_init);
-        //             }
-        //         }
-        //         Ok(ConstInitializer::Array(const_init_list))
-        //     }
-        // }
     }
 
     pub fn get_debug_info(&self) -> Result<DebugInfo, CompileError> {
         match self {
             Initializer::Expr(expr) => Ok(expr.debug_info.clone()),
-            Initializer::Array(vec) => vec
-                .first()
-                .map(|initializer| Ok(initializer.get_debug_info()))
-                .unwrap_or_else(|| {
+            Initializer::Array(vec) => vec.first().map_or_else(
+                || {
                     Err(unimplemented_err!(
                         "Initializer has to have at least one element."
                     ))
-                })?,
+                },
+                |initializer| Ok(initializer.get_debug_info()),
+            )?,
         }
     }
 
@@ -1240,7 +1218,7 @@ impl Initializer {
         self,
         analyzer: &mut Analyzer,
         lvar: LVar, /* initialized local variable */
-        left_ty: Type,
+        left_ty: &Type,
         debug_info: DebugInfo,
     ) -> Result<ConvStmt, CompileError> {
         match self {
@@ -1278,7 +1256,7 @@ impl Initializer {
                                     lvar.offset - idx * array_base_ty.size_of(),
                                     array_base_ty.clone(),
                                 ),
-                                left_ty.clone(),
+                                left_ty,
                                 init_debug_info,
                             )?;
                             Ok(stmts)

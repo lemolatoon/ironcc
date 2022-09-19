@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, path::Path};
 
 /// return `CompilerError` whose kind is `Unimplemented`
 ///  - 1st arg: `debug_info: DebugInfo`
-///  - 2rd arg: `msg`: T` `where T: Display`  // error message
+///  - 2rd arg: `msg: T` `where T: Display`  // error message
 ///
 /// Also no args provided is allowed.
 #[macro_export]
