@@ -3,5 +3,6 @@
 #define _STDLIB_H 1
 
 void *malloc(int size);
+void exit(int status);
 
 #endif

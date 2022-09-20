@@ -1,4 +1,7 @@
 #include "test_utils.c"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 int test0();
 int test0_2();
 int test0_3();
@@ -59,6 +62,7 @@ int test52();
 int test53();
 int test54();
 int test55();
+int test56();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -139,12 +143,12 @@ int main()
     assert(53, 0, test53());
     assert(54, 0, test54());
     assert(55, 0, test55());
+    assert(56, 0, test56());
 
     print_ok();
     return 0;
 }
 
-void exit(int status);
 int assertion_failed(int index, int expected, int got)
 {
     printf("Assertion_failed At test%d\n", index);
@@ -1141,5 +1145,30 @@ int test55() {
             }
         }
     }
+    return 0;
+}
+
+char *test56_strings[4] = {
+    "red",
+    "green",
+    "blue",
+    "really_long_string_more_than_eight",
+};
+int test56() {
+    assert(56, 0, strncmp(test56_strings[0], "red", sizeof("red") / sizeof(char)));
+    assert(56, 0, strncmp(test56_strings[1], "green", sizeof("green") / sizeof(char)));
+    assert(56, 0, strncmp(test56_strings[2], "blue", sizeof("blue") / sizeof(char)));
+    assert(56, 0, strncmp(test56_strings[3], "really_long_string_more_than_eight", sizeof("really_long_string_more_than_eight") / sizeof(char)));
+    char *local_strings[4] = {
+        "local_red",
+        "local_green",
+        "local_blue",
+        "local_really_long_string_more_than_eight",
+    };
+    assert(56, 0, strncmp(local_strings[0], "local_red", sizeof("local_red") / sizeof(char)));
+    assert(56, 0, strncmp(local_strings[1], "local_green", sizeof("local_green") / sizeof(char)));
+    assert(56, 0, strncmp(local_strings[2], "local_blue", sizeof("local_blue") / sizeof(char)));
+    assert(56, 0, strncmp(local_strings[3], "local_really_long_string_more_than_eight", sizeof("local_really_long_string_more_than_eight") / sizeof(char)));
+
     return 0;
 }
