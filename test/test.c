@@ -64,6 +64,7 @@ int test54();
 int test55();
 int test56();
 int test57();
+int test58();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -146,6 +147,7 @@ int main()
     assert(55, 0, test55());
     assert(56, 0, test56());
     assert(57, 0, test57());
+    assert(58, 58, test58());
 
     print_ok();
     return 0;
@@ -1180,3 +1182,8 @@ int test57() {
     assert(57, 0, strncmp(string, "thisisastring.", sizeof("thisisastring.") / sizeof(char)));
     return 0;
 }
+
+__asm__(".intel_syntax noprefix\n"
+        "test58:\n"
+        "  mov rax, 58\n"
+        "  ret\n");

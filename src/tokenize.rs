@@ -190,6 +190,7 @@ impl Tokenizer {
                         "sizeof" => TokenKind::SizeOf,
                         "struct" => TokenKind::Struct,
                         "enum" => TokenKind::Enum,
+                        "__asm__" => TokenKind::Asm,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
@@ -246,6 +247,8 @@ pub enum TokenKind {
     Struct,
     /// `enum`, reserved word
     Enum,
+    /// `__asm__`, reserved word (not standard)
+    Asm,
     /// `=` assign
     Eq,
     /// `,`

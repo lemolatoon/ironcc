@@ -59,6 +59,12 @@ impl Analyzer {
                     self.scope.reset_stack();
                 }
                 ProgramComponent {
+                    kind: ProgramKind::InlineAsm(asm),
+                    debug_info,
+                } => {
+                    self.conv_program.push(ConvProgramKind::InlineAsm(asm));
+                }
+                ProgramComponent {
                     kind: ProgramKind::Declaration(declaration),
                     debug_info,
                 } => {
@@ -1367,6 +1373,7 @@ impl IntoIterator for ConvProgram {
 pub enum ConvProgramKind {
     Func(ConvFuncDef),
     Global(GVar),
+    InlineAsm(String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

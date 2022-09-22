@@ -186,6 +186,9 @@ impl Generator {
                         None => writeln!(f, ".zero {}", ty.size_of())?,
                     }
                 }
+                ConvProgramKind::InlineAsm(asm) => {
+                    writeln!(f, "{}", asm)?;
+                }
             }
         }
 
