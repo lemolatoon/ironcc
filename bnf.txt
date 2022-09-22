@@ -1,6 +1,11 @@
 <program>                   := <program-item>*
 <program-item>              := <declaration>
                                 | <func-def>
+                                | <inline-asm>
+<inline-asm>                := "__asm__" "(" <instruction-list> ")"
+                                | "__asm__" "(" <instruction-list> "," ")"
+<instruction-list>          := <instruction>
+                                | <instruction-list> "," <instruction>
 <func-def>                  := <declaration-specifiers> <declarator> <blockstmt>
 
 <declaration>               := <declaration-specifiers> <init-declarator>* ";"
@@ -87,7 +92,8 @@
                                 | <postfix> "++"
                                 | <postfix> "--"
 <primary>                   := <num> 
-                                | """ <letters> """
+                                | <string-literal> 
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"
                                 | <ident> 
                                 | "(" <expr> ")"  
+<string-literal>            :=  ( """ <letters> """ )*

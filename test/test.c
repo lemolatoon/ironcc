@@ -63,6 +63,7 @@ int test53();
 int test54();
 int test55();
 int test56();
+int test57();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -144,6 +145,7 @@ int main()
     assert(54, 0, test54());
     assert(55, 0, test55());
     assert(56, 0, test56());
+    assert(57, 0, test57());
 
     print_ok();
     return 0;
@@ -1170,5 +1172,11 @@ int test56() {
     assert(56, 0, strncmp(local_strings[2], "local_blue", sizeof("local_blue") / sizeof(char)));
     assert(56, 0, strncmp(local_strings[3], "local_really_long_string_more_than_eight", sizeof("local_really_long_string_more_than_eight") / sizeof(char)));
 
+    return 0;
+}
+
+int test57() {
+    char * string = "this" "is" "a" "string.";
+    assert(57, 0, strncmp(string, "thisisastring.", sizeof("thisisastring.") / sizeof(char)));
     return 0;
 }

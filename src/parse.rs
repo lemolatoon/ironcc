@@ -847,7 +847,13 @@ impl Parser {
         match tokens.next() {
             Some(Token { kind, debug_info }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, debug_info),
-                TokenKind::Str(letters) => Expr::new_str_lit(letters, debug_info),
+                TokenKind::Str(mut string) => {
+                    while let Some(TokenKind::Str(letters)) = tokens.peek_kind() {
+                        tokens.next();
+                        string.push_str(&letters);
+                    } 
+                    Expr::new_str_lit(string, debug_info)
+                },
                 TokenKind::OpenDelim(DelimToken::Paren) => {
                     let expr = self.parse_expr(tokens)?;
                     tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
