@@ -860,14 +860,14 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error_types</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="ident">pos0</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">pos1</span>: <span class="ident">DebugInfo</span>,
+        <span class="ident">debug_info0</span>: <span class="ident">DebugInfo</span>,
+        <span class="ident">debug_info1</span>: <span class="ident">DebugInfo</span>,
         <span class="ident">ty0</span>: <span class="ident">Type</span>,
         <span class="ident">ty1</span>: <span class="ident">Type</span>,
         <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
-            <span class="ident">TypeErrorKind::Type</span>(<span class="ident">pos0</span>, <span class="ident">pos1</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>),
+            <span class="ident">TypeErrorKind::Type</span>(<span class="ident">debug_info0</span>, <span class="ident">debug_info1</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>),
             <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
         )))
     }
@@ -997,7 +997,7 @@
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Expected `{:?}`, but got EOF.&quot;</span>, <span class="ident">expect</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> { <span class="ident">expect</span>, <span class="ident">got</span> }) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">got</span>.<span class="ident">get_debug_info</span>().<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">got</span>.<span class="ident">get_debug_info</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
                     <span class="ident">f</span>,
                     <span class="string">&quot;Expected `{:?}`, but got `{:?}`.&quot;</span>,
