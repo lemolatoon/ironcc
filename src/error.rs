@@ -171,14 +171,14 @@ impl CompileError {
     }
 
     pub fn new_type_error_types<T: Into<String>>(
-        pos0: DebugInfo,
-        pos1: DebugInfo,
+        debug_info0: DebugInfo,
+        debug_info1: DebugInfo,
         ty0: Type,
         ty1: Type,
         msg: Option<T>,
     ) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
-            TypeErrorKind::Type(pos0, pos1, ty0, ty1),
+            TypeErrorKind::Type(debug_info0, debug_info1, ty0, ty1),
             msg.map(std::convert::Into::into),
         )))
     }
@@ -308,7 +308,7 @@ impl Debug for CompileError {
                 writeln!(f, "Expected `{:?}`, but got EOF.", expect)?;
             }
             ParseError(ParseErrorKind::ExpectFailed { expect, got }) => {
-                error_at(vec![got.get_debug_info().clone()], f)?;
+                error_at(vec![got.get_debug_info()], f)?;
                 writeln!(
                     f,
                     "Expected `{:?}`, but got `{:?}`.",

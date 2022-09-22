@@ -112,6 +112,7 @@ impl Generator {
 
     /// # Errors
     /// return errors when file IO failed
+    #[allow(clippy::too_many_lines)]
     pub fn gen_head<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
@@ -169,40 +170,15 @@ impl Generator {
                 ConvProgramKind::Global(GVar { name, ty, init }) => {
                     writeln!(f, ".data")?;
                     writeln!(f, "{}:", name)?;
-                    let gvar = GVar {
-                        name: name.clone(),
-                        ty: ty.clone(),
-                        init: init.clone(),
-                    };
-                    let size_hint = |ty: Type| match ty.base_type().size_of() {
-                        // TODO: byte or string
-                        1 => Ok("byte"),
-                        4 => Ok("long"),
-                        8 => Ok("quad"),
-                        _ => Err(CompileError::new_type_size_error(
-                            UnexpectedTypeSizeStatus::Global(gvar),
-                        )),
-                    };
                     match init {
                         Some(init) => match ty {
                             Type::Base(BaseType::Int) => writeln!(f, ".long {}", init.get_num_lit().unwrap())?,
                             Type::Base(BaseType::Char) => writeln!(f, ".byte {}", init.get_num_lit().unwrap())?,
-                            // TODO : ptr init
                             Type::Ptr(_) => writeln!(f, ".quad {}", init.display_content().ok_or_else(|| unimplemented_err!(init.get_debug_info(), "Ptr Initializer should not be array."))?)?,
-                            Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
-                            Type::Array(ty, size) => {match init {
-                                ConstInitializer::Array(vec) => {
-                                    let size_of = ty.size_of();
-                                    let size_explanation = size_hint(*ty)?;
-                                    for i in 0..size {
-                                        if let Some(ConstExpr { kind: ConstExprKind::Int(val), ty: _, debug_info: _ }) = vec.get(i) {
-                                            writeln!(f, ".{} {}", size_explanation, val)?;
-                                        } else {
-                                            writeln!(f, ".zero {}", size_of)?;
-                                        }
-                                }},
-                                ConstInitializer::Expr(_) => return Err(unimplemented_err!("Num literal initializer should not be used for array global variable.")),
-                            }},
+                            Type::Func { ret_ty: _, args: _, is_flexible: _ } => panic!("INTERNAL COMPILER ERROR. Unreachable. `Type::Func` has to be analyzed as FuncDeclaration not global variable."),
+                            ty @ Type::Array(_, _) => {
+                                self.gen_const_init_array(f,init, ty)?;
+                            },
                             Type::Struct(_) => return Err(unimplemented_err!(init.get_debug_info(), "INTERNAL COMPILER ERROR: struct currently cannot be initialized at compile time.")),
                             Type::Void => unreachable!("void type initializer cannot be written."),
                             Type::InComplete(_) => todo!(),
@@ -213,6 +189,43 @@ impl Generator {
             }
         }
 
+        Ok(())
+    }
+
+    pub fn gen_const_init_array<W: Write>(
+        &mut self,
+        f: &mut BufWriter<W>,
+        initializer: ConstInitializer,
+        ty: Type,
+    ) -> Result<(), CompileError> {
+        match initializer {
+            ConstInitializer::Array(vec) => {
+                if let Type::Array(ty, size) = ty {
+                    for idx in 0..size {
+                        if let Some(init) = vec.get(idx) {
+                            self.gen_const_init_array(f, init.clone(), *ty.clone())?;
+                        } else {
+                            writeln!(f, ".zero {}", ty.size_of() * (size - idx))?;
+                        }
+                    }
+                } else {
+                    unreachable!(
+                        "INTERNAL COMPILER ERROR: initializer is array but type is not array."
+                    );
+                }
+            }
+            ConstInitializer::Expr(ConstExpr {
+                kind,
+                ty: _,
+                debug_info: _,
+            }) => {
+                match kind {
+                    ConstExprKind::Int(val) => writeln!(f, ".long {}", val)?,
+                    ConstExprKind::Char(val) => writeln!(f, ".byte {}", val)?,
+                    ConstExprKind::Addr(gvar) => writeln!(f, ".quad {}", gvar.name)?,
+                };
+            }
+        }
         Ok(())
     }
 

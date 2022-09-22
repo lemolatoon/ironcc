@@ -91,12 +91,13 @@ impl<'a> CachedProcessor<'a> {
     }
 }
 
+type TokenizerTokenStream = TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>;
+
 struct CachedTokenizer<'a> {
     src: &'a str,
     tokenizer: Tokenizer,
     tokens: Option<Result<Vec<Token<TokenKind>>, CompileError>>,
-    token_stream:
-        Option<Result<TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>>,
+    token_stream: Option<Result<TokenizerTokenStream, CompileError>>,
 }
 
 impl<'a> CachedTokenizer<'a> {
@@ -108,7 +109,7 @@ impl<'a> CachedTokenizer<'a> {
         ));
         let mut preprocessor = Preprocessor::new(file_info.clone(), "");
         let tokens = preprocessor
-            .preprocess(file_info.clone().into(), None, &mut None)
+            .preprocess(file_info.into(), None, &mut None)
             .unwrap();
         let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
@@ -129,10 +130,7 @@ impl<'a> CachedTokenizer<'a> {
             .map_err(|err| err.clone())
     }
 
-    fn stream(
-        &mut self,
-    ) -> Result<&mut TokenStream<std::vec::IntoIter<Token<TokenKind>>, TokenKind>, CompileError>
-    {
+    fn stream(&mut self) -> Result<&mut TokenizerTokenStream, CompileError> {
         let iter = self.tokens().map(|vec| vec.clone().into_iter())?;
         self.token_stream
             .get_or_insert_with(|| Ok(TokenStream::new(iter)))

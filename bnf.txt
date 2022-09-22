@@ -28,8 +28,10 @@
                                 | <direct-declarator> "[" <assign>? "]"                                  # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 <initializer>               := <assign>
-                                | { <assign> ("," <assign>)* }
-                                | { <assign> ("," <assign>)* "," }
+                                | "{" <initializer-list> "}"
+                                | "{" <initializer-list> "," "}"
+<initializer-list>          := <initializer>
+                                <initializer-list> "," <initializer>
 
 <type-name>                 := <specifier-qualifier-list> <abstract-declarator>?
 <specifier-qualifier-list>  := <type-specifiers>
