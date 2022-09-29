@@ -59,6 +59,12 @@ impl Analyzer {
                     self.scope.reset_stack();
                 }
                 ProgramComponent {
+                    kind: ProgramKind::InlineAsm(asm),
+                    debug_info: _,
+                } => {
+                    self.conv_program.push(ConvProgramKind::InlineAsm(asm));
+                }
+                ProgramComponent {
                     kind: ProgramKind::Declaration(declaration),
                     debug_info,
                 } => {
@@ -499,7 +505,7 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
-        if !lhs.ty.ty_eq(&rhs.ty) {
+        if !(lhs.ty.ty_eq(&rhs.ty) || matches!(rhs.kind, ConvExprKind::Asm(_))) {
             let lhs_ptr_to = lhs.ty.get_ptr_to();
             let rhs_ptr_to = rhs.ty.get_ptr_to();
             if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
@@ -785,6 +791,7 @@ impl Analyzer {
                 ))
             }
             ExprKind::UnaryIncrement(_) | ExprKind::UnaryDecrement(_) => todo!(),
+            ExprKind::Asm(asm) => Ok(ConvExpr::new_inline_asm(asm, debug_info)),
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -1367,6 +1374,7 @@ impl IntoIterator for ConvProgram {
 pub enum ConvProgramKind {
     Func(ConvFuncDef),
     Global(GVar),
+    InlineAsm(String),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -1729,6 +1737,14 @@ impl ConvExpr {
             debug_info,
         }
     }
+
+    pub fn new_inline_asm(asm: String, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConvExprKind::Asm(asm),
+            ty: Type::Ptr(Box::new(Type::Void)), // TODO: which type is appropriate here.
+            debug_info,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
@@ -1765,6 +1781,7 @@ pub enum ConvExprKind {
     Cast(Box<ConvExpr>, CastKind),
     PostfixIncrement(Box<ConvExpr>, /* + n */ usize),
     PostfixDecrement(Box<ConvExpr>, /* - n */ usize),
+    Asm(String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2476,6 +2493,7 @@ impl ConstExpr {
             | ConvExprKind::Assign(_, _)
             | ConvExprKind::Func(..)
             | ConvExprKind::Deref(_)
+            | ConvExprKind::Asm(..)
             | ConvExprKind::Member {
                 struct_expr: _,
                 minus_offset: _,

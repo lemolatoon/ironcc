@@ -24,6 +24,28 @@ impl Parser {
     {
         let mut program = Program::new();
         while !tokens.at_eof() {
+            if tokens.consume(&TokenKind::Asm) {
+                tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+                let token = tokens.next().ok_or_else(|| {
+                    CompileError::new_unexpected_eof(None, Box::new("TokenKind::Str(_)"))
+                })?;
+                if let TokenKind::Str(string) = *token.kind {
+                    let debug_info = token.debug_info;
+                    let string = Self::parse_string_literal(string, tokens)?;
+                    tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+                    tokens.expect(&TokenKind::Semi)?;
+                    program.push(ProgramComponent::new(
+                        ProgramKind::InlineAsm(string),
+                        debug_info,
+                    ));
+                } else {
+                    return Err(CompileError::new_expected_failed(
+                        Box::new("TokenKind::Str(_)"),
+                        token,
+                    ));
+                }
+                continue;
+            }
             let mut tmp_tokens = tokens.clone();
             let component = {
                 let declaration = self.parse_declaration(&mut tmp_tokens)?;
@@ -847,7 +869,10 @@ impl Parser {
         match tokens.next() {
             Some(Token { kind, debug_info }) => Ok(match *kind {
                 TokenKind::Num(num) => Expr::new_num(num, debug_info),
-                TokenKind::Str(letters) => Expr::new_str_lit(letters, debug_info),
+                TokenKind::Str(string) => {
+                    let string = Self::parse_string_literal(string,  tokens)?;
+                    Expr::new_str_lit(string, debug_info)
+                },
                 TokenKind::OpenDelim(DelimToken::Paren) => {
                     let expr = self.parse_expr(tokens)?;
                     tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
@@ -870,6 +895,23 @@ impl Parser {
                     // local variable
                     Expr::new_lvar(name, debug_info)
                 }
+                TokenKind::Asm => {
+                    tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+                    let token = tokens.next().ok_or_else(|| {
+                        CompileError::new_unexpected_eof(None, Box::new("TokenKind::Str(_)"))
+                    })?;
+                    if let TokenKind::Str(string) = *token.kind {
+                        let debug_info = token.debug_info;
+                        let string = Self::parse_string_literal(string, tokens)?;
+                        tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+                        Expr::new_inline_asm(string, debug_info)
+                    } else {
+                        return Err(CompileError::new_expected_failed(
+                            Box::new("TokenKind::Str(_)"),
+                            token,
+                        ));
+                    }
+                }
                 TokenKind::Eof => return Err(CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
                 _ => return Err(CompileError::new_expected_failed( Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
             }),
@@ -877,6 +919,21 @@ impl Parser {
                 "TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident",
             ))),
         }
+    }
+
+    /// This function is called after first string literal.
+    pub fn parse_string_literal<I>(
+        mut string: String,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<String, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        while let Some(TokenKind::Str(letters)) = tokens.peek_kind() {
+            tokens.next();
+            string.push_str(&letters);
+        }
+        Ok(string)
     }
 
     pub fn parse_type_name<I>(
@@ -1049,6 +1106,7 @@ impl ProgramComponent {
 pub enum ProgramKind {
     FuncDef(TypeSpec, Declarator, Stmt),
     Declaration(Declaration),
+    InlineAsm(String),
 }
 
 impl ProgramKind {
@@ -1497,6 +1555,7 @@ pub enum ExprKind {
     PostfixDecrement(Box<Expr>),
     UnaryIncrement(Box<Expr>),
     UnaryDecrement(Box<Expr>),
+    Asm(String),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1516,6 +1575,13 @@ pub enum UnaryOp {
 }
 
 impl Expr {
+    pub fn new_inline_asm(asm: String, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ExprKind::Asm(asm),
+            debug_info,
+        }
+    }
+
     pub fn new_conditional(cond: Expr, then: Expr, els: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Conditional {

@@ -1,14 +1,18 @@
 <program>                   := <program-item>*
 <program-item>              := <declaration>
                                 | <func-def>
+                                | <inline-asm> ";"
+<inline-asm>                := "__asm__" "(" <string-literal> ")" 
 <func-def>                  := <declaration-specifiers> <declarator> <blockstmt>
 
 <declaration>               := <declaration-specifiers> <init-declarator>* ";"
-<declaration-specifiers>    := <type-specifiers>
+<declaration-specifiers>    := <type-specifiers> <declaration-specifiers>?
+                            := <storage-class-specifier> <declaration-specifiers>?
 <type-specifiers>           := "int"
                                 | "char"
                                 | <struct-or-union-specifier>
                                 | <enum-specifier>
+<storage-class-specifier>   := "typedef"
 
 <struct-or-union-specifier> := "struct" <ident>? "{" <struct-declaration-list> "}"
                                 | "struct" <ident>
@@ -87,7 +91,9 @@
                                 | <postfix> "++"
                                 | <postfix> "--"
 <primary>                   := <num> 
-                                | """ <letters> """
+                                | <string-literal> 
                                 | <ident> "(" (<expr> ("," <expr>)*)? ")"
                                 | <ident> 
                                 | "(" <expr> ")"  
+                                | <inline-asm>
+<string-literal>            :=  ( """ <letters> """ )*

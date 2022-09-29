@@ -63,6 +63,10 @@ int test53();
 int test54();
 int test55();
 int test56();
+int test57();
+int test58();
+int test59();
+int test60();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -144,6 +148,10 @@ int main()
     assert(54, 0, test54());
     assert(55, 0, test55());
     assert(56, 0, test56());
+    assert(57, 0, test57());
+    assert(58, 58, test58());
+    assert(59, 59, test59());
+    assert(60, 60, test60());
 
     print_ok();
     return 0;
@@ -1171,4 +1179,33 @@ int test56() {
     assert(56, 0, strncmp(local_strings[3], "local_really_long_string_more_than_eight", sizeof("local_really_long_string_more_than_eight") / sizeof(char)));
 
     return 0;
+}
+
+int test57() {
+    char * string = "this" "is" "a" "string.";
+    assert(57, 0, strncmp(string, "thisisastring.", sizeof("thisisastring.") / sizeof(char)));
+    return 0;
+}
+
+__asm__(".intel_syntax noprefix\n"
+        "test58:\n"
+        "  mov rax, 58\n"
+        "  ret\n");
+
+int  test59() {
+    __asm__(".intel_syntax noprefix\n"
+            "  mov rax, 59\n"
+            "  mov rsp, rbp\n"
+            "  pop rbp\n"
+            "  ret\n");
+}
+
+int test60() {
+    #ifndef __STDC__
+    int a = __asm__("push 60\n");
+    #else
+    int a = 60;
+    #endif
+
+    return a;
 }

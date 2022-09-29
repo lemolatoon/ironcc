@@ -186,6 +186,9 @@ impl Generator {
                         None => writeln!(f, ".zero {}", ty.size_of())?,
                     }
                 }
+                ConvProgramKind::InlineAsm(asm) => {
+                    writeln!(f, "{}", asm)?;
+                }
             }
         }
 
@@ -555,6 +558,10 @@ impl Generator {
                 )?; // *rax = rdi
 
                 // return expr's value
+            }
+            ConvExprKind::Asm(asm) => {
+                // This asm must have push the value as an evaluated value.
+                writeln!(f, "  {}", asm)?;
             }
         }
         Ok(())
