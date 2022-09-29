@@ -1,0 +1,434 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: TypeDef,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 16,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 10,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: TypeDef,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int3",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 17,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 21,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int2",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "a",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Eq,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            5,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "int3",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "b",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Eq,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            6,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Return,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "a",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: BinOp(
+            Plus,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "b",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 16,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Eof,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 6,
+            },
+        },
+    },
+]

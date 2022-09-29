@@ -91,6 +91,16 @@ impl CompileError {
         }))
     }
 
+    pub fn new_ident_expected_failed<K>(got: Token<K>) -> CompileError
+    where
+        K: PartialEq + Debug + Clone,
+        Token<K>: Into<Tokens>,
+    {
+        CompileError::new(CompileErrorKind::ParseError(
+            ParseErrorKind::IdentExpectFailed { got: got.into() },
+        ))
+    }
+
     pub fn new_expected_failed_with_box<K>(expect: Box<dyn Debug>, got: Token<K>) -> CompileError
     where
         K: PartialEq + Debug + Clone,
@@ -114,9 +124,13 @@ impl CompileError {
         ))
     }
 
-    pub const fn new_redefined_variable(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
+    pub const fn new_redefined_variable(
+        name: String,
+        debug_info: DebugInfo,
+        kind: VariableKind,
+    ) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
-            AnalyzeErrorKind::RedefinedError(name, pos, kind),
+            AnalyzeErrorKind::RedefinedError(name, debug_info, kind),
         ))
     }
 
@@ -254,6 +268,13 @@ impl Tokens {
             Tokens::Tokenize(token) => format!("{:?}", token.kind),
         }
     }
+
+    pub const fn get_tokenize_token(&self) -> Option<&Token<tokenize::TokenKind>> {
+        match self {
+            Tokens::Preprocess(_) => None,
+            Tokens::Tokenize(token) => Some(token),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -262,6 +283,9 @@ pub enum ParseErrorKind {
     UnexpectedEof(/* src */ Option<String>, Box<dyn Debug>),
     ExpectFailed {
         expect: Box<dyn Debug>,
+        got: Tokens,
+    },
+    IdentExpectFailed {
         got: Tokens,
     },
 }
@@ -276,6 +300,9 @@ impl Clone for ParseErrorKind {
                 expect: Box::new(format!("{:?}", expect)),
                 got: got.clone(),
             },
+            ParseErrorKind::IdentExpectFailed { got } => {
+                Self::IdentExpectFailed { got: got.clone() }
+            }
         }
     }
 }
@@ -313,6 +340,14 @@ impl Debug for CompileError {
                     f,
                     "Expected `{:?}`, but got `{:?}`.",
                     expect,
+                    got.get_kind_str(),
+                )?;
+            }
+            ParseError(ParseErrorKind::IdentExpectFailed { got }) => {
+                error_at(vec![got.get_debug_info()], f)?;
+                writeln!(
+                    f,
+                    "Expected `TokenKind::Ident(_)`, but got `{:?}`.",
                     got.get_kind_str(),
                 )?;
             }
@@ -527,6 +562,7 @@ pub enum VariableKind {
     Func,
     Struct,
     Enum,
+    Typedef,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

@@ -7,7 +7,7 @@ use test_utils::ast::*;
 
 #[test]
 fn parse_test() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -28,7 +28,7 @@ fn parse_test() {
         .kind
     );
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -54,7 +54,7 @@ fn parse_test() {
         .kind
     );
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -73,7 +73,7 @@ fn parse_test() {
         bin(BinOpKind::Mul, bin(BinOpKind::Add, num(1), num(2)), num(3)).kind
     );
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -110,7 +110,7 @@ fn parse_test() {
 
 #[test]
 fn parse_unary_test() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -147,7 +147,7 @@ fn parse_unary_test() {
         .kind
     );
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(1),
@@ -158,7 +158,7 @@ fn parse_unary_test() {
         .unwrap();
     assert_eq!(expr.kind, unary(UnaryOp::Plus, num(1)).kind);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::OpenDelim(DelimToken::Paren),
@@ -179,7 +179,7 @@ fn parse_unary_test() {
 
 #[test]
 fn parse_compare_op_test() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::EqEq),
@@ -202,7 +202,7 @@ fn parse_compare_op_test() {
         )
         .kind
     );
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Ne),
@@ -235,7 +235,7 @@ fn parse_compare_op_test() {
 
 #[test]
 fn parse_stmt_test() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -262,7 +262,7 @@ fn parse_stmt_test() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -295,7 +295,7 @@ fn parse_stmt_test() {
 
 #[test]
 fn parse_assign_expr_test() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -322,7 +322,7 @@ fn parse_assign_expr_test() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -354,7 +354,7 @@ fn parse_assign_expr_test() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -389,7 +389,7 @@ fn parse_assign_expr_test() {
 
 #[test]
 fn parse_various_stmts() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -436,7 +436,7 @@ fn parse_various_stmts() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -485,7 +485,7 @@ fn parse_various_stmts() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -551,7 +551,7 @@ fn parse_various_stmts() {
 
     assert_eq!(parsed, expected);
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -597,7 +597,7 @@ fn parse_various_stmts() {
 
 #[test]
 fn parse_call_func() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -630,7 +630,7 @@ fn parse_call_func() {
 
 #[test]
 fn parse_ptr() {
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -657,7 +657,7 @@ fn parse_ptr() {
 
     assert_eq!(parsed, expected);
     let input = String::from("int main() {a = foo(3, 1); ap = &a; *a = a + 1;}");
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -720,7 +720,7 @@ fn parse_ptr() {
 #[test]
 fn parse_declaration() {
     let input = String::from("int main() {int a;}");
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),
@@ -759,7 +759,7 @@ fn parse_declaration() {
 
     assert_eq!(parsed, expected);
     let input = String::from("int  main() {int *a;}");
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let tokens = tokens!(
         TokenKind::Type(TypeToken::Int),
         TokenKind::Ident("main".to_string()),

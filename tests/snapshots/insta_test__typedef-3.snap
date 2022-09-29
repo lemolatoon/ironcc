@@ -1,0 +1,227 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Global(
+            GVar {
+                name: "int2",
+                ty: Base(
+                    Int,
+                ),
+                init: None,
+            },
+        ),
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        Block(
+                            [],
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 4,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            5,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 13,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 3,
+                                    },
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 8,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 4,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            6,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 13,
+                                                n_line: 4,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 4,
+                                    },
+                                },
+                            },
+                        ),
+                        Return(
+                            ConvExpr {
+                                kind: Binary(
+                                    ConvBinary {
+                                        kind: Add,
+                                        lhs: ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 4,
+                                                    ty: Base(
+                                                        Int,
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 11,
+                                                    n_line: 5,
+                                                },
+                                            },
+                                        },
+                                        rhs: ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 8,
+                                                    ty: Base(
+                                                        Int,
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 5,
+                                                },
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: FileInfo {
+                                        file_name: "not impl name.c",
+                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                    },
+                                    pos: Position {
+                                        n_char: 13,
+                                        n_line: 5,
+                                    },
+                                },
+                            },
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 8,
+            },
+        ),
+    ],
+}

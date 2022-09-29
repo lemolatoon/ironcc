@@ -80,7 +80,7 @@ where
     eprintln!("tokenize finished!!");
     let mut token_stream = TokenStream::new(tokens.into_iter());
 
-    let parser = Parser::new();
+    let mut parser = Parser::new();
     let program = parser.parse_program(&mut token_stream)?;
     eprintln!("parse finished!!");
 

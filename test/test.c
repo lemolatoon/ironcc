@@ -67,6 +67,9 @@ int test57();
 int test58();
 int test59();
 int test60();
+int test61();
+int test62();
+int test63();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -152,6 +155,9 @@ int main()
     assert(58, 58, test58());
     assert(59, 59, test59());
     assert(60, 60, test60());
+    assert(61, 0, test61());
+    assert(62, 0, test62());
+    assert(63, 0, test63());
 
     print_ok();
     return 0;
@@ -1198,6 +1204,10 @@ int  test59() {
             "  mov rsp, rbp\n"
             "  pop rbp\n"
             "  ret\n");
+    #ifdef __STDC__
+    // to remove annoying warning
+    return 1;
+    #endif
 }
 
 int test60() {
@@ -1208,4 +1218,63 @@ int test60() {
     #endif
 
     return a;
+}
+
+typedef int test61_typedefed;
+int test61() {
+    assert(61, 4, sizeof(test61_typedefed));
+    typedef int test61_typedefed[3];
+    assert(61, 12, sizeof(test61_typedefed));
+    {
+        typedef char *test61_typedefed;
+        assert(61, 8, sizeof(test61_typedefed));
+    }
+    assert(61, 12, sizeof(test61_typedefed));
+    return 0;
+}
+
+int test62() {
+    typedef struct {
+        int a;
+        int b;
+    } A;
+    A a;
+    a.a = 1;
+    a.b = 2;
+    typedef struct B B;
+    struct B {
+        A *a;
+    };
+    B struct_b;
+    struct_b.a = &a;
+    assert(62, 1, a.a);
+    assert(62, 2, a.b);
+    assert(62, 1, struct_b.a->a);
+    assert(62, 2, struct_b.a->b);
+    return 0;
+}
+
+int test63() {
+    typedef enum {
+        A,
+        B,
+        C,
+    } CertainKind;
+    assert(63, 0, A);
+    assert(63, 1, B);
+    assert(63, 2, C);
+
+    typedef enum enum_tag CertainKind2;
+    enum enum_tag {
+        D,
+        E,
+        F,
+    };
+    assert(63, 0, D);
+    assert(63, 1, E);
+    assert(63, 2, F);
+    return 0;
+
+    assert(63, 4, sizeof(CertainKind));
+    assert(63, 4, sizeof(CertainKind2));
 }

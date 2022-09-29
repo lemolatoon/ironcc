@@ -9,7 +9,8 @@ use crate::{
     parse::{
         BinOpKind, Binary, DeclarationSpecifier, Declarator, DirectDeclarator, EnumConstant,
         EnumSpec, Expr, ExprKind, ForInitKind, Initializer, Program, ProgramComponent, ProgramKind,
-        SizeOfOperandKind, Stmt, StmtKind, StructOrUnionSpec, TypeSpecifier, UnaryOp,
+        SizeOfOperandKind, Stmt, StmtKind, StorageClassSpecifier, StructOrUnionSpec, TypeSpecifier,
+        UnaryOp,
     },
     tokenize::DebugInfo,
     unimplemented_err,
@@ -376,6 +377,9 @@ impl Analyzer {
                 block
             }
             StmtKind::Declare(declaration) => {
+                let is_typedef = declaration.declaration_specifiers.contains(
+                    &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
+                );
                 // — void
                 // — char
                 // — signed char
@@ -399,81 +403,124 @@ impl Analyzer {
                 // — struct or union specifier
                 // — enum specifier
                 // — typedef name
-                if declaration.init_declarator.is_none() {
+                if declaration.init_declarator.is_none() || is_typedef {
                     // TODO: check more than one type-specifier possibility
-                    match declaration
-                        .declaration_specifiers
-                        .last()
-                        .unwrap()
-                        .get_type_specifier()
-                        .unwrap()
-                    {
-                        TypeSpecifier::StructOrUnion(StructOrUnionSpec::WithList(
-                            Some(name),
-                            vec,
-                        )) => {
-                            self.scope.register_tag(
-                                name.to_string(),
-                                Taged::Struct(StructTagKind::OnlyTag(name.to_string())),
-                            );
-                            let types = vec
-                                .iter()
-                                .map(|struct_declaration| {
-                                    struct_declaration
-                                        .get_type(self, struct_declaration.debug_info.clone())
-                                })
-                                .collect::<Result<_, CompileError>>()?;
-                            let names = vec
-                                .iter()
-                                .map(|struct_declaration| {
-                                    struct_declaration.ident_name().to_string()
-                                })
-                                .collect::<Vec<String>>();
-                            self.scope.register_tag(
-                                name.clone(),
-                                Taged::new_struct_tag(name, names, types),
-                            );
-                            return Ok(ConvStmt::new_block(vec![]));
+                    let mut declaration_specifiers =
+                        Vec::with_capacity(declaration.declaration_specifiers.len());
+                    for declaration_specifier in &declaration.declaration_specifiers {
+                        if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
+                            != *declaration_specifier
+                        {
+                            declaration_specifiers.push(declaration_specifier.clone());
                         }
-                        TypeSpecifier::Enum(EnumSpec::WithList(Some(ref tag), ref variants)) => {
-                            let enum_ident_map: BTreeMap<String, usize> = variants
-                                .clone()
-                                .into_iter()
-                                .map(
-                                    |EnumConstant {
-                                         ident,
-                                         debug_info: _,
-                                     }| ident,
-                                )
-                                .enumerate()
-                                .map(|(idx, ident)| (ident, idx))
-                                .collect();
-                            self.scope.register_tag(
-                                tag.to_string(),
-                                Taged::new_enum_tag(tag.clone(), enum_ident_map),
-                            );
-                            return Ok(ConvStmt::new_block(vec![]));
-                        }
-                        TypeSpecifier::StructOrUnion(_) => {
-                            return Err(unimplemented_err!(
-                                declaration.debug_info,
-                                "Expected struct or enum declaration with name and list."
-                            ))
-                        }
-                        TypeSpecifier::Enum(EnumSpec::WithTag(_)) => {
-                            return Err(unimplemented_err!(
-                                declaration.debug_info,
-                                "Expected enum declaration with name and list."
-                            ))
-                        }
-                        _ => {
-                            return Err(unimplemented_err!(
-                                declaration.debug_info,
-                                "Not struct declaration has to have init declarator."
-                            ))
-                        }
-                    };
+                    }
+                    if declaration_specifiers.len() == 1 {
+                        match declaration_specifiers
+                            .last()
+                            .unwrap()
+                            .get_type_specifier()
+                            .unwrap()
+                        {
+                            TypeSpecifier::StructOrUnion(StructOrUnionSpec::WithList(
+                                Some(name),
+                                vec,
+                            )) => {
+                                self.scope.register_tag(
+                                    name.to_string(),
+                                    Taged::Struct(StructTagKind::OnlyTag(name.to_string())),
+                                );
+                                let types = vec
+                                    .iter()
+                                    .map(|struct_declaration| {
+                                        struct_declaration
+                                            .get_type(self, struct_declaration.debug_info.clone())
+                                    })
+                                    .collect::<Result<_, CompileError>>()?;
+                                let names = vec
+                                    .iter()
+                                    .map(|struct_declaration| {
+                                        struct_declaration.ident_name().to_string()
+                                    })
+                                    .collect::<Vec<String>>();
+                                self.scope.register_tag(
+                                    name.clone(),
+                                    Taged::new_struct_tag(name, names, types),
+                                );
+                                return Ok(ConvStmt::new_block(vec![]));
+                            }
+                            TypeSpecifier::Enum(EnumSpec::WithList(
+                                Some(ref tag),
+                                ref variants,
+                            )) => {
+                                let enum_ident_map: BTreeMap<String, usize> = variants
+                                    .clone()
+                                    .into_iter()
+                                    .map(
+                                        |EnumConstant {
+                                             ident,
+                                             debug_info: _,
+                                         }| ident,
+                                    )
+                                    .enumerate()
+                                    .map(|(idx, ident)| (ident, idx))
+                                    .collect();
+                                self.scope.register_tag(
+                                    tag.to_string(),
+                                    Taged::new_enum_tag(tag.clone(), enum_ident_map),
+                                );
+                                return Ok(ConvStmt::new_block(vec![]));
+                            }
+                            TypeSpecifier::Enum(EnumSpec::WithList(None, ref variants))
+                                if is_typedef =>
+                            {
+                                let enum_ident_map: BTreeMap<String, usize> = variants
+                                    .clone()
+                                    .into_iter()
+                                    .map(
+                                        |EnumConstant {
+                                             ident,
+                                             debug_info: _,
+                                         }| ident,
+                                    )
+                                    .enumerate()
+                                    .map(|(idx, ident)| (ident, idx))
+                                    .collect();
+                                self.scope.register_anonymous_enum_tag(enum_ident_map);
+                                return Ok(ConvStmt::new_block(vec![]));
+                            }
+                            TypeSpecifier::StructOrUnion(_) if !is_typedef => {
+                                return Err(unimplemented_err!(
+                                    declaration.debug_info,
+                                    "Expected struct or enum declaration with name and list."
+                                ))
+                            }
+                            TypeSpecifier::Enum(EnumSpec::WithTag(_)) if !is_typedef => {
+                                return Err(unimplemented_err!(
+                                    declaration.debug_info,
+                                    "Expected enum declaration with name and list."
+                                ))
+                            }
+                            _ if is_typedef => {
+                                return Ok(ConvStmt::new_block(vec![]));
+                            }
+                            _ => {
+                                return Err(unimplemented_err!(
+                                    declaration.debug_info,
+                                    "Not struct declaration has to have init declarator."
+                                ))
+                            }
+                        };
+                    } else {
+                        return Err(unimplemented_err!(
+                            declaration.debug_info,
+                            "more than one type-specifier is not currently supported."
+                        ));
+                    }
                 }
+                if is_typedef {
+                    return Ok(ConvStmt::new_block(Vec::new()));
+                }
+
                 let ty = declaration.ty(self, declaration.debug_info.clone())?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
@@ -1875,6 +1922,7 @@ pub struct Scope {
     pub tag_scope: Vec<BTreeMap<String, Taged>>,
     max_stack_size: usize,
     diff: Vec<usize>,
+    index_for_anonymous_enum_variants: usize,
 }
 
 impl Scope {
@@ -1885,6 +1933,7 @@ impl Scope {
             tag_scope: Vec::new(),
             max_stack_size: 0,
             diff: Vec::new(),
+            index_for_anonymous_enum_variants: 0,
         }
     }
 
@@ -1893,6 +1942,18 @@ impl Scope {
             .last_mut()
             .expect("INTERNAL COMPILER ERROR.")
             .insert(name, taged);
+    }
+
+    pub fn register_anonymous_enum_tag(&mut self, enum_ident_map: BTreeMap<String, usize>) {
+        let name = format!(
+            ".__anonymous_enum_{}",
+            self.index_for_anonymous_enum_variants
+        );
+        self.index_for_anonymous_enum_variants += 1;
+        self.tag_scope
+            .last_mut()
+            .expect("INTERNAL COMPILER ERROR.")
+            .insert(name.clone(), Taged::new_enum_tag(name, enum_ident_map));
     }
 
     pub fn push_tag_scope(&mut self) {
@@ -2740,17 +2801,29 @@ impl Type {
 }
 
 impl Analyzer {
+    #[allow(clippy::too_many_lines)]
     pub fn resolve_name_and_convert_to_type(
         &mut self,
         ty_spec: &Vec<DeclarationSpecifier>,
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
+        let mut is_typedef = false;
+        let mut declaration_specifiers = Vec::with_capacity(ty_spec.len());
+        for declaration_specifier in ty_spec {
+            if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
+                == *declaration_specifier
+            {
+                is_typedef = true;
+            } else {
+                declaration_specifiers.push(declaration_specifier.clone());
+            }
+        }
         // In this case, the enum specifier and int specifier have no relationships.
         #[allow(clippy::match_same_arms)]
-        if ty_spec.len() == 1 {
+        if declaration_specifiers.len() == 1 {
             Ok(
                 // TODO: Add support for more than one type specifier such as `long int`, `long long`...
-                match ty_spec
+                match declaration_specifiers
                     .first()
                     .map_or_else(|| None, DeclarationSpecifier::get_type_specifier)
                     .unwrap()
@@ -2772,6 +2845,11 @@ impl Analyzer {
                                 Type::Base(BaseType::Int)
                             }
                             None => {
+                                if is_typedef {
+                                    return Ok(Type::InComplete(InCompleteKind::Struct(
+                                        tag.clone(),
+                                    )));
+                                }
                                 // TODO: support struct which has the self-type member
                                 return Err(unimplemented_err!(
                                     debug_info,
@@ -2835,6 +2913,9 @@ impl Analyzer {
                         EnumSpec::WithList(Some(name), _) | EnumSpec::WithTag(name),
                     ) => {
                         if self.scope.resolve_tag_name(&name).is_none() {
+                            if is_typedef {
+                                return Ok(Type::InComplete(InCompleteKind::Enum(name)));
+                            }
                             return Err(unimplemented_err!(
                                 debug_info,
                                 "While resolving enum tag, tag is not found in the scope."
@@ -2843,6 +2924,7 @@ impl Analyzer {
                         Type::Base(BaseType::Int)
                     }
                     TypeSpecifier::Enum(EnumSpec::WithList(None, _)) => Type::Base(BaseType::Int),
+                    TypeSpecifier::TypeDefName(ty) => ty,
                 },
             )
         } else {
@@ -2919,6 +3001,7 @@ impl Type {
             Type::Ptr(_) => 8,
             Type::Array(ty, size) => ty.size_of() * *size,
             Type::Struct(struct_struct) => struct_struct.size_of(),
+            Type::InComplete(InCompleteKind::Enum(_)) => Type::Base(BaseType::Int).size_of(),
             Type::InComplete(_) => todo!(),
         }
     }

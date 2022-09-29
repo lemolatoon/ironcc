@@ -3,20 +3,27 @@ use crate::{
         Analyzer, BaseType, ConstExpr, ConstInitializer, ConvExpr, ConvStmt, InCompleteKind, LVar,
         Type,
     },
-    error::CompileError,
+    error::{CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
     tokenize::{BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream, TypeToken},
     unimplemented_err,
 };
-use std::{collections::BTreeSet, fmt::Debug};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Debug,
+};
 
-pub struct Parser {}
+pub struct Parser {
+    scope: Scope,
+}
 
 impl Parser {
-    pub const fn new() -> Self {
-        Self {}
+    pub fn new() -> Self {
+        Self {
+            scope: Scope::new(),
+        }
     }
     pub fn parse_program<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Program, CompileError>
     where
@@ -48,7 +55,7 @@ impl Parser {
             }
             let mut tmp_tokens = tokens.clone();
             let component = {
-                let declaration = self.parse_declaration(&mut tmp_tokens)?;
+                let declaration = self.parse_declaration(&mut tmp_tokens, true)?;
                 if Some(TokenKind::Semi) == tmp_tokens.peek_kind() {
                     tmp_tokens.expect(&TokenKind::Semi).unwrap();
                     *tokens = tmp_tokens;
@@ -66,64 +73,131 @@ impl Parser {
     }
 
     pub fn parse_func_def<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<ProgramComponent, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (type_spec, debug_info) = self.parse_type_specifier(tokens)?;
+        let (type_spec, debug_info) = self.parse_type_specifier(tokens, true)?;
         let n_star = Self::parse_pointer(tokens)?;
         let direct_declarator = self.parse_direct_declarator(tokens)?;
         // have to be block stmt
         tokens.expect(&TokenKind::OpenDelim(DelimToken::Brace))?;
+        self.scope.scope_push();
         let mut stmts = Vec::new();
         while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
             stmts.push(self.parse_stmt(tokens)?);
         }
+        self.scope.scope_pop();
         let body = Stmt::new_block(stmts);
         let kind = ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body);
         Ok(ProgramComponent::new(kind, debug_info))
     }
 
+    /// arg: `consider_typedef_specifier` should be true when calling out of this function.
     pub fn parse_declaration<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
+        consider_typedef_specifier: bool, // default: true
     ) -> Result<Declaration, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
+        let mut tmp_tokens = tokens.clone();
         // TODO: todo!("impl declaration specifiers");
         // <declaration-specifiers> := <type-specifiers>
         // first element of direct declarator is Ident
-        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
+        let (declaration_specifiers, debug_info) =
+            self.parse_declaration_specifiers(&mut tmp_tokens, consider_typedef_specifier)?;
+
         // <pointer>*
-        let n_star = Self::parse_pointer(tokens)?;
-        if tokens.peek_expect(&TokenKind::Semi) {
+        let n_star = Self::parse_pointer(&mut tmp_tokens)?;
+        if tmp_tokens.peek_expect(&TokenKind::Semi) {
+            *tokens = tmp_tokens;
             // InitDeclarator is None
             return Ok(Declaration {
-                declaration_specifiers: vec![DeclarationSpecifier::Type(ty_spec)],
+                declaration_specifiers,
                 init_declarator: None,
                 debug_info,
             });
         }
-        let direct_declarator = self.parse_direct_declarator(tokens)?;
+        let direct_declarator = self.parse_direct_declarator(&mut tmp_tokens);
+        let direct_declarator = if matches!(
+            &direct_declarator,
+            &Err(CompileError {
+                kind: CompileErrorKind::ParseError(ParseErrorKind::IdentExpectFailed { got: _ }),
+            }),
+        ) {
+            // redefine typeof ident
+            // such as...
+            // typedef int int2;
+            // { typedef char int2; }
+            let mut has_typedef = false;
+            let mut has_only_one_typedefed_typespecifier = false;
+            for specifier in &declaration_specifiers {
+                if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) == *specifier
+                {
+                    has_typedef = true;
+                } else if let DeclarationSpecifier::Type(TypeSpecifier::TypeDefName(_)) = specifier
+                {
+                    if has_only_one_typedefed_typespecifier {
+                        has_only_one_typedefed_typespecifier = false;
+                        break;
+                    }
+                    has_only_one_typedefed_typespecifier = true;
+                }
+            }
+            if has_typedef && has_only_one_typedefed_typespecifier {
+                return self.parse_declaration(tokens, false);
+            }
+            direct_declarator?; // return Err
+
+            unreachable!()
+        } else {
+            direct_declarator.unwrap()
+        };
+        *tokens = tmp_tokens;
         let init = if tokens.consume(&TokenKind::Eq) {
             Some(self.parse_initializer(tokens)?)
         } else {
             None
         };
-        Ok(Declaration::new(
-            vec![DeclarationSpecifier::Type(ty_spec)],
+
+        if !declaration_specifiers.contains(&DeclarationSpecifier::StorageClass(
+            StorageClassSpecifier::Typedef,
+        )) {
+            return Ok(Declaration::new(
+                declaration_specifiers,
+                n_star,
+                direct_declarator,
+                init,
+                debug_info,
+            ));
+        }
+
+        // typedef declaration
+
+        let ident_name = direct_declarator.ident_name().to_string();
+
+        let declaration = Declaration::new(
+            declaration_specifiers,
             n_star,
             direct_declarator,
             init,
-            debug_info,
-        ))
+            debug_info.clone(),
+        );
+
+        // register type map
+        let ty = declaration.ty(&mut Analyzer::new(), debug_info.clone())?;
+        self.scope
+            .register_typedef_name(ident_name, ty, debug_info)?;
+
+        Ok(declaration)
     }
 
     pub fn parse_declarator<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Declarator, CompileError>
     where
@@ -136,7 +210,7 @@ impl Parser {
     }
 
     pub fn parse_direct_declarator<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<DirectDeclarator, CompileError>
     where
@@ -175,14 +249,14 @@ impl Parser {
                     // not flexible arg function
                 }
                 let mut args = Vec::new();
-                args.push(self.parse_declaration(tokens)?);
+                args.push(self.parse_declaration(tokens, true)?);
                 let mut is_flexible = false;
                 while tokens.consume(&TokenKind::Comma) {
                     if tokens.consume(&TokenKind::DotDotDot) {
                         is_flexible = true;
                         break;
                     }
-                    args.push(self.parse_declaration(tokens)?);
+                    args.push(self.parse_declaration(tokens, true)?);
                 }
                 direct_declarator =
                     DirectDeclarator::Func(Box::new(direct_declarator), args, is_flexible);
@@ -204,7 +278,7 @@ impl Parser {
     }
 
     pub fn parse_initializer<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Initializer, CompileError>
     where
@@ -222,7 +296,7 @@ impl Parser {
     }
 
     pub fn parse_initializer_list<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Vec<Initializer>, CompileError>
     where
@@ -244,8 +318,9 @@ impl Parser {
     }
 
     pub fn parse_type_specifier<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
+        consider_typedef_specifier: bool,
     ) -> Result<(TypeSpecifier, DebugInfo), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
@@ -279,8 +354,91 @@ impl Parser {
                         debug_info,
                     ))
                 }
+                TokenKind::Ident(ident) if consider_typedef_specifier => {
+                    if let Some(ty) = self.scope.look_up_typedef_name(&ident) {
+                        tokens.next();
+                        Ok((TypeSpecifier::TypeDefName(ty), debug_info))
+                    } else {
+                        Err(unimplemented_err!(
+                            debug_info,
+                            format!("unknown type specifier: {}", ident)
+                        ))
+                    }
+                }
                 _ => Err(CompileError::new_expected_failed(
                     Box::new("TokenKind::Type(_) | TokenKind::Struct".to_string()),
+                    Token::new(*kind, debug_info),
+                )),
+            },
+            None => Err(CompileError::new_unexpected_eof(
+                None,
+                Box::new("ToKenKind::Type(_)"),
+            )),
+        }
+    }
+
+    pub fn parse_declaration_specifiers<I>(
+        &mut self,
+        tokens: &mut TokenStream<I, TokenKind>,
+        consider_typedef_specifier: bool,
+    ) -> Result<(Vec<DeclarationSpecifier>, DebugInfo), CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        let mut specifiers = Vec::new();
+        let mut first_debug_info = None;
+        loop {
+            let ty_spec = self.parse_type_specifier(tokens, consider_typedef_specifier);
+            if let Ok((ty_spec, debug_info)) = ty_spec {
+                first_debug_info.get_or_insert(debug_info);
+                specifiers.push(DeclarationSpecifier::Type(ty_spec));
+                continue;
+            }
+
+            let storage_class = Self::parse_storage_class_specifier(tokens);
+            if let Ok((storage_class_specifier, debug_info)) = storage_class {
+                first_debug_info.get_or_insert(debug_info);
+                specifiers.push(DeclarationSpecifier::StorageClass(storage_class_specifier));
+                continue;
+            }
+            break;
+        }
+        first_debug_info.map_or_else(
+            || {
+                tokens.peek_debug_info().map_or_else(
+                    || {
+                        Err(CompileError::new_unexpected_eof(
+                            None,
+                            Box::new("declaration specifier expected, but got EOF."),
+                        ))
+                    },
+                    |debug_info| {
+                        Err(unimplemented_err!(
+                            debug_info,
+                            "At least one declaration specifier required."
+                        ))
+                    },
+                )
+            },
+            |first_debug_info| Ok((specifiers, first_debug_info)),
+        )
+    }
+
+    pub fn parse_storage_class_specifier<I>(
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<(StorageClassSpecifier, DebugInfo), CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        let peeked = tokens.peek().cloned();
+        match peeked {
+            Some(Token { kind, debug_info }) => match *kind {
+                TokenKind::TypeDef => {
+                    tokens.next();
+                    Ok((StorageClassSpecifier::Typedef, debug_info))
+                }
+                _ => Err(CompileError::new_expected_failed(
+                    Box::new("TokenKind::Typedef".to_string()),
                     Token::new(*kind, debug_info),
                 )),
             },
@@ -387,7 +545,7 @@ impl Parser {
     }
 
     pub fn parse_struct_or_union_specifier<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<StructOrUnionSpec, CompileError>
     where
@@ -420,13 +578,13 @@ impl Parser {
         }
     }
     pub fn parse_struct_declaration_list<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Vec<StructDeclaration>, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, debug_info) = self.parse_type_specifier(tokens, true)?;
         let ty_spec = vec![ty_spec];
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
@@ -435,7 +593,7 @@ impl Parser {
             declarator,
         }];
         tokens.expect(&TokenKind::Semi)?;
-        while let Ok((ty_spec, debug_info)) = self.parse_type_specifier(tokens) {
+        while let Ok((ty_spec, debug_info)) = self.parse_type_specifier(tokens, true) {
             let ty_spec = vec![ty_spec];
             let declarator = self.parse_declarator(tokens)?;
             list.push(StructDeclaration {
@@ -460,13 +618,13 @@ impl Parser {
     }
 
     pub fn parse_stmt<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Stmt, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        if tokens.consume(&TokenKind::Return) {
+        let stmt = if tokens.consume(&TokenKind::Return) {
             // return stmt
             let returning_expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::Semi)?;
@@ -490,11 +648,12 @@ impl Parser {
             Ok(Stmt::new_while(conditional_expr, then_stmt))
         } else if tokens.consume(&TokenKind::For) {
             tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            self.scope.scope_push();
             let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
-                Some(if tokens.is_type() {
-                    let declaration = self.parse_declaration(tokens)?;
+                Some(if tokens.is_starting_declaration(&self.scope) {
+                    let declaration = self.parse_declaration(tokens, true)?;
                     tokens.expect(&TokenKind::Semi)?;
                     ForInitKind::Declaration(declaration)
                 } else {
@@ -518,26 +677,30 @@ impl Parser {
                 Some(expr)
             };
             let then_stmt = self.parse_stmt(tokens)?;
+            self.scope.scope_pop();
             Ok(Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt))
         } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
+            self.scope.scope_push();
             let mut stmts = Vec::new();
             while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
                 stmts.push(self.parse_stmt(tokens)?);
             }
+            self.scope.scope_pop();
             Ok(Stmt::new_block(stmts))
-        } else if tokens.is_type() {
-            let stmt = Stmt::new_declare(self.parse_declaration(tokens)?);
+        } else if tokens.is_starting_declaration(&self.scope) {
+            let stmt = Stmt::new_declare(self.parse_declaration(tokens, true)?);
             tokens.expect(&TokenKind::Semi)?;
             Ok(stmt)
         } else {
             let expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::Semi)?;
             Ok(Stmt::expr(expr))
-        }
+        };
+        stmt
     }
 
     pub fn parse_expr<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -547,7 +710,7 @@ impl Parser {
     }
 
     pub fn parse_assign<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -572,7 +735,7 @@ impl Parser {
     }
 
     pub fn parse_conditional<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -595,7 +758,7 @@ impl Parser {
         }
     }
     pub fn parse_logical_or<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -611,7 +774,7 @@ impl Parser {
     }
 
     pub fn parse_logical_and<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -627,7 +790,7 @@ impl Parser {
     }
 
     pub fn parse_bit_wise_and<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -647,7 +810,7 @@ impl Parser {
     }
 
     pub fn parse_equality<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -668,7 +831,7 @@ impl Parser {
     }
 
     pub fn parse_relational<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -692,7 +855,7 @@ impl Parser {
     }
 
     pub fn parse_shift<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -713,7 +876,10 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_add<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
+    pub fn parse_add<I>(
+        &mut self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -731,7 +897,10 @@ impl Parser {
         Ok(lhs)
     }
 
-    pub fn parse_mul<I>(&self, tokens: &mut TokenStream<I, TokenKind>) -> Result<Expr, CompileError>
+    pub fn parse_mul<I>(
+        &mut self,
+        tokens: &mut TokenStream<I, TokenKind>,
+    ) -> Result<Expr, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -752,7 +921,7 @@ impl Parser {
     }
 
     pub fn parse_unary<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -793,13 +962,21 @@ impl Parser {
                 let mut tmp_tokens = tokens.clone();
                 if let (
                     Some(TokenKind::OpenDelim(DelimToken::Paren)),
-                    Some(TokenKind::Type(_) | TokenKind::Struct),
+                    Some(second @ (TokenKind::Type(_) | TokenKind::Struct | TokenKind::Ident(_))),
                 ) = (
                     tmp_tokens.next().map(|token| *token.kind()),
                     tmp_tokens.next().map(|token| *token.kind()),
                 ) {
                     // e.g) sizeof(int)
                     tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
+                    if let TokenKind::Ident(ident) = second {
+                        if self.scope.look_up_typedef_name(&ident).is_none() {
+                            // ident but not typedef name
+                            let expr = Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info);
+                            tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+                            return Ok(expr);
+                        }
+                    }
                     let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, debug_info);
                     tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
                     expr
@@ -821,7 +998,7 @@ impl Parser {
     }
 
     pub fn parse_postfix<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -863,7 +1040,7 @@ impl Parser {
     }
 
     pub fn parse_primary<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<Expr, CompileError>
     where
@@ -940,13 +1117,13 @@ impl Parser {
     }
 
     pub fn parse_type_name<I>(
-        &self,
+        &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
     ) -> Result<TypeName, CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
+        let (ty_spec, debug_info) = self.parse_type_specifier(tokens, true)?;
         // TODO: support DirectAbstractDeclarator
         let abstract_declarator = self.parse_abstract_declarator(tokens)?;
         Ok(TypeName::new(
@@ -1059,6 +1236,12 @@ impl Parser {
             }
         }
         Ok(Some(direct_abstract_declarator))
+    }
+}
+
+impl Default for Parser {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1369,6 +1552,7 @@ pub enum TypeSpecifier {
     Void,
     StructOrUnion(StructOrUnionSpec),
     Enum(EnumSpec),
+    TypeDefName(Type),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1509,6 +1693,7 @@ impl TypeName {
                 Type::InComplete(InCompleteKind::Enum(name.clone()))
             }
             TypeSpecifier::Enum(EnumSpec::WithList(None, _)) => todo!(),
+            TypeSpecifier::TypeDefName(ty) => ty.clone(),
         };
         if let Some(ref abstract_declarator) = self.abstract_declarator {
             for _ in 0..abstract_declarator.n_star {
@@ -1754,7 +1939,7 @@ impl Expr {
         }
     }
 
-    pub const fn new_type_sizeof(type_name: TypeName, debug_info: DebugInfo) -> Self {
+    pub fn new_type_sizeof(type_name: TypeName, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)),
             debug_info,
@@ -1814,4 +1999,53 @@ pub enum BinOpKind {
     LogicalOr,
     /// The `&&` operator (logical and)
     LogicalAnd,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct Scope {
+    typedef_names: Vec<BTreeMap<String, Type>>,
+}
+
+impl Scope {
+    pub fn new() -> Self {
+        Self {
+            typedef_names: vec![BTreeMap::new()], // global scope
+        }
+    }
+
+    pub fn scope_push(&mut self) {
+        self.typedef_names.push(BTreeMap::new());
+    }
+
+    pub fn scope_pop(&mut self) {
+        // global scope has not to be popped
+        assert!(self.typedef_names.len() > 1);
+        self.typedef_names.pop();
+    }
+
+    pub fn look_up_typedef_name(&self, name: &str) -> Option<Type> {
+        for scope in self.typedef_names.iter().rev() {
+            if let Some(ty) = scope.get(name) {
+                return Some(ty.clone());
+            }
+        }
+        None
+    }
+
+    pub fn register_typedef_name(
+        &mut self,
+        name: String,
+        ty: Type,
+        debug_info: DebugInfo,
+    ) -> Result<(), CompileError> {
+        if self.typedef_names.last().unwrap().contains_key(&name) {
+            return Err(CompileError::new_redefined_variable(
+                name,
+                debug_info,
+                VariableKind::Typedef,
+            ));
+        }
+        self.typedef_names.last_mut().unwrap().insert(name, ty);
+        Ok(())
+    }
 }

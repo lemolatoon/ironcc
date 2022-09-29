@@ -12,6 +12,7 @@
                                 | "char"
                                 | <struct-or-union-specifier>
                                 | <enum-specifier>
+                                | <typedef-name>
 <storage-class-specifier>   := "typedef"
 
 <struct-or-union-specifier> := "struct" <ident>? "{" <struct-declaration-list> "}"
