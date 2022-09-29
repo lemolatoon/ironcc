@@ -5,4 +5,6 @@
 void *malloc(int size);
 void exit(int status);
 
+void *NULL;
+
 #endif
