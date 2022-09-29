@@ -559,6 +559,10 @@ impl Generator {
 
                 // return expr's value
             }
+            ConvExprKind::Asm(asm) => {
+                // This asm must have push the value as an evaluated value.
+                writeln!(f, "  {}", asm)?;
+            }
         }
         Ok(())
     }
