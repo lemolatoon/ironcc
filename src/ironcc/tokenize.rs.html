@@ -719,7 +719,20 @@
 <span id="719">719</span>
 <span id="720">720</span>
 <span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::CompileError</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse::Scope</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::preprocess</span>::{<span class="ident">Preprocessor</span>, <span class="ident">PreprocessorTokenContainerStream</span>, <span class="ident">PreprocessorTokenStream</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
@@ -911,6 +924,7 @@
                         <span class="string">&quot;sizeof&quot;</span> =&gt; <span class="ident">TokenKind::SizeOf</span>,
                         <span class="string">&quot;struct&quot;</span> =&gt; <span class="ident">TokenKind::Struct</span>,
                         <span class="string">&quot;enum&quot;</span> =&gt; <span class="ident">TokenKind::Enum</span>,
+                        <span class="string">&quot;typedef&quot;</span> =&gt; <span class="ident">TokenKind::TypeDef</span>,
                         <span class="string">&quot;__asm__&quot;</span> =&gt; <span class="ident">TokenKind::Asm</span>,
                         <span class="string">&quot;const&quot;</span> =&gt; {
                             <span class="comment">// TODO: support const</span>
@@ -968,6 +982,8 @@
     <span class="ident">Struct</span>,
     <span class="doccomment">/// `enum`, reserved word</span>
     <span class="ident">Enum</span>,
+    <span class="doccomment">/// `typedef`, reserved word</span>
+    <span class="ident">TypeDef</span>,
     <span class="doccomment">/// `__asm__`, reserved word (not standard)</span>
     <span class="ident">Asm</span>,
     <span class="doccomment">/// `=` assign</span>
@@ -1315,12 +1331,16 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">TokenKind</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Return next token is the beginning of `type-specifier` or not.(Not consume)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_starting_declaration</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">scope</span>: <span class="kw-2">&amp;</span><span class="ident">Scope</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
             <span class="kw">return</span> <span class="macro">matches!</span>(
                 <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span>,
-                <span class="ident">TokenKind::Type</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Struct</span> <span class="op">|</span> <span class="ident">TokenKind::Enum</span>
-            );
+                <span class="ident">TokenKind::Type</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Struct</span> <span class="op">|</span> <span class="ident">TokenKind::Enum</span> <span class="op">|</span> <span class="ident">TokenKind::TypeDef</span>
+            ) <span class="op">|</span><span class="op">|</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Ident</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
+                <span class="ident">scope</span>.<span class="ident">look_up_typedef_name</span>(<span class="ident">ident</span>).<span class="ident">is_some</span>()
+            } <span class="kw">else</span> {
+                <span class="bool-val">false</span>
+            };
         }
         <span class="bool-val">false</span>
     }
@@ -1348,20 +1368,24 @@
 
     <span class="doccomment">/// if next token is ident, then return its name and Position, otherwise return Err(_)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">DebugInfo</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
+        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>().<span class="ident">cloned</span>();
         <span class="kw">match</span> <span class="ident">token</span> {
             <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">debug_info</span>)),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
-                    <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
-                    <span class="ident">token</span>,
-                )),
+                <span class="ident">TokenKind::Ident</span>(<span class="ident">name</span>) =&gt; {
+                    <span class="self">self</span>.<span class="ident">next</span>();
+                    <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">debug_info</span>))
+                }
+                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_ident_expected_failed</span>(<span class="ident">token</span>)),
             },
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(
                 <span class="prelude-val">None</span>,
                 <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Ident(_)&quot;</span>),
             )),
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_debug_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DebugInfo</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">peek</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="ident">token</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>())
     }
 }
 
