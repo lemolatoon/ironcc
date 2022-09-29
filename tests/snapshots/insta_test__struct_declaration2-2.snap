@@ -23,72 +23,82 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: StructOrUnion(
-                                            WithList(
-                                                Some(
-                                                    "my_struct_tag",
+                                        declaration_specifiers: [
+                                            Type(
+                                                StructOrUnion(
+                                                    WithList(
+                                                        Some(
+                                                            "my_struct_tag",
+                                                        ),
+                                                        [
+                                                            StructDeclaration {
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 8,
+                                                                        n_line: 4,
+                                                                    },
+                                                                },
+                                                                ty_spec: [
+                                                                    Char,
+                                                                ],
+                                                                declarator: Declarator {
+                                                                    n_star: 0,
+                                                                    direct_declarator: Ident(
+                                                                        "a",
+                                                                    ),
+                                                                },
+                                                            },
+                                                            StructDeclaration {
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 8,
+                                                                        n_line: 5,
+                                                                    },
+                                                                },
+                                                                ty_spec: [
+                                                                    Int,
+                                                                ],
+                                                                declarator: Declarator {
+                                                                    n_star: 0,
+                                                                    direct_declarator: Ident(
+                                                                        "b",
+                                                                    ),
+                                                                },
+                                                            },
+                                                            StructDeclaration {
+                                                                debug_info: DebugInfo {
+                                                                    file_info: FileInfo {
+                                                                        file_name: "not impl name.c",
+                                                                        src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
+                                                                    },
+                                                                    pos: Position {
+                                                                        n_char: 8,
+                                                                        n_line: 6,
+                                                                    },
+                                                                },
+                                                                ty_spec: [
+                                                                    Char,
+                                                                ],
+                                                                declarator: Declarator {
+                                                                    n_star: 0,
+                                                                    direct_declarator: Ident(
+                                                                        "c",
+                                                                    ),
+                                                                },
+                                                            },
+                                                        ],
+                                                    ),
                                                 ),
-                                                [
-                                                    StructDeclaration {
-                                                        debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
-                                                            },
-                                                            pos: Position {
-                                                                n_char: 8,
-                                                                n_line: 4,
-                                                            },
-                                                        },
-                                                        ty_spec: Char,
-                                                        declarator: Declarator {
-                                                            n_star: 0,
-                                                            direct_declarator: Ident(
-                                                                "a",
-                                                            ),
-                                                        },
-                                                    },
-                                                    StructDeclaration {
-                                                        debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
-                                                            },
-                                                            pos: Position {
-                                                                n_char: 8,
-                                                                n_line: 5,
-                                                            },
-                                                        },
-                                                        ty_spec: Int,
-                                                        declarator: Declarator {
-                                                            n_star: 0,
-                                                            direct_declarator: Ident(
-                                                                "b",
-                                                            ),
-                                                        },
-                                                    },
-                                                    StructDeclaration {
-                                                        debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
-                                                            },
-                                                            pos: Position {
-                                                                n_char: 8,
-                                                                n_line: 6,
-                                                            },
-                                                        },
-                                                        ty_spec: Char,
-                                                        declarator: Declarator {
-                                                            n_star: 0,
-                                                            direct_declarator: Ident(
-                                                                "c",
-                                                            ),
-                                                        },
-                                                    },
-                                                ],
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

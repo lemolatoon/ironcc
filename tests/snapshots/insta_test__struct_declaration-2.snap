@@ -7,53 +7,61 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: StructOrUnion(
-                        WithList(
-                            Some(
-                                "my_struct_tag",
+                    declaration_specifiers: [
+                        Type(
+                            StructOrUnion(
+                                WithList(
+                                    Some(
+                                        "my_struct_tag",
+                                    ),
+                                    [
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 2,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Int,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Ident(
+                                                    "a",
+                                                ),
+                                            },
+                                        },
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Char,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Ident(
+                                                    "b",
+                                                ),
+                                            },
+                                        },
+                                    ],
+                                ),
                             ),
-                            [
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 2,
-                                        },
-                                    },
-                                    ty_spec: Int,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Ident(
-                                            "a",
-                                        ),
-                                    },
-                                },
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct my_struct_tag\n{\n    int a;\n    char b;\n};\n\nint main()\n{\n    struct my_struct_tag my_struct;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 3,
-                                        },
-                                    },
-                                    ty_spec: Char,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Ident(
-                                            "b",
-                                        ),
-                                    },
-                                },
-                            ],
                         ),
-                    ),
+                    ],
                     init_declarator: None,
                     debug_info: DebugInfo {
                         file_info: FileInfo {
@@ -97,11 +105,15 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: StructOrUnion(
-                                            WithTag(
-                                                "my_struct_tag",
+                                        declaration_specifiers: [
+                                            Type(
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "my_struct_tag",
+                                                    ),
+                                                ),
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

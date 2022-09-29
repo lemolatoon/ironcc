@@ -7,7 +7,11 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: Void,
+                    declaration_specifiers: [
+                        Type(
+                            Void,
+                        ),
+                    ],
                     init_declarator: Some(
                         InitDeclarator {
                             declarator: Declarator {
@@ -18,7 +22,11 @@ Program {
                                     ),
                                     [
                                         Declaration {
-                                            ty_spec: Char,
+                                            declaration_specifiers: [
+                                                Type(
+                                                    Char,
+                                                ),
+                                            ],
                                             init_declarator: Some(
                                                 InitDeclarator {
                                                     declarator: Declarator {
@@ -90,7 +98,11 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Int,
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

@@ -7,80 +7,90 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: StructOrUnion(
-                        WithList(
-                            Some(
-                                "A",
+                    declaration_specifiers: [
+                        Type(
+                            StructOrUnion(
+                                WithList(
+                                    Some(
+                                        "A",
+                                    ),
+                                    [
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 1,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 1,
+                                                direct_declarator: Ident(
+                                                    "before",
+                                                ),
+                                            },
+                                        },
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 2,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Int,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Ident(
+                                                    "value",
+                                                ),
+                                            },
+                                        },
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 1,
+                                                direct_declarator: Ident(
+                                                    "after",
+                                                ),
+                                            },
+                                        },
+                                    ],
+                                ),
                             ),
-                            [
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 1,
-                                        },
-                                    },
-                                    ty_spec: StructOrUnion(
-                                        WithTag(
-                                            "A",
-                                        ),
-                                    ),
-                                    declarator: Declarator {
-                                        n_star: 1,
-                                        direct_declarator: Ident(
-                                            "before",
-                                        ),
-                                    },
-                                },
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 2,
-                                        },
-                                    },
-                                    ty_spec: Int,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Ident(
-                                            "value",
-                                        ),
-                                    },
-                                },
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A {\n    struct A*before; \n    int value;\n    struct A* after;\n} global_doubly_linked_list;\n\nint main() {\n    struct A a1;\n    struct A a2;\n    global_doubly_linked_list.before = &a1;\n    global_doubly_linked_list.value = 2;\n    global_doubly_linked_list.after = &a2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 3,
-                                        },
-                                    },
-                                    ty_spec: StructOrUnion(
-                                        WithTag(
-                                            "A",
-                                        ),
-                                    ),
-                                    declarator: Declarator {
-                                        n_star: 1,
-                                        direct_declarator: Ident(
-                                            "after",
-                                        ),
-                                    },
-                                },
-                            ],
                         ),
-                    ),
+                    ],
                     init_declarator: Some(
                         InitDeclarator {
                             declarator: Declarator {
@@ -134,11 +144,15 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: StructOrUnion(
-                                            WithTag(
-                                                "A",
+                                        declaration_specifiers: [
+                                            Type(
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {
@@ -166,11 +180,15 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: StructOrUnion(
-                                            WithTag(
-                                                "A",
+                                        declaration_specifiers: [
+                                            Type(
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

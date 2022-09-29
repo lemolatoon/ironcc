@@ -5,8 +5,57 @@ expression: tester.program().as_ref().unwrap()
 Program {
     components: [
         ProgramComponent {
+            kind: Declaration(
+                Declaration {
+                    declaration_specifiers: [
+                        StorageClass(
+                            Typedef,
+                        ),
+                        Type(
+                            Int,
+                        ),
+                    ],
+                    init_declarator: Some(
+                        InitDeclarator {
+                            declarator: Declarator {
+                                n_star: 0,
+                                direct_declarator: Ident(
+                                    "int2",
+                                ),
+                            },
+                            initializer: None,
+                        },
+                    ),
+                    debug_info: DebugInfo {
+                        file_info: FileInfo {
+                            file_name: "not impl name.c",
+                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                        },
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
+                },
+            ),
+            debug_info: DebugInfo {
+                file_info: FileInfo {
+                    file_name: "not impl name.c",
+                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                },
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
+            },
+        },
+        ProgramComponent {
             kind: FuncDef(
-                Int,
+                TypeDefName(
+                    Base(
+                        Int,
+                    ),
+                ),
                 Declarator {
                     n_star: 0,
                     direct_declarator: Func(
@@ -24,8 +73,51 @@ Program {
                                 kind: Declare(
                                     Declaration {
                                         declaration_specifiers: [
+                                            StorageClass(
+                                                Typedef,
+                                            ),
                                             Type(
-                                                Int,
+                                                TypeDefName(
+                                                    Base(
+                                                        Int,
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "int3",
+                                                    ),
+                                                },
+                                                initializer: None,
+                                            },
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: FileInfo {
+                                                file_name: "not impl name.c",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                            },
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                ),
+                            },
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        declaration_specifiers: [
+                                            Type(
+                                                TypeDefName(
+                                                    Base(
+                                                        Int,
+                                                    ),
+                                                ),
                                             ),
                                         ],
                                         init_declarator: Some(
@@ -40,16 +132,16 @@ Program {
                                                     Expr(
                                                         Expr {
                                                             kind: Num(
-                                                                2,
+                                                                5,
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
                                                                     file_name: "not impl name.c",
-                                                                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                                                 },
                                                                 pos: Position {
-                                                                    n_char: 16,
-                                                                    n_line: 2,
+                                                                    n_char: 13,
+                                                                    n_line: 3,
                                                                 },
                                                             },
                                                         },
@@ -60,11 +152,11 @@ Program {
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
                                                 file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                             },
                                             pos: Position {
-                                                n_char: 8,
-                                                n_line: 2,
+                                                n_char: 4,
+                                                n_line: 3,
                                             },
                                         },
                                     },
@@ -75,7 +167,11 @@ Program {
                                     Declaration {
                                         declaration_specifiers: [
                                             Type(
-                                                Char,
+                                                TypeDefName(
+                                                    Base(
+                                                        Int,
+                                                    ),
+                                                ),
                                             ),
                                         ],
                                         init_declarator: Some(
@@ -89,17 +185,17 @@ Program {
                                                 initializer: Some(
                                                     Expr(
                                                         Expr {
-                                                            kind: Ident(
-                                                                "a",
+                                                            kind: Num(
+                                                                6,
                                                             ),
                                                             debug_info: DebugInfo {
                                                                 file_info: FileInfo {
                                                                     file_name: "not impl name.c",
-                                                                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                                                 },
                                                                 pos: Position {
-                                                                    n_char: 17,
-                                                                    n_line: 3,
+                                                                    n_char: 13,
+                                                                    n_line: 4,
                                                                 },
                                                             },
                                                         },
@@ -110,61 +206,10 @@ Program {
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
                                                 file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                             },
                                             pos: Position {
-                                                n_char: 8,
-                                                n_line: 3,
-                                            },
-                                        },
-                                    },
-                                ),
-                            },
-                            Stmt {
-                                kind: Expr(
-                                    Expr {
-                                        kind: Binary(
-                                            Binary {
-                                                kind: Add,
-                                                lhs: Expr {
-                                                    kind: Ident(
-                                                        "a",
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
-                                                        },
-                                                        pos: Position {
-                                                            n_char: 8,
-                                                            n_line: 4,
-                                                        },
-                                                    },
-                                                },
-                                                rhs: Expr {
-                                                    kind: Ident(
-                                                        "b",
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
-                                                        },
-                                                        pos: Position {
-                                                            n_char: 12,
-                                                            n_line: 4,
-                                                        },
-                                                    },
-                                                },
-                                            },
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
-                                            },
-                                            pos: Position {
-                                                n_char: 10,
+                                                n_char: 4,
                                                 n_line: 4,
                                             },
                                         },
@@ -172,37 +217,37 @@ Program {
                                 ),
                             },
                             Stmt {
-                                kind: Expr(
+                                kind: Return(
                                     Expr {
                                         kind: Binary(
                                             Binary {
                                                 kind: Add,
                                                 lhs: Expr {
                                                     kind: Ident(
-                                                        "b",
+                                                        "a",
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
                                                             file_name: "not impl name.c",
-                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                                         },
                                                         pos: Position {
-                                                            n_char: 8,
+                                                            n_char: 11,
                                                             n_line: 5,
                                                         },
                                                     },
                                                 },
                                                 rhs: Expr {
                                                     kind: Ident(
-                                                        "a",
+                                                        "b",
                                                     ),
                                                     debug_info: DebugInfo {
                                                         file_info: FileInfo {
                                                             file_name: "not impl name.c",
-                                                            src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                                         },
                                                         pos: Position {
-                                                            n_char: 12,
+                                                            n_char: 15,
                                                             n_line: 5,
                                                         },
                                                     },
@@ -212,10 +257,10 @@ Program {
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
                                                 file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                                             },
                                             pos: Position {
-                                                n_char: 10,
+                                                n_char: 13,
                                                 n_line: 5,
                                             },
                                         },
@@ -229,10 +274,10 @@ Program {
             debug_info: DebugInfo {
                 file_info: FileInfo {
                     file_name: "not impl name.c",
-                    src: "\n    int main() {\n        int a = 2;\n        char b = a;\n        a + b;\n        b + a;\n    }\n    ",
+                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
                 },
                 pos: Position {
-                    n_char: 4,
+                    n_char: 0,
                     n_line: 1,
                 },
             },

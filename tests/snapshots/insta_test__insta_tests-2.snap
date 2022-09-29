@@ -23,7 +23,11 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Int,
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {
@@ -99,7 +103,11 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Int,
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {
@@ -189,7 +197,11 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Int,
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

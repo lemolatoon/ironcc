@@ -1,4 +1,5 @@
 use crate::error::CompileError;
+use crate::parse::Scope;
 use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
 use crate::unimplemented_err;
 use std::iter::Peekable;
@@ -190,6 +191,7 @@ impl Tokenizer {
                         "sizeof" => TokenKind::SizeOf,
                         "struct" => TokenKind::Struct,
                         "enum" => TokenKind::Enum,
+                        "typedef" => TokenKind::TypeDef,
                         "__asm__" => TokenKind::Asm,
                         "const" => {
                             // TODO: support const
@@ -247,6 +249,8 @@ pub enum TokenKind {
     Struct,
     /// `enum`, reserved word
     Enum,
+    /// `typedef`, reserved word
+    TypeDef,
     /// `__asm__`, reserved word (not standard)
     Asm,
     /// `=` assign
@@ -594,12 +598,16 @@ where
 
 impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenKind> {
     /// Return next token is the beginning of `type-specifier` or not.(Not consume)
-    pub fn is_type(&mut self) -> bool {
+    pub fn is_starting_declaration(&mut self, scope: &Scope) -> bool {
         if let Some(token) = self.peek() {
             return matches!(
                 *token.kind,
-                TokenKind::Type(_) | TokenKind::Struct | TokenKind::Enum
-            );
+                TokenKind::Type(_) | TokenKind::Struct | TokenKind::Enum | TokenKind::TypeDef
+            ) || if let TokenKind::Ident(ref ident) = *token.kind {
+                scope.look_up_typedef_name(ident).is_some()
+            } else {
+                false
+            };
         }
         false
     }
@@ -627,20 +635,24 @@ impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenK
 
     /// if next token is ident, then return its name and Position, otherwise return Err(_)
     pub fn consume_ident(&mut self) -> Result<(String, DebugInfo), CompileError> {
-        let token = self.next();
+        let token = self.peek().cloned();
         match token {
             Some(token) => match *token.kind {
-                TokenKind::Ident(name) => Ok((name, token.debug_info)),
-                _ => Err(CompileError::new_expected_failed(
-                    Box::new("TokenKind::Ident(_)"),
-                    token,
-                )),
+                TokenKind::Ident(name) => {
+                    self.next();
+                    Ok((name, token.debug_info))
+                }
+                _ => Err(CompileError::new_ident_expected_failed(token)),
             },
             _ => Err(CompileError::new_unexpected_eof(
                 None,
                 Box::new("TokenKind::Ident(_)"),
             )),
         }
+    }
+
+    pub fn peek_debug_info(&mut self) -> Option<DebugInfo> {
+        self.peek().map(|token| token.debug_info.clone())
     }
 }
 
