@@ -7,41 +7,45 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: Enum(
-                        WithList(
-                            Some(
-                                "A",
+                    declaration_specifiers: [
+                        Type(
+                            Enum(
+                                WithList(
+                                    Some(
+                                        "A",
+                                    ),
+                                    [
+                                        EnumConstant {
+                                            ident: "A1",
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 1,
+                                                },
+                                            },
+                                        },
+                                        EnumConstant {
+                                            ident: "A2",
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 2,
+                                                },
+                                            },
+                                        },
+                                    ],
+                                ),
                             ),
-                            [
-                                EnumConstant {
-                                    ident: "A1",
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 1,
-                                        },
-                                    },
-                                },
-                                EnumConstant {
-                                    ident: "A2",
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 2,
-                                        },
-                                    },
-                                },
-                            ],
                         ),
-                    ),
+                    ],
                     init_declarator: None,
                     debug_info: DebugInfo {
                         file_info: FileInfo {
@@ -69,39 +73,43 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: Enum(
-                        WithList(
-                            None,
-                            [
-                                EnumConstant {
-                                    ident: "B1",
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                    declaration_specifiers: [
+                        Type(
+                            Enum(
+                                WithList(
+                                    None,
+                                    [
+                                        EnumConstant {
+                                            ident: "B1",
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 6,
+                                                },
+                                            },
                                         },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 6,
+                                        EnumConstant {
+                                            ident: "B2",
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 7,
+                                                },
+                                            },
                                         },
-                                    },
-                                },
-                                EnumConstant {
-                                    ident: "B2",
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 7,
-                                        },
-                                    },
-                                },
-                            ],
+                                    ],
+                                ),
+                            ),
                         ),
-                    ),
+                    ],
                     init_declarator: Some(
                         InitDeclarator {
                             declarator: Declarator {
@@ -155,11 +163,15 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Enum(
-                                            WithTag(
-                                                "A",
+                                        declaration_specifiers: [
+                                            Type(
+                                                Enum(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

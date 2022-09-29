@@ -7,91 +7,101 @@ Program {
         ProgramComponent {
             kind: Declaration(
                 Declaration {
-                    ty_spec: StructOrUnion(
-                        WithList(
-                            Some(
-                                "A",
-                            ),
-                            [
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                        },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 2,
-                                        },
-                                    },
-                                    ty_spec: Int,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Array(
-                                            Ident(
-                                                "a",
-                                            ),
-                                            Some(
-                                                Expr {
-                                                    kind: Num(
-                                                        2,
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                        },
-                                                        pos: Position {
-                                                            n_char: 10,
-                                                            n_line: 2,
-                                                        },
-                                                    },
+                    declaration_specifiers: [
+                        Type(
+                            StructOrUnion(
+                                WithList(
+                                    Some(
+                                        "A",
+                                    ),
+                                    [
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
                                                 },
-                                            ),
-                                        ),
-                                    },
-                                },
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 2,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Int,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Array(
+                                                    Ident(
+                                                        "a",
+                                                    ),
+                                                    Some(
+                                                        Expr {
+                                                            kind: Num(
+                                                                2,
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: FileInfo {
+                                                                    file_name: "not impl name.c",
+                                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                                },
+                                                                pos: Position {
+                                                                    n_char: 10,
+                                                                    n_line: 2,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
                                         },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 3,
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Char,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Ident(
+                                                    "b",
+                                                ),
+                                            },
                                         },
-                                    },
-                                    ty_spec: Char,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Ident(
-                                            "b",
-                                        ),
-                                    },
-                                },
-                                StructDeclaration {
-                                    debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                        StructDeclaration {
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 4,
+                                                    n_line: 4,
+                                                },
+                                            },
+                                            ty_spec: [
+                                                Int,
+                                            ],
+                                            declarator: Declarator {
+                                                n_star: 0,
+                                                direct_declarator: Ident(
+                                                    "c",
+                                                ),
+                                            },
                                         },
-                                        pos: Position {
-                                            n_char: 4,
-                                            n_line: 4,
-                                        },
-                                    },
-                                    ty_spec: Int,
-                                    declarator: Declarator {
-                                        n_star: 0,
-                                        direct_declarator: Ident(
-                                            "c",
-                                        ),
-                                    },
-                                },
-                            ],
+                                    ],
+                                ),
+                            ),
                         ),
-                    ),
+                    ],
                     init_declarator: None,
                     debug_info: DebugInfo {
                         file_info: FileInfo {
@@ -135,11 +145,15 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: StructOrUnion(
-                                            WithTag(
-                                                "A",
+                                        declaration_specifiers: [
+                                            Type(
+                                                StructOrUnion(
+                                                    WithTag(
+                                                        "A",
+                                                    ),
+                                                ),
                                             ),
-                                        ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

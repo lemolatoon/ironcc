@@ -7,7 +7,7 @@
 
 <declaration>               := <declaration-specifiers> <init-declarator>* ";"
 <declaration-specifiers>    := <type-specifiers> <declaration-specifiers>?
-                            := <storage-class-specifier> <declaration-specifiers>?
+                                | <storage-class-specifier> <declaration-specifiers>?
 <type-specifiers>           := "int"
                                 | "char"
                                 | <struct-or-union-specifier>
@@ -16,7 +16,8 @@
 
 <struct-or-union-specifier> := "struct" <ident>? "{" <struct-declaration-list> "}"
                                 | "struct" <ident>
-<struct-declaration-list>   := <struct-declaration-list> <type-specifier> <declarator>
+<struct-declaration-list>   := <struct-declaration-list> <specifier-qualifier-list> <declarator>
+<specifier-qualifier-list>  := (<type-specifier> | <type-qualifier>)*
 
 <enum-specifier>            := "enum" <ident>? { <enumerator-list> ","? }
                             := "enum" <ident>

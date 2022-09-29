@@ -93,6 +93,7 @@ impl Parser {
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
+        // TODO: todo!("impl declaration specifiers");
         // <declaration-specifiers> := <type-specifiers>
         // first element of direct declarator is Ident
         let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
@@ -101,7 +102,7 @@ impl Parser {
         if tokens.peek_expect(&TokenKind::Semi) {
             // InitDeclarator is None
             return Ok(Declaration {
-                ty_spec,
+                declaration_specifiers: vec![DeclarationSpecifier::Type(ty_spec)],
                 init_declarator: None,
                 debug_info,
             });
@@ -113,7 +114,7 @@ impl Parser {
             None
         };
         Ok(Declaration::new(
-            ty_spec,
+            vec![DeclarationSpecifier::Type(ty_spec)],
             n_star,
             direct_declarator,
             init,
@@ -245,7 +246,7 @@ impl Parser {
     pub fn parse_type_specifier<I>(
         &self,
         tokens: &mut TokenStream<I, TokenKind>,
-    ) -> Result<(TypeSpec, DebugInfo), CompileError>
+    ) -> Result<(TypeSpecifier, DebugInfo), CompileError>
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
@@ -254,27 +255,27 @@ impl Parser {
             Some(Token { kind, debug_info }) => match *kind {
                 TokenKind::Type(TypeToken::Int) => {
                     tokens.next();
-                    Ok((TypeSpec::Int, debug_info))
+                    Ok((TypeSpecifier::Int, debug_info))
                 }
                 TokenKind::Type(TypeToken::Char) => {
                     tokens.next();
-                    Ok((TypeSpec::Char, debug_info))
+                    Ok((TypeSpecifier::Char, debug_info))
                 }
                 TokenKind::Type(TypeToken::Void) => {
                     tokens.next();
-                    Ok((TypeSpec::Void, debug_info))
+                    Ok((TypeSpecifier::Void, debug_info))
                 }
                 TokenKind::Struct => {
                     tokens.next();
                     Ok((
-                        TypeSpec::StructOrUnion(self.parse_struct_or_union_specifier(tokens)?),
+                        TypeSpecifier::StructOrUnion(self.parse_struct_or_union_specifier(tokens)?),
                         debug_info,
                     ))
                 }
                 TokenKind::Enum => {
                     tokens.next();
                     Ok((
-                        TypeSpec::Enum(Self::parse_enum_specifier(tokens)?),
+                        TypeSpecifier::Enum(Self::parse_enum_specifier(tokens)?),
                         debug_info,
                     ))
                 }
@@ -426,6 +427,7 @@ impl Parser {
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
         let (ty_spec, debug_info) = self.parse_type_specifier(tokens)?;
+        let ty_spec = vec![ty_spec];
         let declarator = self.parse_declarator(tokens)?;
         let mut list = vec![StructDeclaration {
             debug_info,
@@ -434,6 +436,7 @@ impl Parser {
         }];
         tokens.expect(&TokenKind::Semi)?;
         while let Ok((ty_spec, debug_info)) = self.parse_type_specifier(tokens) {
+            let ty_spec = vec![ty_spec];
             let declarator = self.parse_declarator(tokens)?;
             list.push(StructDeclaration {
                 debug_info,
@@ -1104,14 +1107,14 @@ impl ProgramComponent {
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ProgramKind {
-    FuncDef(TypeSpec, Declarator, Stmt),
+    FuncDef(TypeSpecifier, Declarator, Stmt),
     Declaration(Declaration),
     InlineAsm(String),
 }
 
 impl ProgramKind {
     pub const fn new_funcdef(
-        type_spec: TypeSpec,
+        type_spec: TypeSpecifier,
         n_star: usize,
         direct_declarator: DirectDeclarator,
         body: Stmt,
@@ -1128,8 +1131,8 @@ pub struct Stmt {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 /// Declaration
 pub struct Declaration {
-    // type-specifier
-    pub ty_spec: TypeSpec,
+    // declaration-specifier
+    pub declaration_specifiers: Vec<DeclarationSpecifier>,
     // init-declarator
     pub init_declarator: Option<InitDeclarator>,
     pub debug_info: DebugInfo,
@@ -1138,14 +1141,14 @@ pub struct Declaration {
 impl Declaration {
     // TODO: need or not
     pub const fn new(
-        ty_spec: TypeSpec,
+        declaration_specifiers: Vec<DeclarationSpecifier>,
         n_star: usize,
         direct_declarator: DirectDeclarator,
         initializer: Option<Initializer>,
         debug_info: DebugInfo,
     ) -> Self {
         Self {
-            ty_spec,
+            declaration_specifiers,
             init_declarator: Some(InitDeclarator {
                 declarator: Declarator::new(n_star, direct_declarator),
                 initializer,
@@ -1161,8 +1164,8 @@ impl Declaration {
     }
 
     pub fn ty(&self, analyzer: &mut Analyzer, debug_info: DebugInfo) -> Result<Type, CompileError> {
-        let converted_type =
-            analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info.clone())?;
+        let converted_type = analyzer
+            .resolve_name_and_convert_to_type(&self.declaration_specifiers, debug_info.clone())?;
         analyzer.get_type(
             converted_type,
             &self
@@ -1327,7 +1330,40 @@ impl Initializer {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub enum TypeSpec {
+pub enum DeclarationSpecifier {
+    Type(TypeSpecifier),
+    StorageClass(StorageClassSpecifier),
+}
+
+impl DeclarationSpecifier {
+    pub fn get_type_specifier(&self) -> Option<TypeSpecifier> {
+        match self {
+            DeclarationSpecifier::Type(type_specifier) => Some(type_specifier.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn get_storage_class_specifier(&self) -> Option<StorageClassSpecifier> {
+        match self {
+            DeclarationSpecifier::StorageClass(storage_class_specifier) => {
+                Some(storage_class_specifier.clone())
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum StorageClassSpecifier {
+    Typedef,
+    Extern,
+    Static,
+    Auto,
+    Register,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum TypeSpecifier {
     Int,
     Char,
     Void,
@@ -1344,7 +1380,8 @@ pub enum StructOrUnionSpec {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct StructDeclaration {
     pub debug_info: DebugInfo,
-    ty_spec: TypeSpec,
+    // TODO: Add type-qualifier
+    ty_spec: Vec<TypeSpecifier>,
     declarator: Declarator,
 }
 
@@ -1358,7 +1395,14 @@ impl StructDeclaration {
         analyzer: &mut Analyzer,
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
-        let conveted_type = analyzer.resolve_name_and_convert_to_type(&self.ty_spec, debug_info)?;
+        let conveted_type = analyzer.resolve_name_and_convert_to_type(
+            &self
+                .ty_spec
+                .iter()
+                .map(|ty_spec| DeclarationSpecifier::Type(ty_spec.clone()))
+                .collect(),
+            debug_info,
+        )?;
         analyzer.get_type(conveted_type, &self.declarator)
     }
 }
@@ -1452,19 +1496,19 @@ impl TypeName {
     pub fn ty(&self) -> Type {
         // TODO: also consider array
         let mut ty = match &self.spec_quals.0 {
-            TypeSpec::Int => Type::Base(BaseType::Int),
-            TypeSpec::Char => Type::Base(BaseType::Char),
-            TypeSpec::Void => Type::Void,
-            TypeSpec::StructOrUnion(
+            TypeSpecifier::Int => Type::Base(BaseType::Int),
+            TypeSpecifier::Char => Type::Base(BaseType::Char),
+            TypeSpecifier::Void => Type::Void,
+            TypeSpecifier::StructOrUnion(
                 StructOrUnionSpec::WithTag(name) | StructOrUnionSpec::WithList(Some(name), _),
             ) => Type::InComplete(InCompleteKind::Struct(name.clone())),
-            TypeSpec::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {
+            TypeSpecifier::StructOrUnion(StructOrUnionSpec::WithList(None, _)) => {
                 todo!()
             }
-            TypeSpec::Enum(EnumSpec::WithTag(name) | EnumSpec::WithList(Some(name), _)) => {
+            TypeSpecifier::Enum(EnumSpec::WithTag(name) | EnumSpec::WithList(Some(name), _)) => {
                 Type::InComplete(InCompleteKind::Enum(name.clone()))
             }
-            TypeSpec::Enum(EnumSpec::WithList(None, _)) => todo!(),
+            TypeSpecifier::Enum(EnumSpec::WithList(None, _)) => todo!(),
         };
         if let Some(ref abstract_declarator) = self.abstract_declarator {
             for _ in 0..abstract_declarator.n_star {
@@ -1477,7 +1521,7 @@ impl TypeName {
 
 /// \<specifier-qualifier-list\> := \<type-specifiers\>
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub struct SpecQual(TypeSpec);
+pub struct SpecQual(TypeSpecifier);
 
 /// \<abstract-declarator\> := "\*"\* \<direct-abstract-declarator\>?
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

@@ -23,7 +23,11 @@ Program {
                             Stmt {
                                 kind: Declare(
                                     Declaration {
-                                        ty_spec: Char,
+                                        declaration_specifiers: [
+                                            Type(
+                                                Char,
+                                            ),
+                                        ],
                                         init_declarator: Some(
                                             InitDeclarator {
                                                 declarator: Declarator {

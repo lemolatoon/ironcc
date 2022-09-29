@@ -253,7 +253,7 @@ fn parse_stmt_test() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", vec![], true),
         block(vec![expr_stmt(num(1)), expr_stmt(num(2))]),
@@ -283,7 +283,7 @@ fn parse_stmt_test() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2))), ret(lvar("a"))]),
@@ -313,7 +313,7 @@ fn parse_assign_expr_test() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(lvar("a"), num(2)))]),
@@ -342,7 +342,7 @@ fn parse_assign_expr_test() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(
@@ -374,7 +374,7 @@ fn parse_assign_expr_test() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(assign(
@@ -420,7 +420,7 @@ fn parse_various_stmts() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
@@ -469,7 +469,7 @@ fn parse_various_stmts() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
@@ -530,7 +530,7 @@ fn parse_various_stmts() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
@@ -578,7 +578,7 @@ fn parse_various_stmts() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
@@ -618,7 +618,7 @@ fn parse_call_func() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![expr_stmt(func("foo", vec![num(3), num(1)]))]),
@@ -648,7 +648,7 @@ fn parse_ptr() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![ret(deref(lvar("a")))]),
@@ -700,7 +700,7 @@ fn parse_ptr() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
@@ -746,11 +746,11 @@ fn parse_declaration() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![declare_stmt(declare(
-            TypeSpec::Int,
+            TypeSpecifier::Int,
             0,
             DirectDeclarator::Ident("a".to_string()),
         ))]),
@@ -786,11 +786,11 @@ fn parse_declaration() {
         .parse_program(&mut TokenStream::new(tokens.into_iter()))
         .unwrap();
     let expected = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![declare_stmt(declare(
-            TypeSpec::Int,
+            TypeSpecifier::Int,
             1,
             DirectDeclarator::Ident("a".to_string()),
         ))]),

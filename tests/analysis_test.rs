@@ -90,22 +90,22 @@ fn analysis_ident_test() {
 fn analysis_program_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("a".to_string()),
             )), // int a;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("b".to_string()),
             )), // int b;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("k".to_string()),
             )), // int k;
@@ -153,22 +153,22 @@ fn analysis_program_test() {
 fn analysis_local_variable_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("a".to_string()),
             )), // int a;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("k".to_string()),
             )), // int k;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("c".to_string()),
             )), // int c;
@@ -218,27 +218,27 @@ fn analysis_local_variable_test() {
 fn analysis_func_def_test() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", vec![], true),
         block(vec![
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 1,
                 DirectDeclarator::Ident("a".to_string()),
             )), // int *a;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 2,
                 DirectDeclarator::Ident("c".to_string()),
             )), // int **c;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("k".to_string()),
             )), // int k;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 0,
                 DirectDeclarator::Ident("x".to_string()),
             )), // int x;
@@ -292,17 +292,17 @@ fn analysis_func_def_test() {
 fn analysis_ptr_addition() {
     let mut analyzer = Analyzer::new();
     let program = Program::with_vec(vec![func_def(
-        TypeSpec::Int,
+        TypeSpecifier::Int,
         0,
         func_dd("main", Vec::new(), true),
         block(vec![
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 1,
                 DirectDeclarator::Ident("k".to_string()),
             )), // int *k;
             declare_stmt(declare(
-                TypeSpec::Int,
+                TypeSpecifier::Int,
                 1,
                 DirectDeclarator::Ident("p".to_string()),
             )), // int *p;

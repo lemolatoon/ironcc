@@ -198,7 +198,7 @@ pub mod ast {
     }
 
     pub fn func_def(
-        type_spec: TypeSpec,
+        type_spec: TypeSpecifier,
         n_star: usize,
         direct_declarator: DirectDeclarator,
         body: Stmt,
@@ -215,12 +215,12 @@ pub mod ast {
     }
 
     pub fn declare(
-        ty_spec: TypeSpec,
+        ty_spec: TypeSpecifier,
         n_star: usize,
         direct_declarator: DirectDeclarator,
     ) -> Declaration {
         Declaration::new(
-            ty_spec,
+            vec![DeclarationSpecifier::Type(ty_spec)],
             n_star,
             direct_declarator,
             None,
@@ -229,13 +229,13 @@ pub mod ast {
     }
 
     pub fn declare_with_init(
-        ty_spec: TypeSpec,
+        ty_spec: TypeSpecifier,
         n_star: usize,
         direct_declarator: DirectDeclarator,
         init: Initializer,
     ) -> Declaration {
         Declaration::new(
-            ty_spec,
+            vec![DeclarationSpecifier::Type(ty_spec)],
             n_star,
             direct_declarator,
             Some(init),
