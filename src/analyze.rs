@@ -69,6 +69,9 @@ impl Analyzer {
                     kind: ProgramKind::Declaration(declaration),
                     debug_info,
                 } => {
+                    let is_typedef = declaration.declaration_specifiers.contains(
+                        &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
+                    );
                     if let Some(init_declarator) = declaration.init_declarator {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
@@ -81,6 +84,7 @@ impl Analyzer {
                             debug_info.clone(),
                         )?;
                         match self.get_type(converted_type, &init_declarator.declarator)? {
+                            _ if is_typedef => {}
                             ty @ (Type::Base(_)
                             | Type::Ptr(_)
                             | Type::Array(_, _)
@@ -117,12 +121,18 @@ impl Analyzer {
                                 ));
                             }
                             Type::InComplete(InCompleteKind::Struct(tag_name)) => {
-                                let gvar = self.new_global_variable(
-                                    *init,
-                                    name,
-                                    Type::InComplete(InCompleteKind::Struct(tag_name.clone())),
-                                    debug_info,
-                                )?;
+                                let ty = if let Some(Taged::Struct(StructTagKind::Struct(
+                                    struct_struct,
+                                ))) = self.scope.look_up_struct_tag(&tag_name)
+                                {
+                                    Type::Struct(struct_struct.clone())
+                                } else {
+                                    return Err(unimplemented_err!(
+                                        debug_info,
+                                        format!("struct tag {} is not defined.", tag_name)
+                                    ));
+                                };
+                                let gvar = self.new_global_variable(*init, name, ty, debug_info)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
                             Type::InComplete(InCompleteKind::Enum(_)) => todo!(),
@@ -148,8 +158,20 @@ impl Analyzer {
                                 let types = vec
                                     .iter()
                                     .map(|struct_declaration| {
-                                        struct_declaration
-                                            .get_type(self, struct_declaration.debug_info.clone())
+                                        let mut ty = struct_declaration.get_type(
+                                            self,
+                                            struct_declaration.debug_info.clone(),
+                                        )?;
+                                        if let Type::InComplete(InCompleteKind::Struct(tag)) = &ty {
+                                            let taged = self.scope.look_up_struct_tag(tag);
+                                            if let Some(Taged::Struct(StructTagKind::Struct(
+                                                struct_struct,
+                                            ))) = taged
+                                            {
+                                                ty = Type::Struct(struct_struct.clone());
+                                            }
+                                        };
+                                        Ok(ty)
                                     })
                                     .collect::<Result<_, CompileError>>()?;
                                 let names = vec
@@ -699,12 +721,9 @@ impl Analyzer {
                 letters.push('\0');
                 let init = Some(Initializer::Array(
                     letters
-                        .chars()
-                        .map(|c| {
-                            Initializer::Expr(Expr::new_num(
-                                u8::try_from(c).unwrap() as isize,
-                                debug_info.clone(),
-                            ))
+                        .bytes()
+                        .map(|byte| {
+                            Initializer::Expr(Expr::new_num(byte as isize, debug_info.clone()))
                         })
                         .collect(),
                 ));
@@ -2112,6 +2131,13 @@ impl Scope {
                 VariableKind::Global,
             ));
         }
+        let mut ty = ty;
+        if let Type::InComplete(InCompleteKind::Struct(tag)) = &ty {
+            let taged = self.look_up_struct_tag(tag);
+            if let Some(Taged::Struct(StructTagKind::Struct(struct_struct))) = taged {
+                ty = Type::Struct(struct_struct.clone());
+            }
+        };
         *self.diff.last_mut().expect("this has to exist.") +=
             aligned_offset(*new_offset, &ty) - *new_offset;
         *new_offset = aligned_offset(*new_offset, &ty);
@@ -2869,8 +2895,18 @@ impl Analyzer {
                         let types = vec
                             .iter()
                             .map(|struct_declaration| {
-                                struct_declaration
-                                    .get_type(self, struct_declaration.debug_info.clone())
+                                let mut ty = struct_declaration
+                                    .get_type(self, struct_declaration.debug_info.clone())?;
+                                if let Type::InComplete(InCompleteKind::Struct(tag)) = &ty {
+                                    let taged = self.scope.look_up_struct_tag(tag);
+                                    if let Some(Taged::Struct(StructTagKind::Struct(
+                                        struct_struct,
+                                    ))) = taged
+                                    {
+                                        ty = Type::Struct(struct_struct.clone());
+                                    }
+                                };
+                                Ok(ty)
                             })
                             .collect::<Result<_, CompileError>>()?;
                         let names = vec
@@ -3002,7 +3038,7 @@ impl Type {
             Type::Array(ty, size) => ty.size_of() * *size,
             Type::Struct(struct_struct) => struct_struct.size_of(),
             Type::InComplete(InCompleteKind::Enum(_)) => Type::Base(BaseType::Int).size_of(),
-            Type::InComplete(_) => todo!(),
+            Type::InComplete(_) => todo!("{:?}", self),
         }
     }
 
