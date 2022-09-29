@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1711,6 +1705,72 @@
 <span id="1705">1705</span>
 <span id="1706">1706</span>
 <span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">analyze</span>::{
         <span class="ident">Analyzer</span>, <span class="ident">BaseType</span>, <span class="ident">ConstExpr</span>, <span class="ident">ConstInitializer</span>, <span class="ident">ConvExpr</span>, <span class="ident">ConvStmt</span>, <span class="ident">InCompleteKind</span>, <span class="ident">LVar</span>,
@@ -1737,6 +1797,28 @@
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">program</span> <span class="op">=</span> <span class="ident">Program::new</span>();
         <span class="kw">while</span> <span class="op">!</span><span class="ident">tokens</span>.<span class="ident">at_eof</span>() {
+            <span class="kw">if</span> <span class="ident">tokens</span>.<span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::Asm</span>) {
+                <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::OpenDelim</span>(<span class="ident">DelimToken::Paren</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">CompileError::new_unexpected_eof</span>(<span class="prelude-val">None</span>, <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Str(_)&quot;</span>))
+                })<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Str</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
+                    <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">debug_info</span>;
+                    <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_string_literal</span>(<span class="ident">string</span>, <span class="ident">tokens</span>)<span class="question-mark">?</span>;
+                    <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Paren</span>))<span class="question-mark">?</span>;
+                    <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::Semi</span>)<span class="question-mark">?</span>;
+                    <span class="ident">program</span>.<span class="ident">push</span>(<span class="ident">ProgramComponent::new</span>(
+                        <span class="ident">ProgramKind::InlineAsm</span>(<span class="ident">string</span>),
+                        <span class="ident">debug_info</span>,
+                    ));
+                } <span class="kw">else</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                        <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Str(_)&quot;</span>),
+                        <span class="ident">token</span>,
+                    ));
+                }
+                <span class="kw">continue</span>;
+            }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_tokens</span> <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">clone</span>();
             <span class="kw">let</span> <span class="ident">component</span> <span class="op">=</span> {
                 <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_declaration</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tmp_tokens</span>)<span class="question-mark">?</span>;
@@ -2560,7 +2642,10 @@
         <span class="kw">match</span> <span class="ident">tokens</span>.<span class="ident">next</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Token</span> { <span class="ident">kind</span>, <span class="ident">debug_info</span> }) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kind</span> {
                 <span class="ident">TokenKind::Num</span>(<span class="ident">num</span>) =&gt; <span class="ident">Expr::new_num</span>(<span class="ident">num</span>, <span class="ident">debug_info</span>),
-                <span class="ident">TokenKind::Str</span>(<span class="ident">letters</span>) =&gt; <span class="ident">Expr::new_str_lit</span>(<span class="ident">letters</span>, <span class="ident">debug_info</span>),
+                <span class="ident">TokenKind::Str</span>(<span class="ident">string</span>) =&gt; {
+                    <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_string_literal</span>(<span class="ident">string</span>,  <span class="ident">tokens</span>)<span class="question-mark">?</span>;
+                    <span class="ident">Expr::new_str_lit</span>(<span class="ident">string</span>, <span class="ident">debug_info</span>)
+                },
                 <span class="ident">TokenKind::OpenDelim</span>(<span class="ident">DelimToken::Paren</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_expr</span>(<span class="ident">tokens</span>)<span class="question-mark">?</span>;
                     <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Paren</span>))<span class="question-mark">?</span>;
@@ -2583,6 +2668,23 @@
                     <span class="comment">// local variable</span>
                     <span class="ident">Expr::new_lvar</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>)
                 }
+                <span class="ident">TokenKind::Asm</span> =&gt; {
+                    <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::OpenDelim</span>(<span class="ident">DelimToken::Paren</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">CompileError::new_unexpected_eof</span>(<span class="prelude-val">None</span>, <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Str(_)&quot;</span>))
+                    })<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Str</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span>.<span class="ident">kind</span> {
+                        <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">debug_info</span>;
+                        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_string_literal</span>(<span class="ident">string</span>, <span class="ident">tokens</span>)<span class="question-mark">?</span>;
+                        <span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="ident">TokenKind::CloseDelim</span>(<span class="ident">DelimToken::Paren</span>))<span class="question-mark">?</span>;
+                        <span class="ident">Expr::new_inline_asm</span>(<span class="ident">string</span>, <span class="ident">debug_info</span>)
+                    } <span class="kw">else</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>(
+                            <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Str(_)&quot;</span>),
+                            <span class="ident">token</span>,
+                        ));
+                    }
+                }
                 <span class="ident">TokenKind::Eof</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof</span>(<span class="prelude-val">Some</span>(<span class="ident">debug_info</span>.<span class="ident">get_file_src</span>()), <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)&quot;</span>))),
                 <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_expected_failed</span>( <span class="ident">Box::new</span>(<span class="string">&quot;TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident&quot;</span>), <span class="ident">Token::new</span>(<span class="kw-2">*</span><span class="ident">kind</span>, <span class="ident">debug_info</span>))),
             }),
@@ -2590,6 +2692,21 @@
                 <span class="string">&quot;TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident&quot;</span>,
             ))),
         }
+    }
+
+    <span class="doccomment">/// This function is called after first string literal.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_string_literal</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
+        <span class="kw-2">mut</span> <span class="ident">string</span>: <span class="ident">String</span>,
+        <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">TokenKind</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CompileError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">I</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Str</span>(<span class="ident">letters</span>)) <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">peek_kind</span>() {
+            <span class="ident">tokens</span>.<span class="ident">next</span>();
+            <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">letters</span>);
+        }
+        <span class="prelude-val">Ok</span>(<span class="ident">string</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_type_name</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
@@ -2762,6 +2879,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProgramKind</span> {
     <span class="ident">FuncDef</span>(<span class="ident">TypeSpec</span>, <span class="ident">Declarator</span>, <span class="ident">Stmt</span>),
     <span class="ident">Declaration</span>(<span class="ident">Declaration</span>),
+    <span class="ident">InlineAsm</span>(<span class="ident">String</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">ProgramKind</span> {
@@ -3210,6 +3328,7 @@
     <span class="ident">PostfixDecrement</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
     <span class="ident">UnaryIncrement</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
     <span class="ident">UnaryDecrement</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>),
+    <span class="ident">Asm</span>(<span class="ident">String</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -3229,6 +3348,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Expr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_inline_asm</span>(<span class="ident">asm</span>: <span class="ident">String</span>, <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ExprKind::Asm</span>(<span class="ident">asm</span>),
+            <span class="ident">debug_info</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_conditional</span>(<span class="ident">cond</span>: <span class="ident">Expr</span>, <span class="ident">then</span>: <span class="ident">Expr</span>, <span class="ident">els</span>: <span class="ident">Expr</span>, <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ExprKind::Conditional</span> {
@@ -3419,5 +3545,4 @@
     <span class="ident">LogicalAnd</span>,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
