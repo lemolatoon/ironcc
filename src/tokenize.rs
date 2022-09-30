@@ -22,7 +22,6 @@ impl Tokenizer {
         let mut tokens = Vec::new();
 
         'tokenize_loop: while !self.stream.is_empty() {
-            // dbg!(self.stream.clone().map(|(_, ch)| ch).collect::<String>());
             // skip white spaces
             if self.stream.starts_with(" ")
                 || self.stream.starts_with("\t")
@@ -85,6 +84,50 @@ impl Tokenizer {
                         .unwrap();
                     tokens.push(Token::new(kind, this_token_debug_info));
                     continue 'tokenize_loop;
+                }
+            }
+
+            if self.stream.starts_with("'") {
+                // char literal
+                let (debug_info, _) = self.stream.next().unwrap(); // -> '
+                let ch;
+                match self.stream.next() {
+                    Some((_, '\\')) => match self.stream.next() {
+                        Some((_, 'n')) => ch = '\n',
+                        Some((_, 'e')) => {
+                            ch = 0x1bu8.into();
+                        }
+                        Some((_, '0')) => ch = '\0',
+                        _ => {
+                            let debug_info =
+                                self.stream.peek().map_or(
+                                    self.stream.get_prev_debug_info(),
+                                    |(debug_info, _)| debug_info.clone(),
+                                );
+                            return Err(unimplemented_err!(
+                                debug_info,
+                                "This type of escape Sequences are not currently implemented."
+                            ));
+                        }
+                    },
+                    Some((_, c)) => {
+                        ch = c;
+                    }
+                    None => return Err(CompileError::new_unexpected_eof_tokenize(debug_info)),
+                }
+                let popped = self.stream.next();
+                match popped {
+                    Some((_, '\'')) => {
+                        tokens.push(Token::new(TokenKind::Num(ch as isize), debug_info));
+                        continue;
+                    }
+                    Some((debug_info, ch)) => {
+                        return Err(unimplemented_err!(
+                            debug_info,
+                            format!("Expected ' , but got {}", ch)
+                        ));
+                    }
+                    None => return Err(CompileError::new_unexpected_eof_tokenize(debug_info)),
                 }
             }
 

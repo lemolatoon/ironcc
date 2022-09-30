@@ -300,6 +300,18 @@ fn unary_inc_dec() {
     all!(tester);
 }
 
+#[test]
+fn char_literal_test() {
+    let src = r#"
+    int main() {
+        char arr[3];
+        arr[0] = 'a';
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);

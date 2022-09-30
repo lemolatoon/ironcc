@@ -1348,5 +1348,13 @@ int test65() {
 }
 
 int test66() {
+    char *string1 = "abcd";
+    char string2[5];
+    string2[0] = 'a';
+    string2[1] = 'b';
+    string2[2] = 'c';
+    string2[3] = 'd';
+    string2[4] = '\0';
+    assert(66, 0, strncmp(string1, string2, 5));
     return 0;
 }
