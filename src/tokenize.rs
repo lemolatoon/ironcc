@@ -29,9 +29,17 @@ impl Tokenizer {
             {
                 self.stream.advance(1);
                 continue;
-            } else if self.stream.starts_with("//") {
+            }
+            if self.stream.starts_with("//") {
                 // TODO: remove unwrap
                 self.stream.advance_until('\n').unwrap();
+                continue;
+            }
+            if self.stream.starts_with("/*") {
+                while !self.stream.starts_with("*/") {
+                    self.stream.advance(1);
+                }
+                self.stream.advance(2);
                 continue;
             }
             if self.stream.starts_with("#") {

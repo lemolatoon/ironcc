@@ -799,6 +799,7 @@ impl PreprocessorTokenContainerStream {
         matches!(self.peek(), Some((_, 'a'..='z' | 'A'..='Z')))
     }
 
+    // Consume stream passed times.
     pub fn advance(&mut self, times: usize) {
         for _ in 0..times {
             self.next();

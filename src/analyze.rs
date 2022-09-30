@@ -2165,17 +2165,19 @@ impl Scope {
 
     pub fn resolve_enum_variant_name(&self, name: &String) -> Option<EnumVariant> {
         for map in self.tag_scope.iter().rev() {
-            let mut map_iter = map.values();
-            while let Some(Taged::Enum(EnumTagKind::Enum(Enum {
-                tag: _,
-                members: map,
-            }))) = map_iter.next()
-            {
-                if let Some(value) = map.get(name) {
-                    return Some(EnumVariant {
-                        name: name.clone(),
-                        value: *value,
-                    });
+            let map_iter = map.values();
+            for taged in map_iter {
+                if let Taged::Enum(EnumTagKind::Enum(Enum {
+                    tag: _,
+                    members: map,
+                })) = taged
+                {
+                    if let Some(value) = map.get(name) {
+                        return Some(EnumVariant {
+                            name: name.clone(),
+                            value: *value,
+                        });
+                    }
                 }
             }
         }
