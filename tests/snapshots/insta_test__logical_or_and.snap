@@ -109,7 +109,9 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
             file_info: FileInfo {
                 file_name: "not impl name.c",
@@ -180,7 +182,9 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
             file_info: FileInfo {
                 file_name: "not impl name.c",
@@ -251,7 +255,9 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
             file_info: FileInfo {
                 file_name: "not impl name.c",
@@ -382,7 +388,9 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
             file_info: FileInfo {
                 file_name: "not impl name.c",

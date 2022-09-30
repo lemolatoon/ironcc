@@ -227,6 +227,7 @@ Program {
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {
@@ -319,6 +320,7 @@ Program {
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {

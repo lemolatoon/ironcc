@@ -71,6 +71,7 @@
 
 <expr>                      := <assign>
 <assign>                    := <conditional> ("=" <assign>)?
+<assign-operator>           := "=" | "*=" | "/=" | "+=" | "-=" | "<<=" | ">>=" | "&=" | "^=" | "|="
 <conditional>               := <logical-or> 
                                 | <logical-or> "?" <expr> : <conditional>
 <logical-or>                := <logical-or>

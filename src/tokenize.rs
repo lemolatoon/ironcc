@@ -1,5 +1,5 @@
 use crate::error::CompileError;
-use crate::parse::Scope;
+use crate::parse::{self, BinOpKind, Scope};
 use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
 use crate::unimplemented_err;
 use std::iter::Peekable;
@@ -49,6 +49,8 @@ impl Tokenizer {
 
             let symbols = vec![
                 ("...", TokenKind::DotDotDot),
+                ("<<=", TokenKind::BinOpEq(AssignBinOpToken::LShift)),
+                (">>=", TokenKind::BinOpEq(AssignBinOpToken::RShift)),
                 ("<<", TokenKind::BinOp(BinOpToken::LShift)),
                 (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
@@ -60,6 +62,12 @@ impl Tokenizer {
                 ("++", TokenKind::PlusPlus),
                 ("--", TokenKind::MinusMinus),
                 ("->", TokenKind::Arrow),
+                ("+=", TokenKind::BinOpEq(AssignBinOpToken::Plus)),
+                ("-=", TokenKind::BinOpEq(AssignBinOpToken::Minus)),
+                ("*=", TokenKind::BinOpEq(AssignBinOpToken::Star)),
+                ("/=", TokenKind::BinOpEq(AssignBinOpToken::Slash)),
+                ("&=", TokenKind::BinOpEq(AssignBinOpToken::And)),
+                ("%=", TokenKind::BinOpEq(AssignBinOpToken::Percent)),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -80,12 +88,14 @@ impl Tokenizer {
                 ("?", TokenKind::Question),
                 (":", TokenKind::Colon),
                 (";", TokenKind::Semi),
-                ("=", TokenKind::Eq),
+                ("=", TokenKind::BinOpEq(AssignBinOpToken::Eq)),
                 (".", TokenKind::Dot),
             ];
 
             for (literal, kind) in symbols {
                 if self.stream.starts_with(literal) {
+                    dbg!(self.stream.clone().map(|(_, c)| c).collect::<String>());
+                    dbg!(literal);
                     let this_token_debug_info = self
                         .stream
                         .get_debug_info_and_advance(literal.len())
@@ -284,7 +294,10 @@ impl Tokenizer {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenKind {
+    /// Binary operator
     BinOp(BinOpToken),
+    /// Binary operator with eq (`=`) such as `+=`
+    BinOpEq(AssignBinOpToken),
     /// string literal
     Str(String),
     /// number literal
@@ -331,8 +344,6 @@ pub enum TokenKind {
     Continue,
     /// `__asm__`, reserved word (not standard)
     Asm,
-    /// `=` assign
-    Eq,
     /// `,`
     Comma,
     /// `~`
@@ -373,6 +384,45 @@ pub enum DelimToken {
     Bracket,
     /// A curly brase (i.e., `{` or `}`)
     Brace,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum AssignBinOpToken {
+    /// `=`
+    Eq,
+    /// `+=`
+    Plus,
+    /// `-=`
+    Minus,
+    /// `*=`
+    Star,
+    /// `/=`
+    Slash,
+    /// `%=`
+    Percent,
+    /// `&=`
+    And,
+    /// `<<=`
+    LShift,
+    /// `>>=`
+    RShift,
+}
+
+impl TryFrom<AssignBinOpToken> for parse::BinOpKind {
+    type Error = ();
+    fn try_from(op: AssignBinOpToken) -> Result<Self, ()> {
+        Ok(match op {
+            AssignBinOpToken::Eq => return Err(()),
+            AssignBinOpToken::Plus => BinOpKind::Add,
+            AssignBinOpToken::Minus => BinOpKind::Sub,
+            AssignBinOpToken::Star => BinOpKind::Mul,
+            AssignBinOpToken::Slash => BinOpKind::Div,
+            AssignBinOpToken::Percent => BinOpKind::Rem,
+            AssignBinOpToken::And => BinOpKind::BitWiseAnd,
+            AssignBinOpToken::LShift => BinOpKind::LShift,
+            AssignBinOpToken::RShift => BinOpKind::RShift,
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

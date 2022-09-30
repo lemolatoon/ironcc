@@ -132,6 +132,7 @@ Program {
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
                                             file_info: FileInfo {

@@ -4,7 +4,10 @@ use crate::{
         Type,
     },
     error::{CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
-    tokenize::{BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream, TypeToken},
+    tokenize::{
+        AssignBinOpToken, BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream,
+        TypeToken,
+    },
     unimplemented_err,
 };
 use std::{
@@ -158,7 +161,7 @@ impl Parser {
             direct_declarator.unwrap()
         };
         *tokens = tmp_tokens;
-        let init = if tokens.consume(&TokenKind::Eq) {
+        let init = if tokens.consume(&TokenKind::BinOpEq(AssignBinOpToken::Eq)) {
             Some(self.parse_initializer(tokens)?)
         } else {
             None
@@ -751,11 +754,12 @@ impl Parser {
             None => return Err(CompileError::new_unexpected_eof(None, Box::new("Token"))),
         };
         match **kind {
-            TokenKind::Eq => {
+            TokenKind::BinOpEq(assign_token) => {
                 tokens.next();
                 Ok(Expr::new_assign(
                     lhs,
                     self.parse_assign(tokens)?,
+                    assign_token,
                     debug_info,
                 ))
             }
@@ -1505,6 +1509,7 @@ impl Initializer {
                             debug_info.clone(),
                         ),
                         rhs,
+                        AssignBinOpToken::Eq,
                         debug_info,
                     )?,
                 ))
@@ -1818,7 +1823,7 @@ pub enum ExprKind {
     Num(isize),
     StrLit(String),
     Unary(UnaryOp, Box<Expr>),
-    Assign(Box<Expr>, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>, AssignBinOpToken),
     Ident(String),
     Func(String, Vec<Expr>),
     Deref(Box<Expr>),
@@ -1955,10 +1960,15 @@ impl Expr {
         }
     }
 
-    pub fn new_assign(lhs: Expr, rhs: Expr, debug_info: DebugInfo) -> Self {
+    pub fn new_assign(
+        lhs: Expr,
+        rhs: Expr,
+        assign_bin_op_token: AssignBinOpToken,
+        debug_info: DebugInfo,
+    ) -> Self {
         // pos is Position of TokenKind::Eq (i.e. `=`)
         Self {
-            kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs)),
+            kind: ExprKind::Assign(Box::new(lhs), Box::new(rhs), assign_bin_op_token),
             debug_info,
         }
     }

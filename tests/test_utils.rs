@@ -284,7 +284,12 @@ pub mod ast {
     }
 
     pub fn assign(lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_assign(lhs, rhs, DebugInfo::default())
+        Expr::new_assign(
+            lhs,
+            rhs,
+            ironcc::tokenize::AssignBinOpToken::Eq,
+            DebugInfo::default(),
+        )
     }
 
     pub fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {
