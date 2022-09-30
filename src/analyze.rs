@@ -98,6 +98,20 @@ impl Analyzer {
         }
     }
 
+    pub fn new_for_parser() -> Self {
+        let func_map: BTreeMap<String, Func> = BTreeMap::new();
+        let mut analyzer = Self {
+            offset: 0,
+            func_map,
+            scope: Scope::new(),
+            conv_program: ConvProgram::new(),
+            lc_label: 0,
+            loop_stack: LoopStack::new(),
+        };
+        analyzer.scope.push_tag_scope();
+        analyzer
+    }
+
     pub fn get_lc_label(&mut self) -> usize {
         let lc_label = self.lc_label;
         self.lc_label += 1;

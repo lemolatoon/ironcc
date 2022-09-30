@@ -102,6 +102,7 @@ impl Tokenizer {
                 match self.stream.next() {
                     Some((_, '\\')) => match self.stream.next() {
                         Some((_, 'n')) => ch = '\n',
+                        Some((_, 't')) => ch = '\t',
                         Some((_, 'e')) => {
                             ch = 0x1bu8.into();
                         }
@@ -151,6 +152,9 @@ impl Tokenizer {
                         Some((_, '\\')) => match self.stream.next() {
                             Some((_, 'n')) => {
                                 str_lit.push('\n');
+                            }
+                            Some((_, 't')) => {
+                                str_lit.push('\t');
                             }
                             Some((_, 'e')) => {
                                 str_lit.push(0x1bu8.into());
@@ -253,6 +257,11 @@ impl Tokenizer {
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
+                            continue;
+                        }
+                        "static" => {
+                            // TODO: support static
+                            eprintln!("WARNING: `static` is just ignored this time.");
                             continue;
                         }
                         _ => TokenKind::Ident(ident),

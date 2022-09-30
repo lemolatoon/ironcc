@@ -189,7 +189,7 @@ impl Parser {
         );
 
         // register type map
-        let ty = declaration.ty(&mut Analyzer::new(), debug_info.clone())?;
+        let ty = declaration.ty(&mut Analyzer::new_for_parser(), debug_info.clone())?;
         self.scope
             .register_typedef_name(ident_name, ty, debug_info)?;
 
