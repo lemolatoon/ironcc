@@ -1,3 +1,4 @@
+use core::panic;
 use std::{
     collections::{BTreeMap, BTreeSet},
     vec,
@@ -1319,8 +1320,33 @@ impl Analyzer {
 
                 let lhs_ty = lhs.ty.clone();
                 Ok(ConvExpr::new_binary(kind, lhs, rhs, lhs_ty, debug_info))
-            }
-            ConvBinOpKind::Eq | ConvBinOpKind::Le | ConvBinOpKind::Lt | ConvBinOpKind::Ne => {
+            },
+            ConvBinOpKind::Eq | ConvBinOpKind::Ne => {
+                if lhs.ty.ty_eq(&rhs.ty) {
+                     Ok(ConvExpr::new_binary(
+                        kind,
+                        lhs,
+                        rhs,
+                        Type::Base(BaseType::Int),
+                        debug_info,
+                    ))
+                } else if lhs.ty.is_ptr() && rhs.ty.is_ptr() {
+                     Ok(ConvExpr::new_binary(
+                        kind,
+                        lhs,
+                        rhs,
+                        Type::Ptr(Box::new(Type::Void)),
+                        debug_info,
+                    ))
+                } else {
+                     Err(CompileError::new_type_error(
+                        lhs,
+                        rhs,
+                        Some("incompatible type binary expr is not allowed".to_string()),
+                    ))
+                }
+            },
+            ConvBinOpKind::Le | ConvBinOpKind::Lt  => {
                 if !lhs.ty.ty_eq(&rhs.ty) {
                     return Err(CompileError::new_type_error(
                         lhs,
@@ -2884,6 +2910,10 @@ impl Type {
             }
             _ => false,
         }
+    }
+
+    pub const fn is_ptr(&self) -> bool {
+        matches!(self, Type::Ptr(_))
     }
 }
 
