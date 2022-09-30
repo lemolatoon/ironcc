@@ -46,6 +46,7 @@ ConvProgram {
                     },
                 ),
                 init: None,
+                is_extern: false,
             },
         ),
         Func(
@@ -115,6 +116,7 @@ ConvProgram {
                                                             },
                                                         ),
                                                         init: None,
+                                                        is_extern: false,
                                                     },
                                                 ),
                                                 ty: Struct(
@@ -401,6 +403,7 @@ ConvProgram {
                                                             },
                                                         ),
                                                         init: None,
+                                                        is_extern: false,
                                                     },
                                                 ),
                                                 ty: Struct(
@@ -550,6 +553,7 @@ ConvProgram {
                                                             },
                                                         ),
                                                         init: None,
+                                                        is_extern: false,
                                                     },
                                                 ),
                                                 ty: Struct(

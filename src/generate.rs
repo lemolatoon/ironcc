@@ -274,7 +274,15 @@ impl Generator {
                     self.pop(f, RegKind::Rbp)?;
                     writeln!(f, "  ret")?;
                 }
-                ConvProgramKind::Global(GVar { name, ty, init }) => {
+                ConvProgramKind::Global(GVar {
+                    name,
+                    ty,
+                    init,
+                    is_extern,
+                }) => {
+                    if is_extern {
+                        continue;
+                    }
                     writeln!(f, ".data")?;
                     writeln!(f, "{}:", name)?;
                     match init {
@@ -635,14 +643,24 @@ impl Generator {
             ConvExprKind::Addr(expr) => {
                 self.gen_lvalue(f, *expr)?;
             }
-            ConvExprKind::GVar(GVar { name, ty, init }) => {
+            ConvExprKind::GVar(GVar {
+                name,
+                ty,
+                init,
+                is_extern: _,
+            }) => {
                 match ty.size_of() {
                     1 => writeln!(f, "  mov al, BYTE PTR {}[rip]", name)?,
                     4 => writeln!(f, "  mov eax, DWORD PTR {}[rip]", name)?,
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
                         return Err(CompileError::new_type_size_error(
-                            UnexpectedTypeSizeStatus::Global(GVar { name, ty, init }),
+                            UnexpectedTypeSizeStatus::Global(GVar {
+                                name,
+                                ty,
+                                init,
+                                is_extern: false,
+                            }),
                         ))
                     }
                 };
@@ -866,7 +884,11 @@ impl Generator {
                 name,
                 ty: _,
                 init: _,
+                is_extern,
             }) => {
+                if is_extern {
+                    return Ok(());
+                }
                 writeln!(f, "  lea rax, [rip+{}]", name)?;
                 self.push(f, RegKind::Rax)?;
             }

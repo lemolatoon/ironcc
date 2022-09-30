@@ -496,11 +496,16 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
-                UnexpectedTypeSizeStatus::Global(GVar { name, ty, init: _ }),
+                UnexpectedTypeSizeStatus::Global(GVar {
+                    name,
+                    ty,
+                    init: _,
+                    is_extern,
+                }),
             )) => {
                 writeln!(
                     f,
-                    "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}", name, ty, ty.size_of()
+                    "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}, is_extern: {}", name, ty, ty.size_of(), is_extern
                 )?;
             }
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(

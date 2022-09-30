@@ -167,10 +167,9 @@ impl Analyzer {
                             | Type::Ptr(_)
                             | Type::Array(_, _)
                             | Type::Struct(_)) => {
-                                let gvar = self.new_global_variable(*init, name, ty, debug_info)?;
-                                if !is_extern {
-                                    self.conv_program.push(ConvProgramKind::Global(gvar));
-                                }
+                                let gvar = self
+                                    .new_global_variable(*init, name, ty, is_extern, debug_info)?;
+                                self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
                             Type::Func {
                                 ret_ty,
@@ -212,7 +211,8 @@ impl Analyzer {
                                         format!("struct tag {} is not defined.", tag_name)
                                     ));
                                 };
-                                let gvar = self.new_global_variable(*init, name, ty, debug_info)?;
+                                let gvar = self
+                                    .new_global_variable(*init, name, ty, is_extern, debug_info)?;
                                 self.conv_program.push(ConvProgramKind::Global(gvar));
                             }
                             Type::InComplete(InCompleteKind::Enum(_)) => todo!(),
@@ -305,6 +305,7 @@ impl Analyzer {
         name: &str,
         // global variable's type
         ty: Type,
+        is_extern: bool,
         debug_info: DebugInfo,
     ) -> Result<GVar, CompileError> {
         let init = init
@@ -322,7 +323,8 @@ impl Analyzer {
             })
             .transpose()?;
 
-        self.scope.register_gvar(debug_info, name, ty, init)
+        self.scope
+            .register_gvar(debug_info, name, ty, is_extern, init)
     }
 
     pub fn traverse_func_def(
@@ -846,6 +848,7 @@ impl Analyzer {
                     init.as_ref(),
                     &name,
                     Type::Array(Box::new(Type::Base(BaseType::Char)), len + 1),
+                    false,
                     debug_info.clone(),
                 )?;
                 self.conv_program
@@ -2261,6 +2264,7 @@ impl Scope {
         debug_info: DebugInfo,
         name: &str,
         ty: Type,
+        is_extern: bool,
         init: Option<ConstInitializer>,
     ) -> Result<GVar, CompileError> {
         for scope in &self.scopes {
@@ -2272,17 +2276,20 @@ impl Scope {
                 ));
             }
         }
-        if self.global.contains_key(name) {
-            return Err(CompileError::new_redefined_variable(
-                name.to_string(),
-                debug_info,
-                VariableKind::Global,
-            ));
+        if let Some(gvar) = self.global.get(name) {
+            if !(gvar.is_extern || is_extern) {
+                return Err(CompileError::new_redefined_variable(
+                    name.to_string(),
+                    debug_info,
+                    VariableKind::Global,
+                ));
+            }
         }
         let gvar = GVar {
             name: name.to_string(),
             ty,
             init,
+            is_extern,
         };
         self.insert_global_var_to_global_scope(gvar.clone());
         Ok(gvar)
@@ -2443,6 +2450,7 @@ pub struct GVar {
     pub name: String,
     pub ty: Type,
     pub init: Option<ConstInitializer>,
+    pub is_extern: bool,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

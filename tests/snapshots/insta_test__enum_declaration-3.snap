@@ -11,6 +11,7 @@ ConvProgram {
                     Int,
                 ),
                 init: None,
+                is_extern: false,
             },
         ),
         Func(

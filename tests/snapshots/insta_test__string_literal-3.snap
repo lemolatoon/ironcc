@@ -259,6 +259,7 @@ ConvProgram {
                         ],
                     ),
                 ),
+                is_extern: false,
             },
         ),
         Func(
@@ -562,6 +563,7 @@ ConvProgram {
                                                                 ],
                                                             ),
                                                         ),
+                                                        is_extern: false,
                                                     },
                                                 ),
                                                 ty: Base(
