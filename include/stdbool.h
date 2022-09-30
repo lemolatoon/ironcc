@@ -1,17 +1,14 @@
+#ifdef __STDC__
+#include<stdbool.h>
+#else
 #ifndef __STDBOOL_H
 #define __STDBOOL_H
 
-#ifdef __STDC__
+#define false 0
+#define true 1
 
-#include <stdbool.h>
+typedef int bool;
 
-#else
-
-typedef enum {
-    false,
-    true
-} bool;
 
 #endif
-
 #endif

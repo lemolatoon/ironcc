@@ -193,6 +193,10 @@ impl Tokenizer {
                         "enum" => TokenKind::Enum,
                         "typedef" => TokenKind::TypeDef,
                         "__asm__" => TokenKind::Asm,
+                        "switch" => TokenKind::Switch,
+                        "default" => TokenKind::Default,
+                        "case" => TokenKind::Case,
+                        "break" => TokenKind::Break,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
@@ -251,6 +255,16 @@ pub enum TokenKind {
     Enum,
     /// `typedef`, reserved word
     TypeDef,
+    /// `switch`, reserved word
+    Switch,
+    /// `default`, reserved word
+    Default,
+    /// `case`, reserved word
+    Case,
+    /// `break`, reserved word
+    Break,
+    /// `continue`, reserved word
+    Continue,
     /// `__asm__`, reserved word (not standard)
     Asm,
     /// `=` assign

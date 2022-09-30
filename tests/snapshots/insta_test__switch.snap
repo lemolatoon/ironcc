@@ -1,0 +1,531 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: Type(
+            Int,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "f",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 5,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 6,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "main",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 9,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Switch,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 11,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "f",
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 17,
+                n_line: 3,
+            },
+        },
+    },
+    Token {
+        kind: Case,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            0,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Colon,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 4,
+            },
+        },
+    },
+    Token {
+        kind: Return,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            0,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 19,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 20,
+                n_line: 5,
+            },
+        },
+    },
+    Token {
+        kind: Case,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            1,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 13,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Colon,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 14,
+                n_line: 6,
+            },
+        },
+    },
+    Token {
+        kind: Return,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 7,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            1,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 19,
+                n_line: 7,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 20,
+                n_line: 7,
+            },
+        },
+    },
+    Token {
+        kind: Default,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 8,
+                n_line: 8,
+            },
+        },
+    },
+    Token {
+        kind: Colon,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 15,
+                n_line: 8,
+            },
+        },
+    },
+    Token {
+        kind: Return,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 12,
+                n_line: 9,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            666,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 19,
+                n_line: 9,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 22,
+                n_line: 9,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 4,
+                n_line: 10,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 11,
+            },
+        },
+    },
+    Token {
+        kind: Eof,
+        debug_info: DebugInfo {
+            file_info: FileInfo {
+                file_name: "not impl name.c",
+                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+            },
+            pos: Position {
+                n_char: 0,
+                n_line: 11,
+            },
+        },
+    },
+]

@@ -687,6 +687,31 @@ impl Parser {
             }
             self.scope.scope_pop();
             Ok(Stmt::new_block(stmts))
+        } else if tokens.consume(&TokenKind::Switch) {
+            tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            let expr = self.parse_expr(tokens)?;
+            tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+            let stmt = self.parse_stmt(tokens)?;
+            Ok(Stmt::new_switch(expr, stmt))
+        } else if tokens.consume(&TokenKind::Case) {
+            let expr = self.parse_expr(tokens)?;
+            tokens.expect(&TokenKind::Colon)?;
+            let stmt = self.parse_stmt(tokens)?;
+            Ok(Stmt::new_labeled_stmt(LabelKind::Case(expr), stmt))
+        } else if tokens.consume(&TokenKind::Default) {
+            tokens.expect(&TokenKind::Colon)?;
+            let stmt = self.parse_stmt(tokens)?;
+            Ok(Stmt::new_labeled_stmt(LabelKind::Default, stmt))
+        } else if tokens.consume(&TokenKind::Break) {
+            tokens.expect(&TokenKind::Semi)?;
+            Ok(Stmt {
+                kind: StmtKind::Break,
+            })
+        } else if tokens.consume(&TokenKind::Continue) {
+            tokens.expect(&TokenKind::Semi)?;
+            Ok(Stmt {
+                kind: StmtKind::Continue,
+            })
         } else if tokens.is_starting_declaration(&self.scope) {
             let stmt = Stmt::new_declare(self.parse_declaration(tokens, true)?);
             tokens.expect(&TokenKind::Semi)?;
@@ -1639,6 +1664,18 @@ impl Stmt {
         }
     }
 
+    pub fn new_switch(expr: Expr, stmt: Stmt) -> Self {
+        Self {
+            kind: StmtKind::Switch(expr, Box::new(stmt)),
+        }
+    }
+
+    pub fn new_labeled_stmt(label_kind: LabelKind, stmt: Stmt) -> Self {
+        Self {
+            kind: StmtKind::Labeled(label_kind, Box::new(stmt)),
+        }
+    }
+
     pub const fn new_declare(declaration: Declaration) -> Self {
         Self {
             kind: StmtKind::Declare(declaration),
@@ -1745,7 +1782,18 @@ pub enum StmtKind {
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
     For(Option<ForInitKind>, Option<Expr>, Option<Expr>, Box<Stmt>),
+    Switch(Expr, Box<Stmt>),
     Declare(Declaration),
+    Labeled(LabelKind, Box<Stmt>),
+    Break,
+    Continue,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum LabelKind {
+    Ident(String),
+    Case(Expr),
+    Default,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

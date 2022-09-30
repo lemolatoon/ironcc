@@ -7,19 +7,56 @@ use crate::{
         GVar, LVar, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
+    parse::LabelKind,
     unimplemented_err,
 };
 
 #[derive(Debug, Clone)]
 pub struct Generator {
     label: usize,
+    loop_label_stack: Vec<LoopLabel>,
     depth: usize,
+}
+
+#[derive(Debug, Clone)]
+pub enum LoopLabel {
+    While(usize),
+    For(usize),
+    Switch(usize),
 }
 
 impl Generator {
     pub const fn new() -> Self {
-        Self { label: 0, depth: 0 }
+        Self {
+            label: 0,
+            loop_label_stack: Vec::new(),
+            depth: 0,
+        }
     }
+
+    // pub fn gen_labeled_stmt(
+    //     &mut self,
+    //     f: &mut BufWriter<impl Write>,
+    //     // TODO: make ConvLabelKind
+    //     kind: LabelKind,
+    //     stmt: ConvStmt,
+    // ) -> Result<(), CompileError> {
+    //     let label = self.loop_label_stack.last().unwrap();
+    //     match label {
+    //         LoopLabel::While(index) => todo!(),
+    //         LoopLabel::For(index) => todo!(),
+    //         LoopLabel::Switch(index) => match kind {
+    //             LabelKind::Ident(label) => writeln!(f, "{}:", label)?,
+    //             LabelKind::Case(case_index) => {
+    //                 writeln!(f, ".Lcase{}_{}:", index, case_index)?;
+    //                 case_indexes.push(label_index);
+    //                 self.gen_stmt(&mut buf_writer_labels, stmt)?;
+    //             }
+    //             LabelKind::Default => todo!(),
+    //         },
+    //     }
+    //     Ok(())
+    // }
 
     /// this function has the same function as `push`, but in the future this function will have the function, cast(with sign extension) and push
     pub fn push_with_sign_extension<W: Write>(
@@ -232,6 +269,7 @@ impl Generator {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn gen_stmt<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
@@ -337,12 +375,61 @@ impl Generator {
                     self.gen_stmt(f, stmt)?;
                 }
             }
+            ConvStmt::Switch { expr, labels } => {
+                let index = self.label();
+                self.gen_expr(f, expr)?;
+                self.pop(f, RegKind::Rax)?;
+                let mut buffer_control = Vec::new();
+                let mut buffer_labels = Vec::new();
+                let mut buf_writer_control = BufWriter::new(&mut buffer_control);
+                let mut buf_writer_labels = BufWriter::new(&mut buffer_labels);
+                let mut case_indexes = Vec::new();
+                for stmt in labels {
+                    match stmt {
+                        crate::analyze::SwitchBodyStmt::Stmt(stmt) => {
+                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                        }
+                        crate::analyze::SwitchBodyStmt::Case(label_index, stmt) => {
+                            writeln!(&mut buf_writer_labels, ".Lcase{}_{}:", index, label_index)?;
+                            case_indexes.push(label_index);
+                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                        }
+                        crate::analyze::SwitchBodyStmt::Default(stmt) => {
+                            writeln!(&mut buf_writer_labels, ".Ldefault{}:", index)?;
+                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                        }
+                        crate::analyze::SwitchBodyStmt::Break => {
+                            writeln!(&mut buf_writer_labels, "  jmp .Lend{}", index)?;
+                        }
+                    }
+                }
+                writeln!(&mut buf_writer_labels, ".Lend{}:", index)?;
+                for label_index in case_indexes {
+                    writeln!(&mut buf_writer_control, "  cmp rax, {}", label_index)?;
+                    writeln!(
+                        &mut buf_writer_control,
+                        "  je .Lcase{}_{}",
+                        index, label_index
+                    )?;
+                }
+                writeln!(&mut buf_writer_control, "  jmp .Ldefault{}", index)?;
+                drop(buf_writer_labels);
+                drop(buf_writer_control);
+                let switch_case_code = format!(
+                    "{}{}",
+                    std::str::from_utf8(buffer_control.as_slice()).unwrap(),
+                    std::str::from_utf8(buffer_labels.as_slice()).unwrap()
+                );
+                writeln!(f, "{}", switch_case_code)?;
+            }
+            ConvStmt::Break => todo!(),
+            ConvStmt::Continue => todo!(),
         };
         Ok(())
     }
 
     /// # Errors
-    /// return errors when file IO failed or compilation falied
+    /// return errors when file IO failed or compilation failed
     #[allow(clippy::too_many_lines)]
     pub fn gen_expr<W: Write>(
         &mut self,

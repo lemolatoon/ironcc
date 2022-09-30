@@ -8,9 +8,9 @@ use crate::{
     generate::RegSize,
     parse::{
         BinOpKind, Binary, DeclarationSpecifier, Declarator, DirectDeclarator, EnumConstant,
-        EnumSpec, Expr, ExprKind, ForInitKind, Initializer, Program, ProgramComponent, ProgramKind,
-        SizeOfOperandKind, Stmt, StmtKind, StorageClassSpecifier, StructOrUnionSpec, TypeSpecifier,
-        UnaryOp,
+        EnumSpec, Expr, ExprKind, ForInitKind, Initializer, LabelKind, Program, ProgramComponent,
+        ProgramKind, SizeOfOperandKind, Stmt, StmtKind, StorageClassSpecifier, StructOrUnionSpec,
+        TypeSpecifier, UnaryOp,
     },
     tokenize::DebugInfo,
     unimplemented_err,
@@ -535,7 +535,10 @@ impl Analyzer {
                     } else {
                         return Err(unimplemented_err!(
                             declaration.debug_info,
-                            "more than one type-specifier is not currently supported."
+                            format!(
+                                "more than one type-specifier is not currently supported.\n{:?}",
+                                declaration_specifiers
+                            )
                         ));
                     }
                 }
@@ -566,6 +569,50 @@ impl Analyzer {
                     None => ConvStmt::new_block(vec![]),
                 }
             }
+            StmtKind::Switch(expr, stmt) => {
+                let conv_expr = self.traverse_expr(expr, BTreeSet::new())?;
+                let conv_stmt = if let Stmt {
+                    kind: StmtKind::Block(stmts),
+                } = *stmt
+                {
+                    stmts
+                        .into_iter()
+                        .map(|stmt| match stmt.kind {
+                            StmtKind::Labeled(LabelKind::Case(expr), stmt) => {
+                                eprintln!("case");
+                                Ok(SwitchBodyStmt::Case(
+                                    ConstExpr::try_eval_as_const(
+                                        self.traverse_expr(expr, BTreeSet::new())?,
+                                    )?
+                                    .get_num_lit()?,
+                                    self.traverse_stmt(*stmt, fn_name.clone())?,
+                                ))
+                            }
+                            StmtKind::Labeled(LabelKind::Default, stmt) => {
+                                eprintln!("default");
+                                Ok(SwitchBodyStmt::Default(
+                                    self.traverse_stmt(*stmt, fn_name.clone())?,
+                                ))
+                            }
+                            StmtKind::Break => dbg!(Ok(SwitchBodyStmt::Break)),
+
+                            StmtKind::Labeled(LabelKind::Ident(_), _) => Err(unimplemented_err!()),
+                            _ => {
+                                eprintln!("stmt");
+                                Ok(SwitchBodyStmt::Stmt(
+                                    self.traverse_stmt(stmt, fn_name.clone())?,
+                                ))
+                            }
+                        })
+                        .collect::<Result<Vec<SwitchBodyStmt>, CompileError>>()?
+                } else {
+                    vec![SwitchBodyStmt::Stmt(self.traverse_stmt(*stmt, fn_name)?)]
+                };
+                ConvStmt::new_switch(conv_expr, conv_stmt)
+            }
+            StmtKind::Labeled(_, _) => todo!(),
+            StmtKind::Break => ConvStmt::Break,
+            StmtKind::Continue => ConvStmt::Continue,
         })
     }
 
@@ -1524,6 +1571,20 @@ pub enum ConvStmt {
         Option<ConvExpr>,
         Box<ConvStmt>,
     ),
+    Switch {
+        expr: ConvExpr,
+        labels: Vec<SwitchBodyStmt>,
+    },
+    Break,
+    Continue,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum SwitchBodyStmt {
+    Stmt(ConvStmt),
+    Case(isize, ConvStmt),
+    Default(ConvStmt),
+    Break,
 }
 
 impl ConvStmt {
@@ -1554,6 +1615,10 @@ impl ConvStmt {
         then: ConvStmt,
     ) -> Self {
         ConvStmt::For(init, cond, inc, Box::new(then))
+    }
+
+    pub fn new_switch(expr: ConvExpr, labels: Vec<SwitchBodyStmt>) -> Self {
+        ConvStmt::Switch { expr, labels }
     }
 }
 

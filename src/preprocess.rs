@@ -183,7 +183,7 @@ impl<'b> Preprocessor<'b> {
                                 if let Some(derective_count) = derective_count {
                                     derective_count.unset_ifdef_flag();
                                 } else {
-                                    panic!("`ifdef` should be used before `else`");
+                                    panic!("`ifdef` or `ifndef` should be used before `else`");
                                 }
                                 while "endif" != main_chars.skip_until_macro_keyword().as_str() {}
                                 continue 'preprocess_loop;

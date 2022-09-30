@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 int test0();
 int test0_2();
 int test0_3();
@@ -70,6 +71,7 @@ int test60();
 int test61();
 int test62();
 int test63();
+int test64();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -158,6 +160,7 @@ int main()
     assert(61, 0, test61());
     assert(62, 0, test62());
     assert(63, 0, test63());
+    assert(64, 0, test64());
 
     print_ok();
     return 0;
@@ -1277,4 +1280,34 @@ int test63() {
 
     assert(63, 4, sizeof(CertainKind));
     assert(63, 4, sizeof(CertainKind2));
+}
+
+int test64() {
+    assert(64, 0, false);
+    assert(64, 1, true);
+    typedef enum {
+        A0,
+        A1,
+        A2,
+        A3,
+    } EnumConstants;
+    for (int i = 0; i < 6; ++i) {
+        switch (i) {
+            case A0: 
+                assert(64, A0, i);
+            case A1: 
+                assert(64, true, i == A0 || i == A1);
+                break;
+            case A2: 
+                assert(64, A2, i);
+                break;
+            case A3: 
+                assert(64, A3, i);
+                break;
+            default: 
+                assert(64, true, i > A3);
+                break;
+        }
+    }
+    return 0;
 }

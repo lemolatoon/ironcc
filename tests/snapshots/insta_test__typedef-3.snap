@@ -4,15 +4,6 @@ expression: tester.conv_program().as_ref().unwrap()
 ---
 ConvProgram {
     components: [
-        Global(
-            GVar {
-                name: "int2",
-                ty: Base(
-                    Int,
-                ),
-                init: None,
-            },
-        ),
         Func(
             ConvFuncDef {
                 ty: Func {

@@ -59,10 +59,13 @@
                                 | "for" "(" <declaration> ";" <expr>? ";" <expr>? ")" <stmt>
                                 | switch "(" <expr> ")" <stmt>
                                 | <labeled-stmt>
+                                | <jump-statement>
 <blockstmt>                 := "{" ( <stmt> | <declaration> ";" )* "}"
 <labeled-stmt>              := <ident> ":" <stmt>
                                 | "case" <expr> : <stmt>
                                 | "default" ":" <stmt>
+<jump-statement>            := "continue" ";"
+                                | "break" ";"
 
 
 
