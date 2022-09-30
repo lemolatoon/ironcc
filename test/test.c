@@ -72,6 +72,8 @@ int test61();
 int test62();
 int test63();
 int test64();
+int test65();
+int test66();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -161,6 +163,8 @@ int main()
     assert(62, 0, test62());
     assert(63, 0, test63());
     assert(64, 0, test64());
+    assert(65, 0, test65());
+    assert(66, 0, test66());
 
     print_ok();
     return 0;
@@ -1301,13 +1305,48 @@ int test64() {
             case A2: 
                 assert(64, A2, i);
                 break;
-            case A3: 
+            case A3:  {
                 assert(64, A3, i);
                 break;
+            }
             default: 
                 assert(64, true, i > A3);
                 break;
         }
     }
+    return 0;
+}
+
+void exit_as_error_with_msg(char *msg) {
+    printf("\e[31m%s\e[0m\n", msg);
+    exit(1);
+}
+
+int test65() {
+    int sum = 0;
+    for(int i = 0;;++i) {
+        sum = sum + i;
+        if (i == 10) {
+            break;
+        }
+    }
+    assert(65, 55, sum);
+    sum = 0;
+    int i = 0;
+    while (true) {
+        sum = sum + i;
+        if (i == 10) {
+            break;
+        } else {
+            i++;
+            continue;
+        }
+        exit_as_error_with_msg("TEST65: should not reach here");
+    }
+    assert(65, 55, sum);
+    return 0;
+}
+
+int test66() {
     return 0;
 }

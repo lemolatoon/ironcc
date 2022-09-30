@@ -11,6 +11,7 @@ use crate::tokenize::DebugInfo;
 use crate::tokenize::Eof;
 use crate::tokenize::FileInfo;
 use crate::tokenize::Token;
+use crate::unimplemented_err;
 
 pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
@@ -217,12 +218,13 @@ impl<'b> Preprocessor<'b> {
                                     )?;
                                     continue 'preprocess_loop;
                                 }
-                                let (_, mut file_name) = main_chars
+                                let (debug_info, mut file_name) = main_chars
                                     .get_debug_info_and_read_include_file()
                                     .expect("arg(ident) of include with `<` `>` must exist.");
                                 file_name.pop(); // -> '>'
                                 file_name.remove(0); // -> '<'
                                 tokens = self.include_from_include_dir(
+                                    &debug_info,
                                     &file_name,
                                     tokens,
                                     derective_count,
@@ -291,6 +293,7 @@ impl<'b> Preprocessor<'b> {
 
     pub fn include_from_include_dir(
         &mut self,
+        debug_info: &DebugInfo,
         file_path: &str,
         mut tokens: Vec<Token<TokenKind>>,
         derective_count: &mut Option<DerectiveCount>,
@@ -299,7 +302,12 @@ impl<'b> Preprocessor<'b> {
         assert!(include_dir.is_dir(), "include_dir: {:?}", include_dir);
         let included_file_path = include_dir.join(file_path);
         let included_file_path = included_file_path.as_path();
-        assert!(included_file_path.exists());
+        if !included_file_path.exists() {
+            return Err(unimplemented_err!(
+                debug_info.clone(),
+                format!("include file does not exist: {:?}", included_file_path)
+            ));
+        }
         let src = read_file(included_file_path)?;
         let file_info = Rc::new(FileInfo::new(
             included_file_path.to_str().unwrap().to_string(),

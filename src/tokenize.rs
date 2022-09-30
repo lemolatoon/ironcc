@@ -197,6 +197,7 @@ impl Tokenizer {
                         "default" => TokenKind::Default,
                         "case" => TokenKind::Case,
                         "break" => TokenKind::Break,
+                        "continue" => TokenKind::Continue,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
