@@ -223,6 +223,15 @@ impl CompileError {
         ))
     }
 
+    pub const fn new_not_allowed_stmt_error(
+        debug_info: DebugInfo,
+        kind: NotAllowedStmtKind,
+    ) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind),
+        ))
+    }
+
     pub const fn new_deref_error(expr: ConvExpr) -> Self {
         CompileError::new(CompileErrorKind::GenerateError(
             GenerateErrorKind::DerefError(expr),
@@ -440,6 +449,20 @@ impl Debug for CompileError {
                     kind
                 )?;
             }
+            AnalyzeError(AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind)) => {
+                error_at(vec![debug_info.clone()], f)?;
+                match kind {
+                    NotAllowedStmtKind::Break => {
+                        writeln!(f, "`break` statement not in loop or switch statement.")?
+                    }
+                    NotAllowedStmtKind::Continue => {
+                        writeln!(f, "`continue` statement not in loop statement.")?
+                    }
+                    NotAllowedStmtKind::Case => {
+                        writeln!(f, "`case` statement not in loop or switch statement.")?
+                    }
+                }
+            }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
                 error_at(vec![expr.debug_info.clone()], f)?;
                 writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
@@ -511,6 +534,14 @@ pub enum AnalyzeErrorKind {
     TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(TypeExpectedFailedKind),
     ConstExprError(DebugInfo, ConvExprKind),
+    NotAllowedStmtError(DebugInfo, NotAllowedStmtKind),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum NotAllowedStmtKind {
+    Break,
+    Continue,
+    Case,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

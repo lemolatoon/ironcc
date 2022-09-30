@@ -4,32 +4,102 @@ use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
         ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        GVar, LVar, Type,
+        GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
-    parse::LabelKind,
     unimplemented_err,
 };
 
 #[derive(Debug, Clone)]
 pub struct Generator {
     label: usize,
-    loop_label_stack: Vec<LoopLabel>,
+    loop_label_stack: LoopLabelStack,
     depth: usize,
 }
 
 #[derive(Debug, Clone)]
+pub struct LoopLabelStack(Vec<LoopLabel>);
+
+impl LoopLabelStack {
+    pub const fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn push(&mut self, label: LoopLabel) {
+        self.0.push(label);
+    }
+
+    pub fn pop(&mut self) -> Option<LoopLabel> {
+        self.0.pop()
+    }
+
+    /// Returns the label of the innermost loop. `LoopLabel::For(_)` or `LoopLabel::While(_)`
+    pub fn get_closest_continue_label_loop_and_pop(&mut self) -> Result<LoopLabel, CompileError> {
+        let mut prev_loop_label = None;
+        while let Some(loop_label @ (LoopLabel::For(_) | LoopLabel::While(_))) = self.0.pop() {
+            prev_loop_label = Some(loop_label);
+        }
+        if let Some(loop_label) = prev_loop_label {
+            self.0.push(loop_label);
+            Ok(loop_label)
+        } else {
+            Err(unimplemented_err!(
+                "INTERNAL COMPILER ERROR: continue stmt is not checked until analysis phase."
+            ))
+        }
+    }
+
+    /// Returns the label of the innermost loop or switch. `LoopLabel::Switch(_)`, `LoopLabel::For(_)` or `LoopLabel::While(_)`
+    pub fn get_closest_break_label_loop_or_switch_and_pop(
+        &self,
+    ) -> Result<LoopLabel, CompileError> {
+        self.0.last().map_or_else(
+            || {
+                Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: break stmt is not checked until analysis phase."
+                ))
+            },
+            |loop_label| Ok(*loop_label),
+        )
+    }
+
+    /// Returns the label of the innermost switch. `LoopLabel::Switch(_)`
+    pub fn get_closest_switch_and_pop(&mut self) -> Result<usize, CompileError> {
+        let mut prev_loop_label = None;
+        while let Some(loop_label @ LoopLabel::Switch(_)) = self.0.pop() {
+            prev_loop_label = Some(loop_label);
+        }
+        if let Some(loop_label) = prev_loop_label {
+            self.0.push(loop_label);
+            Ok(loop_label.get_label())
+        } else {
+            Err(unimplemented_err!(
+                "INTERNAL COMPILER ERROR: case stmt is not checked until analysis phase."
+            ))
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub enum LoopLabel {
     While(usize),
     For(usize),
     Switch(usize),
 }
 
+impl LoopLabel {
+    pub const fn get_label(&self) -> usize {
+        match self {
+            LoopLabel::For(label) | LoopLabel::Switch(label) | LoopLabel::While(label) => *label,
+        }
+    }
+}
+
 impl Generator {
     pub const fn new() -> Self {
         Self {
             label: 0,
-            loop_label_stack: Vec::new(),
+            loop_label_stack: LoopLabelStack::new(),
             depth: 0,
         }
     }
@@ -324,11 +394,11 @@ impl Generator {
             }
             ConvStmt::While(cond, then) => {
                 let label_index = self.label();
+                self.loop_label_stack.push(LoopLabel::While(label_index));
                 let ty_size_of = cond.ty.size_of();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
                 self.pop(f, RegKind::Rax)?;
-                // writeln!(f, "  cmp rax, 0")?;
                 Self::gen_cmp(
                     f,
                     RegOrLit::Reg(RegKind::Rax),
@@ -340,9 +410,11 @@ impl Generator {
                 self.gen_stmt(f, *then)?;
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
+                self.loop_label_stack.pop();
             }
             ConvStmt::For(init, cond, inc, then) => {
                 let label_index = self.label();
+                self.loop_label_stack.push(LoopLabel::For(label_index));
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
                     self.pop(f, RegKind::Rax)?;
@@ -369,61 +441,82 @@ impl Generator {
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
+                self.loop_label_stack.pop();
             }
             ConvStmt::Block(stmts) => {
                 for stmt in stmts {
                     self.gen_stmt(f, stmt)?;
                 }
             }
-            ConvStmt::Switch { expr, labels } => {
+            ConvStmt::Switch { expr, cases, stmt } => {
                 let index = self.label();
+                self.loop_label_stack.push(LoopLabel::Switch(index));
                 self.gen_expr(f, expr)?;
                 self.pop(f, RegKind::Rax)?;
-                let mut buffer_control = Vec::new();
-                let mut buffer_labels = Vec::new();
-                let mut buf_writer_control = BufWriter::new(&mut buffer_control);
-                let mut buf_writer_labels = BufWriter::new(&mut buffer_labels);
-                let mut case_indexes = Vec::new();
-                for stmt in labels {
-                    match stmt {
-                        crate::analyze::SwitchBodyStmt::Stmt(stmt) => {
-                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
-                        }
-                        crate::analyze::SwitchBodyStmt::Case(label_index, stmt) => {
-                            writeln!(&mut buf_writer_labels, ".Lcase{}_{}:", index, label_index)?;
-                            case_indexes.push(label_index);
-                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
-                        }
-                        crate::analyze::SwitchBodyStmt::Default(stmt) => {
-                            writeln!(&mut buf_writer_labels, ".Ldefault{}:", index)?;
-                            self.gen_stmt(&mut buf_writer_labels, stmt)?;
-                        }
-                        crate::analyze::SwitchBodyStmt::Break => {
-                            writeln!(&mut buf_writer_labels, "  jmp .Lend{}", index)?;
-                        }
+                for label_index in cases {
+                    writeln!(f, "  cmp rax, {}", label_index)?;
+                    writeln!(f, "  je .Lcase{}_{}", index, label_index)?;
+                }
+                writeln!(f, "  jmp .Ldefault{}", index)?;
+                //for stmt in labels {
+                //    match stmt {
+                //        crate::analyze::SwitchBodyStmt::Stmt(stmt) => {
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Case(label_index, stmt) => {
+                //            writeln!(&mut buf_writer_labels, ".Lcase{}_{}:", index, label_index)?;
+                //            case_indexes.push(label_index);
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Default(stmt) => {
+                //            writeln!(&mut buf_writer_labels, ".Ldefault{}:", index)?;
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Break => {
+                //            writeln!(&mut buf_writer_labels, "  jmp .Lend{}", index)?;
+                //        }
+                //    }
+                //}
+                self.gen_stmt(f, *stmt)?;
+                writeln!(f, ".Lend{}:", index)?;
+                self.loop_label_stack.pop();
+            }
+            ConvStmt::LoopControl(LoopControlKind::Break) => {
+                match self
+                    .loop_label_stack
+                    .get_closest_break_label_loop_or_switch_and_pop()?
+                {
+                    LoopLabel::While(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
+                    }
+                    LoopLabel::For(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
+                    }
+                    LoopLabel::Switch(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
                     }
                 }
-                writeln!(&mut buf_writer_labels, ".Lend{}:", index)?;
-                for label_index in case_indexes {
-                    writeln!(&mut buf_writer_control, "  cmp rax, {}", label_index)?;
-                    writeln!(
-                        &mut buf_writer_control,
-                        "  je .Lcase{}_{}",
-                        index, label_index
-                    )?;
-                }
-                writeln!(&mut buf_writer_control, "  jmp .Ldefault{}", index)?;
-                drop(buf_writer_labels);
-                drop(buf_writer_control);
-                let switch_case_code = format!(
-                    "{}{}",
-                    std::str::from_utf8(buffer_control.as_slice()).unwrap(),
-                    std::str::from_utf8(buffer_labels.as_slice()).unwrap()
-                );
-                writeln!(f, "{}", switch_case_code)?;
             }
-            ConvStmt::Break => todo!(),
-            ConvStmt::Continue => todo!(),
+            ConvStmt::LoopControl(LoopControlKind::Continue) => {
+                match self
+                    .loop_label_stack
+                    .get_closest_continue_label_loop_and_pop()?
+                {
+                    LoopLabel::While(index) => writeln!(f, "  jmp .Lbegin{}", index)?,
+                    LoopLabel::For(index) => writeln!(f, "  jmp .Lbegin{}", index)?,
+                    _ => unreachable!(),
+                }
+            }
+            ConvStmt::LoopControl(LoopControlKind::Case(label_index, stmt)) => {
+                let index = self.loop_label_stack.get_closest_switch_and_pop()?;
+                writeln!(f, ".Lcase{}_{}:", index, label_index)?;
+                self.gen_stmt(f, *stmt)?;
+            }
+            ConvStmt::LoopControl(LoopControlKind::Default(stmt)) => {
+                let index = self.loop_label_stack.get_closest_switch_and_pop()?;
+                writeln!(f, ".Ldefault{}:", index)?;
+                self.gen_stmt(f, *stmt)?;
+            }
         };
         Ok(())
     }
