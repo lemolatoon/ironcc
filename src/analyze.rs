@@ -1322,20 +1322,12 @@ impl Analyzer {
                 Ok(ConvExpr::new_binary(kind, lhs, rhs, lhs_ty, debug_info))
             },
             ConvBinOpKind::Eq | ConvBinOpKind::Ne => {
-                if lhs.ty.ty_eq(&rhs.ty) {
+                if lhs.ty.ty_eq(&rhs.ty) || (lhs.ty.is_ptr() && rhs.ty.is_ptr()) {
                      Ok(ConvExpr::new_binary(
                         kind,
                         lhs,
                         rhs,
                         Type::Base(BaseType::Int),
-                        debug_info,
-                    ))
-                } else if lhs.ty.is_ptr() && rhs.ty.is_ptr() {
-                     Ok(ConvExpr::new_binary(
-                        kind,
-                        lhs,
-                        rhs,
-                        Type::Ptr(Box::new(Type::Void)),
                         debug_info,
                     ))
                 } else {
