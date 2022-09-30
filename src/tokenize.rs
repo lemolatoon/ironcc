@@ -94,8 +94,6 @@ impl Tokenizer {
 
             for (literal, kind) in symbols {
                 if self.stream.starts_with(literal) {
-                    dbg!(self.stream.clone().map(|(_, c)| c).collect::<String>());
-                    dbg!(literal);
                     let this_token_debug_info = self
                         .stream
                         .get_debug_info_and_advance(literal.len())

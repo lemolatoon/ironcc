@@ -774,7 +774,7 @@ impl PreprocessorTokenContainerStream {
     }
 
     pub fn starts_with(&self, prefix: &str) -> bool {
-        if self.chars.is_empty() {
+        if self.chars.len() < prefix.len() {
             return false;
         }
         self.chars
