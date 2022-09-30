@@ -17,6 +17,8 @@ pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
     define_table: BTreeMap<String, String>,
+    ifdef_label: usize,
+    ifdef_stack: Vec<usize>,
 }
 #[derive(Debug, Clone, Default)]
 pub struct DerectiveCount {
@@ -65,7 +67,23 @@ impl<'b> Preprocessor<'b> {
             main_file_info,
             include_dir,
             define_table: BTreeMap::new(),
+            ifdef_label: 0,
+            ifdef_stack: Vec::new(),
         }
+    }
+
+    pub fn push_ifdef_stack(&mut self, label: usize) {
+        self.ifdef_stack.push(label);
+    }
+
+    pub fn cmp_stack_top(&self, label: usize) -> Option<bool> {
+        self.ifdef_stack.last().map(|&x| x == label)
+    }
+
+    pub fn get_ifdef_label_and_increment(&mut self) -> usize {
+        let label = self.ifdef_label;
+        self.ifdef_label += 1;
+        label
     }
 
     #[allow(clippy::too_many_lines)]
@@ -73,7 +91,7 @@ impl<'b> Preprocessor<'b> {
         &mut self,
         src_cursor_generator: SrcCursorGenerator,
         tokens: Option<Vec<Token<TokenKind>>>,
-        derective_count: &mut Option<DerectiveCount>,
+        // derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let mut main_chars = src_cursor_generator.into_cursor();
         let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
@@ -137,63 +155,135 @@ impl<'b> Preprocessor<'b> {
                                 if ifdefkind == "ifndef" {
                                     ifdef_flag = !ifdef_flag;
                                 }
+                                let label = self.get_ifdef_label_and_increment();
+                                self.ifdef_label = label;
+                                self.push_ifdef_stack(label);
                                 if ifdef_flag {
-                                    // clippy's suggestion is wrong.
-                                    #[allow(clippy::option_if_let_else)]
-                                    if let Some(derective_count2) = derective_count {
-                                        derective_count2.set_ifdef_flag();
-                                    } else {
-                                        let mut new_derective_count = DerectiveCount::default();
-                                        new_derective_count.set_ifdef_flag();
-                                        *derective_count = Some(new_derective_count);
-                                    }
-                                    return self.preprocess(
-                                        main_chars.into(),
-                                        Some(tokens),
-                                        derective_count,
-                                    );
+                                    return self.preprocess(main_chars.into(), Some(tokens));
                                 }
+                                // skip until #endif
                                 loop {
                                     match main_chars.skip_until_macro_keyword().as_str() {
-                                        "endif" => break,
-                                        "else" => {
-                                            // clippy's suggestion is wrong.
-                                            #[allow(clippy::option_if_let_else)]
-                                            if let Some(derective_count) = derective_count {
-                                                derective_count.set_ifdef_flag();
-                                            } else {
-                                                let mut new_derective_count =
-                                                    DerectiveCount::default();
-                                                new_derective_count.set_ifdef_flag();
-                                                *derective_count = Some(new_derective_count);
+                                        "endif" => {
+                                            match self.cmp_stack_top(self.ifdef_label) {
+                                                Some(true) => {
+                                                    // reached same depth
+                                                    self.ifdef_stack.pop();
+                                                    continue 'preprocess_loop;
+                                                }
+                                                Some(false) => {
+                                                    // reached different depth
+                                                    continue;
+                                                }
+                                                None => {
+                                                    // reached endif without ifdef or ifndef
+                                                    panic!(
+                                                        "Countered endif without ifdef or ifndef."
+                                                    );
+                                                }
                                             }
-                                            return self.preprocess(
-                                                main_chars.into(),
-                                                Some(tokens),
-                                                derective_count,
-                                            );
+                                        }
+                                        "else" => {
+                                            match self.cmp_stack_top(label) {
+                                                Some(true) => {
+                                                    // reached same depth
+                                                    return self.preprocess(
+                                                        main_chars.into(),
+                                                        Some(tokens),
+                                                    );
+                                                }
+                                                Some(false) => {
+                                                    // reached different depth
+                                                    continue;
+                                                }
+                                                None => {
+                                                    // reached else without ifdef or ifndef
+                                                    panic!(
+                                                        "Countered else without ifdef or ifndef."
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        "ifdef" | "ifndef" => {
+                                            let index = self.get_ifdef_label_and_increment();
+                                            self.push_ifdef_stack(index);
+                                            continue;
                                         }
                                         _ => continue,
                                     }
                                 }
-                                continue 'preprocess_loop;
                             }
                             "else" => {
-                                // clippy's suggestion is wrong.
-                                #[allow(clippy::option_if_let_else)]
-                                if let Some(derective_count) = derective_count {
-                                    derective_count.unset_ifdef_flag();
-                                } else {
-                                    panic!("`ifdef` or `ifndef` should be used before `else`");
+                                if self.ifdef_stack.is_empty() {
+                                    panic!("Countered else without ifdef or ifndef.");
                                 }
-                                while "endif" != main_chars.skip_until_macro_keyword().as_str() {}
-                                continue 'preprocess_loop;
+                                loop {
+                                    match main_chars.skip_until_macro_keyword().as_str() {
+                                        "ifdef" | "ifndef" => {
+                                            let index = self.get_ifdef_label_and_increment();
+                                            self.ifdef_stack.push(index);
+                                        }
+                                        "endif" => {
+                                            match self.cmp_stack_top(self.ifdef_label) {
+                                                Some(true) => {
+                                                    // reached same depth
+                                                    self.ifdef_stack.pop();
+                                                    continue 'preprocess_loop;
+                                                }
+                                                Some(false) => {
+                                                    // reached different depth
+                                                    continue;
+                                                }
+                                                None => {
+                                                    // reached endif without ifdef or ifndef
+                                                    panic!(
+                                                        "Countered endif without ifdef or ifndef."
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        "else" => {
+                                            match self.cmp_stack_top(self.ifdef_label) {
+                                                Some(true) => {
+                                                    // reached same depth
+                                                    return self.preprocess(
+                                                        main_chars.into(),
+                                                        Some(tokens),
+                                                    );
+                                                }
+                                                Some(false) => {
+                                                    // reached different depth
+                                                    continue;
+                                                }
+                                                None => {
+                                                    // reached else without ifdef or ifndef
+                                                    panic!(
+                                                        "Countered else without ifdef or ifndef."
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
                             }
                             "endif" => {
-                                if let Some(derective_count) = derective_count {
-                                    derective_count.unset_ifdef_flag();
+                                match self.cmp_stack_top(self.ifdef_label) {
+                                    Some(true) => {
+                                        // reached same depth
+                                        self.ifdef_stack.pop();
+                                        continue 'preprocess_loop;
+                                    }
+                                    Some(false) => {
+                                        // reached different depth
+                                        panic!("unreachable.");
+                                        continue;
+                                    }
+                                    None => {
+                                        // reached endif without ifdef or ifndef
+                                        panic!("Countered endif without ifdef or ifndef.");
+                                    }
                                 }
-                                continue 'preprocess_loop;
                             }
                             "undef" => {
                                 main_chars.get_debug_info_and_skip_white_space_without_new_line();
@@ -211,11 +301,7 @@ impl<'b> Preprocessor<'b> {
                                 {
                                     str_lit.pop(); // -> "
                                     str_lit.remove(0); // -> "
-                                    tokens = self.include_from_file_dir(
-                                        &str_lit,
-                                        tokens,
-                                        derective_count,
-                                    )?;
+                                    tokens = self.include_from_file_dir(&str_lit, tokens)?;
                                     continue 'preprocess_loop;
                                 }
                                 let (debug_info, mut file_name) = main_chars
@@ -223,12 +309,8 @@ impl<'b> Preprocessor<'b> {
                                     .expect("arg(ident) of include with `<` `>` must exist.");
                                 file_name.pop(); // -> '>'
                                 file_name.remove(0); // -> '<'
-                                tokens = self.include_from_include_dir(
-                                    &debug_info,
-                                    &file_name,
-                                    tokens,
-                                    derective_count,
-                                )?;
+                                tokens =
+                                    self.include_from_include_dir(&debug_info, &file_name, tokens)?;
                                 continue 'preprocess_loop;
                             }
                             unknown => panic!("unknown derective: {}", unknown),
@@ -275,7 +357,6 @@ impl<'b> Preprocessor<'b> {
         &mut self,
         file_path: &str,
         mut tokens: Vec<Token<TokenKind>>,
-        derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let main_file = PathBuf::from(self.main_file_info.get_file_name());
         assert!(main_file.is_file());
@@ -287,7 +368,7 @@ impl<'b> Preprocessor<'b> {
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(file_info.into(), Some(tokens))?;
         Ok(tokens)
     }
 
@@ -296,7 +377,6 @@ impl<'b> Preprocessor<'b> {
         debug_info: &DebugInfo,
         file_path: &str,
         mut tokens: Vec<Token<TokenKind>>,
-        derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let include_dir = PathBuf::from(self.include_dir);
         assert!(include_dir.is_dir(), "include_dir: {:?}", include_dir);
@@ -313,7 +393,7 @@ impl<'b> Preprocessor<'b> {
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(file_info.into(), Some(tokens))?;
         Ok(tokens)
     }
 }

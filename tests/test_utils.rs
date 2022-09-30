@@ -108,9 +108,7 @@ impl<'a> CachedTokenizer<'a> {
             src.to_string(),
         ));
         let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-        let tokens = preprocessor
-            .preprocess(file_info.into(), None, &mut None)
-            .unwrap();
+        let tokens = preprocessor.preprocess(file_info.into(), None).unwrap();
         let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
             src,

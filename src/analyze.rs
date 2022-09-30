@@ -631,7 +631,9 @@ impl Analyzer {
                 let ty = declaration.ty(self, declaration.debug_info.clone())?;
                 // TODO check: Function pointer declaration is allowed here (or not)?
                 let name = declaration.ident_name().unwrap_or_else(|| todo!("struct"));
-                let ty = self.resolve_incomplete_type(ty, declaration.debug_info.clone())?;
+                let ty =
+                    self.resolve_incomplete_type_second_depth(ty, declaration.debug_info.clone())?;
+
                 let lvar = self.scope.register_lvar(
                     declaration.debug_info.clone(),
                     &mut self.offset,
@@ -1092,6 +1094,7 @@ impl Analyzer {
 
         // implicit cast
         for (expected_ty, got_expr) in func_args.args.iter().zip(args.iter_mut()) {
+            let expected_ty = expected_ty.clone().into_ptr();
             if !expected_ty.ty_eq(&got_expr.ty) {
                 if expected_ty.is_base() && got_expr.ty.is_base() {
                     let to = *expected_ty.get_base().unwrap();
@@ -2952,6 +2955,15 @@ impl Type {
     pub const fn is_ptr(&self) -> bool {
         matches!(self, Type::Ptr(_))
     }
+
+    /// if `self` is array, return ptr-converted self
+    pub fn into_ptr(self) -> Self {
+        if let Type::Array(base_ty, _) = self {
+            Type::Ptr(base_ty)
+        } else {
+            self
+        }
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -3164,6 +3176,25 @@ impl Analyzer {
             unimplemented!(
                 "Convert `declaration specifier with more than one specifier` into analyzed enum `Type` is not supported yet."
             )
+        }
+    }
+
+    pub fn resolve_incomplete_type_second_depth(
+        &mut self,
+        ty: Type,
+        debug_info: DebugInfo,
+    ) -> Result<Type, CompileError> {
+        match ty {
+            ty @ (Type::Struct(_)
+            | Type::Void
+            | Type::Base(_)
+            | Type::Ptr(_)
+            | Type::Func { .. }) => Ok(ty),
+            Type::InComplete(_) => self.resolve_incomplete_type(ty, debug_info),
+            Type::Array(base, size) => {
+                let base = self.resolve_incomplete_type(*base, debug_info)?;
+                Ok(Type::Array(Box::new(base), size))
+            }
         }
     }
 

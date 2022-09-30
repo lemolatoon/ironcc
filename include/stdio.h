@@ -3,6 +3,7 @@
 #define _STDIO_H 1
 
 #include <stddef.h>
+#include <stdarg.h>
 
 typedef struct _IO_FILE FILE;
 typedef void _IO_lock_t;
@@ -49,6 +50,7 @@ struct _IO_FILE {
 
 int printf(const char *fmt, ... );
 int fprintf(FILE *stream, const char *fmt, ...);
+int vfprintf(FILE *stream, const char *format, va_list arg);
 FILE *fopen(const char *filename, const char *mode);
 char *fgets(char *string, int n, FILE *stream);
 void perror(const char *s);

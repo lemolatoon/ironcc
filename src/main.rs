@@ -60,8 +60,7 @@ fn preprocess(
     include_dir: &str,
 ) -> Result<Vec<Token<preprocess::TokenKind>>, CompileError> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
-    let derective_count = &mut None;
-    preprocessor.preprocess(main_file_info.into(), None, derective_count)
+    preprocessor.preprocess(main_file_info.into(), None)
 }
 
 use std::fmt::Debug;
