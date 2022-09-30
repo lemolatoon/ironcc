@@ -235,6 +235,7 @@ impl Tokenizer {
                         "struct" => TokenKind::Struct,
                         "enum" => TokenKind::Enum,
                         "typedef" => TokenKind::TypeDef,
+                        "extern" => TokenKind::Extern,
                         "__asm__" => TokenKind::Asm,
                         "switch" => TokenKind::Switch,
                         "default" => TokenKind::Default,
@@ -299,6 +300,8 @@ pub enum TokenKind {
     Enum,
     /// `typedef`, reserved word
     TypeDef,
+    /// `extern`, reserved word
+    Extern,
     /// `switch`, reserved word
     Switch,
     /// `default`, reserved word

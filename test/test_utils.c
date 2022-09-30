@@ -27,3 +27,5 @@ void *print_p(void *p)
     printf("%p\n", p);
     return p;
 }
+
+int test67_external_global_var = 67;

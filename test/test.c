@@ -1,4 +1,4 @@
-#include "test_utils.c"
+#include "test_utils.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -74,6 +74,7 @@ int test63();
 int test64();
 int test65();
 int test66();
+int test67();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -165,6 +166,7 @@ int main()
     assert(64, 0, test64());
     assert(65, 0, test65());
     assert(66, 0, test66());
+    assert(67, 0, test67());
 
     print_ok();
     return 0;
@@ -1356,5 +1358,10 @@ int test66() {
     string2[3] = 'd';
     string2[4] = '\0';
     assert(66, 0, strncmp(string1, string2, 5));
+    return 0;
+}
+
+int test67() {
+    assert(67, 67 ,test67_external_global_var);
     return 0;
 }

@@ -437,6 +437,10 @@ impl Parser {
                     tokens.next();
                     Ok((StorageClassSpecifier::Typedef, debug_info))
                 }
+                TokenKind::Extern => {
+                    tokens.next();
+                    Ok((StorageClassSpecifier::Extern, debug_info))
+                }
                 _ => Err(CompileError::new_expected_failed(
                     Box::new("TokenKind::Typedef".to_string()),
                     Token::new(*kind, debug_info),

@@ -21,7 +21,7 @@ test: $(COMPILER)
 
 testc: $(COMPILER) test/test.c
 	$(COMPILER) test/test.c && \
-	$(CC) test.s $(CFLAGS) -o a.out && \
+	$(CC) test.s test/test_utils.c $(CFLAGS) -o a.out && \
 	./a.out
 
 life_game.s: $(COMPILER) life_game.c

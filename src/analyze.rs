@@ -132,6 +132,9 @@ impl Analyzer {
                     let is_typedef = declaration.declaration_specifiers.contains(
                         &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
                     );
+                    let is_extern = declaration.declaration_specifiers.contains(
+                        &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern),
+                    );
                     if let Some(init_declarator) = declaration.init_declarator {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
@@ -150,7 +153,9 @@ impl Analyzer {
                             | Type::Array(_, _)
                             | Type::Struct(_)) => {
                                 let gvar = self.new_global_variable(*init, name, ty, debug_info)?;
-                                self.conv_program.push(ConvProgramKind::Global(gvar));
+                                if !is_extern {
+                                    self.conv_program.push(ConvProgramKind::Global(gvar));
+                                }
                             }
                             Type::Func {
                                 ret_ty,
@@ -2952,12 +2957,17 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
         let mut is_typedef = false;
+        let mut is_extern = false;
         let mut declaration_specifiers = Vec::with_capacity(ty_spec.len());
         for declaration_specifier in ty_spec {
             if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
                 == *declaration_specifier
             {
                 is_typedef = true;
+            } else if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern)
+                == *declaration_specifier
+            {
+                is_extern = true;
             } else {
                 declaration_specifiers.push(declaration_specifier.clone());
             }
