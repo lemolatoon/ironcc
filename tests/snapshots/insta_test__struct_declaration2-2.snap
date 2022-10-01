@@ -125,37 +125,39 @@ Program {
                             },
                             Stmt {
                                 kind: Return(
-                                    Expr {
-                                        kind: SizeOf(
-                                            Expr(
-                                                Expr {
-                                                    kind: Ident(
-                                                        "mine",
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
-                                                        },
-                                                        pos: Position {
-                                                            n_char: 18,
-                                                            n_line: 8,
+                                    Some(
+                                        Expr {
+                                            kind: SizeOf(
+                                                Expr(
+                                                    Expr {
+                                                        kind: Ident(
+                                                            "mine",
+                                                        ),
+                                                        debug_info: DebugInfo {
+                                                            file_info: FileInfo {
+                                                                file_name: "not impl name.c",
+                                                                src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
+                                                            },
+                                                            pos: Position {
+                                                                n_char: 18,
+                                                                n_line: 8,
+                                                            },
                                                         },
                                                     },
-                                                },
+                                                ),
                                             ),
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
-                                            },
-                                            pos: Position {
-                                                n_char: 11,
-                                                n_line: 8,
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "int main()\n{\n    struct my_struct_tag\n    {\n        char a;\n        int b;\n        char c;\n    } mine;\n    return sizeof(mine); // -> 12\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 11,
+                                                    n_line: 8,
+                                                },
                                             },
                                         },
-                                    },
+                                    ),
                                 ),
                             },
                         ],

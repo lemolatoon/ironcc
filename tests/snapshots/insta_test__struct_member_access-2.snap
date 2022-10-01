@@ -337,36 +337,38 @@ Program {
                             },
                             Stmt {
                                 kind: Return(
-                                    Expr {
-                                        kind: Member(
-                                            Expr {
-                                                kind: Ident(
-                                                    "a",
-                                                ),
-                                                debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                    },
-                                                    pos: Position {
-                                                        n_char: 11,
-                                                        n_line: 12,
+                                    Some(
+                                        Expr {
+                                            kind: Member(
+                                                Expr {
+                                                    kind: Ident(
+                                                        "a",
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 11,
+                                                            n_line: 12,
+                                                        },
                                                     },
                                                 },
-                                            },
-                                            "c",
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                            },
-                                            pos: Position {
-                                                n_char: 13,
-                                                n_line: 12,
+                                                "c",
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 13,
+                                                    n_line: 12,
+                                                },
                                             },
                                         },
-                                    },
+                                    ),
                                 ),
                             },
                         ],

@@ -76,6 +76,9 @@ int test65();
 int test66();
 int test67();
 int test68();
+int test69();
+int test70();
+int test();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -169,6 +172,8 @@ int main()
     assert(66, 0, test66());
     assert(67, 0, test67());
     assert(68, 0, test68());
+    assert(69, 0, test69());
+    assert(70, 70, test70());
 
     print_ok();
     return 0;
@@ -1378,4 +1383,38 @@ int test68() {
     ptr += 2;
     assert(68, 3, *ptr);
     return 0;
+}
+
+void test69_set_ptr(int *p) {
+    *p = 1;
+    return;
+    *p = 2;
+}
+
+int test69() {
+    int a;
+    int *p = &a;
+    test69_set_ptr(p);
+    assert(69, 1, a);
+    return 0;
+}
+
+int test70() {
+    switch (1) {
+            case 1:
+                switch(2) {
+                    case 1:
+                        exit_as_error_with_msg("TEST70: should not reach here1");
+                    case 2:
+                        return 70;
+                    default:
+                        exit_as_error_with_msg("TEST70: should not reach here2");
+                }
+                break;
+            case 2:
+                break;
+            default:
+                break;
+    }
+    exit_as_error_with_msg("TEST70: should not reach here3");
 }

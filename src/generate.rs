@@ -37,8 +37,11 @@ impl LoopLabelStack {
     /// Returns the label of the innermost loop. `LoopLabel::For(_)` or `LoopLabel::While(_)`
     pub fn get_closest_continue_label_loop_and_pop(&mut self) -> Result<LoopLabel, CompileError> {
         let mut prev_loop_label = None;
-        while let Some(loop_label @ (LoopLabel::For(_) | LoopLabel::While(_))) = self.0.pop() {
-            prev_loop_label = Some(loop_label);
+        loop {
+            if let Some(loop_label @ (LoopLabel::For(_) | LoopLabel::While(_))) = self.0.pop() {
+                prev_loop_label = Some(loop_label);
+                break;
+            }
         }
         if let Some(loop_label) = prev_loop_label {
             self.0.push(loop_label);
@@ -67,8 +70,11 @@ impl LoopLabelStack {
     /// Returns the label of the innermost switch. `LoopLabel::Switch(_)`
     pub fn get_closest_switch_and_pop(&mut self) -> Result<usize, CompileError> {
         let mut prev_loop_label = None;
-        while let Some(loop_label @ LoopLabel::Switch(_)) = self.0.pop() {
-            prev_loop_label = Some(loop_label);
+        loop {
+            if let Some(loop_label @ LoopLabel::Switch(_)) = self.0.pop() {
+                prev_loop_label = Some(loop_label);
+                break;
+            }
         }
         if let Some(loop_label) = prev_loop_label {
             self.0.push(loop_label);
@@ -360,8 +366,10 @@ impl Generator {
                 self.pop(f, RegKind::Rax)?;
             }
             ConvStmt::Return(expr, name) => {
-                self.gen_expr(f, expr)?;
-                self.pop(f, RegKind::Rax)?;
+                if let Some(expr) = expr {
+                    self.gen_expr(f, expr)?;
+                    self.pop(f, RegKind::Rax)?;
+                }
                 writeln!(f, "  jmp .L{}_ret", name)?;
             }
             ConvStmt::If(cond, then, Some(els)) => {

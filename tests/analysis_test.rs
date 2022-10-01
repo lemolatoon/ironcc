@@ -432,7 +432,7 @@ fn extract_ty(src: &str) -> Type {
     if let ConvStmt::Block(vec) = conv_stmt {
         let second_stmt = vec.get(1).unwrap();
         if let ConvStmt::Return(expr, _) = second_stmt {
-            expr.ty.clone()
+            expr.as_ref().expect("return expr expected.").ty.clone()
         } else {
             panic!("Return expected.")
         }
@@ -542,7 +542,7 @@ fn cexpr_stmt(expr: ConvExpr) -> ConvStmt {
 }
 
 fn cret(expr: ConvExpr, name: &str) -> ConvStmt {
-    ConvStmt::new_ret(expr, name.to_string())
+    ConvStmt::new_ret(Some(expr), name.to_string())
 }
 
 // TODO: use these 4 func and write tests

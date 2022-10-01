@@ -54,6 +54,7 @@
 <stmt>                      := <expr> ";"
                                 | <blockstmt>
                                 | "return" <expr> ";"
+                                | "return" ";"
                                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
                                 | "for" "(" <declaration> ";" <expr>? ";" <expr>? ")" <stmt>

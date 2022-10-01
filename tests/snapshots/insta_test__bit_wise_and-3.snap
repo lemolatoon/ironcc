@@ -18,62 +18,64 @@ ConvProgram {
                 body: Block(
                     [
                         Return(
-                            ConvExpr {
-                                kind: Binary(
-                                    ConvBinary {
-                                        kind: BitWiseAnd,
-                                        lhs: ConvExpr {
-                                            kind: Num(
-                                                7,
-                                            ),
-                                            ty: Base(
-                                                Int,
-                                            ),
-                                            debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                            Some(
+                                ConvExpr {
+                                    kind: Binary(
+                                        ConvBinary {
+                                            kind: BitWiseAnd,
+                                            lhs: ConvExpr {
+                                                kind: Num(
+                                                    7,
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 15,
+                                                        n_line: 2,
+                                                    },
                                                 },
-                                                pos: Position {
-                                                    n_char: 15,
-                                                    n_line: 2,
+                                            },
+                                            rhs: ConvExpr {
+                                                kind: Num(
+                                                    5,
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: FileInfo {
+                                                        file_name: "not impl name.c",
+                                                        src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
+                                                    },
+                                                    pos: Position {
+                                                        n_char: 23,
+                                                        n_line: 2,
+                                                    },
                                                 },
                                             },
                                         },
-                                        rhs: ConvExpr {
-                                            kind: Num(
-                                                5,
-                                            ),
-                                            ty: Base(
-                                                Int,
-                                            ),
-                                            debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
-                                                },
-                                                pos: Position {
-                                                    n_char: 23,
-                                                    n_line: 2,
-                                                },
-                                            },
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
                                         },
-                                    },
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 21,
-                                        n_line: 2,
+                                        pos: Position {
+                                            n_char: 21,
+                                            n_line: 2,
+                                        },
                                     },
                                 },
-                            },
+                            ),
                             "main",
                         ),
                     ],

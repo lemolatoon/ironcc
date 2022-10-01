@@ -432,107 +432,109 @@ ConvProgram {
                             },
                         ),
                         Return(
-                            ConvExpr {
-                                kind: Member {
-                                    struct_expr: ConvExpr {
-                                        kind: LVar(
-                                            LVar {
-                                                offset: 16,
-                                                ty: Struct(
-                                                    Struct {
-                                                        tag: Some(
-                                                            "A",
-                                                        ),
-                                                        members: [
-                                                            StructMember {
-                                                                name: "a",
-                                                                offset: 8,
-                                                                ty: Array(
-                                                                    Base(
+                            Some(
+                                ConvExpr {
+                                    kind: Member {
+                                        struct_expr: ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 16,
+                                                    ty: Struct(
+                                                        Struct {
+                                                            tag: Some(
+                                                                "A",
+                                                            ),
+                                                            members: [
+                                                                StructMember {
+                                                                    name: "a",
+                                                                    offset: 8,
+                                                                    ty: Array(
+                                                                        Base(
+                                                                            Int,
+                                                                        ),
+                                                                        2,
+                                                                    ),
+                                                                },
+                                                                StructMember {
+                                                                    name: "b",
+                                                                    offset: 9,
+                                                                    ty: Base(
+                                                                        Char,
+                                                                    ),
+                                                                },
+                                                                StructMember {
+                                                                    name: "c",
+                                                                    offset: 16,
+                                                                    ty: Base(
                                                                         Int,
                                                                     ),
-                                                                    2,
-                                                                ),
-                                                            },
-                                                            StructMember {
-                                                                name: "b",
-                                                                offset: 9,
-                                                                ty: Base(
-                                                                    Char,
-                                                                ),
-                                                            },
-                                                            StructMember {
-                                                                name: "c",
-                                                                offset: 16,
-                                                                ty: Base(
+                                                                },
+                                                            ],
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                            ty: Struct(
+                                                Struct {
+                                                    tag: Some(
+                                                        "A",
+                                                    ),
+                                                    members: [
+                                                        StructMember {
+                                                            name: "a",
+                                                            offset: 8,
+                                                            ty: Array(
+                                                                Base(
                                                                     Int,
                                                                 ),
-                                                            },
-                                                        ],
-                                                    },
-                                                ),
-                                            },
-                                        ),
-                                        ty: Struct(
-                                            Struct {
-                                                tag: Some(
-                                                    "A",
-                                                ),
-                                                members: [
-                                                    StructMember {
-                                                        name: "a",
-                                                        offset: 8,
-                                                        ty: Array(
-                                                            Base(
+                                                                2,
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "b",
+                                                            offset: 9,
+                                                            ty: Base(
+                                                                Char,
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "c",
+                                                            offset: 16,
+                                                            ty: Base(
                                                                 Int,
                                                             ),
-                                                            2,
-                                                        ),
-                                                    },
-                                                    StructMember {
-                                                        name: "b",
-                                                        offset: 9,
-                                                        ty: Base(
-                                                            Char,
-                                                        ),
-                                                    },
-                                                    StructMember {
-                                                        name: "c",
-                                                        offset: 16,
-                                                        ty: Base(
-                                                            Int,
-                                                        ),
-                                                    },
-                                                ],
-                                            },
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                            },
-                                            pos: Position {
-                                                n_char: 11,
-                                                n_line: 12,
+                                                        },
+                                                    ],
+                                                },
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 11,
+                                                    n_line: 12,
+                                                },
                                             },
                                         },
+                                        minus_offset: 12,
                                     },
-                                    minus_offset: 12,
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
+                                        },
+                                        pos: Position {
+                                            n_char: 13,
+                                            n_line: 12,
+                                        },
+                                    },
                                 },
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                    },
-                                    pos: Position {
-                                        n_char: 13,
-                                        n_line: 12,
-                                    },
-                                },
-                            },
+                            ),
                             "main",
                         ),
                     ],

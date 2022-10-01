@@ -108,21 +108,23 @@ Program {
                                                         ),
                                                         Stmt {
                                                             kind: Return(
-                                                                Expr {
-                                                                    kind: Num(
-                                                                        0,
-                                                                    ),
-                                                                    debug_info: DebugInfo {
-                                                                        file_info: FileInfo {
-                                                                            file_name: "not impl name.c",
-                                                                            src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                                        },
-                                                                        pos: Position {
-                                                                            n_char: 19,
-                                                                            n_line: 5,
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            0,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: FileInfo {
+                                                                                file_name: "not impl name.c",
+                                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+                                                                            },
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 5,
+                                                                            },
                                                                         },
                                                                     },
-                                                                },
+                                                                ),
                                                             ),
                                                         },
                                                     ),
@@ -148,21 +150,23 @@ Program {
                                                         ),
                                                         Stmt {
                                                             kind: Return(
-                                                                Expr {
-                                                                    kind: Num(
-                                                                        1,
-                                                                    ),
-                                                                    debug_info: DebugInfo {
-                                                                        file_info: FileInfo {
-                                                                            file_name: "not impl name.c",
-                                                                            src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                                        },
-                                                                        pos: Position {
-                                                                            n_char: 19,
-                                                                            n_line: 7,
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            1,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: FileInfo {
+                                                                                file_name: "not impl name.c",
+                                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+                                                                            },
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 7,
+                                                                            },
                                                                         },
                                                                     },
-                                                                },
+                                                                ),
                                                             ),
                                                         },
                                                     ),
@@ -172,21 +176,23 @@ Program {
                                                         Default,
                                                         Stmt {
                                                             kind: Return(
-                                                                Expr {
-                                                                    kind: Num(
-                                                                        666,
-                                                                    ),
-                                                                    debug_info: DebugInfo {
-                                                                        file_info: FileInfo {
-                                                                            file_name: "not impl name.c",
-                                                                            src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                                        },
-                                                                        pos: Position {
-                                                                            n_char: 19,
-                                                                            n_line: 9,
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            666,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: FileInfo {
+                                                                                file_name: "not impl name.c",
+                                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
+                                                                            },
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 9,
+                                                                            },
                                                                         },
                                                                     },
-                                                                },
+                                                                ),
                                                             ),
                                                         },
                                                     ),

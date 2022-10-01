@@ -258,7 +258,7 @@ pub mod ast {
     }
 
     pub fn ret(expr: Expr) -> Stmt {
-        Stmt::ret(expr)
+        Stmt::ret(Some(expr))
     }
 
     pub fn block(stmts: Vec<Stmt>) -> Stmt {

@@ -464,9 +464,11 @@ impl Analyzer {
     pub fn traverse_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
         Ok(match stmt.kind {
             StmtKind::Expr(expr) => ConvStmt::new_expr(self.traverse_expr(expr, BTreeSet::new())?),
-            StmtKind::Return(expr) => {
-                ConvStmt::new_ret(self.traverse_expr(expr, BTreeSet::new())?, fn_name)
-            }
+            StmtKind::Return(expr) => ConvStmt::new_ret(
+                expr.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
+                    .transpose()?,
+                fn_name,
+            ),
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
                 self.traverse_expr(cond, BTreeSet::new())?,
                 self.traverse_stmt(*then, fn_name.clone())?,
@@ -1785,7 +1787,7 @@ impl ConvFuncDef {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvStmt {
     Expr(ConvExpr),
-    Return(ConvExpr, String),
+    Return(Option<ConvExpr>, String),
     Block(Vec<ConvStmt>),
     If(ConvExpr, Box<ConvStmt>, Option<Box<ConvStmt>>),
     While(ConvExpr, Box<ConvStmt>),
@@ -1818,7 +1820,7 @@ impl ConvStmt {
         ConvStmt::Expr(expr)
     }
 
-    pub const fn new_ret(expr: ConvExpr, name: String) -> Self {
+    pub const fn new_ret(expr: Option<ConvExpr>, name: String) -> Self {
         ConvStmt::Return(expr, name)
     }
 

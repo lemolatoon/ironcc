@@ -72,36 +72,38 @@ Program {
                             },
                             Stmt {
                                 kind: Return(
-                                    Expr {
-                                        kind: Unary(
-                                            BitInvert,
-                                            Expr {
-                                                kind: Ident(
-                                                    "a",
-                                                ),
-                                                debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
-                                                    },
-                                                    pos: Position {
-                                                        n_char: 16,
-                                                        n_line: 3,
+                                    Some(
+                                        Expr {
+                                            kind: Unary(
+                                                BitInvert,
+                                                Expr {
+                                                    kind: Ident(
+                                                        "a",
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 16,
+                                                            n_line: 3,
+                                                        },
                                                     },
                                                 },
-                                            },
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
-                                            },
-                                            pos: Position {
-                                                n_char: 15,
-                                                n_line: 3,
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                },
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 3,
+                                                },
                                             },
                                         },
-                                    },
+                                    ),
                                 ),
                             },
                         ],

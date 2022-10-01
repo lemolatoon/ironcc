@@ -633,9 +633,13 @@ impl Parser {
     {
         let stmt = if tokens.consume(&TokenKind::Return) {
             // return stmt
-            let returning_expr = self.parse_expr(tokens)?;
-            tokens.expect(&TokenKind::Semi)?;
-            Ok(Stmt::ret(returning_expr))
+            if tokens.consume(&TokenKind::Semi) {
+                Ok(Stmt::ret(None))
+            } else {
+                let returning_expr = self.parse_expr(tokens)?;
+                tokens.expect(&TokenKind::Semi)?;
+                Ok(Stmt::ret(Some(returning_expr)))
+            }
         } else if tokens.consume(&TokenKind::If) {
             tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
             let conditional_expr = self.parse_expr(tokens)?;
@@ -1638,7 +1642,7 @@ impl Stmt {
         }
     }
 
-    pub const fn ret(expr: Expr) -> Self {
+    pub const fn ret(expr: Option<Expr>) -> Self {
         Self {
             kind: StmtKind::Return(expr),
         }
@@ -1786,7 +1790,7 @@ pub enum DirectAbstractDeclarator {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum StmtKind {
     Expr(Expr),
-    Return(Expr),
+    Return(Option<Expr>),
     Block(Vec<Stmt>),
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),

@@ -99,68 +99,70 @@ ConvProgram {
                             },
                         ),
                         Return(
-                            ConvExpr {
-                                kind: Unary(
-                                    BitInvert,
-                                    ConvExpr {
-                                        kind: Cast(
-                                            ConvExpr {
-                                                kind: LVar(
-                                                    LVar {
-                                                        offset: 1,
-                                                        ty: Base(
-                                                            Char,
-                                                        ),
-                                                    },
-                                                ),
-                                                ty: Base(
-                                                    Char,
-                                                ),
-                                                debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
-                                                    },
-                                                    pos: Position {
-                                                        n_char: 16,
-                                                        n_line: 3,
+                            Some(
+                                ConvExpr {
+                                    kind: Unary(
+                                        BitInvert,
+                                        ConvExpr {
+                                            kind: Cast(
+                                                ConvExpr {
+                                                    kind: LVar(
+                                                        LVar {
+                                                            offset: 1,
+                                                            ty: Base(
+                                                                Char,
+                                                            ),
+                                                        },
+                                                    ),
+                                                    ty: Base(
+                                                        Char,
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 16,
+                                                            n_line: 3,
+                                                        },
                                                     },
                                                 },
-                                            },
-                                            Base2Base(
-                                                Char,
+                                                Base2Base(
+                                                    Char,
+                                                    Int,
+                                                ),
+                                            ),
+                                            ty: Base(
                                                 Int,
                                             ),
-                                        ),
-                                        ty: Base(
-                                            Int,
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
-                                            },
-                                            pos: Position {
-                                                n_char: 16,
-                                                n_line: 3,
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                                },
+                                                pos: Position {
+                                                    n_char: 16,
+                                                    n_line: 3,
+                                                },
                                             },
                                         },
-                                    },
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
-                                    },
-                                    pos: Position {
-                                        n_char: 16,
-                                        n_line: 3,
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "\n    int main() {\n        char a = 4; // -> -5\n        return ~a;\n    }\n    ",
+                                        },
+                                        pos: Position {
+                                            n_char: 16,
+                                            n_line: 3,
+                                        },
                                     },
                                 },
-                            },
+                            ),
                             "main",
                         ),
                     ],

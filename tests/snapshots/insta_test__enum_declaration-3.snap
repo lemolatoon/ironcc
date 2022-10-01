@@ -88,24 +88,26 @@ ConvProgram {
                             },
                         ),
                         Return(
-                            ConvExpr {
-                                kind: Num(
-                                    1,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
-                                    },
-                                    pos: Position {
-                                        n_char: 11,
-                                        n_line: 12,
+                            Some(
+                                ConvExpr {
+                                    kind: Num(
+                                        1,
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "enum A {\n    A1,\n    A2,\n};\n\nenum {\n    B1,\n    B2,\n} enum_global_var;\n\nint main() {\n    enum A a = A1;\n    return A2;\n}",
+                                        },
+                                        pos: Position {
+                                            n_char: 11,
+                                            n_line: 12,
+                                        },
                                     },
                                 },
-                            },
+                            ),
                             "main",
                         ),
                     ],

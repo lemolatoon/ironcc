@@ -73,50 +73,52 @@ Program {
                             },
                             Stmt {
                                 kind: Return(
-                                    Expr {
-                                        kind: Array(
-                                            Expr {
-                                                kind: Ident(
-                                                    "array",
-                                                ),
-                                                debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
-                                                    },
-                                                    pos: Position {
-                                                        n_char: 15,
-                                                        n_line: 3,
-                                                    },
-                                                },
-                                            },
-                                            Expr {
-                                                kind: Num(
-                                                    3,
-                                                ),
-                                                debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
-                                                    },
-                                                    pos: Position {
-                                                        n_char: 21,
-                                                        n_line: 3,
+                                    Some(
+                                        Expr {
+                                            kind: Array(
+                                                Expr {
+                                                    kind: Ident(
+                                                        "array",
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 3,
+                                                        },
                                                     },
                                                 },
-                                            },
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
-                                            },
-                                            pos: Position {
-                                                n_char: 15,
-                                                n_line: 3,
+                                                Expr {
+                                                    kind: Num(
+                                                        3,
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: FileInfo {
+                                                            file_name: "not impl name.c",
+                                                            src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                        },
+                                                        pos: Position {
+                                                            n_char: 21,
+                                                            n_line: 3,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "\nint main() {\n int array[5];\n        return array[3];\n    }\n",
+                                                },
+                                                pos: Position {
+                                                    n_char: 15,
+                                                    n_line: 3,
+                                                },
                                             },
                                         },
-                                    },
+                                    ),
                                 ),
                             },
                         ],

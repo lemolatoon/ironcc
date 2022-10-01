@@ -340,50 +340,52 @@ ConvProgram {
                             },
                         ),
                         Return(
-                            ConvExpr {
-                                kind: Deref(
-                                    ConvExpr {
-                                        kind: LVar(
-                                            LVar {
-                                                offset: 16,
-                                                ty: Ptr(
-                                                    Base(
-                                                        Int,
+                            Some(
+                                ConvExpr {
+                                    kind: Deref(
+                                        ConvExpr {
+                                            kind: LVar(
+                                                LVar {
+                                                    offset: 16,
+                                                    ty: Ptr(
+                                                        Base(
+                                                            Int,
+                                                        ),
                                                     ),
-                                                ),
-                                            },
-                                        ),
-                                        ty: Ptr(
-                                            Base(
-                                                Int,
+                                                },
                                             ),
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n    int a[2] = {1, 2};\n    int *p = a; \n    p += 1;\n    return *p;\n}",
-                                            },
-                                            pos: Position {
-                                                n_char: 12,
-                                                n_line: 4,
+                                            ty: Ptr(
+                                                Base(
+                                                    Int,
+                                                ),
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: FileInfo {
+                                                    file_name: "not impl name.c",
+                                                    src: "int main() {\n    int a[2] = {1, 2};\n    int *p = a; \n    p += 1;\n    return *p;\n}",
+                                                },
+                                                pos: Position {
+                                                    n_char: 12,
+                                                    n_line: 4,
+                                                },
                                             },
                                         },
-                                    },
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {\n    int a[2] = {1, 2};\n    int *p = a; \n    p += 1;\n    return *p;\n}",
-                                    },
-                                    pos: Position {
-                                        n_char: 11,
-                                        n_line: 4,
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: FileInfo {
+                                            file_name: "not impl name.c",
+                                            src: "int main() {\n    int a[2] = {1, 2};\n    int *p = a; \n    p += 1;\n    return *p;\n}",
+                                        },
+                                        pos: Position {
+                                            n_char: 11,
+                                            n_line: 4,
+                                        },
                                     },
                                 },
-                            },
+                            ),
                             "main",
                         ),
                     ],

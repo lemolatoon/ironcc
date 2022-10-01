@@ -54,6 +54,8 @@ int vfprintf(FILE *stream, const char *format, va_list arg);
 FILE *fopen(const char *filename, const char *mode);
 char *fgets(char *string, int n, FILE *stream);
 void perror(const char *s);
+int putchar(int c);
+int snprintf(char *buffer, size_t n, const char *fmt, ...);
 
 extern FILE *stdin;
 extern FILE *stdout;
