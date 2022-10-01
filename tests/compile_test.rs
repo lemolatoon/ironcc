@@ -322,20 +322,8 @@ fn global_variable() {
     }";
     let mut tester = CachedProcessor::new(src);
     let result = tester.conv_program();
-    assert!(
-        matches!(
-            result,
-            Err(CompileError {
-                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::RedefinedError(
-                    _,
-                    _,
-                    VariableKind::Global,
-                )),
-            })
-        ),
-        "{:?}",
-        result,
-    );
+    // This is ok
+    assert!(matches!(result, Ok(_),), "{:?}", result,);
 
     let src = "
     int global1;

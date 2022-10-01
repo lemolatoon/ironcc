@@ -761,6 +761,9 @@ impl Generator {
                 // This asm must have push the value as an evaluated value.
                 writeln!(f, "  {}", asm)?;
             }
+            ConvExprKind::OpAssign(lhs, rhs, kind) => {
+                todo!()
+            }
         }
         Ok(())
     }
@@ -919,37 +922,81 @@ impl Generator {
         self.gen_expr(f, *rhs)?; // -> rdi
         self.pop(f, RegKind::Rdi)?;
         self.pop(f, RegKind::Rax)?;
-        match op {
-            ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
-            ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
-            ConvBinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
+        self.gen_binary_with_reg(
+            f,
+            op,
+            RegKind::Rax,
+            RegKind::Rdi,
+            lhs_ty_sizeof,
+            rhs_ty_sizeof,
+            ty,
+        )?;
+        Ok(())
+    }
+
+    pub fn gen_binary_with_reg(
+        &mut self,
+        f: &mut BufWriter<impl Write>,
+        bin_op: ConvBinOpKind,
+        lhs: RegKind,
+        rhs: RegKind,
+        lhs_ty_size: usize,
+        rhs_ty_size: usize,
+        ty: &Type,
+    ) -> Result<(), CompileError> {
+        // rax :lhs , rdi : rhs
+        match bin_op {
+            ConvBinOpKind::Add => writeln!(f, "  add {}, {}", lhs.qword(), rhs.qword())?,
+            ConvBinOpKind::Sub => writeln!(f, "  sub {}, {}", lhs.qword(), rhs.qword())?,
+            ConvBinOpKind::Mul => writeln!(f, "  imul {}, {}", lhs.qword(), rhs.qword())?,
             ConvBinOpKind::LShift => {
-                writeln!(f, "  mov rcx, rdi")?;
-                writeln!(f, "  sal rax, cl")?;
+                writeln!(f, "  mov rcx, {}", rhs.qword())?;
+                writeln!(f, "  sal {}, cl", lhs.qword())?;
             }
             ConvBinOpKind::RShift => {
-                writeln!(f, "  mov rcx, rdi")?;
-                writeln!(f, "  sar rax, cl")?;
+                writeln!(f, "  mov rcx, {}", rhs.qword())?;
+                writeln!(f, "  sar {}, cl", lhs.qword())?;
             }
             ConvBinOpKind::BitWiseAnd => {
-                writeln!(f, "  and rax, rdi")?;
+                writeln!(f, "  and {}, {}", lhs.qword(), rhs.qword())?;
             }
             ConvBinOpKind::Div => {
-                // edx-eax = eax
-                writeln!(f, "  cdq")?;
-                // 0x0000ffff -> // 0xffffffff
-
-                // rdx-rax = rdx
-                // cqo
-                // 0x0000ffff -> // 0x0000ffff
+                if lhs != RegKind::Rax {
+                    writeln!(f, "  mov rax, {}", lhs.qword())?;
+                }
+                if rhs != RegKind::Rdi {
+                    writeln!(f, "  mov rdi, {}", rhs.qword())?;
+                }
+                if lhs_ty_size == 8 {
+                    // rdx-rax = rdx
+                    writeln!(f, "  cqo")?;
+                    // 0x0000ffff -> // 0x0000ffff
+                } else if lhs_ty_size == 4 {
+                    // edx-eax = eax
+                    writeln!(f, "  cdq")?;
+                    // 0x0000ffff -> // 0xffffffff
+                }
 
                 // rax = rdx-rax / rdi
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv edi")?;
             }
             ConvBinOpKind::Rem => {
-                // rdx-rax = rax
-                writeln!(f, "  cqo")?;
+                if lhs != RegKind::Rax {
+                    writeln!(f, "  mov rax, {}", lhs.qword())?;
+                }
+                if rhs != RegKind::Rdi {
+                    writeln!(f, "  mov rdi, {}", rhs.qword())?;
+                }
+                if lhs_ty_size == 8 {
+                    // rdx-rax = rdx
+                    writeln!(f, "  cqo")?;
+                    // 0x0000ffff -> // 0x0000ffff
+                } else if lhs_ty_size == 4 {
+                    // edx-eax = eax
+                    writeln!(f, "  cdq")?;
+                    // 0x0000ffff -> // 0xffffffff
+                }
                 // rax = rdx-rax / rdi
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv rdi")?;
@@ -959,10 +1006,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al : lowwer 8bit of rax
                 // al = flag-reg(eq)
@@ -973,10 +1020,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(less than or equal to)
                 writeln!(f, "  setle al")?;
@@ -986,10 +1033,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(less than)
                 writeln!(f, "  setl al")?;
@@ -999,10 +1046,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(not equal to)
                 writeln!(f, "  setne al")?;

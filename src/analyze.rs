@@ -789,47 +789,57 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
-        if !(lhs.ty.ty_eq(&rhs.ty) || matches!(rhs.kind, ConvExprKind::Asm(_))) {
-            let lhs_ptr_to = lhs.ty.get_ptr_to();
-            let rhs_ptr_to = rhs.ty.get_ptr_to();
-            if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
-                // Safety: `rhs_ptr_to.is_some()` is true on this branch
-                let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
-                rhs = ConvExpr::new_cast(
-                    rhs,
-                    Type::Ptr(Box::new(Type::Void)),
-                    CastKind::ToVoidPtr { ptr_to },
-                );
-                return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
-            } else if lhs_ptr_to.is_some() && rhs.ty.is_void_ptr() {
-                rhs = ConvExpr::new_cast(
-                    rhs,
-                    Type::Ptr(Box::new(Type::Void)),
-                    CastKind::FromVoidPtr {
-                        ptr_to: lhs_ptr_to.unwrap().clone(),
-                    },
-                );
-                return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
-            }
-            match (lhs.ty.get_base(), rhs.ty.get_base()) {
-                (Some(lhs_base), Some(rhs_base)) => {
-                    let rhs_base = *rhs_base;
-                    rhs = ConvExpr::new_cast(
-                        rhs,
-                        lhs.ty.clone(),
-                        CastKind::Base2Base(rhs_base, *lhs_base),
-                    );
+        dbg!(&lhs.ty);
+        dbg!(&rhs.ty);
+        match assign_bin_op {
+            AssignBinOpToken::Eq => {
+                if !(lhs.ty.ty_eq(&rhs.ty) || matches!(rhs.kind, ConvExprKind::Asm(_))) {
+                    let lhs_ptr_to = lhs.ty.get_ptr_to();
+                    let rhs_ptr_to = rhs.ty.get_ptr_to();
+                    if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
+                        // Safety: `rhs_ptr_to.is_some()` is true on this branch
+                        let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
+                        rhs = ConvExpr::new_cast(
+                            rhs,
+                            Type::Ptr(Box::new(Type::Void)),
+                            CastKind::ToVoidPtr { ptr_to },
+                        );
+                        return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
+                    } else if lhs_ptr_to.is_some() && rhs.ty.is_void_ptr() {
+                        rhs = ConvExpr::new_cast(
+                            rhs,
+                            Type::Ptr(Box::new(Type::Void)),
+                            CastKind::FromVoidPtr {
+                                ptr_to: lhs_ptr_to.unwrap().clone(),
+                            },
+                        );
+                        return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
+                    }
+                    match (lhs.ty.get_base(), rhs.ty.get_base()) {
+                        (Some(lhs_base), Some(rhs_base)) => {
+                            let rhs_base = *rhs_base;
+                            rhs = ConvExpr::new_cast(
+                                rhs,
+                                lhs.ty.clone(),
+                                CastKind::Base2Base(rhs_base, *lhs_base),
+                            );
+                        }
+                        _ => {
+                            return Err(CompileError::new_type_error(
+                                lhs,
+                                rhs,
+                                Some(
+                                    "Assign expression's lhs and rhs has to have compatible types",
+                                ),
+                            ))
+                        }
+                    }
                 }
-                _ => {
-                    return Err(CompileError::new_type_error(
-                        lhs,
-                        rhs,
-                        Some("Assign expression's lhs and rhs has to have compatible types"),
-                    ))
-                }
+
+                Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
             }
+            kind => Ok(ConvExpr::new_op_assign(lhs, rhs, debug_info, kind)),
         }
-        Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
     }
 
     #[allow(clippy::too_many_lines)]
@@ -2079,6 +2089,20 @@ impl ConvExpr {
         }
     }
 
+    pub fn new_op_assign(
+        lhs: ConvExpr,
+        rhs: ConvExpr,
+        debug_info: DebugInfo,
+        kind: AssignBinOpToken,
+    ) -> Self {
+        let ty = lhs.ty.clone();
+        ConvExpr {
+            kind: ConvExprKind::OpAssign(Box::new(lhs), Box::new(rhs), kind),
+            ty,
+            debug_info,
+        }
+    }
+
     pub fn new_member(
         expr: ConvExpr,
         member_ty: Type,
@@ -2170,6 +2194,7 @@ pub enum ConvExprKind {
     LVar(LVar),
     GVar(GVar),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
+    OpAssign(Box<ConvExpr>, Box<ConvExpr>, AssignBinOpToken),
     Func(
         String,
         Vec<ConvExpr>,
@@ -2925,7 +2950,10 @@ impl ConstExpr {
             | ConvExprKind::Member {
                 struct_expr: _,
                 minus_offset: _,
-            } => return Err(CompileError::new_const_expr_error(debug_info, kind)),
+            }
+            | ConvExprKind::OpAssign(_, _, _) => {
+                return Err(CompileError::new_const_expr_error(debug_info, kind))
+            }
             ConvExprKind::Cast(expr, CastKind::Base2Base(to, _)) => num_expr(
                 Self::try_eval_as_const(*expr)?.get_num_lit()?,
                 debug_info,
