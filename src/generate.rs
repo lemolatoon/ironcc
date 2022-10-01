@@ -475,7 +475,9 @@ impl Generator {
                     writeln!(f, "  cmp rax, {}", label_index)?;
                     writeln!(f, "  je .Lcase{}_{}", index, label_index)?;
                 }
-                writeln!(f, "  jmp .Ldefault{}", index)?;
+                if has_default {
+                    writeln!(f, "  jmp .Ldefault{}", index)?;
+                }
                 //for stmt in labels {
                 //    match stmt {
                 //        crate::analyze::SwitchBodyStmt::Stmt(stmt) => {
