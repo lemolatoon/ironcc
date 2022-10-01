@@ -144,12 +144,20 @@ impl Analyzer {
                     kind: ProgramKind::Declaration(declaration),
                     debug_info,
                 } => {
-                    let is_typedef = declaration.declaration_specifiers.contains(
-                        &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
-                    );
-                    let is_extern = declaration.declaration_specifiers.contains(
-                        &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern),
-                    );
+                    let mut is_typedef = false;
+                    let mut is_extern = false;
+                    let mut declaration_specifiers = Vec::new();
+                    for specifier in &declaration.declaration_specifiers {
+                        match specifier {
+                            DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern) => {
+                                is_extern = true;
+                            }
+                            DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) => {
+                                is_typedef = true;
+                            }
+                            specifier => declaration_specifiers.push(specifier.clone()),
+                        }
+                    }
                     if let Some(init_declarator) = declaration.init_declarator {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
@@ -161,6 +169,46 @@ impl Analyzer {
                             &declaration.declaration_specifiers,
                             debug_info.clone(),
                         )?;
+                        // register enum with init declarator
+                        match &declaration_specifiers[0] {
+                            DeclarationSpecifier::Type(TypeSpecifier::Enum(
+                                EnumSpec::WithList(Some(name), vec),
+                            )) => {
+                                let enum_ident_map: BTreeMap<String, usize> = vec
+                                    .into_iter()
+                                    .map(
+                                        |EnumConstant {
+                                             ident,
+                                             debug_info: _,
+                                         }| ident,
+                                    )
+                                    .enumerate()
+                                    .map(|(idx, ident)| (ident.clone(), idx))
+                                    .collect();
+                                self.scope.register_tag(
+                                    name.to_string(),
+                                    Taged::new_enum_tag(name.clone(), enum_ident_map),
+                                );
+                                // fall thorough here, because with init declarator it must be global int-typed variable
+                            }
+                            DeclarationSpecifier::Type(TypeSpecifier::Enum(
+                                EnumSpec::WithList(None, vec),
+                            )) => {
+                                let enum_ident_map: BTreeMap<String, usize> = vec
+                                    .into_iter()
+                                    .map(
+                                        |EnumConstant {
+                                             ident,
+                                             debug_info: _,
+                                         }| ident,
+                                    )
+                                    .enumerate()
+                                    .map(|(idx, ident)| (ident.clone(), idx))
+                                    .collect();
+                                self.scope.register_anonymous_enum_tag(enum_ident_map);
+                            }
+                            _ => {}
+                        }
                         match self.get_type(converted_type, &init_declarator.declarator)? {
                             _ if is_typedef => {}
                             ty @ (Type::Base(_)
@@ -224,6 +272,7 @@ impl Analyzer {
                             &declaration.declaration_specifiers,
                         );
                         // TODO: check more than one type specifier
+                        assert!(declaration.declaration_specifiers.len() == 1);
                         match declaration
                             .declaration_specifiers
                             .last()
@@ -2314,13 +2363,13 @@ impl Scope {
                 ));
             }
         }
-        if self.global.contains_key(name) {
-            return Err(CompileError::new_redefined_variable(
-                name.to_string(),
-                debug_info,
-                VariableKind::Global,
-            ));
-        }
+        // if self.global.contains_key(name) {
+        //     return Err(CompileError::new_redefined_variable(
+        //         name.to_string(),
+        //         debug_info,
+        //         VariableKind::Global,
+        //     ));
+        // }
         let mut ty = ty;
         if let Type::InComplete(InCompleteKind::Struct(tag)) = &ty {
             let taged = self.look_up_struct_tag(tag);
