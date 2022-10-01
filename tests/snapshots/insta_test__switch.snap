@@ -8,10 +8,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 0,
@@ -23,10 +20,7 @@ expression: tester.tokens().as_ref().unwrap()
             "f",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 0,
@@ -38,10 +32,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 5,
                 n_line: 0,
@@ -53,10 +44,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 6,
                 n_line: 0,
@@ -66,10 +54,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 7,
                 n_line: 0,
@@ -81,10 +66,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 2,
@@ -96,10 +78,7 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 2,
@@ -111,10 +90,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 2,
@@ -126,10 +102,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 9,
                 n_line: 2,
@@ -141,10 +114,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 11,
                 n_line: 2,
@@ -154,10 +124,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Switch,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -169,10 +136,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 11,
                 n_line: 3,
@@ -184,10 +148,7 @@ expression: tester.tokens().as_ref().unwrap()
             "f",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 3,
@@ -199,10 +160,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 13,
                 n_line: 3,
@@ -214,10 +172,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 14,
                 n_line: 3,
@@ -229,10 +184,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 15,
                 n_line: 3,
@@ -244,10 +196,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 17,
                 n_line: 3,
@@ -257,10 +206,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Case,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 4,
@@ -272,10 +218,7 @@ expression: tester.tokens().as_ref().unwrap()
             0,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 13,
                 n_line: 4,
@@ -285,10 +228,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Colon,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 14,
                 n_line: 4,
@@ -298,10 +238,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Return,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 5,
@@ -313,10 +250,7 @@ expression: tester.tokens().as_ref().unwrap()
             0,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 19,
                 n_line: 5,
@@ -326,10 +260,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 20,
                 n_line: 5,
@@ -339,10 +270,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Case,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 6,
@@ -354,10 +282,7 @@ expression: tester.tokens().as_ref().unwrap()
             1,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 13,
                 n_line: 6,
@@ -367,10 +292,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Colon,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 14,
                 n_line: 6,
@@ -380,10 +302,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Return,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 7,
@@ -395,10 +314,7 @@ expression: tester.tokens().as_ref().unwrap()
             1,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 19,
                 n_line: 7,
@@ -408,10 +324,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 20,
                 n_line: 7,
@@ -421,10 +334,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Default,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 8,
@@ -434,10 +344,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Colon,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 15,
                 n_line: 8,
@@ -447,10 +354,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Return,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 9,
@@ -462,10 +366,7 @@ expression: tester.tokens().as_ref().unwrap()
             666,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 19,
                 n_line: 9,
@@ -475,10 +376,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 22,
                 n_line: 9,
@@ -490,10 +388,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 10,
@@ -505,10 +400,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 11,
@@ -518,10 +410,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 11,

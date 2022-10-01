@@ -33,10 +33,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 1,
@@ -51,10 +48,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 1,
@@ -66,10 +60,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 1,
@@ -93,10 +84,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -111,10 +99,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 2,
@@ -126,10 +111,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 2,
@@ -153,10 +135,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 3,
@@ -180,10 +159,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 3,
@@ -203,10 +179,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 21,
                                                                 n_line: 3,
@@ -221,10 +194,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 3,
@@ -236,10 +206,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 3,
@@ -254,10 +221,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 26,
                                                         n_line: 3,
@@ -272,10 +236,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 3,
@@ -287,10 +248,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 3,
@@ -302,10 +260,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 3,
@@ -329,10 +284,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 4,
@@ -356,10 +308,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 4,
@@ -374,10 +323,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 16,
                                                                 n_line: 4,
@@ -397,10 +343,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 21,
                                                                 n_line: 4,
@@ -412,10 +355,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 4,
@@ -430,10 +370,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 4,
@@ -448,10 +385,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 26,
                                                         n_line: 4,
@@ -463,10 +397,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 16,
                                                 n_line: 4,
@@ -478,10 +409,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {\n        int a = 1;\n        int b = 0;\n        int c = a && b && 2; // -> 0\n        int d = a || b || 1; // -> 1 \n    }",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 4,

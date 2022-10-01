@@ -259,6 +259,7 @@ impl Tokenizer {
                         "typedef" => TokenKind::TypeDef,
                         "extern" => TokenKind::Extern,
                         "__asm__" => TokenKind::Asm,
+                        "__nullptr" => TokenKind::NullPtr,
                         "switch" => TokenKind::Switch,
                         "default" => TokenKind::Default,
                         "case" => TokenKind::Case,
@@ -344,6 +345,8 @@ pub enum TokenKind {
     Continue,
     /// `__asm__`, reserved word (not standard)
     Asm,
+    /// `__nullptr`, reserved word (not standard)
+    NullPtr,
     /// `,`
     Comma,
     /// `~`
@@ -492,10 +495,16 @@ pub struct DebugInfo {
     pos: Position,
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Default)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Default)]
 pub struct FileInfo {
     file_name: String,
     src: String,
+}
+
+impl std::fmt::Debug for FileInfo {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
 }
 
 impl FileInfo {
@@ -673,7 +682,7 @@ where
     }
 
     /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: &K) -> Result<(), CompileError>
+    pub fn expect(&mut self, kind: &K) -> Result<DebugInfo, CompileError>
     where
         Token<K>: Into<crate::error::Tokens>,
     {
@@ -697,7 +706,7 @@ where
                         token,
                     ));
                 }
-                Ok(())
+                Ok(token.debug_info)
             }
         }
     }

@@ -57,6 +57,20 @@ clang_test: test/test.c test/test_utils.c
 cargo_test: FORCE
 	cargo test
 
+main.s: validation/lemola_cc/src/main.c $(COMPILER)
+	$(COMPILER) validation/lemola_cc/src/main.c
+tokenizer.s: validation/lemola_cc/src/tokenizer.c $(COMPILER)
+	$(COMPILER) validation/lemola_cc/src/tokenizer.c
+parser.s: validation/lemola_cc/src/parser.c $(COMPILER)
+	$(COMPILER) validation/lemola_cc/src/parser.c
+code_gen.s: validation/lemola_cc/src/code_gen.c $(COMPILER)
+	$(COMPILER) validation/lemola_cc/src/code_gen.c
+utils.s: validation/lemola_cc/src/utils.c $(COMPILER)
+	$(COMPILER) validation/lemola_cc/src/utils.c
+
+lemola_cc: main.s tokenizer.s parser.s code_gen.s utils.s
+	$(CC) $(CFLAGS) main.s tokenizer.s parser.s code_gen.s utils.s -o lemola_cc
+
 testall:  cargo_test test testc
 
 

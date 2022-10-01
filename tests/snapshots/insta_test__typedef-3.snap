@@ -36,10 +36,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 3,
@@ -54,10 +51,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 13,
                                                 n_line: 3,
@@ -69,10 +63,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 4,
                                         n_line: 3,
@@ -96,10 +87,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 4,
@@ -114,10 +102,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 13,
                                                 n_line: 4,
@@ -129,10 +114,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 4,
                                         n_line: 4,
@@ -159,10 +141,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 11,
                                                         n_line: 5,
@@ -182,10 +161,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 15,
                                                         n_line: 5,
@@ -198,10 +174,7 @@ ConvProgram {
                                         Int,
                                     ),
                                     debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                        },
+                                        file_info: ,
                                         pos: Position {
                                             n_char: 13,
                                             n_line: 5,

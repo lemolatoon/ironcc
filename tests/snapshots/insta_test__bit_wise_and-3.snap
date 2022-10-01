@@ -31,10 +31,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 15,
                                                         n_line: 2,
@@ -49,10 +46,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 23,
                                                         n_line: 2,
@@ -65,10 +59,7 @@ ConvProgram {
                                         Int,
                                     ),
                                     debug_info: DebugInfo {
-                                        file_info: FileInfo {
-                                            file_name: "not impl name.c",
-                                            src: "\n    int main() {\n        return 0b111 & 0b101;\n    }\n    ",
-                                        },
+                                        file_info: ,
                                         pos: Position {
                                             n_char: 21,
                                             n_line: 2,

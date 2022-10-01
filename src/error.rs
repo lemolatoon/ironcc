@@ -461,6 +461,9 @@ impl Debug for CompileError {
                     NotAllowedStmtKind::Case => {
                         writeln!(f, "`case` statement not in loop or switch statement.")?
                     }
+                    NotAllowedStmtKind::Default => {
+                        writeln!(f, "`default` statement not in loop or switch statement.")?
+                    }
                 }
             }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
@@ -547,6 +550,7 @@ pub enum NotAllowedStmtKind {
     Break,
     Continue,
     Case,
+    Default,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

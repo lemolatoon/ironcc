@@ -29,10 +29,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 12,
                                         n_line: 3,
@@ -58,10 +55,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 19,
                                                                 n_line: 5,
@@ -86,10 +80,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 19,
                                                                 n_line: 7,
@@ -113,10 +104,7 @@ ConvProgram {
                                                             Int,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int f();\n\nint main() {\n    switch (f()) {\n        case 0:\n            return 0;\n        case 1:\n            return 1;\n        default:\n            return 666;\n    }\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 19,
                                                                 n_line: 9,
@@ -130,6 +118,7 @@ ConvProgram {
                                     ),
                                 ],
                             ),
+                            has_default: true,
                         },
                     ],
                 ),

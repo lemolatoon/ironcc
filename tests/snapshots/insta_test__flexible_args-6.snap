@@ -52,10 +52,7 @@ ConvProgram {
                                                 ),
                                             ),
                                             debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
-                                                },
+                                                file_info: ,
                                                 pos: Position {
                                                     n_char: 15,
                                                     n_line: 3,
@@ -68,10 +65,7 @@ ConvProgram {
                                 ),
                                 ty: Void,
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "\n    void printf(char *msg, ...);\n    void printf2(char *msg, ...) {\n        printf(msg);\n    }\n    ",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 8,
                                         n_line: 3,

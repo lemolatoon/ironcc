@@ -93,7 +93,7 @@ impl Parser {
             stmts.push(self.parse_stmt(tokens)?);
         }
         self.scope.scope_pop();
-        let body = Stmt::new_block(stmts);
+        let body = Stmt::new_block(stmts, debug_info.clone());
         let kind = ProgramKind::new_funcdef(type_spec, n_star, direct_declarator, body);
         Ok(ProgramComponent::new(kind, debug_info))
     }
@@ -633,15 +633,18 @@ impl Parser {
     {
         let stmt = if tokens.consume(&TokenKind::Return) {
             // return stmt
+            let debug_info = tokens
+                .peek_debug_info()
+                .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new(TokenKind::Semi)))?;
             if tokens.consume(&TokenKind::Semi) {
-                Ok(Stmt::ret(None))
+                Ok(Stmt::ret(None, debug_info))
             } else {
                 let returning_expr = self.parse_expr(tokens)?;
                 tokens.expect(&TokenKind::Semi)?;
-                Ok(Stmt::ret(Some(returning_expr)))
+                Ok(Stmt::ret(Some(returning_expr), debug_info))
             }
         } else if tokens.consume(&TokenKind::If) {
-            tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
             let conditional_expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
@@ -650,15 +653,20 @@ impl Parser {
             } else {
                 None
             };
-            Ok(Stmt::new_if(conditional_expr, then_stmt, else_stmt))
+            Ok(Stmt::new_if(
+                conditional_expr,
+                then_stmt,
+                else_stmt,
+                debug_info,
+            ))
         } else if tokens.consume(&TokenKind::While) {
-            tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
             let conditional_expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
-            Ok(Stmt::new_while(conditional_expr, then_stmt))
+            Ok(Stmt::new_while(conditional_expr, then_stmt, debug_info))
         } else if tokens.consume(&TokenKind::For) {
-            tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
             self.scope.scope_push();
             let init_expr = if tokens.consume(&TokenKind::Semi) {
                 None
@@ -689,48 +697,74 @@ impl Parser {
             };
             let then_stmt = self.parse_stmt(tokens)?;
             self.scope.scope_pop();
-            Ok(Stmt::new_for(init_expr, cond_expr, inc_expr, then_stmt))
+            Ok(Stmt::new_for(
+                init_expr, cond_expr, inc_expr, then_stmt, debug_info,
+            ))
         } else if tokens.consume(&TokenKind::OpenDelim(DelimToken::Brace)) {
             self.scope.scope_push();
             let mut stmts = Vec::new();
+            let debug_info = tokens
+                .peek_debug_info()
+                .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("statement")))?;
             while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
                 stmts.push(self.parse_stmt(tokens)?);
             }
             self.scope.scope_pop();
-            Ok(Stmt::new_block(stmts))
+            Ok(Stmt::new_block(stmts, debug_info))
         } else if tokens.consume(&TokenKind::Switch) {
-            tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+            let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
             let expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let stmt = self.parse_stmt(tokens)?;
-            Ok(Stmt::new_switch(expr, stmt))
+            Ok(Stmt::new_switch(expr, stmt, debug_info))
         } else if tokens.consume(&TokenKind::Case) {
+            let debug_info = tokens
+                .peek_debug_info()
+                .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("Expr")))?;
             let expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::Colon)?;
             let stmt = self.parse_stmt(tokens)?;
-            Ok(Stmt::new_labeled_stmt(LabelKind::Case(expr), stmt))
+            Ok(Stmt::new_labeled_stmt(
+                LabelKind::Case(expr),
+                stmt,
+                debug_info,
+            ))
         } else if tokens.consume(&TokenKind::Default) {
-            tokens.expect(&TokenKind::Colon)?;
+            let debug_info = tokens.expect(&TokenKind::Colon)?;
             let stmt = self.parse_stmt(tokens)?;
-            Ok(Stmt::new_labeled_stmt(LabelKind::Default, stmt))
+            Ok(Stmt::new_labeled_stmt(
+                LabelKind::Default(debug_info.clone()),
+                stmt,
+                debug_info,
+            ))
         } else if tokens.consume(&TokenKind::Break) {
+            let debug_info = tokens.peek_debug_info().unwrap();
             tokens.expect(&TokenKind::Semi)?;
             Ok(Stmt {
                 kind: StmtKind::Break,
+                debug_info,
             })
         } else if tokens.consume(&TokenKind::Continue) {
+            let debug_info = tokens.peek_debug_info().unwrap();
             tokens.expect(&TokenKind::Semi)?;
             Ok(Stmt {
                 kind: StmtKind::Continue,
+                debug_info,
             })
         } else if tokens.is_starting_declaration(&self.scope) {
-            let stmt = Stmt::new_declare(self.parse_declaration(tokens, true)?);
+            let debug_info = tokens
+                .peek_debug_info()
+                .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("Declaration")))?;
+            let stmt = Stmt::new_declare(self.parse_declaration(tokens, true)?, debug_info);
             tokens.expect(&TokenKind::Semi)?;
             Ok(stmt)
         } else {
+            let debug_info = tokens
+                .peek_debug_info()
+                .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("Expr")))?;
             let expr = self.parse_expr(tokens)?;
             tokens.expect(&TokenKind::Semi)?;
-            Ok(Stmt::expr(expr))
+            Ok(Stmt::expr(expr, debug_info))
         };
         stmt
     }
@@ -1005,18 +1039,17 @@ impl Parser {
                     tmp_tokens.next().map(|token| *token.kind()),
                 ) {
                     // e.g) sizeof(int)
-                    tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
-                    if let TokenKind::Ident(ident) = second {
-                        if self.scope.look_up_typedef_name(&ident).is_none() {
-                            // ident but not typedef name
-                            let expr = Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info);
-                            tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
-                            return Ok(expr);
-                        }
+                    let mut tmp_tokens = tokens.clone();
+                    tmp_tokens.next(); // -> TokenKind::OpenDelim(DelimToken::Paran))
+                    if let Ok(type_name) = self.parse_type_name(&mut tmp_tokens) {
+                        *tokens = tmp_tokens;
+                        let expr = Expr::new_type_sizeof(type_name, debug_info);
+                        tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+                        expr
+                    } else {
+                        let expr = Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info);
+                        expr
                     }
-                    let expr = Expr::new_type_sizeof(self.parse_type_name(tokens)?, debug_info);
-                    tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
-                    expr
                 } else {
                     // e.g) sizeof (5)
                     Expr::new_expr_sizeof(self.parse_unary(tokens)?, debug_info)
@@ -1129,6 +1162,7 @@ impl Parser {
                         ));
                     }
                 }
+                TokenKind::NullPtr => Expr::new_null_ptr(debug_info),
                 TokenKind::Eof => return Err(CompileError::new_unexpected_eof(Some(debug_info.get_file_src()), Box::new("TokenKind::Num(_) | TokenKind::Ident(_) | TokenKind::OpenDelim(DelimToken::Paran)"))),
                 _ => return Err(CompileError::new_expected_failed( Box::new("TokenKind::Num(_) | TokenKind::OpenDelim(DelimToken::Paran) | TokenKind::Ident"), Token::new(*kind, debug_info))),
             }),
@@ -1346,6 +1380,7 @@ impl ProgramKind {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Stmt {
     pub kind: StmtKind,
+    pub debug_info: DebugInfo,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1636,33 +1671,38 @@ pub struct EnumConstant {
 }
 
 impl Stmt {
-    pub const fn expr(expr: Expr) -> Self {
+    pub const fn expr(expr: Expr, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Expr(expr),
+            debug_info,
         }
     }
 
-    pub const fn ret(expr: Option<Expr>) -> Self {
+    pub const fn ret(expr: Option<Expr>, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Return(expr),
+            debug_info,
         }
     }
 
-    pub fn new_block(stmts: Vec<Stmt>) -> Self {
+    pub fn new_block(stmts: Vec<Stmt>, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Block(stmts),
+            debug_info,
         }
     }
 
-    pub fn new_if(cond: Expr, then: Stmt, els: Option<Stmt>) -> Self {
+    pub fn new_if(cond: Expr, then: Stmt, els: Option<Stmt>, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::If(cond, Box::new(then), els.map(Box::new)),
+            debug_info,
         }
     }
 
-    pub fn new_while(cond: Expr, then: Stmt) -> Self {
+    pub fn new_while(cond: Expr, then: Stmt, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::While(cond, Box::new(then)),
+            debug_info,
         }
     }
 
@@ -1671,27 +1711,32 @@ impl Stmt {
         cond: Option<Expr>,
         inc: Option<Expr>,
         then: Stmt,
+        debug_info: DebugInfo,
     ) -> Self {
         Self {
             kind: StmtKind::For(init, cond, inc, Box::new(then)),
+            debug_info,
         }
     }
 
-    pub fn new_switch(expr: Expr, stmt: Stmt) -> Self {
+    pub fn new_switch(expr: Expr, stmt: Stmt, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Switch(expr, Box::new(stmt)),
+            debug_info,
         }
     }
 
-    pub fn new_labeled_stmt(label_kind: LabelKind, stmt: Stmt) -> Self {
+    pub fn new_labeled_stmt(label_kind: LabelKind, stmt: Stmt, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Labeled(label_kind, Box::new(stmt)),
+            debug_info,
         }
     }
 
-    pub const fn new_declare(declaration: Declaration) -> Self {
+    pub const fn new_declare(declaration: Declaration, debug_info: DebugInfo) -> Self {
         Self {
             kind: StmtKind::Declare(declaration),
+            debug_info,
         }
     }
 }
@@ -1806,7 +1851,7 @@ pub enum StmtKind {
 pub enum LabelKind {
     Ident(String),
     Case(Expr),
-    Default,
+    Default(DebugInfo),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1846,6 +1891,7 @@ pub enum ExprKind {
     UnaryIncrement(Box<Expr>),
     UnaryDecrement(Box<Expr>),
     Asm(String),
+    NullPtr,
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -1868,6 +1914,13 @@ impl Expr {
     pub fn new_inline_asm(asm: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Asm(asm),
+            debug_info,
+        }
+    }
+
+    pub fn new_null_ptr(debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ExprKind::NullPtr,
             debug_info,
         }
     }

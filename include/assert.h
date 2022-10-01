@@ -5,10 +5,15 @@
 #include <stdio.h>
 #include<stdlib.h>
 
-void assert(int expression) {
-    if (!expression) {
-        perror("Assertion failed.");
-        abort();
-    }
-}
+// void assert(int expression) {
+//     if (!expression) {
+//         perror("Assertion failed.");
+//         abort();
+//     }
+// }
+
+void assert_t(int expression);
+#define assert assert_t
+
+
 #endif

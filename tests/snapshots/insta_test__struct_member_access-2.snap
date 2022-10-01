@@ -17,10 +17,7 @@ Program {
                                     [
                                         StructDeclaration {
                                             debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                },
+                                                file_info: ,
                                                 pos: Position {
                                                     n_char: 4,
                                                     n_line: 2,
@@ -41,10 +38,7 @@ Program {
                                                                 2,
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_info: FileInfo {
-                                                                    file_name: "not impl name.c",
-                                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                                },
+                                                                file_info: ,
                                                                 pos: Position {
                                                                     n_char: 10,
                                                                     n_line: 2,
@@ -57,10 +51,7 @@ Program {
                                         },
                                         StructDeclaration {
                                             debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                },
+                                                file_info: ,
                                                 pos: Position {
                                                     n_char: 4,
                                                     n_line: 3,
@@ -78,10 +69,7 @@ Program {
                                         },
                                         StructDeclaration {
                                             debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                },
+                                                file_info: ,
                                                 pos: Position {
                                                     n_char: 4,
                                                     n_line: 4,
@@ -104,10 +92,7 @@ Program {
                     ],
                     init_declarator: None,
                     debug_info: DebugInfo {
-                        file_info: FileInfo {
-                            file_name: "not impl name.c",
-                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                        },
+                        file_info: ,
                         pos: Position {
                             n_char: 0,
                             n_line: 0,
@@ -116,10 +101,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 0,
@@ -166,10 +148,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 9,
@@ -177,6 +156,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 9,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -189,10 +175,7 @@ Program {
                                                             "a",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 4,
                                                                 n_line: 10,
@@ -202,10 +185,7 @@ Program {
                                                     "b",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 6,
                                                         n_line: 10,
@@ -217,10 +197,7 @@ Program {
                                                     2,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 10,
                                                         n_line: 10,
@@ -230,10 +207,7 @@ Program {
                                             Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 10,
@@ -241,6 +215,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 10,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -255,10 +236,7 @@ Program {
                                                                     "a",
                                                                 ),
                                                                 debug_info: DebugInfo {
-                                                                    file_info: FileInfo {
-                                                                        file_name: "not impl name.c",
-                                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                                    },
+                                                                    file_info: ,
                                                                     pos: Position {
                                                                         n_char: 4,
                                                                         n_line: 11,
@@ -268,10 +246,7 @@ Program {
                                                             "a",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 6,
                                                                 n_line: 11,
@@ -283,10 +258,7 @@ Program {
                                                             1,
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 8,
                                                                 n_line: 11,
@@ -295,10 +267,7 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 11,
@@ -310,10 +279,7 @@ Program {
                                                     1,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 13,
                                                         n_line: 11,
@@ -323,10 +289,7 @@ Program {
                                             Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 11,
                                                 n_line: 11,
@@ -334,6 +297,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 11,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Return(
@@ -345,10 +315,7 @@ Program {
                                                         "a",
                                                     ),
                                                     debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                        },
+                                                        file_info: ,
                                                         pos: Position {
                                                             n_char: 11,
                                                             n_line: 12,
@@ -358,10 +325,7 @@ Program {
                                                 "c",
                                             ),
                                             debug_info: DebugInfo {
-                                                file_info: FileInfo {
-                                                    file_name: "not impl name.c",
-                                                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                                                },
+                                                file_info: ,
                                                 pos: Position {
                                                     n_char: 13,
                                                     n_line: 12,
@@ -370,16 +334,27 @@ Program {
                                         },
                                     ),
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 12,
+                                    },
+                                },
                             },
                         ],
                     ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 7,
+                        },
+                    },
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "struct A\n{\n    int a[2];\n    char b;\n    int c;\n};\n\nint main()\n{\n    struct A a;\n    a.b = 2;\n    a.a[1] = 1;\n    return a.c;\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 7,

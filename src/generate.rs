@@ -36,21 +36,19 @@ impl LoopLabelStack {
 
     /// Returns the label of the innermost loop. `LoopLabel::For(_)` or `LoopLabel::While(_)`
     pub fn get_closest_continue_label_loop_and_pop(&mut self) -> Result<LoopLabel, CompileError> {
-        let mut prev_loop_label = None;
+        let prev_loop_label;
         loop {
             if let Some(loop_label @ (LoopLabel::For(_) | LoopLabel::While(_))) = self.0.pop() {
-                prev_loop_label = Some(loop_label);
+                prev_loop_label = loop_label;
                 break;
+            } else if self.0.pop().is_none() {
+                return Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: continue stmt is not checked until analysis phase."
+                ));
             }
         }
-        if let Some(loop_label) = prev_loop_label {
-            self.0.push(loop_label);
-            Ok(loop_label)
-        } else {
-            Err(unimplemented_err!(
-                "INTERNAL COMPILER ERROR: continue stmt is not checked until analysis phase."
-            ))
-        }
+        self.0.push(prev_loop_label);
+        Ok(prev_loop_label)
     }
 
     /// Returns the label of the innermost loop or switch. `LoopLabel::Switch(_)`, `LoopLabel::For(_)` or `LoopLabel::While(_)`
@@ -69,21 +67,19 @@ impl LoopLabelStack {
 
     /// Returns the label of the innermost switch. `LoopLabel::Switch(_)`
     pub fn get_closest_switch_and_pop(&mut self) -> Result<usize, CompileError> {
-        let mut prev_loop_label = None;
+        let prev_loop_label;
         loop {
             if let Some(loop_label @ LoopLabel::Switch(_)) = self.0.pop() {
-                prev_loop_label = Some(loop_label);
+                prev_loop_label = loop_label;
                 break;
+            } else if self.0.pop().is_none() {
+                return Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: case stmt is not checked until analysis phase."
+                ));
             }
         }
-        if let Some(loop_label) = prev_loop_label {
-            self.0.push(loop_label);
-            Ok(loop_label.get_label())
-        } else {
-            Err(unimplemented_err!(
-                "INTERNAL COMPILER ERROR: case stmt is not checked until analysis phase."
-            ))
-        }
+        self.0.push(prev_loop_label);
+        Ok(prev_loop_label.get_label())
     }
 }
 
@@ -465,7 +461,12 @@ impl Generator {
                     self.gen_stmt(f, stmt)?;
                 }
             }
-            ConvStmt::Switch { expr, cases, stmt } => {
+            ConvStmt::Switch {
+                expr,
+                cases,
+                stmt,
+                has_default,
+            } => {
                 let index = self.label();
                 self.loop_label_stack.push(LoopLabel::Switch(index));
                 self.gen_expr(f, expr)?;
@@ -934,11 +935,8 @@ impl Generator {
                 name,
                 ty: _,
                 init: _,
-                is_extern,
+                is_extern: _,
             }) => {
-                if is_extern {
-                    return Ok(());
-                }
                 writeln!(f, "  lea rax, [rip+{}]", name)?;
                 self.push(f, RegKind::Rax)?;
             }

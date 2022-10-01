@@ -1,6 +1,6 @@
-use core::panic;
 use std::{
     collections::{BTreeMap, BTreeSet},
+    fmt::Debug,
     vec,
 };
 
@@ -44,13 +44,33 @@ impl LoopStack {
     }
 
     pub fn register_case_label(&mut self, expr: &ConstExpr) -> Result<(), CompileError> {
-        if let Some(LoopKind::Switch { ref mut cases }) = self.0.last_mut() {
+        if let Some(LoopKind::Switch {
+            ref mut cases,
+            has_default: _,
+        }) = self.0.last_mut()
+        {
             cases.push(expr.get_num_lit()?);
             Ok(())
         } else {
             Err(CompileError::new_not_allowed_stmt_error(
                 expr.debug_info.clone(),
                 crate::error::NotAllowedStmtKind::Case,
+            ))
+        }
+    }
+
+    pub fn register_default(&mut self, debug_info: DebugInfo) -> Result<(), CompileError> {
+        if let Some(LoopKind::Switch {
+            cases: _,
+            has_default: ref mut has_break,
+        }) = self.0.last_mut()
+        {
+            *has_break = true;
+            Ok(())
+        } else {
+            Err(CompileError::new_not_allowed_stmt_error(
+                debug_info,
+                crate::error::NotAllowedStmtKind::Default,
             ))
         }
     }
@@ -76,12 +96,18 @@ impl LoopStack {
 pub enum LoopKind {
     While,
     For,
-    Switch { cases: Vec<isize> },
+    Switch {
+        cases: Vec<isize>,
+        has_default: bool,
+    },
 }
 
 impl LoopKind {
     pub const fn new_switch() -> Self {
-        Self::Switch { cases: vec![] }
+        Self::Switch {
+            cases: vec![],
+            has_default: false,
+        }
     }
 }
 
@@ -710,8 +736,8 @@ impl Analyzer {
                 let conv_expr = self.traverse_expr(expr, BTreeSet::new())?;
                 let conv_stmt = self.traverse_stmt(*stmt, fn_name)?;
                 let switch = self.loop_stack.pop();
-                if let Some(LoopKind::Switch { cases }) = switch {
-                    ConvStmt::new_switch(conv_expr, cases, conv_stmt)
+                if let Some(LoopKind::Switch { cases, has_default }) = switch {
+                    ConvStmt::new_switch(conv_expr, cases, conv_stmt, has_default)
                 } else {
                     return Err(unimplemented_err!(
                         debug_info,
@@ -730,9 +756,12 @@ impl Analyzer {
                 ))
             }
             StmtKind::Labeled(LabelKind::Ident(_), _) => todo!(),
-            StmtKind::Labeled(LabelKind::Default, stmt) => ConvStmt::LoopControl(
-                LoopControlKind::Default(Box::new(self.traverse_stmt(*stmt, fn_name)?)),
-            ),
+            StmtKind::Labeled(LabelKind::Default(debug_info), stmt) => {
+                self.loop_stack.register_default(debug_info)?;
+                ConvStmt::LoopControl(LoopControlKind::Default(Box::new(
+                    self.traverse_stmt(*stmt, fn_name)?,
+                )))
+            }
             StmtKind::Break => ConvStmt::LoopControl(LoopControlKind::Break),
             StmtKind::Continue => ConvStmt::LoopControl(LoopControlKind::Continue),
         })
@@ -1105,6 +1134,14 @@ impl Analyzer {
             }
             ExprKind::UnaryIncrement(_) | ExprKind::UnaryDecrement(_) => todo!(),
             ExprKind::Asm(asm) => Ok(ConvExpr::new_inline_asm(asm, debug_info)),
+            ExprKind::NullPtr => {
+                let ty = Type::Ptr(Box::new(Type::Void));
+                Ok(ConvExpr {
+                    ty,
+                    kind: ConvExprKind::Num(0),
+                    debug_info,
+                })
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -1801,6 +1838,7 @@ pub enum ConvStmt {
         expr: ConvExpr,
         cases: Vec<isize>,
         stmt: Box<ConvStmt>,
+        has_default: bool,
     },
     LoopControl(LoopControlKind),
     // TODO: in `analyze.rs` check labels are in appropriate position on each stmt.
@@ -1845,11 +1883,17 @@ impl ConvStmt {
         ConvStmt::For(init, cond, inc, Box::new(then))
     }
 
-    pub fn new_switch(expr: ConvExpr, cases: Vec<isize>, stmt: ConvStmt) -> Self {
+    pub fn new_switch(
+        expr: ConvExpr,
+        cases: Vec<isize>,
+        stmt: ConvStmt,
+        has_default: bool,
+    ) -> Self {
         ConvStmt::Switch {
             expr,
             cases,
             stmt: Box::new(stmt),
+            has_default,
         }
     }
 }

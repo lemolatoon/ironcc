@@ -2,7 +2,7 @@
 
 #define _STDLIB_H 1
 
-void *NULL;
+#define NULL __nullptr
 
 #include <stddef.h>
 
