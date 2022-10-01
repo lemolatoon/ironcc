@@ -1421,23 +1421,42 @@ impl Analyzer {
                         Type::Base(BaseType::Int),
                         debug_info,
                     ))
+                } else if let (Some(lhs_base), Some(rhs_base)) =(lhs.ty.get_base(), rhs.ty.get_base()) {
+                    let cast_needed = lhs_base.bytes() != rhs_base.bytes();
+                    if cast_needed {
+                        let lhs_base = *lhs_base;
+                        let rhs_base = *rhs_base;
+                        if lhs_base.bytes() > rhs_base.bytes() {
+                            // TODO: use fn `implicit_cast`
+                            rhs = ConvExpr::new_cast(
+                                rhs,
+                                Type::Base(lhs_base),
+                                CastKind::Base2Base(rhs_base, lhs_base),
+                            );
+                        } else {
+                            lhs = ConvExpr::new_cast(
+                                lhs,
+                                Type::Base(rhs_base),
+                                CastKind::Base2Base(lhs_base, rhs_base),
+                            );
+                        }
+                    }
+                    Ok(ConvExpr::new_binary(
+                        kind,
+                        lhs,
+                        rhs,
+                        Type::Base(BaseType::Int),
+                        debug_info,
+                    ))
                 } else {
                      Err(CompileError::new_type_error(
                         lhs,
                         rhs,
                         Some("incompatible type binary expr is not allowed".to_string()),
                     ))
-                }
-            },
+                }},
             ConvBinOpKind::Le | ConvBinOpKind::Lt  => {
-                if !lhs.ty.ty_eq(&rhs.ty) {
-                    return Err(CompileError::new_type_error(
-                        lhs,
-                        rhs,
-                        Some("incompatible type binary expr is not allowed".to_string()),
-                    ));
-                }
-
+                if lhs.ty.ty_eq(&rhs.ty) {
                 Ok(ConvExpr::new_binary(
                     kind,
                     lhs,
@@ -1445,6 +1464,41 @@ impl Analyzer {
                     Type::Base(BaseType::Int),
                     debug_info,
                 ))
+                } else if let (Some(lhs_base), Some(rhs_base)) =(lhs.ty.get_base(), rhs.ty.get_base()) {
+                    let cast_needed = lhs_base.bytes() != rhs_base.bytes();
+                    if cast_needed {
+                        let lhs_base = *lhs_base;
+                        let rhs_base = *rhs_base;
+                        if lhs_base.bytes() > rhs_base.bytes() {
+                            // TODO: use fn `implicit_cast`
+                            rhs = ConvExpr::new_cast(
+                                rhs,
+                                Type::Base(lhs_base),
+                                CastKind::Base2Base(rhs_base, lhs_base),
+                            );
+                        } else {
+                            lhs = ConvExpr::new_cast(
+                                lhs,
+                                Type::Base(rhs_base),
+                                CastKind::Base2Base(lhs_base, rhs_base),
+                            );
+                        }
+                    }
+                    Ok(ConvExpr::new_binary(
+                        kind,
+                        lhs,
+                        rhs,
+                        Type::Base(BaseType::Int),
+                        debug_info,
+                    ))
+                } else {
+                     Err(CompileError::new_type_error(
+                        lhs,
+                        rhs,
+                        Some("incompatible type binary expr is not allowed".to_string()),
+                    ))
+                }
+
             }
         }
     }
