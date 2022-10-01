@@ -15,6 +15,7 @@ use ironcc::preprocess;
 use ironcc::preprocess::Preprocessor;
 use ironcc::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::PreprocessorTokenStream;
+use ironcc::preprocess::SrcCursor;
 use ironcc::tokenize::FileInfo;
 use ironcc::tokenize::Token;
 use ironcc::tokenize::TokenStream;
@@ -60,7 +61,7 @@ fn preprocess(
     include_dir: &str,
 ) -> Result<Vec<Token<preprocess::TokenKind>>, CompileError> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
-    preprocessor.preprocess(main_file_info.into(), None)
+    preprocessor.preprocess(&mut SrcCursor::new(main_file_info), None)
 }
 
 use std::fmt::Debug;

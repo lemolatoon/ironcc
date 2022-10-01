@@ -3,7 +3,9 @@ pub mod test_utils;
 use std::rc::Rc;
 
 use ironcc::{
-    preprocess::{self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{
+        self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    },
     tokenize::*,
 };
 
@@ -13,7 +15,7 @@ fn tokenize_plus_minus_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -110,7 +112,7 @@ fn tokenize_pos_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -137,7 +139,7 @@ fn tokenize_pos_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));

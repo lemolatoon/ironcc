@@ -3,7 +3,9 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{
+        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    },
     tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
 use std::{fmt::Debug, rc::Rc};
@@ -108,7 +110,9 @@ impl<'a> CachedTokenizer<'a> {
             src.to_string(),
         ));
         let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-        let tokens = preprocessor.preprocess(file_info.into(), None).unwrap();
+        let tokens = preprocessor
+            .preprocess(&mut SrcCursor::new(file_info), None)
+            .unwrap();
         let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
             src,

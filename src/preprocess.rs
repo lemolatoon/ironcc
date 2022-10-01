@@ -61,14 +61,12 @@ impl<'b> Preprocessor<'b> {
 
     pub fn increment_ifdef_depth(&mut self) {
         self.ifdef_depth += 1;
-        eprintln!("increment depth: {}", self.ifdef_depth);
     }
 
     pub fn dec_ifdef_lable(&mut self) -> Result<(), CompileError> {
         let next_value = self.ifdef_depth.checked_sub(1);
         if let Some(next_vale) = next_value {
             self.ifdef_depth = next_vale;
-            eprintln!("decrement depth: {}", self.ifdef_depth);
             Ok(())
         } else {
             Err(unimplemented_err!("#endif or #else without #ifdef/#ifndef"))
@@ -77,22 +75,20 @@ impl<'b> Preprocessor<'b> {
 
     pub fn increment_watching_depth(&mut self) {
         self.watching_label += 1;
-        eprintln!("increment watching label: {}", self.watching_label);
     }
 
     pub fn decrement_watching_depth(&mut self) {
         self.watching_label -= 1;
-        eprintln!("decrement watching label: {}", self.watching_label);
     }
 
     #[allow(clippy::too_many_lines)]
     pub fn preprocess(
         &mut self,
-        src_cursor_generator: SrcCursorGenerator,
+        main_chars: &mut SrcCursor,
         tokens: Option<Vec<Token<TokenKind>>>,
         // derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
-        let mut main_chars = src_cursor_generator.into_cursor();
+        // let mut main_chars = main_chars.into_cursor();
         let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
         'preprocess_loop: while !main_chars.is_empty() {
             // dbg!(&main_chars.clone().collect::<String>());
@@ -154,22 +150,17 @@ impl<'b> Preprocessor<'b> {
                                 if ifdefkind == "ifndef" {
                                     ifdef_flag = !ifdef_flag;
                                 }
-                                dbg!(&self.define_table);
-                                eprintln!("{}: {}, {}", ifdefkind, macro_arg, ifdef_flag);
                                 // set watching ifdef's depth and increment depth.
                                 self.increment_ifdef_depth();
                                 self.watching_label = self.ifdef_depth;
-                                eprintln!("set watching label: {}", self.watching_label);
                                 if ifdef_flag {
                                     tokens = self.preprocess(main_chars.into(), Some(tokens))?;
                                     continue 'preprocess_loop;
                                 }
                                 // skip until #endif
-                                eprintln!("skip until #endif");
                                 loop {
                                     match main_chars.skip_until_macro_keyword().as_str() {
                                         "endif" => {
-                                            eprintln!("endif");
                                             self.dec_ifdef_lable()?;
                                             if self.ifdef_depth + 1 == self.watching_label {
                                                 // reached same depth
@@ -178,7 +169,6 @@ impl<'b> Preprocessor<'b> {
                                                     // ifdef or ifndef is preprocessed by recursive function call.
                                                     // so, if depth is not 0, it means that it is not top level.
                                                     // we should return this
-                                                    eprintln!("skip end");
                                                     return Ok(tokens);
                                                 }
                                                 continue 'preprocess_loop;
@@ -194,12 +184,10 @@ impl<'b> Preprocessor<'b> {
                                             continue;
                                         }
                                         "else" => {
-                                            eprintln!("else");
                                             if self.ifdef_depth == self.watching_label {
                                                 // reached same depth
                                                 // We have just skipped ifdef/ifndef part.
                                                 // so, then we should preprocess else part by recursive function call.
-                                                eprintln!("preprocess restart");
                                                 tokens = self
                                                     .preprocess(main_chars.into(), Some(tokens))?;
                                                 continue 'preprocess_loop;
@@ -210,7 +198,6 @@ impl<'b> Preprocessor<'b> {
                                             continue;
                                         }
                                         "ifdef" | "ifndef" => {
-                                            eprintln!("ifdef");
                                             self.increment_ifdef_depth(); // just increment current depth.
                                             continue;
                                         }
@@ -219,21 +206,17 @@ impl<'b> Preprocessor<'b> {
                                 }
                             }
                             "else" => {
-                                eprintln!("else");
                                 if self.ifdef_depth == 0 {
                                     panic!("Countered else without ifdef or ifndef.");
                                 }
                                 // outer loop is for preproccessing. so, since we catch #else, we should skip from now on.
-                                eprintln!("skip until #endif");
                                 loop {
                                     match main_chars.skip_until_macro_keyword().as_str() {
                                         "ifdef" | "ifndef" => {
-                                            eprintln!("ifdef");
                                             self.increment_ifdef_depth();
                                             // just increment depth.
                                         }
                                         "endif" => {
-                                            eprintln!("endif");
                                             self.dec_ifdef_lable()?;
                                             if self.ifdef_depth + 1 == self.watching_label {
                                                 // reached same depth
@@ -242,7 +225,6 @@ impl<'b> Preprocessor<'b> {
                                                     // ifdef or ifndef is preprocessed by recursive function call.
                                                     // so, if depth is not 0, it means that it is not top level.
                                                     // we should return this
-                                                    eprintln!("skip end");
                                                     return Ok(tokens);
                                                 }
                                                 continue 'preprocess_loop;
@@ -253,10 +235,8 @@ impl<'b> Preprocessor<'b> {
                                             continue;
                                         }
                                         "else" => {
-                                            eprintln!("else");
                                             if self.ifdef_depth == self.watching_label {
                                                 // reached same depth
-                                                eprintln!("preprocess restart");
 
                                                 tokens = self
                                                     .preprocess(main_chars.into(), Some(tokens))?;
@@ -272,7 +252,6 @@ impl<'b> Preprocessor<'b> {
                                 }
                             }
                             "endif" => {
-                                eprintln!("endif");
                                 self.dec_ifdef_lable()?;
                                 if self.ifdef_depth + 1 == self.watching_label {
                                     // reached same depth
@@ -281,7 +260,6 @@ impl<'b> Preprocessor<'b> {
                                         // ifdef or ifndef is preprocessed by recursive function call.
                                         // so, if depth is not 0, it means that it is not top level.
                                         // we should return this
-                                        dbg!("return");
                                         return Ok(tokens);
                                     }
                                 } else {
@@ -374,13 +352,15 @@ impl<'b> Preprocessor<'b> {
         let main_file_dir = main_file.parent().expect("parent dir should exist.");
         let included_file_path = main_file_dir.join(file_path);
         let included_file_path = included_file_path.as_path();
-        dbg!(included_file_path.to_str().unwrap());
         let src = read_file(included_file_path)?;
         let file_info = Rc::new(FileInfo::new(
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens))?;
+        tokens = self.preprocess(
+            &mut SrcCursorGenerator::from(file_info).into_cursor(),
+            Some(tokens),
+        )?;
         Ok(tokens)
     }
 
@@ -400,13 +380,12 @@ impl<'b> Preprocessor<'b> {
                 format!("include file does not exist: {:?}", included_file_path)
             ));
         }
-        dbg!(included_file_path.to_str().unwrap());
         let src = read_file(included_file_path)?;
         let file_info = Rc::new(FileInfo::new(
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens))?;
+        tokens = self.preprocess(&mut SrcCursor::new(file_info), Some(tokens))?;
         Ok(tokens)
     }
 }

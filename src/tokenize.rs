@@ -1,6 +1,8 @@
 use crate::error::CompileError;
 use crate::parse::{self, BinOpKind, Scope};
-use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use crate::preprocess::{
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
@@ -847,7 +849,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
         src: input.to_string(),
     });
     let mut preproccor = Preprocessor::new(file_info.clone(), "");
-    let tokens = preproccor.preprocess(file_info.clone().into(), None)?;
+    let tokens = preproccor.preprocess(&mut SrcCursor::new(file_info.clone()), None)?;
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer
