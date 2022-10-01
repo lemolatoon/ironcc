@@ -11,5 +11,6 @@ void *calloc(size_t n, size_t size);
 void exit(int status);
 void abort(void);
 
+int strtol(const char *s, char **endptr, int base);
 
 #endif

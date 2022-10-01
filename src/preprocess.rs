@@ -91,7 +91,6 @@ impl<'b> Preprocessor<'b> {
         // let mut main_chars = main_chars.into_cursor();
         let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
         'preprocess_loop: while !main_chars.is_empty() {
-            // dbg!(&main_chars.clone().collect::<String>());
             if let Some((debug_info, spaces)) =
                 main_chars.get_debug_info_and_skip_white_space_without_new_line()
             {

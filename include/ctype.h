@@ -1,4 +1,7 @@
-#ifndef _CTYPEDEF_H
-#define _CTYPEDEF_H 1
+#ifndef _CTYPE_H
+#define _CTYPE_H
+
 int isspace(int c);
+int isdigit(int c);
+
 #endif

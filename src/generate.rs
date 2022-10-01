@@ -7,6 +7,7 @@ use crate::{
         GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
+    parse::BinOpKind,
     unimplemented_err,
 };
 
@@ -531,6 +532,7 @@ impl Generator {
 
     /// # Errors
     /// return errors when file IO failed or compilation failed
+    /// Caller saved registers: rax, rdi, rsi, rdx, rcx, r8, r9 .... (WIP)
     #[allow(clippy::too_many_lines)]
     pub fn gen_expr<W: Write>(
         &mut self,
@@ -762,7 +764,43 @@ impl Generator {
                 writeln!(f, "  {}", asm)?;
             }
             ConvExprKind::OpAssign(lhs, rhs, kind) => {
-                todo!()
+                writeln!(f, "  # OpAssign")?;
+                let bin_op: ConvBinOpKind =
+                    ConvBinOpKind::new(&BinOpKind::try_from(kind).unwrap()).unwrap();
+                let lhs_ty = lhs.ty.clone();
+                self.gen_lvalue(f, *lhs.clone())?;
+                self.pop(f, RegKind::R11)?; // r11 = &lhs
+                Self::deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::R11,
+                    &lhs_ty,
+                    UnexpectedTypeSizeStatus::Expr(*lhs.clone()),
+                )?; // rdi = *r11
+                self.push(f, RegKind::Rdi)?;
+                let rhs_ty_sizeof = rhs.ty.size_of();
+                self.gen_expr(f, *rhs)?;
+                self.pop(f, RegKind::R10)?; // r10 = rhs
+                self.pop(f, RegKind::Rdi)?; // rdi = *r11 = lhs
+                self.gen_binary_with_reg(
+                    f,
+                    bin_op,
+                    RegKind::Rdi,
+                    RegKind::R10,
+                    lhs_ty.size_of(),
+                    rhs_ty_sizeof,
+                    &lhs_ty,
+                )?;
+                self.pop(f, RegKind::Rdi)?; // rdi = lhs op rhs
+                Self::assign(
+                    f,
+                    RegKind::R11,
+                    RegKind::Rdi,
+                    &lhs_ty,
+                    UnexpectedTypeSizeStatus::Expr(*lhs),
+                )?; // *r11 = rdi
+                self.push(f, RegKind::Rdi)?; // push calculated expr's value
+                writeln!(f, "  # OpAssign end")?;
             }
         }
         Ok(())
@@ -869,6 +907,7 @@ impl Generator {
 
     /// # Errors
     /// return errors when file IO failed or compilation failed
+    /// Caller saved registers: rax
     pub fn gen_lvalue<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
@@ -934,6 +973,7 @@ impl Generator {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn gen_binary_with_reg(
         &mut self,
         f: &mut BufWriter<impl Write>,
@@ -946,19 +986,56 @@ impl Generator {
     ) -> Result<(), CompileError> {
         // rax :lhs , rdi : rhs
         match bin_op {
-            ConvBinOpKind::Add => writeln!(f, "  add {}, {}", lhs.qword(), rhs.qword())?,
-            ConvBinOpKind::Sub => writeln!(f, "  sub {}, {}", lhs.qword(), rhs.qword())?,
-            ConvBinOpKind::Mul => writeln!(f, "  imul {}, {}", lhs.qword(), rhs.qword())?,
+            ConvBinOpKind::Add => {
+                writeln!(f, "  add {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
+            ConvBinOpKind::Sub => {
+                writeln!(f, "  sub {}, {}", lhs.qword(), rhs.qword())?;
+
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
+            ConvBinOpKind::Mul => {
+                writeln!(f, "  imul {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
             ConvBinOpKind::LShift => {
                 writeln!(f, "  mov rcx, {}", rhs.qword())?;
                 writeln!(f, "  sal {}, cl", lhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::RShift => {
                 writeln!(f, "  mov rcx, {}", rhs.qword())?;
                 writeln!(f, "  sar {}, cl", lhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::BitWiseAnd => {
                 writeln!(f, "  and {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::Div => {
                 if lhs != RegKind::Rax {

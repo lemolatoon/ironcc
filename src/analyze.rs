@@ -789,8 +789,6 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         let mut rhs = rhs;
-        dbg!(&lhs.ty);
-        dbg!(&rhs.ty);
         match assign_bin_op {
             AssignBinOpToken::Eq => {
                 if !(lhs.ty.ty_eq(&rhs.ty) || matches!(rhs.kind, ConvExprKind::Asm(_))) {

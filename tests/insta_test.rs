@@ -319,3 +319,4 @@ gen_test!(enum_declaration);
 gen_test!(array_initializer);
 gen_test!(typedef);
 gen_test!(switch);
+gen_test!(assign_op);

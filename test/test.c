@@ -75,6 +75,7 @@ int test64();
 int test65();
 int test66();
 int test67();
+int test68();
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -167,6 +168,7 @@ int main()
     assert(65, 0, test65());
     assert(66, 0, test66());
     assert(67, 0, test67());
+    assert(68, 0, test68());
 
     print_ok();
     return 0;
@@ -1363,5 +1365,17 @@ int test66() {
 
 int test67() {
     assert(67, 67 ,test67_external_global_var);
+    return 0;
+}
+
+int test68() {
+    int a = 1;
+    a += 3;
+    assert(68, 4, a);
+    int arr[3] = {1, 2, 3};
+    int *ptr = arr;
+    assert(68, 1, *ptr);
+    ptr += 2;
+    assert(68, 3, *ptr);
     return 0;
 }
