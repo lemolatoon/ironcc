@@ -9,6 +9,7 @@
 /test/tmp.s
 /test/test.s
 *.s
+*.o
 /test/tmp
 /.vscode/
 /src.c

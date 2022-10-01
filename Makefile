@@ -68,8 +68,19 @@ code_gen.s: validation/lemola_cc/src/code_gen.c $(COMPILER)
 utils.s: validation/lemola_cc/src/utils.c $(COMPILER)
 	$(COMPILER) validation/lemola_cc/src/utils.c
 
-lemola_cc: main.s tokenizer.s parser.s code_gen.s utils.s
-	$(CC) $(CFLAGS) main.s tokenizer.s parser.s code_gen.s utils.s -o lemola_cc
+main.o: main.s
+	$(CC) main.s -c -o main.o
+tokenizer.o: tokenizer.s
+	$(CC) tokenizer.s -c -o tokenizer.o
+parser.o: parser.s
+	$(CC) parser.s -c -o parser.o
+code_gen.o: code_gen.s
+	$(CC) code_gen.s -c -o code_gen.o
+utils.o: utils.s
+	$(CC) utils.s -c -o utils.o
+
+lemola_cc: main.o tokenizer.o parser.o code_gen.o utils.o
+	$(CC) $(CFLAGS) main.o tokenizer.o parser.o code_gen.o utils.o -o lemola_cc
 
 testall:  cargo_test test testc
 

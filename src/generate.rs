@@ -287,6 +287,9 @@ impl Generator {
                         continue;
                     }
                     writeln!(f, ".data")?;
+                    if !name.starts_with('.') {
+                        writeln!(f, ".global {}", name)?;
+                    }
                     writeln!(f, "{}:", name)?;
                     match init {
                         Some(init) => match ty {
