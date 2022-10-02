@@ -27,6 +27,8 @@ pub struct Analyzer {
     loop_stack: LoopStack,
 }
 
+const VA_AREA_LEN: usize = 136;
+
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct LoopStack(Vec<LoopKind>);
 
@@ -438,7 +440,17 @@ impl Analyzer {
             ));
         };
         self.scope.push_scope();
+        if is_flexible {
+            self.scope.register_lvar(
+                debug_info.clone(),
+                &mut self.offset,
+                "__va_area__",
+                Type::Array(Box::new(Type::Base(BaseType::Char)), VA_AREA_LEN),
+            )?;
+            eprintln!("register `__va_area__` to {}", ident);
+        }
         let body = if let StmtKind::Block(stmts) = body.kind {
+            let arg_n = args.len();
             for arg in args {
                 // register func args as lvar
                 let converted_type = self.resolve_name_and_convert_to_type(
@@ -461,17 +473,27 @@ impl Analyzer {
             }
             self.func_map.insert(
                 ident.to_string(),
-                Func::new_raw(ident.to_string(), args_ty, is_flexible, *ret_ty, debug_info),
+                Func::new_raw(
+                    ident.to_string(),
+                    args_ty,
+                    is_flexible,
+                    *ret_ty,
+                    debug_info.clone(),
+                ),
             );
-            ConvStmt::new_block(
-                stmts
-                    .into_iter()
-                    .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
-                    .collect::<Result<Vec<_>, CompileError>>()?,
-            )
+            let mut stmts = stmts
+                .into_iter()
+                .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
+                .collect::<Result<Vec<_>, CompileError>>()?;
+            // Add VaStartInit
+            if is_flexible {
+                eprintln!("register `__va_area__` to {}", ident);
+                stmts.push(ConvStmt::VaStartInit { arg_n });
+            }
+            ConvStmt::new_block(stmts)
         } else {
             return Err(unimplemented_err!(
-                debug_info,
+                debug_info.clone(),
                 "Function body must be block stmt."
             ));
         };
@@ -1142,6 +1164,51 @@ impl Analyzer {
                     debug_info,
                 })
             }
+            ExprKind::BuiltinVaStart(ap, last) => {
+                // `__builtin_va_start(ap, last)` shall be re-read as below
+                // `*ap = *(*struct __builtin_va_list)__va_area__`
+                let va_area = self
+                    .scope
+                    .look_up(&"__va_area__".to_string())
+                    .ok_or_else(|| {
+                        unimplemented_err!(
+                            debug_info.clone(),
+                            "Cannot find `__va_area__` in this scope."
+                        )
+                    })?;
+                let va_area = if let Var::LVar(va_area) = va_area {
+                    va_area
+                } else {
+                    return Err(unimplemented_err!(
+                        debug_info,
+                        "`__va_area__` shall not be global variable."
+                    ));
+                };
+                let va_area_ty = va_area.ty.clone();
+                let ptr_converted_va_area =
+                    ConvExpr::new_lvar_raw(va_area, va_area_ty, debug_info.clone())
+                        .convert_array_to_ptr();
+                let tag_name = String::from("__builtin_va_list");
+                let ty_builtin_va_list = self
+                    .scope
+                    .resolve_tag_name_and_get_ty(&tag_name.to_string())
+                    .ok_or_else(|| {
+                        CompileError::new_undeclared_error(
+                            tag_name,
+                            debug_info.clone(),
+                            VariableKind::Struct,
+                        )
+                    })?;
+                let casted_va_area = ConvExpr::new_cast(
+                    ptr_converted_va_area,
+                    Type::Ptr(Box::new(ty_builtin_va_list.clone())),
+                    CastKind::FromVoidPtr {
+                        ptr_to: ty_builtin_va_list.clone(),
+                    },
+                );
+                let deref = ConvExpr::new_deref(casted_va_area, ty_builtin_va_list, debug_info);
+                Ok(deref)
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -1219,7 +1286,7 @@ impl Analyzer {
                 } else {
                     return Err(CompileError::new_type_expect_failed(
                         got_expr.debug_info.clone(),
-                        expected_ty.clone(),
+                        expected_ty,
                         got_expr.ty.clone(),
                     ));
                 }
@@ -1841,6 +1908,9 @@ pub enum ConvStmt {
         has_default: bool,
     },
     LoopControl(LoopControlKind),
+    VaStartInit {
+        arg_n: usize,
+    },
     // TODO: in `analyze.rs` check labels are in appropriate position on each stmt.
     // Labeled(ConvLabeled),
 }
@@ -2370,6 +2440,17 @@ impl Scope {
         }
         None
     }
+
+    pub fn resolve_tag_name_and_get_ty(&self, tag_name: &String) -> Option<Type> {
+        if let Some(Taged::Struct(StructTagKind::Struct(struct_struct))) =
+            self.resolve_tag_name(tag_name)
+        {
+            Some(Type::Struct(struct_struct.clone()))
+        } else {
+            None
+        }
+    }
+
     pub const fn get_stack_size(&self) -> usize {
         self.max_stack_size
     }

@@ -540,6 +540,7 @@ impl Generator {
                 writeln!(f, ".Ldefault{}:", index)?;
                 self.gen_stmt(f, *stmt)?;
             }
+            ConvStmt::VaStartInit { arg_n: argN } => todo!(),
         };
         Ok(())
     }

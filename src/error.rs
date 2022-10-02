@@ -148,9 +148,13 @@ impl CompileError {
         ))
     }
 
-    pub const fn new_undeclared_error(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
+    pub const fn new_undeclared_error(
+        name: String,
+        debug_info: DebugInfo,
+        kind: VariableKind,
+    ) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
-            AnalyzeErrorKind::UndeclaredError(name, pos, kind),
+            AnalyzeErrorKind::UndeclaredError(name, debug_info, kind),
         ))
     }
 

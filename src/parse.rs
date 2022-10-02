@@ -624,6 +624,7 @@ impl Parser {
         Ok(n_star)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn parse_stmt<I>(
         &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
@@ -1144,6 +1145,15 @@ impl Parser {
                     }
                     // local variable
                     Expr::new_lvar(name, debug_info)
+                }
+                TokenKind::BuiltinVaStart => {
+                    tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+                    let ap = self.parse_expr(tokens)?;
+                    tokens.expect(&TokenKind::Comma)?;
+                    let last = self.parse_expr(tokens)?;
+                    tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+                    // local variable
+                    return Ok(Expr::new_built_in_va_start(ap, last));
                 }
                 TokenKind::Asm => {
                     tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
@@ -1892,6 +1902,7 @@ pub enum ExprKind {
     UnaryDecrement(Box<Expr>),
     Asm(String),
     NullPtr,
+    BuiltinVaStart(Box<Expr>, Box<Expr>),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -2033,6 +2044,14 @@ impl Expr {
     pub fn new_func(name: String, args: Vec<Expr>, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Func(name, args),
+            debug_info,
+        }
+    }
+
+    pub fn new_built_in_va_start(ap: Expr, last: Expr) -> Self {
+        let debug_info = ap.debug_info.clone();
+        Self {
+            kind: ExprKind::BuiltinVaStart(Box::new(ap), Box::new(last)),
             debug_info,
         }
     }

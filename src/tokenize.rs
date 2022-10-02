@@ -260,6 +260,7 @@ impl Tokenizer {
                         "extern" => TokenKind::Extern,
                         "__asm__" => TokenKind::Asm,
                         "__nullptr" => TokenKind::NullPtr,
+                        "__builtin_va_start" => TokenKind::BuiltinVaStart,
                         "switch" => TokenKind::Switch,
                         "default" => TokenKind::Default,
                         "case" => TokenKind::Case,
@@ -347,6 +348,8 @@ pub enum TokenKind {
     Asm,
     /// `__nullptr`, reserved word (not standard)
     NullPtr,
+    /// `___builtin_va_start`, reserved word (not standard)
+    BuiltinVaStart,
     /// `,`
     Comma,
     /// `~`
