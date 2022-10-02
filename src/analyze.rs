@@ -404,6 +404,7 @@ impl Analyzer {
             .register_gvar(debug_info, name, ty, is_extern, init)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn traverse_func_def(
         &mut self,
         ty_spec: &TypeSpecifier,
@@ -440,17 +441,30 @@ impl Analyzer {
             ));
         };
         self.scope.push_scope();
-        if is_flexible {
-            self.scope.register_lvar(
-                debug_info.clone(),
-                &mut self.offset,
-                "__va_area__",
-                Type::Array(Box::new(Type::Base(BaseType::Char)), VA_AREA_LEN),
-            )?;
-            eprintln!("register `__va_area__` to {}", ident);
-        }
         let body = if let StmtKind::Block(stmts) = body.kind {
             let arg_n = args.len();
+            let mut has_va_start = false;
+            for stmt in &stmts {
+                if matches!(
+                    stmt.kind,
+                    StmtKind::Expr(Expr {
+                        kind: ExprKind::BuiltinVaStart(_, _),
+                        debug_info: _
+                    })
+                ) {
+                    has_va_start = true;
+                    break;
+                };
+            }
+            if is_flexible && has_va_start {
+                self.scope.register_lvar(
+                    debug_info.clone(),
+                    &mut self.offset,
+                    "__va_area__",
+                    Type::Array(Box::new(Type::Base(BaseType::Char)), VA_AREA_LEN),
+                )?;
+                eprintln!("register `__va_area__` to {}", ident);
+            };
             for arg in args {
                 // register func args as lvar
                 let converted_type = self.resolve_name_and_convert_to_type(
@@ -476,16 +490,16 @@ impl Analyzer {
                 Func::new_raw(ident.to_string(), args_ty, is_flexible, *ret_ty, debug_info),
             );
             // Add VaStartInit
-            let mut conv_stmts = if is_flexible {
+            let mut conv_stmts = if is_flexible && has_va_start {
                 eprintln!("register `__va_area__` to {}", ident);
                 vec![ConvStmt::VaStartInit { arg_n }]
             } else {
                 Vec::new()
             };
-            for conv_stmt in stmts
+            let conv_stmts_iter = stmts
                 .into_iter()
-                .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
-            {
+                .map(|stmt| self.traverse_stmt(stmt, ident.to_string()));
+            for conv_stmt in conv_stmts_iter {
                 conv_stmts.push(conv_stmt?);
             }
             ConvStmt::new_block(conv_stmts)
@@ -1226,8 +1240,17 @@ impl Analyzer {
                         ptr_to: ty_builtin_va_list.clone(),
                     },
                 );
-                let deref = ConvExpr::new_deref(casted_va_area, ty_builtin_va_list, debug_info);
-                Ok(deref)
+                let derefed_va_area =
+                    ConvExpr::new_deref(casted_va_area, ty_builtin_va_list, debug_info.clone());
+                let ap = self.traverse_expr(*ap, BTreeSet::new())?;
+                let ap_base_ty = ap.ty.get_ptr_to().unwrap().clone();
+                let derefed_ap = ConvExpr::new_deref(ap, ap_base_ty, debug_info.clone());
+                Ok(Self::new_assign_expr_with_type_check(
+                    derefed_ap,
+                    derefed_va_area,
+                    AssignBinOpToken::Eq,
+                    debug_info,
+                )?)
             }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {

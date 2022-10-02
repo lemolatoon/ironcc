@@ -2,6 +2,7 @@ CC=clang
 CFLAGS=-g3 -static
 MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPILER=$(MAKEFILE_DIR)/target/debug/ironcc
+LEMOLA_CC_PATH=$(MAKEFILE_DIR)validation/lemola_cc
 
 $(COMPILER): FORCE
 	cargo build 
@@ -57,16 +58,16 @@ clang_test: test/test.c test/test_utils.c
 cargo_test: FORCE
 	cargo test
 
-main.s: validation/lemola_cc/src/main.c $(COMPILER)
-	$(COMPILER) validation/lemola_cc/src/main.c
-tokenizer.s: validation/lemola_cc/src/tokenizer.c $(COMPILER)
-	$(COMPILER) validation/lemola_cc/src/tokenizer.c
-parser.s: validation/lemola_cc/src/parser.c $(COMPILER)
-	$(COMPILER) validation/lemola_cc/src/parser.c
-code_gen.s: validation/lemola_cc/src/code_gen.c $(COMPILER)
-	$(COMPILER) validation/lemola_cc/src/code_gen.c
-utils.s: validation/lemola_cc/src/utils.c $(COMPILER)
-	$(COMPILER) validation/lemola_cc/src/utils.c
+main.s: $(LEMOLA_CC_PATH)/src/main.c $(COMPILER)
+	$(COMPILER) $(LEMOLA_CC_PATH)/src/main.c
+tokenizer.s: $(LEMOLA_CC_PATH)/src/tokenizer.c $(COMPILER)
+	$(COMPILER) $(LEMOLA_CC_PATH)/src/tokenizer.c
+parser.s: $(LEMOLA_CC_PATH)/src/parser.c $(COMPILER)
+	$(COMPILER) $(LEMOLA_CC_PATH)/src/parser.c
+code_gen.s: $(LEMOLA_CC_PATH)/src/code_gen.c $(COMPILER)
+	$(COMPILER) $(LEMOLA_CC_PATH)/src/code_gen.c
+utils.s: $(LEMOLA_CC_PATH)/src/utils.c $(COMPILER)
+	$(COMPILER) $(LEMOLA_CC_PATH)/src/utils.c
 
 main.o: main.s
 	$(CC) main.s -c -o main.o
@@ -81,6 +82,13 @@ utils.o: utils.s
 
 lemola_cc: main.o tokenizer.o parser.o code_gen.o utils.o
 	$(CC) $(CFLAGS) main.o tokenizer.o parser.o code_gen.o utils.o -o lemola_cc
+
+lemola_cc_test: lemola_cc $(LEMOLA_CC_PATH)/test/test.c $(LEMOLA_CC_PATH)/test/test_utils.c
+	cd $(LEMOLA_CC_PATH)/test && \
+		$(MAKEFILE_DIR)/lemola_cc test.c && \
+		$(CC)  -c test_utils.c -g3 && \
+		$(CC)  src.s test_utils.o -o tmp -g3 && \
+		./tmp
 
 testall:  cargo_test test testc
 

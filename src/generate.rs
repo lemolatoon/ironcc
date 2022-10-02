@@ -540,7 +540,22 @@ impl Generator {
                 writeln!(f, ".Ldefault{}:", index)?;
                 self.gen_stmt(f, *stmt)?;
             }
-            ConvStmt::VaStartInit { arg_n: argN } => todo!(),
+            ConvStmt::VaStartInit { arg_n } => {
+                let arg_regs = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"][arg_n..6];
+                let float_regs = [
+                    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+                ];
+                let mut offset: usize = 176 - arg_n * 8;
+                for arg_reg in arg_regs {
+                    writeln!(f, "  mov QWORD PTR [rbp-{}], {}", offset, arg_reg)?;
+                    offset -= 8;
+                }
+                for float_reg in float_regs {
+                    writeln!(f, "  movaps XMMWORD PTR [rbp-{}], {}", offset, float_reg)?;
+                    offset -= 16;
+                }
+                assert_eq!(offset, 0);
+            }
         };
         Ok(())
     }
@@ -558,10 +573,9 @@ impl Generator {
         match expr.kind {
             ConvExprKind::Num(val) => self.push_lit(f, val)?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, &expr.ty)?,
-            ConvExprKind::LVar(_) => {
+            ConvExprKind::LVar(LVar { offset, ty: _ }) => {
                 let ty = expr.ty.clone();
-                self.gen_lvalue(f, expr.clone())?;
-                self.pop(f, RegKind::Rax)?; // rax = &expr
+                writeln!(f, "  lea rax, [rbp-{}]", offset)?;
                 Self::deref(
                     f,
                     RegKind::Rax,
