@@ -1,0 +1,224 @@
+---
+source: tests/insta_test.rs
+assertion_line: 118
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        VaStartInit {
+                            arg_n: 0,
+                        },
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 140,
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            2,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 16,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 2,
+                                    },
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 141,
+                                                ty: Base(
+                                                    Char,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Cast(
+                                            ConvExpr {
+                                                kind: LVar(
+                                                    LVar {
+                                                        offset: 140,
+                                                        ty: Base(
+                                                            Int,
+                                                        ),
+                                                    },
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 17,
+                                                        n_line: 3,
+                                                    },
+                                                },
+                                            },
+                                            Base2Base(
+                                                Int,
+                                                Char,
+                                            ),
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 17,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Char,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 3,
+                                    },
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 141,
+                                                ty: Base(
+                                                    Char,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Cast(
+                                            ConvExpr {
+                                                kind: Num(
+                                                    4,
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 12,
+                                                        n_line: 4,
+                                                    },
+                                                },
+                                            },
+                                            Base2Base(
+                                                Int,
+                                                Char,
+                                            ),
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 4,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Char,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 10,
+                                        n_line: 4,
+                                    },
+                                },
+                            },
+                        ),
+                    ],
+                ),
+                stack_size: 141,
+            },
+        ),
+    ],
+}

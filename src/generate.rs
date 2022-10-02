@@ -817,6 +817,14 @@ impl Generator {
                 self.push(f, RegKind::Rdi)?; // push calculated expr's value
                 writeln!(f, "  # OpAssign end")?;
             }
+            ConvExprKind::Block(stmt, expr) => {
+                self.gen_stmt(f, *stmt)?;
+                if let Some(expr) = expr {
+                    self.gen_expr(f, *expr)?;
+                } else {
+                    self.push_lit(f, 0)?; // push tmp value
+                }
+            }
         }
         Ok(())
     }

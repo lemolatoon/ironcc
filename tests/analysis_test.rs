@@ -12,6 +12,9 @@ use ironcc::preprocess::{
 use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
+#[cfg(test)]
+use pretty_assertions::assert_eq;
+
 #[test]
 fn analysis_test() {
     let mut analyzer = Analyzer::new();
@@ -94,7 +97,7 @@ fn analysis_program_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -123,7 +126,7 @@ fn analysis_program_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -157,7 +160,7 @@ fn analysis_local_variable_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -187,7 +190,7 @@ fn analysis_local_variable_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -222,7 +225,7 @@ fn analysis_func_def_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -255,7 +258,7 @@ fn analysis_func_def_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -296,7 +299,7 @@ fn analysis_ptr_addition() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", Vec::new(), true),
+        func_dd("main", Vec::new(), false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -320,7 +323,7 @@ fn analysis_ptr_addition() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),

@@ -473,27 +473,25 @@ impl Analyzer {
             }
             self.func_map.insert(
                 ident.to_string(),
-                Func::new_raw(
-                    ident.to_string(),
-                    args_ty,
-                    is_flexible,
-                    *ret_ty,
-                    debug_info.clone(),
-                ),
+                Func::new_raw(ident.to_string(), args_ty, is_flexible, *ret_ty, debug_info),
             );
-            let mut stmts = stmts
+            // Add VaStartInit
+            let mut conv_stmts = if is_flexible {
+                eprintln!("register `__va_area__` to {}", ident);
+                vec![ConvStmt::VaStartInit { arg_n }]
+            } else {
+                Vec::new()
+            };
+            for conv_stmt in stmts
                 .into_iter()
                 .map(|stmt| self.traverse_stmt(stmt, ident.to_string()))
-                .collect::<Result<Vec<_>, CompileError>>()?;
-            // Add VaStartInit
-            if is_flexible {
-                eprintln!("register `__va_area__` to {}", ident);
-                stmts.push(ConvStmt::VaStartInit { arg_n });
+            {
+                conv_stmts.push(conv_stmt?);
             }
-            ConvStmt::new_block(stmts)
+            ConvStmt::new_block(conv_stmts)
         } else {
             return Err(unimplemented_err!(
-                debug_info.clone(),
+                debug_info,
                 "Function body must be block stmt."
             ));
         };
@@ -844,50 +842,72 @@ impl Analyzer {
         let mut rhs = rhs;
         match assign_bin_op {
             AssignBinOpToken::Eq => {
-                if !(lhs.ty.ty_eq(&rhs.ty) || matches!(rhs.kind, ConvExprKind::Asm(_))) {
-                    let lhs_ptr_to = lhs.ty.get_ptr_to();
-                    let rhs_ptr_to = rhs.ty.get_ptr_to();
-                    if lhs.ty.is_void_ptr() && rhs_ptr_to.is_some() {
-                        // Safety: `rhs_ptr_to.is_some()` is true on this branch
-                        let ptr_to = unsafe { rhs_ptr_to.unwrap_unchecked() }.clone();
-                        rhs = ConvExpr::new_cast(
-                            rhs,
-                            Type::Ptr(Box::new(Type::Void)),
-                            CastKind::ToVoidPtr { ptr_to },
-                        );
-                        return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
-                    } else if lhs_ptr_to.is_some() && rhs.ty.is_void_ptr() {
-                        rhs = ConvExpr::new_cast(
-                            rhs,
-                            Type::Ptr(Box::new(Type::Void)),
-                            CastKind::FromVoidPtr {
-                                ptr_to: lhs_ptr_to.unwrap().clone(),
-                            },
-                        );
-                        return Ok(ConvExpr::new_assign(lhs, rhs, debug_info));
-                    }
-                    match (lhs.ty.get_base(), rhs.ty.get_base()) {
-                        (Some(lhs_base), Some(rhs_base)) => {
-                            let rhs_base = *rhs_base;
-                            rhs = ConvExpr::new_cast(
-                                rhs,
-                                lhs.ty.clone(),
-                                CastKind::Base2Base(rhs_base, *lhs_base),
-                            );
-                        }
-                        _ => {
-                            return Err(CompileError::new_type_error(
-                                lhs,
-                                rhs,
-                                Some(
-                                    "Assign expression's lhs and rhs has to have compatible types",
+                match (lhs.ty.clone(), rhs.ty.clone()) {
+                    (
+                        Type::Struct(Struct { tag: _, members }),
+                        Type::Struct(Struct { tag: _, members: _ }),
+                    ) if lhs.ty.ty_eq(&rhs.ty) => {
+                        let mut stmts = Vec::with_capacity(members.len());
+                        for member in members {
+                            let minus_offset = member.offset - member.ty.size_of();
+                            stmts.push(ConvStmt::new_expr(ConvExpr::new_assign(
+                                ConvExpr::new_member(
+                                    lhs.clone(),
+                                    member.ty.clone(),
+                                    minus_offset,
+                                    debug_info.clone(),
                                 ),
-                            ))
+                                ConvExpr::new_member(
+                                    rhs.clone(),
+                                    member.ty,
+                                    minus_offset,
+                                    debug_info.clone(),
+                                ),
+                                debug_info.clone(),
+                            )));
                         }
+                        Ok(ConvExpr {
+                            kind: ConvExprKind::Block(Box::new(ConvStmt::Block(stmts)), None),
+                            ty: Type::Void,
+                            debug_info,
+                        })
                     }
+                    (lhs_ty, rhs_ty)
+                        if lhs_ty.ty_eq(&rhs_ty) || matches!(&rhs.kind, ConvExprKind::Asm(_)) =>
+                    {
+                        Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
+                    }
+                    (Type::Ptr(void_ptr_to), Type::Ptr(ptr_to)) if *void_ptr_to == Type::Void => {
+                        // Safety: `rhs_ptr_to.is_some()` is true on this branch
+                        rhs = ConvExpr::new_cast(
+                            rhs,
+                            Type::Ptr(Box::new(Type::Void)),
+                            CastKind::ToVoidPtr { ptr_to: *ptr_to },
+                        );
+                        Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
+                    }
+                    (Type::Ptr(ptr_to), Type::Ptr(void_ptr_to)) if *void_ptr_to == Type::Void => {
+                        rhs = ConvExpr::new_cast(
+                            rhs,
+                            Type::Ptr(Box::new(Type::Void)),
+                            CastKind::FromVoidPtr { ptr_to: *ptr_to },
+                        );
+                        Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
+                    }
+                    (Type::Base(lhs_base), Type::Base(rhs_base)) => {
+                        rhs = ConvExpr::new_cast(
+                            rhs,
+                            Type::Base(lhs_base),
+                            CastKind::Base2Base(rhs_base, lhs_base),
+                        );
+                        Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
+                    }
+                    _ => Err(CompileError::new_type_error(
+                        lhs,
+                        rhs,
+                        Some("Assign expression's lhs and rhs has to have compatible types"),
+                    )),
                 }
-
-                Ok(ConvExpr::new_assign(lhs, rhs, debug_info))
             }
             kind => Ok(ConvExpr::new_op_assign(lhs, rhs, debug_info, kind)),
         }
@@ -2321,6 +2341,7 @@ pub enum ConvExprKind {
     PostfixIncrement(Box<ConvExpr>, /* + n */ usize),
     PostfixDecrement(Box<ConvExpr>, /* - n */ usize),
     Asm(String),
+    Block(Box<ConvStmt>, Option<Box<ConvExpr>>), /* create one scope for this expr. Return evaluated last expr. */
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -3143,6 +3164,7 @@ impl ConstExpr {
                     debug_info: expr_debug_info,
                 }
             }
+            ConvExprKind::Block(_, _) => todo!(),
         })
     }
 }

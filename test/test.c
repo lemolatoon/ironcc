@@ -3,82 +3,83 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-int test0();
-int test0_2();
-int test0_3();
-int test1();
+int test0(void);
+int test0_2(void);
+int test0_3(void);
+int test1(void);
 int test2(int arg0);
 int test3(int arg0);
 int test4(int arg0);
 int test5(int arg0);
 int test6(int arg0);
 int test7(int arg0);
-int test8();
-int test9();
-int test9_0();
-int test9_1();
-int test10();
-int test11();
-int test12();
-int test13();
-int test14();
-int test15();
-int test16();
-int test17();
-int test18();
-int test19();
-int test20();
-int test21();
-int test22();
-int test23();
-int test24();
-int test25();
-int test26();
-int test27();
-int test28();
-int test29();
-int test30();
-int test31();
-int test32();
-int test33();
-int test34();
-int test35();
-int test36();
-int test37();
-int test38();
-int test39();
-int test40();
-int test41();
-int test42();
-int test43();
-int test44();
-int test45();
-int test46();
-int test47();
-int test48();
-int test49();
-int test50();
-int test51();
-int test52();
-int test53();
-int test54();
-int test55();
-int test56();
-int test57();
-int test58();
-int test59();
-int test60();
-int test61();
-int test62();
-int test63();
-int test64();
-int test65();
-int test66();
-int test67();
-int test68();
-int test69();
-int test70();
-int test();
+int test8(void);
+int test9(void);
+int test9_0(void);
+int test9_1(void);
+int test10(void);
+int test11(void);
+int test12(void);
+int test13(void);
+int test14(void);
+int test15(void);
+int test16(void);
+int test17(void);
+int test18(void);
+int test19(void);
+int test20(void);
+int test21(void);
+int test22(void);
+int test23(void);
+int test24(void);
+int test25(void);
+int test26(void);
+int test27(void);
+int test28(void);
+int test29(void);
+int test30(void);
+int test31(void);
+int test32(void);
+int test33(void);
+int test34(void);
+int test35(void);
+int test36(void);
+int test37(void);
+int test38(void);
+int test39(void);
+int test40(void);
+int test41(void);
+int test42(void);
+int test43(void);
+int test44(void);
+int test45(void);
+int test46(void);
+int test47(void);
+int test48(void);
+int test49(void);
+int test50(void);
+int test51(void);
+int test52(void);
+int test53(void);
+int test54(void);
+int test55(void);
+int test56(void);
+int test57(void);
+int test58(void);
+int test59(void);
+int test60(void);
+int test61(void);
+int test62(void);
+int test63(void);
+int test64(void);
+int test65(void);
+int test66(void);
+int test67(void);
+int test68(void);
+int test69(void);
+int test70(void);
+int test71(void);
+int test(void);
 void assert(int index, int expected, int got);
 // this is comment for the test of function of comment
 
@@ -92,9 +93,9 @@ int add(int arg0, int arg1);
 int **alloc4_ptr(int *a, int *b, int *c, int *d);
 int *alloc4(int a, int b, int c, int d);
 
-void print_ok();
+void print_ok(void);
 
-int main()
+int main(void)
 {
     assert(0, 3, test0());
     assert(0, 2, test0_2());
@@ -174,6 +175,7 @@ int main()
     assert(68, 0, test68());
     assert(69, 0, test69());
     assert(70, 70, test70());
+    assert(71, 0, test71());
 
     print_ok();
     return 0;
@@ -188,7 +190,7 @@ int assertion_failed(int index, int expected, int got)
 
 void passed(int index) { printf("Test %d passed\n", index); }
 
-void print_ok()
+void print_ok(void)
 {
     printf("\e[32mALL TESTS PASSED\e[0m\n");
 }
@@ -205,11 +207,11 @@ void assert(int index, int expected, int got)
     }
 }
 
-int test0() { return 3; }
+int test0(void) { return 3; }
 
-int test0_2() { return g(2); }
+int test0_2(void) { return g(2); }
 
-int test0_3() { return h(5); }
+int test0_3(void) { return h(5); }
 
 int g(int n) { return n; }
 
@@ -225,7 +227,7 @@ int h(int n)
     }
 }
 
-int test1() { return f(5); }
+int test1(void) { return f(5); }
 
 int f(int n)
 {
@@ -322,7 +324,7 @@ int test7(int n)
     return result;
 }
 
-int test8()
+int test8(void)
 {
     int x;
     x = 3;
@@ -331,7 +333,7 @@ int test8()
     return *y;
 }
 
-int test9_0()
+int test9_0(void)
 {
     int y;
     y = 10;
@@ -347,7 +349,7 @@ int test9_0()
     return 0;
 }
 
-int test9_1()
+int test9_1(void)
 {
     int y;
     y = 10;
@@ -365,7 +367,7 @@ int test9_1()
     return 0;
 }
 
-int test9()
+int test9(void)
 {
     int x;
     x = 5;
@@ -390,7 +392,7 @@ int test9()
     return **z;
 }
 
-int test10()
+int test10(void)
 {
     int x;
     int *y;
@@ -399,7 +401,7 @@ int test10()
     return x;
 }
 
-int test11()
+int test11(void)
 {
     int *p;
     p = alloc4(2, 3, 5, 8);
@@ -415,7 +417,7 @@ int test11()
     return 0;
 }
 
-int test12()
+int test12(void)
 {
     int a;
     int b;
@@ -446,7 +448,7 @@ int test12()
     return 0;
 }
 
-int test13()
+int test13(void)
 {
     assert(13, 4, sizeof(int));
     assert(13, 8, sizeof(int *));
@@ -458,14 +460,14 @@ int test13()
     return 0;
 }
 
-int test14()
+int test14(void)
 {
     int a = 5;
     assert(14, 5, a);
     return 0;
 }
 
-int test15()
+int test15(void)
 {
     int *first_ptr = alloc4(1, 2, 3, 4);
     int *last_ptr = first_ptr + 3;
@@ -474,7 +476,7 @@ int test15()
     return 0;
 }
 
-int test16()
+int test16(void)
 {
     int array[5];
     *array = 1;
@@ -483,7 +485,7 @@ int test16()
     return 0;
 }
 
-int test17()
+int test17(void)
 {
     int a[2];
     a[0] = 3;
@@ -521,7 +523,7 @@ int (*mat_mul_2d(int (*new_mat)[2], int (*lhs)[2], int (*rhs)[2]))[2]
     return new_mat;
 }
 
-int test18()
+int test18(void)
 {
     assert(18, 0, 0);
     int mat1[2][2];
@@ -540,7 +542,7 @@ int test18()
     return 0;
 }
 
-int test19()
+int test19(void)
 {
     int dummy;
     int array1[3];
@@ -557,9 +559,9 @@ int test19()
 int test20_g_var;
 int test20_index;
 
-int inc_test20_index();
+int inc_test20_index(void);
 
-int test20()
+int test20(void)
 {
     test20_g_var = 9;
     assert(20, 9, test20_g_var);
@@ -569,7 +571,7 @@ int test20()
     return 0;
 }
 
-int inc_test20_index()
+int inc_test20_index(void)
 {
     for (int i = 0; i < 20; i = i + 1)
     {
@@ -579,14 +581,14 @@ int inc_test20_index()
 }
 
 int test21_global_var = 21;
-int test21()
+int test21(void)
 {
     assert(21, 21, test21_global_var);
     return 0;
 }
 
 int test22_global_with_init[3] = {1, 2, 3};
-int test22()
+int test22(void)
 {
     assert(22, 1, test22_global_with_init[0]);
     assert(22, 2, test22_global_with_init[1]);
@@ -597,7 +599,7 @@ int test22()
 }
 
 int test23_global = 3;
-int test23()
+int test23(void)
 {
     assert(23, 3, test23_global);
     int *p = &test23_global;
@@ -608,7 +610,7 @@ int test23()
 
 char test24_char_global = 9;
 int test24_int_global = -1;
-int test24()
+int test24(void)
 {
     assert(24, 9, test24_char_global);
     test24_char_global = 98;
@@ -623,7 +625,7 @@ int test24()
     return 0;
 }
 
-int test25()
+int test25(void)
 {
     int int_var = -1;
     char char_var;
@@ -636,14 +638,14 @@ int test25()
     return 0;
 }
 
-int test26()
+int test26(void)
 {
     int array[1 * 0 + 8 * 2];
     assert(26, 16, sizeof(array) / sizeof(array[0]));
     return 0;
 }
 
-int test27()
+int test27(void)
 {
     int array_with_init[1 + 2 + 1] = {1, 2, 3};
     assert(27, 1, array_with_init[0]);
@@ -656,7 +658,7 @@ int test27()
 
 int test28_var = 3;
 int *test28_var_ptr = &test28_var;
-int test28()
+int test28(void)
 {
     assert(28, 3, test28_var);
     *test28_var_ptr = 89;
@@ -666,7 +668,7 @@ int test28()
 
 char add_chars(char a, char b, char c);
 
-int test29()
+int test29(void)
 {
     assert(29, 12, add_chars(9, 6, 3));
     return 0;
@@ -687,7 +689,7 @@ int ret3(int dummy1, int dummy2, int this)
     return this;
 }
 
-int test30()
+int test30(void)
 {
     char char_var = -1;
     int int_var = 4;
@@ -701,7 +703,7 @@ int test30()
     return 0;
 }
 
-int test31()
+int test31(void)
 {
     // char str_lit[] = "123456789";
     assert(31, 10, sizeof("123456789") / sizeof(char));
@@ -709,7 +711,7 @@ int test31()
     return 0;
 }
 
-int test32()
+int test32(void)
 {
     int a = 4;
     assert(32, -5, ~a);
@@ -722,14 +724,14 @@ int test32()
     return 0;
 }
 
-int test33()
+int test33(void)
 {
     assert(33, 4, 1 << 2);
     assert(33, 1, 4 >> 2);
     return 0;
 }
 
-int test34()
+int test34(void)
 {
     assert(34, 0b101, 0b101 & 0b111);
     assert(34, 0b10100, 0b10110 & 0b11100);
@@ -738,7 +740,7 @@ int test34()
     return 0;
 }
 
-int test35()
+int test35(void)
 {
     struct A
     {
@@ -752,7 +754,7 @@ int test35()
     return 0;
 }
 
-int test36()
+int test36(void)
 {
     int arr[2] = {1, 2};
     struct A
@@ -771,7 +773,7 @@ int test36()
     return 0;
 }
 
-int test37()
+int test37(void)
 {
     struct A
     {
@@ -811,7 +813,7 @@ char test38_take_void(void *char_array)
     return *char_ptr;
 }
 
-int test38()
+int test38(void)
 {
     int a = 2;
     test38_void_func(&a);
@@ -821,7 +823,7 @@ int test38()
     return 0;
 }
 
-int test39()
+int test39(void)
 {
     char *char_array = "0123456789";
     assert(39, 48, *char_array);
@@ -838,7 +840,7 @@ int test39()
     return 0;
 }
 
-int test40()
+int test40(void)
 {
     // int n = -1600;
     int n = -200;
@@ -855,7 +857,7 @@ int test40()
     return 0;
 }
 
-int test41()
+int test41(void)
 {
     struct List
     {
@@ -887,7 +889,7 @@ int test41()
     return 0;
 }
 
-int test42() {
+int test42(void) {
     struct A {
         struct A* before;
         struct A* after;
@@ -919,7 +921,7 @@ int test42() {
 // void FreeNodes(struct List * list, int free_parameter_as_well);
 // void FreeList(struct List * list);
 
-int test43() {
+int test43(void) {
     struct Doubly {
         struct Doubly *before;
         struct Doubly *after;
@@ -958,17 +960,17 @@ int test43() {
 }
 
 int test44_global_var;
-int inc_44_global_var_and_return_true() {
+int inc_44_global_var_and_return_true(void) {
     test44_global_var = test44_global_var + 1;
     return 1;
 }
 
-int inc_44_global_var_and_return_false() {
+int inc_44_global_var_and_return_false(void) {
     test44_global_var = test44_global_var + 1;
     return 0;
 }
 
-int test44() {
+int test44(void) {
     assert(44, 0, test44_global_var);
     assert(44, 1, inc_44_global_var_and_return_true() ? inc_44_global_var_and_return_true() : inc_44_global_var_and_return_false());
     assert(44, 2, test44_global_var);
@@ -980,17 +982,17 @@ int test44() {
 }
 
 int  test45_global_var;
-int inc_45_global_var_and_return_true() {
+int inc_45_global_var_and_return_true(void) {
     test45_global_var = test45_global_var + 1;
     return 1;
 }
 
-int inc_45_global_var_and_return_false() {
+int inc_45_global_var_and_return_false(void) {
     test45_global_var = test45_global_var + 1;
     return 0;
 }
 
-int test45() {
+int test45(void) {
     assert(45, 1, inc_45_global_var_and_return_true() && inc_45_global_var_and_return_true());
     assert(45, 2, test45_global_var);
     assert(45, 1, inc_45_global_var_and_return_true() || inc_45_global_var_and_return_true());
@@ -1004,7 +1006,7 @@ int test45() {
     return 0;
 }
 
-int test46() {
+int test46(void) {
     int a = 1;
     assert(46, 1, a++);
     assert(46, 2, a++);
@@ -1027,17 +1029,17 @@ int test46() {
 
 int test47_global_var = 1;
 // called only once
-int *ret_addr_of_test47_global_bar() {
+int *ret_addr_of_test47_global_bar(void) {
     assert(47, 1, test47_global_var);
     return &test47_global_var;
 }
-int test47() {
+int test47(void) {
     assert(47, 1, (*(ret_addr_of_test47_global_bar()))++);
     assert(47, 2, test47_global_var);
     return 0;
 }
 
-int test48() {
+int test48(void) {
     int a = 1;
     assert(48, 2, ++a);
     assert(48, 3, ++a);
@@ -1060,11 +1062,11 @@ int test48() {
 
 int test49_global_var = 1;
 // called only once
-int *ret_addr_of_test49_global_bar() {
+int *ret_addr_of_test49_global_bar(void) {
     assert(49, 1, test49_global_var);
     return &test49_global_var;
 }
-int test49() {
+int test49(void) {
     assert(49, 2, ++(*(ret_addr_of_test49_global_bar())));
     assert(49, 2, test49_global_var);
     return 0;
@@ -1072,18 +1074,18 @@ int test49() {
 
 #define CONST_FOR_TEST50 -5111
 
-int test50() {
+int test50(void) {
     assert(50, -5111, CONST_FOR_TEST50);
     return 0;
 }
 
 #define TEST51_RENAMED_FUNC test51_renaming_func
 
-int test51_renaming_func() {
+int test51_renaming_func(void) {
     return 234;
 }
 
-int test51() {
+int test51(void) {
     assert(51, 234, TEST51_RENAMED_FUNC());
     return  0;
 }
@@ -1091,11 +1093,11 @@ int test51() {
 #define TEST52_DEFINED_CONST
 
 #ifdef TEST52_DEFINED_CONST
-int test52_just_ret() {
+int test52_just_ret(void) {
     return 2;
 }
 #else
-int test52_just_ret() {
+int test52_just_ret(void) {
     return 3;
 }
 this is てきとう words
@@ -1103,16 +1105,16 @@ this is てきとう words
 
 #undef TEST52_DEFINED_CONST
 #ifdef TEST52_DEFINED_CONST
-int test52_just_ret2() {
+int test52_just_ret2(void) {
     return 2;
 }
 #else
-int test52_just_ret2() {
+int test52_just_ret2(void) {
     return 3;
 }
 #endif
 
-int test52() {
+int test52(void) {
     assert(52, 2, test52_just_ret());
     assert(52, 3, test52_just_ret2());
     return 0;
@@ -1123,7 +1125,7 @@ enum test53_enum {
     TEST53_ENUM_B,
     TEST53_ENUM_C,
 };
-int test53() {
+int test53(void) {
     enum A { 
         A1,
         A2,
@@ -1137,7 +1139,7 @@ int test53() {
     return 0;
 }
 
-int test54() {
+int test54(void) {
     int two = 2;
     char fifteen = 11;
     int arr[5][3] = {
@@ -1165,7 +1167,7 @@ int test55_global_array[5][2] =
     {9, 10},
 };
 
-int test55() {
+int test55(void) {
     for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 2; j++) {
             if (i == 2 && j == 1) {
@@ -1184,7 +1186,7 @@ char *test56_strings[4] = {
     "blue",
     "really_long_string_more_than_eight",
 };
-int test56() {
+int test56(void) {
     assert(56, 0, strncmp(test56_strings[0], "red", sizeof("red") / sizeof(char)));
     assert(56, 0, strncmp(test56_strings[1], "green", sizeof("green") / sizeof(char)));
     assert(56, 0, strncmp(test56_strings[2], "blue", sizeof("blue") / sizeof(char)));
@@ -1203,7 +1205,7 @@ int test56() {
     return 0;
 }
 
-int test57() {
+int test57(void) {
     char * string = "this" "is" "a" "string.";
     assert(57, 0, strncmp(string, "thisisastring.", sizeof("thisisastring.") / sizeof(char)));
     return 0;
@@ -1214,7 +1216,7 @@ __asm__(".intel_syntax noprefix\n"
         "  mov rax, 58\n"
         "  ret\n");
 
-int  test59() {
+int  test59(void) {
     __asm__(".intel_syntax noprefix\n"
             "  mov rax, 59\n"
             "  mov rsp, rbp\n"
@@ -1226,7 +1228,7 @@ int  test59() {
     #endif
 }
 
-int test60() {
+int test60(void) {
     #ifndef __STDC__
     int a = __asm__("push 60\n");
     #else
@@ -1237,7 +1239,7 @@ int test60() {
 }
 
 typedef int test61_typedefed;
-int test61() {
+int test61(void) {
     assert(61, 4, sizeof(test61_typedefed));
     typedef int test61_typedefed[3];
     assert(61, 12, sizeof(test61_typedefed));
@@ -1249,7 +1251,7 @@ int test61() {
     return 0;
 }
 
-int test62() {
+int test62(void) {
     typedef struct {
         int a;
         int b;
@@ -1270,7 +1272,7 @@ int test62() {
     return 0;
 }
 
-int test63() {
+int test63(void) {
     typedef enum {
         A,
         B,
@@ -1295,7 +1297,7 @@ int test63() {
     assert(63, 4, sizeof(CertainKind2));
 }
 
-int test64() {
+int test64(void) {
     assert(64, 0, false);
     assert(64, 1, true);
     typedef enum {
@@ -1331,7 +1333,7 @@ void exit_as_error_with_msg(char *msg) {
     exit(1);
 }
 
-int test65() {
+int test65(void) {
     int sum = 0;
     for(int i = 0;;++i) {
         sum = sum + i;
@@ -1356,7 +1358,7 @@ int test65() {
     return 0;
 }
 
-int test66() {
+int test66(void) {
     char *string1 = "abcd";
     char string2[5];
     string2[0] = 'a';
@@ -1368,12 +1370,12 @@ int test66() {
     return 0;
 }
 
-int test67() {
+int test67(void) {
     assert(67, 67 ,test67_external_global_var);
     return 0;
 }
 
-int test68() {
+int test68(void) {
     int a = 1;
     a += 3;
     assert(68, 4, a);
@@ -1391,7 +1393,7 @@ void test69_set_ptr(int *p) {
     *p = 2;
 }
 
-int test69() {
+int test69(void) {
     int a;
     int *p = &a;
     test69_set_ptr(p);
@@ -1399,7 +1401,7 @@ int test69() {
     return 0;
 }
 
-int test70() {
+int test70(void) {
     switch (1) {
             case 1:
                 switch(2) {
@@ -1417,4 +1419,23 @@ int test70() {
                 break;
     }
     exit_as_error_with_msg("TEST70: should not reach here3");
+}
+
+int test71(void) {
+    int tmp_int = 1001;
+    typedef struct {
+        int a;
+        char b;
+        int *p;
+    } A;
+    A a1;
+    a1.a = 1;
+    a1.b = 2;
+    a1.p = &tmp_int;
+    A a2;
+    a2 = a1;
+    assert(71, 1, a2.a);
+    assert(71, 2, a2.b);
+    assert(71, 1001, *a1.p);
+    return 0;
 }

@@ -1,0 +1,53 @@
+---
+source: tests/insta_test.rs
+assertion_line: 315
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        VaStartInit {
+                            arg_n: 0,
+                        },
+                        Block(
+                            [],
+                        ),
+                        Return(
+                            Some(
+                                ConvExpr {
+                                    kind: Num(
+                                        12,
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: ,
+                                        pos: Position {
+                                            n_char: 11,
+                                            n_line: 8,
+                                        },
+                                    },
+                                },
+                            ),
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 148,
+            },
+        ),
+    ],
+}
