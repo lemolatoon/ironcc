@@ -8,10 +8,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 1,
@@ -23,10 +20,7 @@ expression: tester.tokens().as_ref().unwrap()
             "main",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 1,
@@ -38,10 +32,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 1,
@@ -53,10 +44,7 @@ expression: tester.tokens().as_ref().unwrap()
             Paren,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 9,
                 n_line: 1,
@@ -68,10 +56,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 11,
                 n_line: 1,
@@ -83,10 +68,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 2,
@@ -98,10 +80,7 @@ expression: tester.tokens().as_ref().unwrap()
             "i",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 2,
@@ -111,10 +90,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 5,
                 n_line: 2,
@@ -126,10 +102,7 @@ expression: tester.tokens().as_ref().unwrap()
             "i",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 3,
@@ -137,12 +110,11 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 2,
                 n_line: 3,
@@ -154,10 +126,7 @@ expression: tester.tokens().as_ref().unwrap()
             5,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 3,
@@ -167,10 +136,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 5,
                 n_line: 3,
@@ -182,10 +148,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 4,
@@ -197,10 +160,7 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 3,
                 n_line: 4,
@@ -212,10 +172,7 @@ expression: tester.tokens().as_ref().unwrap()
             "p",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 5,
                 n_line: 4,
@@ -225,10 +182,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 6,
                 n_line: 4,
@@ -240,10 +194,7 @@ expression: tester.tokens().as_ref().unwrap()
             "p",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 8,
                 n_line: 4,
@@ -251,12 +202,11 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 10,
                 n_line: 4,
@@ -268,10 +218,7 @@ expression: tester.tokens().as_ref().unwrap()
             And,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 4,
@@ -283,10 +230,7 @@ expression: tester.tokens().as_ref().unwrap()
             "i",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 13,
                 n_line: 4,
@@ -296,10 +240,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 14,
                 n_line: 4,
@@ -311,10 +252,7 @@ expression: tester.tokens().as_ref().unwrap()
             Int,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 5,
@@ -326,10 +264,7 @@ expression: tester.tokens().as_ref().unwrap()
             Star,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 4,
                 n_line: 5,
@@ -341,10 +276,7 @@ expression: tester.tokens().as_ref().unwrap()
             "p2",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 5,
                 n_line: 5,
@@ -354,10 +286,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 7,
                 n_line: 5,
@@ -369,10 +298,7 @@ expression: tester.tokens().as_ref().unwrap()
             "p2",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 9,
                 n_line: 5,
@@ -380,12 +306,11 @@ expression: tester.tokens().as_ref().unwrap()
         },
     },
     Token {
-        kind: Eq,
+        kind: BinOpEq(
+            Eq,
+        ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 12,
                 n_line: 5,
@@ -397,10 +322,7 @@ expression: tester.tokens().as_ref().unwrap()
             "p",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 14,
                 n_line: 5,
@@ -412,10 +334,7 @@ expression: tester.tokens().as_ref().unwrap()
             Plus,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 16,
                 n_line: 5,
@@ -427,10 +346,7 @@ expression: tester.tokens().as_ref().unwrap()
             "i",
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 18,
                 n_line: 5,
@@ -440,10 +356,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Semi,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 19,
                 n_line: 5,
@@ -455,10 +368,7 @@ expression: tester.tokens().as_ref().unwrap()
             Brace,
         ),
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 6,
@@ -468,10 +378,7 @@ expression: tester.tokens().as_ref().unwrap()
     Token {
         kind: Eof,
         debug_info: DebugInfo {
-            file_info: FileInfo {
-                file_name: "not impl name.c",
-                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-            },
+            file_info: ,
             pos: Position {
                 n_char: 0,
                 n_line: 6,

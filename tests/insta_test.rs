@@ -300,9 +300,23 @@ fn unary_inc_dec() {
     all!(tester);
 }
 
+#[test]
+fn char_literal_test() {
+    let src = r#"
+    int main() {
+        char arr[3];
+        arr[0] = 'a';
+    }
+    "#;
+    let mut tester = CachedProcessor::new(src);
+    all!(tester);
+}
+
 gen_test!(struct_declaration2);
 gen_test!(struct_member_access);
 gen_test!(struct_incomplete_member);
 gen_test!(enum_declaration);
 gen_test!(array_initializer);
 gen_test!(typedef);
+gen_test!(switch);
+gen_test!(assign_op);

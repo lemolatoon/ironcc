@@ -1,0 +1,763 @@
+---
+source: tests/insta_test.rs
+assertion_line: 317
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Global(
+            GVar {
+                name: "global_doubly_linked_list",
+                ty: Struct(
+                    Struct {
+                        tag: Some(
+                            "A",
+                        ),
+                        members: [
+                            StructMember {
+                                name: "before",
+                                offset: 8,
+                                ty: Ptr(
+                                    InComplete(
+                                        Struct(
+                                            "A",
+                                        ),
+                                    ),
+                                ),
+                            },
+                            StructMember {
+                                name: "value",
+                                offset: 12,
+                                ty: Base(
+                                    Int,
+                                ),
+                            },
+                            StructMember {
+                                name: "after",
+                                offset: 24,
+                                ty: Ptr(
+                                    InComplete(
+                                        Struct(
+                                            "A",
+                                        ),
+                                    ),
+                                ),
+                            },
+                        ],
+                    },
+                ),
+                init: None,
+                is_extern: false,
+            },
+        ),
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        VaStartInit {
+                            arg_n: 0,
+                        },
+                        Block(
+                            [],
+                        ),
+                        Block(
+                            [],
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: Member {
+                                            struct_expr: ConvExpr {
+                                                kind: GVar(
+                                                    GVar {
+                                                        name: "global_doubly_linked_list",
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "before",
+                                                                        offset: 8,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "value",
+                                                                        offset: 12,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "after",
+                                                                        offset: 24,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                        init: None,
+                                                        is_extern: false,
+                                                    },
+                                                ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "before",
+                                                                offset: 8,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "value",
+                                                                offset: 12,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "after",
+                                                                offset: 24,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 4,
+                                                        n_line: 9,
+                                                    },
+                                                },
+                                            },
+                                            minus_offset: 0,
+                                        },
+                                        ty: Ptr(
+                                            InComplete(
+                                                Struct(
+                                                    "A",
+                                                ),
+                                            ),
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 30,
+                                                n_line: 9,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Addr(
+                                            ConvExpr {
+                                                kind: LVar(
+                                                    LVar {
+                                                        offset: 160,
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "before",
+                                                                        offset: 8,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "value",
+                                                                        offset: 12,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "after",
+                                                                        offset: 24,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                    },
+                                                ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "before",
+                                                                offset: 8,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "value",
+                                                                offset: 12,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "after",
+                                                                offset: 24,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 40,
+                                                        n_line: 9,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        ty: Ptr(
+                                            Struct(
+                                                Struct {
+                                                    tag: Some(
+                                                        "A",
+                                                    ),
+                                                    members: [
+                                                        StructMember {
+                                                            name: "before",
+                                                            offset: 8,
+                                                            ty: Ptr(
+                                                                InComplete(
+                                                                    Struct(
+                                                                        "A",
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "value",
+                                                            offset: 12,
+                                                            ty: Base(
+                                                                Int,
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "after",
+                                                            offset: 24,
+                                                            ty: Ptr(
+                                                                InComplete(
+                                                                    Struct(
+                                                                        "A",
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        },
+                                                    ],
+                                                },
+                                            ),
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 39,
+                                                n_line: 9,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Ptr(
+                                    InComplete(
+                                        Struct(
+                                            "A",
+                                        ),
+                                    ),
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 37,
+                                        n_line: 9,
+                                    },
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: Member {
+                                            struct_expr: ConvExpr {
+                                                kind: GVar(
+                                                    GVar {
+                                                        name: "global_doubly_linked_list",
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "before",
+                                                                        offset: 8,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "value",
+                                                                        offset: 12,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "after",
+                                                                        offset: 24,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                        init: None,
+                                                        is_extern: false,
+                                                    },
+                                                ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "before",
+                                                                offset: 8,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "value",
+                                                                offset: 12,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "after",
+                                                                offset: 24,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 4,
+                                                        n_line: 10,
+                                                    },
+                                                },
+                                            },
+                                            minus_offset: 8,
+                                        },
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 30,
+                                                n_line: 10,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Num(
+                                            2,
+                                        ),
+                                        ty: Base(
+                                            Int,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 38,
+                                                n_line: 10,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Int,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 36,
+                                        n_line: 10,
+                                    },
+                                },
+                            },
+                        ),
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: Member {
+                                            struct_expr: ConvExpr {
+                                                kind: GVar(
+                                                    GVar {
+                                                        name: "global_doubly_linked_list",
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "before",
+                                                                        offset: 8,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "value",
+                                                                        offset: 12,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "after",
+                                                                        offset: 24,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                        init: None,
+                                                        is_extern: false,
+                                                    },
+                                                ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "before",
+                                                                offset: 8,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "value",
+                                                                offset: 12,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "after",
+                                                                offset: 24,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 4,
+                                                        n_line: 11,
+                                                    },
+                                                },
+                                            },
+                                            minus_offset: 16,
+                                        },
+                                        ty: Ptr(
+                                            InComplete(
+                                                Struct(
+                                                    "A",
+                                                ),
+                                            ),
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 30,
+                                                n_line: 11,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Addr(
+                                            ConvExpr {
+                                                kind: LVar(
+                                                    LVar {
+                                                        offset: 184,
+                                                        ty: Struct(
+                                                            Struct {
+                                                                tag: Some(
+                                                                    "A",
+                                                                ),
+                                                                members: [
+                                                                    StructMember {
+                                                                        name: "before",
+                                                                        offset: 8,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "value",
+                                                                        offset: 12,
+                                                                        ty: Base(
+                                                                            Int,
+                                                                        ),
+                                                                    },
+                                                                    StructMember {
+                                                                        name: "after",
+                                                                        offset: 24,
+                                                                        ty: Ptr(
+                                                                            InComplete(
+                                                                                Struct(
+                                                                                    "A",
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ),
+                                                    },
+                                                ),
+                                                ty: Struct(
+                                                    Struct {
+                                                        tag: Some(
+                                                            "A",
+                                                        ),
+                                                        members: [
+                                                            StructMember {
+                                                                name: "before",
+                                                                offset: 8,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "value",
+                                                                offset: 12,
+                                                                ty: Base(
+                                                                    Int,
+                                                                ),
+                                                            },
+                                                            StructMember {
+                                                                name: "after",
+                                                                offset: 24,
+                                                                ty: Ptr(
+                                                                    InComplete(
+                                                                        Struct(
+                                                                            "A",
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            },
+                                                        ],
+                                                    },
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 39,
+                                                        n_line: 11,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        ty: Ptr(
+                                            Struct(
+                                                Struct {
+                                                    tag: Some(
+                                                        "A",
+                                                    ),
+                                                    members: [
+                                                        StructMember {
+                                                            name: "before",
+                                                            offset: 8,
+                                                            ty: Ptr(
+                                                                InComplete(
+                                                                    Struct(
+                                                                        "A",
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "value",
+                                                            offset: 12,
+                                                            ty: Base(
+                                                                Int,
+                                                            ),
+                                                        },
+                                                        StructMember {
+                                                            name: "after",
+                                                            offset: 24,
+                                                            ty: Ptr(
+                                                                InComplete(
+                                                                    Struct(
+                                                                        "A",
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        },
+                                                    ],
+                                                },
+                                            ),
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 38,
+                                                n_line: 11,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Ptr(
+                                    InComplete(
+                                        Struct(
+                                            "A",
+                                        ),
+                                    ),
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 36,
+                                        n_line: 11,
+                                    },
+                                },
+                            },
+                        ),
+                    ],
+                ),
+                stack_size: 184,
+            },
+        ),
+    ],
+}

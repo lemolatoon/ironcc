@@ -4,22 +4,132 @@ use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
         ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        GVar, LVar, Type,
+        GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
+    parse::BinOpKind,
     unimplemented_err,
 };
 
 #[derive(Debug, Clone)]
 pub struct Generator {
     label: usize,
+    loop_label_stack: LoopLabelStack,
     depth: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct LoopLabelStack(Vec<LoopLabel>);
+
+impl LoopLabelStack {
+    pub const fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn push(&mut self, label: LoopLabel) {
+        self.0.push(label);
+    }
+
+    pub fn pop(&mut self) -> Option<LoopLabel> {
+        self.0.pop()
+    }
+
+    /// Returns the label of the innermost loop. `LoopLabel::For(_)` or `LoopLabel::While(_)`
+    pub fn get_closest_continue_label_loop_and_pop(&mut self) -> Result<LoopLabel, CompileError> {
+        let prev_loop_label;
+        loop {
+            if let Some(loop_label @ (LoopLabel::For(_) | LoopLabel::While(_))) = self.0.pop() {
+                prev_loop_label = loop_label;
+                break;
+            } else if self.0.pop().is_none() {
+                return Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: continue stmt is not checked until analysis phase."
+                ));
+            }
+        }
+        self.0.push(prev_loop_label);
+        Ok(prev_loop_label)
+    }
+
+    /// Returns the label of the innermost loop or switch. `LoopLabel::Switch(_)`, `LoopLabel::For(_)` or `LoopLabel::While(_)`
+    pub fn get_closest_break_label_loop_or_switch_and_pop(
+        &self,
+    ) -> Result<LoopLabel, CompileError> {
+        self.0.last().map_or_else(
+            || {
+                Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: break stmt is not checked until analysis phase."
+                ))
+            },
+            |loop_label| Ok(*loop_label),
+        )
+    }
+
+    /// Returns the label of the innermost switch. `LoopLabel::Switch(_)`
+    pub fn get_closest_switch_and_pop(&mut self) -> Result<usize, CompileError> {
+        let prev_loop_label;
+        loop {
+            if let Some(loop_label @ LoopLabel::Switch(_)) = self.0.pop() {
+                prev_loop_label = loop_label;
+                break;
+            } else if self.0.pop().is_none() {
+                return Err(unimplemented_err!(
+                    "INTERNAL COMPILER ERROR: case stmt is not checked until analysis phase."
+                ));
+            }
+        }
+        self.0.push(prev_loop_label);
+        Ok(prev_loop_label.get_label())
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum LoopLabel {
+    While(usize),
+    For(usize),
+    Switch(usize),
+}
+
+impl LoopLabel {
+    pub const fn get_label(&self) -> usize {
+        match self {
+            LoopLabel::For(label) | LoopLabel::Switch(label) | LoopLabel::While(label) => *label,
+        }
+    }
 }
 
 impl Generator {
     pub const fn new() -> Self {
-        Self { label: 0, depth: 0 }
+        Self {
+            label: 0,
+            loop_label_stack: LoopLabelStack::new(),
+            depth: 0,
+        }
     }
+
+    // pub fn gen_labeled_stmt(
+    //     &mut self,
+    //     f: &mut BufWriter<impl Write>,
+    //     // TODO: make ConvLabelKind
+    //     kind: LabelKind,
+    //     stmt: ConvStmt,
+    // ) -> Result<(), CompileError> {
+    //     let label = self.loop_label_stack.last().unwrap();
+    //     match label {
+    //         LoopLabel::While(index) => todo!(),
+    //         LoopLabel::For(index) => todo!(),
+    //         LoopLabel::Switch(index) => match kind {
+    //             LabelKind::Ident(label) => writeln!(f, "{}:", label)?,
+    //             LabelKind::Case(case_index) => {
+    //                 writeln!(f, ".Lcase{}_{}:", index, case_index)?;
+    //                 case_indexes.push(label_index);
+    //                 self.gen_stmt(&mut buf_writer_labels, stmt)?;
+    //             }
+    //             LabelKind::Default => todo!(),
+    //         },
+    //     }
+    //     Ok(())
+    // }
 
     /// this function has the same function as `push`, but in the future this function will have the function, cast(with sign extension) and push
     pub fn push_with_sign_extension<W: Write>(
@@ -167,8 +277,19 @@ impl Generator {
                     self.pop(f, RegKind::Rbp)?;
                     writeln!(f, "  ret")?;
                 }
-                ConvProgramKind::Global(GVar { name, ty, init }) => {
+                ConvProgramKind::Global(GVar {
+                    name,
+                    ty,
+                    init,
+                    is_extern,
+                }) => {
+                    if is_extern {
+                        continue;
+                    }
                     writeln!(f, ".data")?;
+                    if !name.starts_with('.') {
+                        writeln!(f, ".global {}", name)?;
+                    }
                     writeln!(f, "{}:", name)?;
                     match init {
                         Some(init) => match ty {
@@ -232,6 +353,7 @@ impl Generator {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn gen_stmt<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
@@ -243,8 +365,10 @@ impl Generator {
                 self.pop(f, RegKind::Rax)?;
             }
             ConvStmt::Return(expr, name) => {
-                self.gen_expr(f, expr)?;
-                self.pop(f, RegKind::Rax)?;
+                if let Some(expr) = expr {
+                    self.gen_expr(f, expr)?;
+                    self.pop(f, RegKind::Rax)?;
+                }
                 writeln!(f, "  jmp .L{}_ret", name)?;
             }
             ConvStmt::If(cond, then, Some(els)) => {
@@ -286,11 +410,11 @@ impl Generator {
             }
             ConvStmt::While(cond, then) => {
                 let label_index = self.label();
+                self.loop_label_stack.push(LoopLabel::While(label_index));
                 let ty_size_of = cond.ty.size_of();
                 writeln!(f, ".Lbegin{}:", label_index)?;
                 self.gen_expr(f, cond)?;
                 self.pop(f, RegKind::Rax)?;
-                // writeln!(f, "  cmp rax, 0")?;
                 Self::gen_cmp(
                     f,
                     RegOrLit::Reg(RegKind::Rax),
@@ -302,9 +426,11 @@ impl Generator {
                 self.gen_stmt(f, *then)?;
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
+                self.loop_label_stack.pop();
             }
             ConvStmt::For(init, cond, inc, then) => {
                 let label_index = self.label();
+                self.loop_label_stack.push(LoopLabel::For(label_index));
                 if let Some(init) = init {
                     self.gen_expr(f, init)?;
                     self.pop(f, RegKind::Rax)?;
@@ -331,18 +457,112 @@ impl Generator {
                 }
                 writeln!(f, "  jmp .Lbegin{}", label_index)?;
                 writeln!(f, ".Lend{}:", label_index)?;
+                self.loop_label_stack.pop();
             }
             ConvStmt::Block(stmts) => {
                 for stmt in stmts {
                     self.gen_stmt(f, stmt)?;
                 }
             }
+            ConvStmt::Switch {
+                expr,
+                cases,
+                stmt,
+                has_default,
+            } => {
+                let index = self.label();
+                self.loop_label_stack.push(LoopLabel::Switch(index));
+                self.gen_expr(f, expr)?;
+                self.pop(f, RegKind::Rax)?;
+                for label_index in cases {
+                    writeln!(f, "  cmp rax, {}", label_index)?;
+                    writeln!(f, "  je .Lcase{}_{}", index, label_index)?;
+                }
+                if has_default {
+                    writeln!(f, "  jmp .Ldefault{}", index)?;
+                }
+                //for stmt in labels {
+                //    match stmt {
+                //        crate::analyze::SwitchBodyStmt::Stmt(stmt) => {
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Case(label_index, stmt) => {
+                //            writeln!(&mut buf_writer_labels, ".Lcase{}_{}:", index, label_index)?;
+                //            case_indexes.push(label_index);
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Default(stmt) => {
+                //            writeln!(&mut buf_writer_labels, ".Ldefault{}:", index)?;
+                //            self.gen_stmt(&mut buf_writer_labels, stmt)?;
+                //        }
+                //        crate::analyze::SwitchBodyStmt::Break => {
+                //            writeln!(&mut buf_writer_labels, "  jmp .Lend{}", index)?;
+                //        }
+                //    }
+                //}
+                self.gen_stmt(f, *stmt)?;
+                writeln!(f, ".Lend{}:", index)?;
+                self.loop_label_stack.pop();
+            }
+            ConvStmt::LoopControl(LoopControlKind::Break) => {
+                match self
+                    .loop_label_stack
+                    .get_closest_break_label_loop_or_switch_and_pop()?
+                {
+                    LoopLabel::While(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
+                    }
+                    LoopLabel::For(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
+                    }
+                    LoopLabel::Switch(index) => {
+                        writeln!(f, "  jmp .Lend{}", index)?;
+                    }
+                }
+            }
+            ConvStmt::LoopControl(LoopControlKind::Continue) => {
+                match self
+                    .loop_label_stack
+                    .get_closest_continue_label_loop_and_pop()?
+                {
+                    LoopLabel::While(index) => writeln!(f, "  jmp .Lbegin{}", index)?,
+                    LoopLabel::For(index) => writeln!(f, "  jmp .Lbegin{}", index)?,
+                    _ => unreachable!(),
+                }
+            }
+            ConvStmt::LoopControl(LoopControlKind::Case(label_index, stmt)) => {
+                let index = self.loop_label_stack.get_closest_switch_and_pop()?;
+                writeln!(f, ".Lcase{}_{}:", index, label_index)?;
+                self.gen_stmt(f, *stmt)?;
+            }
+            ConvStmt::LoopControl(LoopControlKind::Default(stmt)) => {
+                let index = self.loop_label_stack.get_closest_switch_and_pop()?;
+                writeln!(f, ".Ldefault{}:", index)?;
+                self.gen_stmt(f, *stmt)?;
+            }
+            ConvStmt::VaStartInit { arg_n } => {
+                let arg_regs = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"][arg_n..6];
+                let float_regs = [
+                    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+                ];
+                let mut offset: usize = 176 - arg_n * 8;
+                for arg_reg in arg_regs {
+                    writeln!(f, "  mov QWORD PTR [rbp-{}], {}", offset, arg_reg)?;
+                    offset -= 8;
+                }
+                for float_reg in float_regs {
+                    writeln!(f, "  movaps XMMWORD PTR [rbp-{}], {}", offset, float_reg)?;
+                    offset -= 16;
+                }
+                assert_eq!(offset, 0);
+            }
         };
         Ok(())
     }
 
     /// # Errors
-    /// return errors when file IO failed or compilation falied
+    /// return errors when file IO failed or compilation failed
+    /// Caller saved registers: rax, rdi, rsi, rdx, rcx, r8, r9 .... (WIP)
     #[allow(clippy::too_many_lines)]
     pub fn gen_expr<W: Write>(
         &mut self,
@@ -353,10 +573,9 @@ impl Generator {
         match expr.kind {
             ConvExprKind::Num(val) => self.push_lit(f, val)?,
             ConvExprKind::Binary(c_binary) => self.gen_binary(f, c_binary, &expr.ty)?,
-            ConvExprKind::LVar(_) => {
+            ConvExprKind::LVar(LVar { offset, ty: _ }) => {
                 let ty = expr.ty.clone();
-                self.gen_lvalue(f, expr.clone())?;
-                self.pop(f, RegKind::Rax)?; // rax = &expr
+                writeln!(f, "  lea rax, [rbp-{}]", offset)?;
                 Self::deref(
                     f,
                     RegKind::Rax,
@@ -455,14 +674,24 @@ impl Generator {
             ConvExprKind::Addr(expr) => {
                 self.gen_lvalue(f, *expr)?;
             }
-            ConvExprKind::GVar(GVar { name, ty, init }) => {
+            ConvExprKind::GVar(GVar {
+                name,
+                ty,
+                init,
+                is_extern: _,
+            }) => {
                 match ty.size_of() {
                     1 => writeln!(f, "  mov al, BYTE PTR {}[rip]", name)?,
                     4 => writeln!(f, "  mov eax, DWORD PTR {}[rip]", name)?,
                     8 => writeln!(f, "  mov rax, QWORD PTR {}[rip]", name)?,
                     _ => {
                         return Err(CompileError::new_type_size_error(
-                            UnexpectedTypeSizeStatus::Global(GVar { name, ty, init }),
+                            UnexpectedTypeSizeStatus::Global(GVar {
+                                name,
+                                ty,
+                                init,
+                                is_extern: false,
+                            }),
                         ))
                     }
                 };
@@ -562,6 +791,53 @@ impl Generator {
             ConvExprKind::Asm(asm) => {
                 // This asm must have push the value as an evaluated value.
                 writeln!(f, "  {}", asm)?;
+            }
+            ConvExprKind::OpAssign(lhs, rhs, kind) => {
+                writeln!(f, "  # OpAssign")?;
+                let bin_op: ConvBinOpKind =
+                    ConvBinOpKind::new(&BinOpKind::try_from(kind).unwrap()).unwrap();
+                let lhs_ty = lhs.ty.clone();
+                self.gen_lvalue(f, *lhs.clone())?;
+                self.pop(f, RegKind::R11)?; // r11 = &lhs
+                Self::deref(
+                    f,
+                    RegKind::Rdi,
+                    RegKind::R11,
+                    &lhs_ty,
+                    UnexpectedTypeSizeStatus::Expr(*lhs.clone()),
+                )?; // rdi = *r11
+                self.push(f, RegKind::Rdi)?;
+                let rhs_ty_sizeof = rhs.ty.size_of();
+                self.gen_expr(f, *rhs)?;
+                self.pop(f, RegKind::R10)?; // r10 = rhs
+                self.pop(f, RegKind::Rdi)?; // rdi = *r11 = lhs
+                self.gen_binary_with_reg(
+                    f,
+                    bin_op,
+                    RegKind::Rdi,
+                    RegKind::R10,
+                    lhs_ty.size_of(),
+                    rhs_ty_sizeof,
+                    &lhs_ty,
+                )?;
+                self.pop(f, RegKind::Rdi)?; // rdi = lhs op rhs
+                Self::assign(
+                    f,
+                    RegKind::R11,
+                    RegKind::Rdi,
+                    &lhs_ty,
+                    UnexpectedTypeSizeStatus::Expr(*lhs),
+                )?; // *r11 = rdi
+                self.push(f, RegKind::Rdi)?; // push calculated expr's value
+                writeln!(f, "  # OpAssign end")?;
+            }
+            ConvExprKind::Block(stmt, expr) => {
+                self.gen_stmt(f, *stmt)?;
+                if let Some(expr) = expr {
+                    self.gen_expr(f, *expr)?;
+                } else {
+                    self.push_lit(f, 0)?; // push tmp value
+                }
             }
         }
         Ok(())
@@ -668,6 +944,7 @@ impl Generator {
 
     /// # Errors
     /// return errors when file IO failed or compilation failed
+    /// Caller saved registers: rax
     pub fn gen_lvalue<W: Write>(
         &mut self,
         f: &mut BufWriter<W>,
@@ -686,6 +963,7 @@ impl Generator {
                 name,
                 ty: _,
                 init: _,
+                is_extern: _,
             }) => {
                 writeln!(f, "  lea rax, [rip+{}]", name)?;
                 self.push(f, RegKind::Rax)?;
@@ -717,37 +995,119 @@ impl Generator {
         self.gen_expr(f, *rhs)?; // -> rdi
         self.pop(f, RegKind::Rdi)?;
         self.pop(f, RegKind::Rax)?;
-        match op {
-            ConvBinOpKind::Add => writeln!(f, "  add rax, rdi")?,
-            ConvBinOpKind::Sub => writeln!(f, "  sub rax, rdi")?,
-            ConvBinOpKind::Mul => writeln!(f, "  imul rax, rdi")?,
+        self.gen_binary_with_reg(
+            f,
+            op,
+            RegKind::Rax,
+            RegKind::Rdi,
+            lhs_ty_sizeof,
+            rhs_ty_sizeof,
+            ty,
+        )?;
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_lines)]
+    pub fn gen_binary_with_reg(
+        &mut self,
+        f: &mut BufWriter<impl Write>,
+        bin_op: ConvBinOpKind,
+        lhs: RegKind,
+        rhs: RegKind,
+        lhs_ty_size: usize,
+        rhs_ty_size: usize,
+        ty: &Type,
+    ) -> Result<(), CompileError> {
+        // rax :lhs , rdi : rhs
+        match bin_op {
+            ConvBinOpKind::Add => {
+                writeln!(f, "  add {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
+            ConvBinOpKind::Sub => {
+                writeln!(f, "  sub {}, {}", lhs.qword(), rhs.qword())?;
+
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
+            ConvBinOpKind::Mul => {
+                writeln!(f, "  imul {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
+            }
             ConvBinOpKind::LShift => {
-                writeln!(f, "  mov rcx, rdi")?;
-                writeln!(f, "  sal rax, cl")?;
+                writeln!(f, "  mov rcx, {}", rhs.qword())?;
+                writeln!(f, "  sal {}, cl", lhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::RShift => {
-                writeln!(f, "  mov rcx, rdi")?;
-                writeln!(f, "  sar rax, cl")?;
+                writeln!(f, "  mov rcx, {}", rhs.qword())?;
+                writeln!(f, "  sar {}, cl", lhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::BitWiseAnd => {
-                writeln!(f, "  and rax, rdi")?;
+                writeln!(f, "  and {}, {}", lhs.qword(), rhs.qword())?;
+                return self.push_with_sign_extension(
+                    f,
+                    lhs,
+                    RegSize::try_new(ty.size_of()).unwrap(),
+                );
             }
             ConvBinOpKind::Div => {
-                // edx-eax = eax
-                writeln!(f, "  cdq")?;
-                // 0x0000ffff -> // 0xffffffff
-
-                // rdx-rax = rdx
-                // cqo
-                // 0x0000ffff -> // 0x0000ffff
+                if lhs != RegKind::Rax {
+                    writeln!(f, "  mov rax, {}", lhs.qword())?;
+                }
+                if rhs != RegKind::Rdi {
+                    writeln!(f, "  mov rdi, {}", rhs.qword())?;
+                }
+                if lhs_ty_size == 8 {
+                    // rdx-rax = rdx
+                    writeln!(f, "  cqo")?;
+                    // 0x0000ffff -> // 0x0000ffff
+                } else if lhs_ty_size == 4 {
+                    // edx-eax = eax
+                    writeln!(f, "  cdq")?;
+                    // 0x0000ffff -> // 0xffffffff
+                }
 
                 // rax = rdx-rax / rdi
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv edi")?;
             }
             ConvBinOpKind::Rem => {
-                // rdx-rax = rax
-                writeln!(f, "  cqo")?;
+                if lhs != RegKind::Rax {
+                    writeln!(f, "  mov rax, {}", lhs.qword())?;
+                }
+                if rhs != RegKind::Rdi {
+                    writeln!(f, "  mov rdi, {}", rhs.qword())?;
+                }
+                if lhs_ty_size == 8 {
+                    // rdx-rax = rdx
+                    writeln!(f, "  cqo")?;
+                    // 0x0000ffff -> // 0x0000ffff
+                } else if lhs_ty_size == 4 {
+                    // edx-eax = eax
+                    writeln!(f, "  cdq")?;
+                    // 0x0000ffff -> // 0xffffffff
+                }
                 // rax = rdx-rax / rdi
                 // rdx = rdx-rax % rdi
                 writeln!(f, "  idiv rdi")?;
@@ -757,10 +1117,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al : lowwer 8bit of rax
                 // al = flag-reg(eq)
@@ -771,10 +1131,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(less than or equal to)
                 writeln!(f, "  setle al")?;
@@ -784,10 +1144,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(less than)
                 writeln!(f, "  setl al")?;
@@ -797,10 +1157,10 @@ impl Generator {
                 // writeln!(f, "  cmp rax, rdi")?;
                 Self::gen_cmp(
                     f,
-                    RegOrLit::Reg(RegKind::Rax),
-                    lhs_ty_sizeof,
-                    RegOrLit::Reg(RegKind::Rdi),
-                    rhs_ty_sizeof,
+                    RegOrLit::Reg(lhs),
+                    lhs_ty_size,
+                    RegOrLit::Reg(rhs),
+                    rhs_ty_size,
                 )?;
                 // al = flag-reg(not equal to)
                 writeln!(f, "  setne al")?;

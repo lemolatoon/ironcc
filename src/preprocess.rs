@@ -11,25 +11,15 @@ use crate::tokenize::DebugInfo;
 use crate::tokenize::Eof;
 use crate::tokenize::FileInfo;
 use crate::tokenize::Token;
+use crate::unimplemented_err;
 
 pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
     define_table: BTreeMap<String, String>,
-}
-#[derive(Debug, Clone, Default)]
-pub struct DerectiveCount {
-    pub ifdef: usize,
-}
-
-impl DerectiveCount {
-    pub fn set_ifdef_flag(&mut self) {
-        self.ifdef += 1;
-    }
-
-    pub fn unset_ifdef_flag(&mut self) {
-        self.ifdef -= 1;
-    }
+    ifdef_depth: usize,
+    watching_label: usize,
+    // ifdef_stack: Vec<usize>,
 }
 
 pub enum SrcCursorGenerator {
@@ -64,20 +54,43 @@ impl<'b> Preprocessor<'b> {
             main_file_info,
             include_dir,
             define_table: BTreeMap::new(),
+            ifdef_depth: 0,
+            watching_label: 0,
         }
+    }
+
+    pub fn increment_ifdef_depth(&mut self) {
+        self.ifdef_depth += 1;
+    }
+
+    pub fn dec_ifdef_lable(&mut self) -> Result<(), CompileError> {
+        let next_value = self.ifdef_depth.checked_sub(1);
+        if let Some(next_vale) = next_value {
+            self.ifdef_depth = next_vale;
+            Ok(())
+        } else {
+            Err(unimplemented_err!("#endif or #else without #ifdef/#ifndef"))
+        }
+    }
+
+    pub fn increment_watching_depth(&mut self) {
+        self.watching_label += 1;
+    }
+
+    pub fn decrement_watching_depth(&mut self) {
+        self.watching_label -= 1;
     }
 
     #[allow(clippy::too_many_lines)]
     pub fn preprocess(
         &mut self,
-        src_cursor_generator: SrcCursorGenerator,
+        main_chars: &mut SrcCursor,
         tokens: Option<Vec<Token<TokenKind>>>,
-        derective_count: &mut Option<DerectiveCount>,
+        // derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
-        let mut main_chars = src_cursor_generator.into_cursor();
+        // let mut main_chars = main_chars.into_cursor();
         let mut tokens: Vec<Token<TokenKind>> = tokens.map_or_else(Vec::new, |tokens| tokens);
         'preprocess_loop: while !main_chars.is_empty() {
-            // dbg!(&main_chars.clone().collect::<String>());
             if let Some((debug_info, spaces)) =
                 main_chars.get_debug_info_and_skip_white_space_without_new_line()
             {
@@ -136,61 +149,127 @@ impl<'b> Preprocessor<'b> {
                                 if ifdefkind == "ifndef" {
                                     ifdef_flag = !ifdef_flag;
                                 }
+                                // set watching ifdef's depth and increment depth.
+                                self.increment_ifdef_depth();
+                                self.watching_label = self.ifdef_depth;
                                 if ifdef_flag {
-                                    // clippy's suggestion is wrong.
-                                    #[allow(clippy::option_if_let_else)]
-                                    if let Some(derective_count2) = derective_count {
-                                        derective_count2.set_ifdef_flag();
-                                    } else {
-                                        let mut new_derective_count = DerectiveCount::default();
-                                        new_derective_count.set_ifdef_flag();
-                                        *derective_count = Some(new_derective_count);
-                                    }
-                                    return self.preprocess(
-                                        main_chars.into(),
-                                        Some(tokens),
-                                        derective_count,
-                                    );
+                                    tokens = self.preprocess(main_chars.into(), Some(tokens))?;
+                                    continue 'preprocess_loop;
                                 }
+                                // skip until #endif
                                 loop {
                                     match main_chars.skip_until_macro_keyword().as_str() {
-                                        "endif" => break,
-                                        "else" => {
-                                            // clippy's suggestion is wrong.
-                                            #[allow(clippy::option_if_let_else)]
-                                            if let Some(derective_count) = derective_count {
-                                                derective_count.set_ifdef_flag();
-                                            } else {
-                                                let mut new_derective_count =
-                                                    DerectiveCount::default();
-                                                new_derective_count.set_ifdef_flag();
-                                                *derective_count = Some(new_derective_count);
+                                        "endif" => {
+                                            self.dec_ifdef_lable()?;
+                                            if self.ifdef_depth + 1 == self.watching_label {
+                                                // reached same depth
+                                                self.decrement_watching_depth();
+                                                if self.watching_label != 0 {
+                                                    // ifdef or ifndef is preprocessed by recursive function call.
+                                                    // so, if depth is not 0, it means that it is not top level.
+                                                    // we should return this
+                                                    return Ok(tokens);
+                                                }
+                                                continue 'preprocess_loop;
                                             }
-                                            return self.preprocess(
-                                                main_chars.into(),
-                                                Some(tokens),
-                                                derective_count,
+                                            // reached different depth
+                                            // has to be higher depth ifdef/ifndef
+                                            assert!(
+                                                self.watching_label <= self.ifdef_depth,
+                                                "watching_label: {}, ifdef_depth: {}",
+                                                self.watching_label,
+                                                self.ifdef_depth
                                             );
+                                            continue;
+                                        }
+                                        "else" => {
+                                            if self.ifdef_depth == self.watching_label {
+                                                // reached same depth
+                                                // We have just skipped ifdef/ifndef part.
+                                                // so, then we should preprocess else part by recursive function call.
+                                                tokens = self
+                                                    .preprocess(main_chars.into(), Some(tokens))?;
+                                                continue 'preprocess_loop;
+                                            }
+                                            // reached different depth
+                                            // has to be higher depth ifdef/ifndef
+                                            assert!(self.watching_label < self.ifdef_depth);
+                                            continue;
+                                        }
+                                        "ifdef" | "ifndef" => {
+                                            self.increment_ifdef_depth(); // just increment current depth.
+                                            continue;
                                         }
                                         _ => continue,
                                     }
                                 }
-                                continue 'preprocess_loop;
                             }
                             "else" => {
-                                // clippy's suggestion is wrong.
-                                #[allow(clippy::option_if_let_else)]
-                                if let Some(derective_count) = derective_count {
-                                    derective_count.unset_ifdef_flag();
-                                } else {
-                                    panic!("`ifdef` should be used before `else`");
+                                if self.ifdef_depth == 0 {
+                                    panic!("Countered else without ifdef or ifndef.");
                                 }
-                                while "endif" != main_chars.skip_until_macro_keyword().as_str() {}
-                                continue 'preprocess_loop;
+                                // outer loop is for preproccessing. so, since we catch #else, we should skip from now on.
+                                loop {
+                                    match main_chars.skip_until_macro_keyword().as_str() {
+                                        "ifdef" | "ifndef" => {
+                                            self.increment_ifdef_depth();
+                                            // just increment depth.
+                                        }
+                                        "endif" => {
+                                            self.dec_ifdef_lable()?;
+                                            if self.ifdef_depth + 1 == self.watching_label {
+                                                // reached same depth
+                                                self.decrement_watching_depth();
+                                                if self.watching_label != 0 {
+                                                    // ifdef or ifndef is preprocessed by recursive function call.
+                                                    // so, if depth is not 0, it means that it is not top level.
+                                                    // we should return this
+                                                    return Ok(tokens);
+                                                }
+                                                continue 'preprocess_loop;
+                                            }
+                                            // reached different depth
+                                            // has to be higher depth ifdef/ifndef
+                                            assert!(self.watching_label < self.ifdef_depth);
+                                            continue;
+                                        }
+                                        "else" => {
+                                            if self.ifdef_depth == self.watching_label {
+                                                // reached same depth
+
+                                                tokens = self
+                                                    .preprocess(main_chars.into(), Some(tokens))?;
+                                                continue 'preprocess_loop;
+                                            }
+                                            // reached different depth
+                                            // has to be higher depth ifdef/ifndef
+                                            assert!(self.watching_label < self.ifdef_depth);
+                                            continue;
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
                             }
                             "endif" => {
-                                if let Some(derective_count) = derective_count {
-                                    derective_count.unset_ifdef_flag();
+                                self.dec_ifdef_lable()?;
+                                if self.ifdef_depth + 1 == self.watching_label {
+                                    // reached same depth
+                                    self.decrement_watching_depth();
+                                    if self.watching_label != 0 {
+                                        // ifdef or ifndef is preprocessed by recursive function call.
+                                        // so, if depth is not 0, it means that it is not top level.
+                                        // we should return this
+                                        return Ok(tokens);
+                                    }
+                                } else {
+                                    // reached different depth
+                                    // has to be higher depth ifdef/ifndef
+                                    assert!(
+                                        self.watching_label < self.ifdef_depth,
+                                        "watching_label: {:?}, ifdef_depth: {:?}",
+                                        self.watching_label,
+                                        self.ifdef_depth
+                                    );
                                 }
                                 continue 'preprocess_loop;
                             }
@@ -210,23 +289,16 @@ impl<'b> Preprocessor<'b> {
                                 {
                                     str_lit.pop(); // -> "
                                     str_lit.remove(0); // -> "
-                                    tokens = self.include_from_file_dir(
-                                        &str_lit,
-                                        tokens,
-                                        derective_count,
-                                    )?;
+                                    tokens = self.include_from_file_dir(&str_lit, tokens)?;
                                     continue 'preprocess_loop;
                                 }
-                                let (_, mut file_name) = main_chars
+                                let (debug_info, mut file_name) = main_chars
                                     .get_debug_info_and_read_include_file()
                                     .expect("arg(ident) of include with `<` `>` must exist.");
                                 file_name.pop(); // -> '>'
                                 file_name.remove(0); // -> '<'
-                                tokens = self.include_from_include_dir(
-                                    &file_name,
-                                    tokens,
-                                    derective_count,
-                                )?;
+                                tokens =
+                                    self.include_from_include_dir(&debug_info, &file_name, tokens)?;
                                 continue 'preprocess_loop;
                             }
                             unknown => panic!("unknown derective: {}", unknown),
@@ -273,7 +345,6 @@ impl<'b> Preprocessor<'b> {
         &mut self,
         file_path: &str,
         mut tokens: Vec<Token<TokenKind>>,
-        derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let main_file = PathBuf::from(self.main_file_info.get_file_name());
         assert!(main_file.is_file());
@@ -285,27 +356,35 @@ impl<'b> Preprocessor<'b> {
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(
+            &mut SrcCursorGenerator::from(file_info).into_cursor(),
+            Some(tokens),
+        )?;
         Ok(tokens)
     }
 
     pub fn include_from_include_dir(
         &mut self,
+        debug_info: &DebugInfo,
         file_path: &str,
         mut tokens: Vec<Token<TokenKind>>,
-        derective_count: &mut Option<DerectiveCount>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let include_dir = PathBuf::from(self.include_dir);
         assert!(include_dir.is_dir(), "include_dir: {:?}", include_dir);
         let included_file_path = include_dir.join(file_path);
         let included_file_path = included_file_path.as_path();
-        assert!(included_file_path.exists());
+        if !included_file_path.exists() {
+            return Err(unimplemented_err!(
+                debug_info.clone(),
+                format!("include file does not exist: {:?}", included_file_path)
+            ));
+        }
         let src = read_file(included_file_path)?;
         let file_info = Rc::new(FileInfo::new(
             included_file_path.to_str().unwrap().to_string(),
             src,
         ));
-        tokens = self.preprocess(file_info.into(), Some(tokens), derective_count)?;
+        tokens = self.preprocess(&mut SrcCursor::new(file_info), Some(tokens))?;
         Ok(tokens)
     }
 }
@@ -766,7 +845,7 @@ impl PreprocessorTokenContainerStream {
     }
 
     pub fn starts_with(&self, prefix: &str) -> bool {
-        if self.chars.is_empty() {
+        if self.chars.len() < prefix.len() {
             return false;
         }
         self.chars
@@ -791,6 +870,7 @@ impl PreprocessorTokenContainerStream {
         matches!(self.peek(), Some((_, 'a'..='z' | 'A'..='Z')))
     }
 
+    // Consume stream passed times.
     pub fn advance(&mut self, times: usize) {
         for _ in 0..times {
             self.next();

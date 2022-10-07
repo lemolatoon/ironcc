@@ -1,0 +1,265 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: Declaration(
+                Declaration {
+                    declaration_specifiers: [
+                        Type(
+                            Int,
+                        ),
+                    ],
+                    init_declarator: Some(
+                        InitDeclarator {
+                            declarator: Declarator {
+                                n_star: 0,
+                                direct_declarator: Func(
+                                    Ident(
+                                        "f",
+                                    ),
+                                    [],
+                                    true,
+                                ),
+                            },
+                            initializer: None,
+                        },
+                    ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
+                },
+            ),
+            debug_info: DebugInfo {
+                file_info: ,
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
+            },
+        },
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                        true,
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Switch(
+                                    Expr {
+                                        kind: Func(
+                                            "f",
+                                            [],
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 12,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                    Stmt {
+                                        kind: Block(
+                                            [
+                                                Stmt {
+                                                    kind: Labeled(
+                                                        Case(
+                                                            Expr {
+                                                                kind: Num(
+                                                                    0,
+                                                                ),
+                                                                debug_info: DebugInfo {
+                                                                    file_info: ,
+                                                                    pos: Position {
+                                                                        n_char: 13,
+                                                                        n_line: 4,
+                                                                    },
+                                                                },
+                                                            },
+                                                        ),
+                                                        Stmt {
+                                                            kind: Return(
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            0,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: ,
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 5,
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 19,
+                                                                    n_line: 5,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: ,
+                                                        pos: Position {
+                                                            n_char: 13,
+                                                            n_line: 4,
+                                                        },
+                                                    },
+                                                },
+                                                Stmt {
+                                                    kind: Labeled(
+                                                        Case(
+                                                            Expr {
+                                                                kind: Num(
+                                                                    1,
+                                                                ),
+                                                                debug_info: DebugInfo {
+                                                                    file_info: ,
+                                                                    pos: Position {
+                                                                        n_char: 13,
+                                                                        n_line: 6,
+                                                                    },
+                                                                },
+                                                            },
+                                                        ),
+                                                        Stmt {
+                                                            kind: Return(
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            1,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: ,
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 7,
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 19,
+                                                                    n_line: 7,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: ,
+                                                        pos: Position {
+                                                            n_char: 13,
+                                                            n_line: 6,
+                                                        },
+                                                    },
+                                                },
+                                                Stmt {
+                                                    kind: Labeled(
+                                                        Default(
+                                                            DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 15,
+                                                                    n_line: 8,
+                                                                },
+                                                            },
+                                                        ),
+                                                        Stmt {
+                                                            kind: Return(
+                                                                Some(
+                                                                    Expr {
+                                                                        kind: Num(
+                                                                            666,
+                                                                        ),
+                                                                        debug_info: DebugInfo {
+                                                                            file_info: ,
+                                                                            pos: Position {
+                                                                                n_char: 19,
+                                                                                n_line: 9,
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 19,
+                                                                    n_line: 9,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: ,
+                                                        pos: Position {
+                                                            n_char: 15,
+                                                            n_line: 8,
+                                                        },
+                                                    },
+                                                },
+                                            ],
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 4,
+                                            },
+                                        },
+                                    },
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 3,
+                                    },
+                                },
+                            },
+                        ],
+                    ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 2,
+                        },
+                    },
+                },
+            ),
+            debug_info: DebugInfo {
+                file_info: ,
+                pos: Position {
+                    n_char: 0,
+                    n_line: 2,
+                },
+            },
+        },
+    ],
+}

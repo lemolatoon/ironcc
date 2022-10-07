@@ -40,10 +40,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 0,
                                                 n_line: 2,
@@ -51,6 +48,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 0,
+                                        n_line: 2,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -61,10 +65,7 @@ Program {
                                                     "i",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 0,
                                                         n_line: 3,
@@ -76,22 +77,17 @@ Program {
                                                     5,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 4,
                                                         n_line: 3,
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 2,
                                                 n_line: 3,
@@ -99,6 +95,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 0,
+                                        n_line: 3,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Declare(
@@ -120,10 +123,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 0,
                                                 n_line: 4,
@@ -131,6 +131,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 0,
+                                        n_line: 4,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -141,10 +148,7 @@ Program {
                                                     "p",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 8,
                                                         n_line: 4,
@@ -158,10 +162,7 @@ Program {
                                                             "i",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 13,
                                                                 n_line: 4,
@@ -170,22 +171,17 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 12,
                                                         n_line: 4,
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 10,
                                                 n_line: 4,
@@ -193,6 +189,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 4,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Declare(
@@ -214,10 +217,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 0,
                                                 n_line: 5,
@@ -225,6 +225,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 0,
+                                        n_line: 5,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -235,10 +242,7 @@ Program {
                                                     "p2",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 9,
                                                         n_line: 5,
@@ -254,10 +258,7 @@ Program {
                                                                 "p",
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_info: FileInfo {
-                                                                    file_name: "not impl name.c",
-                                                                    src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                                },
+                                                                file_info: ,
                                                                 pos: Position {
                                                                     n_char: 14,
                                                                     n_line: 5,
@@ -269,10 +270,7 @@ Program {
                                                                 "i",
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_info: FileInfo {
-                                                                    file_name: "not impl name.c",
-                                                                    src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                                },
+                                                                file_info: ,
                                                                 pos: Position {
                                                                     n_char: 18,
                                                                     n_line: 5,
@@ -282,22 +280,17 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 16,
                                                         n_line: 5,
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 12,
                                                 n_line: 5,
@@ -305,16 +298,27 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 9,
+                                        n_line: 5,
+                                    },
+                                },
                             },
                         ],
                     ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 1,
+                        },
+                    },
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "\nint main() {\nint i;\ni = 5;\nint* p; p = &i;\nint *p2; p2 = p + i;\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 1,

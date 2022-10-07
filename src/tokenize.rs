@@ -1,6 +1,8 @@
 use crate::error::CompileError;
-use crate::parse::Scope;
-use crate::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use crate::parse::{self, BinOpKind, Scope};
+use crate::preprocess::{
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+};
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
@@ -22,7 +24,6 @@ impl Tokenizer {
         let mut tokens = Vec::new();
 
         'tokenize_loop: while !self.stream.is_empty() {
-            // dbg!(self.stream.clone().map(|(_, ch)| ch).collect::<String>());
             // skip white spaces
             if self.stream.starts_with(" ")
                 || self.stream.starts_with("\t")
@@ -30,9 +31,17 @@ impl Tokenizer {
             {
                 self.stream.advance(1);
                 continue;
-            } else if self.stream.starts_with("//") {
+            }
+            if self.stream.starts_with("//") {
                 // TODO: remove unwrap
                 self.stream.advance_until('\n').unwrap();
+                continue;
+            }
+            if self.stream.starts_with("/*") {
+                while !self.stream.starts_with("*/") {
+                    self.stream.advance(1);
+                }
+                self.stream.advance(2);
                 continue;
             }
             if self.stream.starts_with("#") {
@@ -42,6 +51,8 @@ impl Tokenizer {
 
             let symbols = vec![
                 ("...", TokenKind::DotDotDot),
+                ("<<=", TokenKind::BinOpEq(AssignBinOpToken::LShift)),
+                (">>=", TokenKind::BinOpEq(AssignBinOpToken::RShift)),
                 ("<<", TokenKind::BinOp(BinOpToken::LShift)),
                 (">>", TokenKind::BinOp(BinOpToken::RShift)),
                 ("<=", TokenKind::BinOp(BinOpToken::Le)),
@@ -53,6 +64,12 @@ impl Tokenizer {
                 ("++", TokenKind::PlusPlus),
                 ("--", TokenKind::MinusMinus),
                 ("->", TokenKind::Arrow),
+                ("+=", TokenKind::BinOpEq(AssignBinOpToken::Plus)),
+                ("-=", TokenKind::BinOpEq(AssignBinOpToken::Minus)),
+                ("*=", TokenKind::BinOpEq(AssignBinOpToken::Star)),
+                ("/=", TokenKind::BinOpEq(AssignBinOpToken::Slash)),
+                ("&=", TokenKind::BinOpEq(AssignBinOpToken::And)),
+                ("%=", TokenKind::BinOpEq(AssignBinOpToken::Percent)),
                 ("+", TokenKind::BinOp(BinOpToken::Plus)),
                 ("-", TokenKind::BinOp(BinOpToken::Minus)),
                 ("*", TokenKind::BinOp(BinOpToken::Star)),
@@ -73,7 +90,7 @@ impl Tokenizer {
                 ("?", TokenKind::Question),
                 (":", TokenKind::Colon),
                 (";", TokenKind::Semi),
-                ("=", TokenKind::Eq),
+                ("=", TokenKind::BinOpEq(AssignBinOpToken::Eq)),
                 (".", TokenKind::Dot),
             ];
 
@@ -85,6 +102,51 @@ impl Tokenizer {
                         .unwrap();
                     tokens.push(Token::new(kind, this_token_debug_info));
                     continue 'tokenize_loop;
+                }
+            }
+
+            if self.stream.starts_with("'") {
+                // char literal
+                let (debug_info, _) = self.stream.next().unwrap(); // -> '
+                let ch;
+                match self.stream.next() {
+                    Some((_, '\\')) => match self.stream.next() {
+                        Some((_, 'n')) => ch = '\n',
+                        Some((_, 't')) => ch = '\t',
+                        Some((_, 'e')) => {
+                            ch = 0x1bu8.into();
+                        }
+                        Some((_, '0')) => ch = '\0',
+                        _ => {
+                            let debug_info =
+                                self.stream.peek().map_or(
+                                    self.stream.get_prev_debug_info(),
+                                    |(debug_info, _)| debug_info.clone(),
+                                );
+                            return Err(unimplemented_err!(
+                                debug_info,
+                                "This type of escape Sequences are not currently implemented."
+                            ));
+                        }
+                    },
+                    Some((_, c)) => {
+                        ch = c;
+                    }
+                    None => return Err(CompileError::new_unexpected_eof_tokenize(debug_info)),
+                }
+                let popped = self.stream.next();
+                match popped {
+                    Some((_, '\'')) => {
+                        tokens.push(Token::new(TokenKind::Num(ch as isize), debug_info));
+                        continue;
+                    }
+                    Some((debug_info, ch)) => {
+                        return Err(unimplemented_err!(
+                            debug_info,
+                            format!("Expected ' , but got {}", ch)
+                        ));
+                    }
+                    None => return Err(CompileError::new_unexpected_eof_tokenize(debug_info)),
                 }
             }
 
@@ -100,6 +162,9 @@ impl Tokenizer {
                         Some((_, '\\')) => match self.stream.next() {
                             Some((_, 'n')) => {
                                 str_lit.push('\n');
+                            }
+                            Some((_, 't')) => {
+                                str_lit.push('\t');
                             }
                             Some((_, 'e')) => {
                                 str_lit.push(0x1bu8.into());
@@ -192,10 +257,23 @@ impl Tokenizer {
                         "struct" => TokenKind::Struct,
                         "enum" => TokenKind::Enum,
                         "typedef" => TokenKind::TypeDef,
+                        "extern" => TokenKind::Extern,
                         "__asm__" => TokenKind::Asm,
+                        "__nullptr" => TokenKind::NullPtr,
+                        "__builtin_va_start" => TokenKind::BuiltinVaStart,
+                        "switch" => TokenKind::Switch,
+                        "default" => TokenKind::Default,
+                        "case" => TokenKind::Case,
+                        "break" => TokenKind::Break,
+                        "continue" => TokenKind::Continue,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
+                            continue;
+                        }
+                        "static" => {
+                            // TODO: support static
+                            eprintln!("WARNING: `static` is just ignored this time.");
                             continue;
                         }
                         _ => TokenKind::Ident(ident),
@@ -218,7 +296,10 @@ impl Tokenizer {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenKind {
+    /// Binary operator
     BinOp(BinOpToken),
+    /// Binary operator with eq (`=`) such as `+=`
+    BinOpEq(AssignBinOpToken),
     /// string literal
     Str(String),
     /// number literal
@@ -251,10 +332,24 @@ pub enum TokenKind {
     Enum,
     /// `typedef`, reserved word
     TypeDef,
+    /// `extern`, reserved word
+    Extern,
+    /// `switch`, reserved word
+    Switch,
+    /// `default`, reserved word
+    Default,
+    /// `case`, reserved word
+    Case,
+    /// `break`, reserved word
+    Break,
+    /// `continue`, reserved word
+    Continue,
     /// `__asm__`, reserved word (not standard)
     Asm,
-    /// `=` assign
-    Eq,
+    /// `__nullptr`, reserved word (not standard)
+    NullPtr,
+    /// `___builtin_va_start`, reserved word (not standard)
+    BuiltinVaStart,
     /// `,`
     Comma,
     /// `~`
@@ -295,6 +390,45 @@ pub enum DelimToken {
     Bracket,
     /// A curly brase (i.e., `{` or `}`)
     Brace,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum AssignBinOpToken {
+    /// `=`
+    Eq,
+    /// `+=`
+    Plus,
+    /// `-=`
+    Minus,
+    /// `*=`
+    Star,
+    /// `/=`
+    Slash,
+    /// `%=`
+    Percent,
+    /// `&=`
+    And,
+    /// `<<=`
+    LShift,
+    /// `>>=`
+    RShift,
+}
+
+impl TryFrom<AssignBinOpToken> for parse::BinOpKind {
+    type Error = ();
+    fn try_from(op: AssignBinOpToken) -> Result<Self, ()> {
+        Ok(match op {
+            AssignBinOpToken::Eq => return Err(()),
+            AssignBinOpToken::Plus => BinOpKind::Add,
+            AssignBinOpToken::Minus => BinOpKind::Sub,
+            AssignBinOpToken::Star => BinOpKind::Mul,
+            AssignBinOpToken::Slash => BinOpKind::Div,
+            AssignBinOpToken::Percent => BinOpKind::Rem,
+            AssignBinOpToken::And => BinOpKind::BitWiseAnd,
+            AssignBinOpToken::LShift => BinOpKind::LShift,
+            AssignBinOpToken::RShift => BinOpKind::RShift,
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -364,10 +498,16 @@ pub struct DebugInfo {
     pos: Position,
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug, Default)]
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Default)]
 pub struct FileInfo {
     file_name: String,
     src: String,
+}
+
+impl std::fmt::Debug for FileInfo {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
 }
 
 impl FileInfo {
@@ -545,7 +685,7 @@ where
     }
 
     /// if next token is expected kind, do nothing, otherwise `panic`
-    pub fn expect(&mut self, kind: &K) -> Result<(), CompileError>
+    pub fn expect(&mut self, kind: &K) -> Result<DebugInfo, CompileError>
     where
         Token<K>: Into<crate::error::Tokens>,
     {
@@ -569,7 +709,7 @@ where
                         token,
                     ));
                 }
-                Ok(())
+                Ok(token.debug_info)
             }
         }
     }
@@ -721,8 +861,7 @@ pub fn tokenize_and_kinds(input: &str) -> Result<Vec<Box<TokenKind>>, CompileErr
         src: input.to_string(),
     });
     let mut preproccor = Preprocessor::new(file_info.clone(), "");
-    let derective_count = &mut None;
-    let tokens = preproccor.preprocess(file_info.clone().into(), None, derective_count)?;
+    let tokens = preproccor.preprocess(&mut SrcCursor::new(file_info.clone()), None)?;
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     Ok(tokenizer

@@ -1,0 +1,157 @@
+---
+source: tests/insta_test.rs
+assertion_line: 173
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Base(
+                        Int,
+                    ),
+                    args: [],
+                    is_flexible: true,
+                },
+                name: "main",
+                args: [],
+                body: Block(
+                    [
+                        VaStartInit {
+                            arg_n: 0,
+                        },
+                        Expr(
+                            ConvExpr {
+                                kind: Assign(
+                                    ConvExpr {
+                                        kind: LVar(
+                                            LVar {
+                                                offset: 137,
+                                                ty: Base(
+                                                    Char,
+                                                ),
+                                            },
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 8,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                    ConvExpr {
+                                        kind: Cast(
+                                            ConvExpr {
+                                                kind: Num(
+                                                    4,
+                                                ),
+                                                ty: Base(
+                                                    Int,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 17,
+                                                        n_line: 2,
+                                                    },
+                                                },
+                                            },
+                                            Base2Base(
+                                                Int,
+                                                Char,
+                                            ),
+                                        ),
+                                        ty: Base(
+                                            Char,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 17,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                ),
+                                ty: Base(
+                                    Char,
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 2,
+                                    },
+                                },
+                            },
+                        ),
+                        Return(
+                            Some(
+                                ConvExpr {
+                                    kind: Unary(
+                                        BitInvert,
+                                        ConvExpr {
+                                            kind: Cast(
+                                                ConvExpr {
+                                                    kind: LVar(
+                                                        LVar {
+                                                            offset: 137,
+                                                            ty: Base(
+                                                                Char,
+                                                            ),
+                                                        },
+                                                    ),
+                                                    ty: Base(
+                                                        Char,
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: ,
+                                                        pos: Position {
+                                                            n_char: 16,
+                                                            n_line: 3,
+                                                        },
+                                                    },
+                                                },
+                                                Base2Base(
+                                                    Char,
+                                                    Int,
+                                                ),
+                                            ),
+                                            ty: Base(
+                                                Int,
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: ,
+                                                pos: Position {
+                                                    n_char: 16,
+                                                    n_line: 3,
+                                                },
+                                            },
+                                        },
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: ,
+                                        pos: Position {
+                                            n_char: 16,
+                                            n_line: 3,
+                                        },
+                                    },
+                                },
+                            ),
+                            "main",
+                        ),
+                    ],
+                ),
+                stack_size: 137,
+            },
+        ),
+    ],
+}

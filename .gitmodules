@@ -1,0 +1,4 @@
+[submodule "validation/lemola_cc"]
+	path = validation/lemola_cc
+	url = https://github.com/lemolatoon/lemola_cc.git
+	branch = for_ironcc_test

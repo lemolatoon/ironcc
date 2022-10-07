@@ -3,7 +3,9 @@ use ironcc::{
     analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::{Parser, Program},
-    preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{
+        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    },
     tokenize::{FileInfo, Token, TokenStream, Tokenizer},
 };
 use std::{fmt::Debug, rc::Rc};
@@ -109,7 +111,7 @@ impl<'a> CachedTokenizer<'a> {
         ));
         let mut preprocessor = Preprocessor::new(file_info.clone(), "");
         let tokens = preprocessor
-            .preprocess(file_info.into(), None, &mut None)
+            .preprocess(&mut SrcCursor::new(file_info), None)
             .unwrap();
         let stream = PreprocessorTokenStream::new(tokens.into_iter());
         Self {
@@ -211,7 +213,7 @@ pub mod ast {
     }
 
     pub fn declare_stmt(declaration: Declaration) -> Stmt {
-        Stmt::new_declare(declaration)
+        Stmt::new_declare(declaration, DebugInfo::default())
     }
 
     pub fn declare(
@@ -252,27 +254,33 @@ pub mod ast {
     }
 
     pub fn expr_stmt(expr: Expr) -> Stmt {
-        Stmt::expr(expr)
+        Stmt::expr(expr, DebugInfo::default())
     }
 
     pub fn ret(expr: Expr) -> Stmt {
-        Stmt::ret(expr)
+        Stmt::ret(Some(expr), DebugInfo::default())
     }
 
     pub fn block(stmts: Vec<Stmt>) -> Stmt {
-        Stmt::new_block(stmts)
+        Stmt::new_block(stmts, DebugInfo::default())
     }
 
     pub fn if_(cond: Expr, then: Stmt, els: Option<Stmt>) -> Stmt {
-        Stmt::new_if(cond, then, els)
+        Stmt::new_if(cond, then, els, DebugInfo::default())
     }
 
     pub fn while_(cond: Expr, then: Stmt) -> Stmt {
-        Stmt::new_while(cond, then)
+        Stmt::new_while(cond, then, DebugInfo::default())
     }
 
     pub fn for_(init: Option<Expr>, cond: Option<Expr>, inc: Option<Expr>, then: Stmt) -> Stmt {
-        Stmt::new_for(init.map(ForInitKind::Expr), cond, inc, then)
+        Stmt::new_for(
+            init.map(ForInitKind::Expr),
+            cond,
+            inc,
+            then,
+            DebugInfo::default(),
+        )
     }
 
     pub fn func(name: &str, args: Vec<Expr>) -> Expr {
@@ -284,7 +292,12 @@ pub mod ast {
     }
 
     pub fn assign(lhs: Expr, rhs: Expr) -> Expr {
-        Expr::new_assign(lhs, rhs, DebugInfo::default())
+        Expr::new_assign(
+            lhs,
+            rhs,
+            ironcc::tokenize::AssignBinOpToken::Eq,
+            DebugInfo::default(),
+        )
     }
 
     pub fn bin(op: BinOpKind, lhs: Expr, rhs: Expr) -> Expr {

@@ -148,9 +148,13 @@ impl CompileError {
         ))
     }
 
-    pub const fn new_undeclared_error(name: String, pos: DebugInfo, kind: VariableKind) -> Self {
+    pub const fn new_undeclared_error(
+        name: String,
+        debug_info: DebugInfo,
+        kind: VariableKind,
+    ) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
-            AnalyzeErrorKind::UndeclaredError(name, pos, kind),
+            AnalyzeErrorKind::UndeclaredError(name, debug_info, kind),
         ))
     }
 
@@ -220,6 +224,15 @@ impl CompileError {
     pub const fn new_const_expr_error(debug_info: DebugInfo, kind: ConvExprKind) -> Self {
         CompileError::new(CompileErrorKind::AnalyzeError(
             AnalyzeErrorKind::ConstExprError(debug_info, kind),
+        ))
+    }
+
+    pub const fn new_not_allowed_stmt_error(
+        debug_info: DebugInfo,
+        kind: NotAllowedStmtKind,
+    ) -> Self {
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind),
         ))
     }
 
@@ -440,6 +453,23 @@ impl Debug for CompileError {
                     kind
                 )?;
             }
+            AnalyzeError(AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind)) => {
+                error_at(vec![debug_info.clone()], f)?;
+                match kind {
+                    NotAllowedStmtKind::Break => {
+                        writeln!(f, "`break` statement not in loop or switch statement.")?
+                    }
+                    NotAllowedStmtKind::Continue => {
+                        writeln!(f, "`continue` statement not in loop statement.")?
+                    }
+                    NotAllowedStmtKind::Case => {
+                        writeln!(f, "`case` statement not in loop or switch statement.")?
+                    }
+                    NotAllowedStmtKind::Default => {
+                        writeln!(f, "`default` statement not in loop or switch statement.")?
+                    }
+                }
+            }
             GenerateError(GenerateErrorKind::DerefError(expr)) => {
                 error_at(vec![expr.debug_info.clone()], f)?;
                 writeln!(f, "{:?} cannot be dereferenced.", expr.ty)?;
@@ -473,11 +503,16 @@ impl Debug for CompileError {
                 )?;
             }
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
-                UnexpectedTypeSizeStatus::Global(GVar { name, ty, init: _ }),
+                UnexpectedTypeSizeStatus::Global(GVar {
+                    name,
+                    ty,
+                    init: _,
+                    is_extern,
+                }),
             )) => {
                 writeln!(
                     f,
-                    "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}", name, ty, ty.size_of()
+                    "This Global Variable's type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}, is_extern: {}", name, ty, ty.size_of(), is_extern
                 )?;
             }
             GenerateError(GenerateErrorKind::UnexpectedTypeSize(
@@ -511,6 +546,15 @@ pub enum AnalyzeErrorKind {
     TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(TypeExpectedFailedKind),
     ConstExprError(DebugInfo, ConvExprKind),
+    NotAllowedStmtError(DebugInfo, NotAllowedStmtKind),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum NotAllowedStmtKind {
+    Break,
+    Continue,
+    Case,
+    Default,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

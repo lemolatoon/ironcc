@@ -6,9 +6,14 @@ use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
 use ironcc::parse::*;
-use ironcc::preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use ironcc::preprocess::{
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+};
 use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
+
+#[cfg(test)]
+use pretty_assertions::assert_eq;
 
 #[test]
 fn analysis_test() {
@@ -92,7 +97,7 @@ fn analysis_program_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -121,7 +126,7 @@ fn analysis_program_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -155,7 +160,7 @@ fn analysis_local_variable_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -185,7 +190,7 @@ fn analysis_local_variable_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -220,7 +225,7 @@ fn analysis_func_def_test() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", vec![], true),
+        func_dd("main", vec![], false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -253,7 +258,7 @@ fn analysis_func_def_test() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -294,7 +299,7 @@ fn analysis_ptr_addition() {
     let program = Program::with_vec(vec![func_def(
         TypeSpecifier::Int,
         0,
-        func_dd("main", Vec::new(), true),
+        func_dd("main", Vec::new(), false),
         block(vec![
             declare_stmt(declare(
                 TypeSpecifier::Int,
@@ -318,7 +323,7 @@ fn analysis_ptr_addition() {
             Type::Func {
                 ret_ty: Box::new(Type::Base(BaseType::Int)),
                 args: Vec::new(),
-                is_flexible: true
+                is_flexible: false
             },
             "main",
             Vec::new(),
@@ -416,9 +421,8 @@ fn parse_type_test() {
 fn extract_ty(src: &str) -> Type {
     let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-    let derective_count = &mut None;
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None, derective_count)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
@@ -431,7 +435,7 @@ fn extract_ty(src: &str) -> Type {
     if let ConvStmt::Block(vec) = conv_stmt {
         let second_stmt = vec.get(1).unwrap();
         if let ConvStmt::Return(expr, _) = second_stmt {
-            expr.ty.clone()
+            expr.as_ref().expect("return expr expected.").ty.clone()
         } else {
             panic!("Return expected.")
         }
@@ -443,9 +447,8 @@ fn extract_ty(src: &str) -> Type {
 fn extract_func_ty(src: &str) -> Type {
     let file_info = Rc::new(FileInfo::new(String::new(), src.to_string()));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
-    let derective_count = &mut None;
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None, derective_count)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let tokens = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()))
@@ -542,7 +545,7 @@ fn cexpr_stmt(expr: ConvExpr) -> ConvStmt {
 }
 
 fn cret(expr: ConvExpr, name: &str) -> ConvStmt {
-    ConvStmt::new_ret(expr, name.to_string())
+    ConvStmt::new_ret(Some(expr), name.to_string())
 }
 
 // TODO: use these 4 func and write tests

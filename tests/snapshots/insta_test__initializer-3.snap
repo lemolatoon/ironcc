@@ -33,10 +33,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 12,
                                                 n_line: 0,
@@ -51,10 +48,7 @@ ConvProgram {
                                             Int,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 20,
                                                 n_line: 0,
@@ -66,10 +60,7 @@ ConvProgram {
                                     Int,
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 12,
                                         n_line: 0,
@@ -97,10 +88,7 @@ ConvProgram {
                                             ),
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 23,
                                                 n_line: 0,
@@ -122,10 +110,7 @@ ConvProgram {
                                                     Int,
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 33,
                                                         n_line: 0,
@@ -139,10 +124,7 @@ ConvProgram {
                                             ),
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 32,
                                                 n_line: 0,
@@ -156,10 +138,7 @@ ConvProgram {
                                     ),
                                 ),
                                 debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                    },
+                                    file_info: ,
                                     pos: Position {
                                         n_char: 23,
                                         n_line: 0,
@@ -168,24 +147,23 @@ ConvProgram {
                             },
                         ),
                         Return(
-                            ConvExpr {
-                                kind: Num(
-                                    0,
-                                ),
-                                ty: Base(
-                                    Int,
-                                ),
-                                debug_info: DebugInfo {
-                                    file_info: FileInfo {
-                                        file_name: "not impl name.c",
-                                        src: "int main() {int a = 5; int *p = &a; return 0;}",
-                                    },
-                                    pos: Position {
-                                        n_char: 43,
-                                        n_line: 0,
+                            Some(
+                                ConvExpr {
+                                    kind: Num(
+                                        0,
+                                    ),
+                                    ty: Base(
+                                        Int,
+                                    ),
+                                    debug_info: DebugInfo {
+                                        file_info: ,
+                                        pos: Position {
+                                            n_char: 43,
+                                            n_line: 0,
+                                        },
                                     },
                                 },
-                            },
+                            ),
                             "main",
                         ),
                     ],

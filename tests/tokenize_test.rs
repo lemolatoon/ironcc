@@ -3,7 +3,9 @@ pub mod test_utils;
 use std::rc::Rc;
 
 use ironcc::{
-    preprocess::{self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+    preprocess::{
+        self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    },
     tokenize::*,
 };
 
@@ -13,7 +15,7 @@ fn tokenize_plus_minus_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None, &mut None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -110,7 +112,7 @@ fn tokenize_pos_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None, &mut None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -137,7 +139,7 @@ fn tokenize_pos_test() {
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let mut preprocessor = Preprocessor::new(file_info.clone(), "");
     let tokens = preprocessor
-        .preprocess(file_info.clone().into(), None, &mut None)
+        .preprocess(&mut SrcCursor::new(file_info.clone()), None)
         .unwrap();
     let stream = PreprocessorTokenStream::new(tokens.into_iter());
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
@@ -241,7 +243,7 @@ fn tokenize_tokens_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("a".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(2),
             TokenKind::Eof
         )
@@ -283,9 +285,9 @@ fn tokenize_ident_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("abc".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("cdf".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(8),
             TokenKind::BinOp(BinOpToken::Star),
             TokenKind::Num(7),
@@ -330,7 +332,7 @@ fn tokenize_reserved_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("returnx".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Return,
@@ -345,11 +347,11 @@ fn tokenize_reserved_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(2),
             TokenKind::Semi,
             TokenKind::Ident("ifx".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::If,
@@ -359,7 +361,7 @@ fn tokenize_reserved_test() {
             TokenKind::Num(1),
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::Ident("ifx".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(3),
             TokenKind::Semi,
             TokenKind::Return,
@@ -374,7 +376,7 @@ fn tokenize_reserved_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(2),
             TokenKind::Semi,
             TokenKind::While,
@@ -384,7 +386,7 @@ fn tokenize_reserved_test() {
             TokenKind::Num(0),
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::Num(1),
@@ -401,7 +403,7 @@ fn tokenize_reserved_test() {
         tokenize_and_kinds(&input).unwrap(),
         token_kinds!(
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(2),
             TokenKind::Semi,
             TokenKind::If,
@@ -411,14 +413,14 @@ fn tokenize_reserved_test() {
             TokenKind::Num(0),
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Minus),
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Else,
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(5),
             TokenKind::Semi,
             TokenKind::Return,
@@ -435,7 +437,7 @@ fn tokenize_reserved_test() {
             TokenKind::For,
             TokenKind::OpenDelim(DelimToken::Paren),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
@@ -443,13 +445,13 @@ fn tokenize_reserved_test() {
             TokenKind::Num(11),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(1),
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(2),
@@ -467,7 +469,7 @@ fn tokenize_reserved_test() {
             TokenKind::For,
             TokenKind::OpenDelim(DelimToken::Paren),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Num(1),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
@@ -475,14 +477,14 @@ fn tokenize_reserved_test() {
             TokenKind::Num(11),
             TokenKind::Semi,
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(1),
             TokenKind::CloseDelim(DelimToken::Paren),
             TokenKind::OpenDelim(DelimToken::Brace),
             TokenKind::Ident("x".to_string()),
-            TokenKind::Eq,
+            TokenKind::BinOpEq(AssignBinOpToken::Eq),
             TokenKind::Ident("x".to_string()),
             TokenKind::BinOp(BinOpToken::Plus),
             TokenKind::Num(2),

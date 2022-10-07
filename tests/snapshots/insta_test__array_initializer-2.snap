@@ -42,10 +42,7 @@ Program {
                                                                     3,
                                                                 ),
                                                                 debug_info: DebugInfo {
-                                                                    file_info: FileInfo {
-                                                                        file_name: "not impl name.c",
-                                                                        src: "int main() {\n    int array[3] = {1, 2};\n}",
-                                                                    },
+                                                                    file_info: ,
                                                                     pos: Position {
                                                                         n_char: 14,
                                                                         n_line: 1,
@@ -64,10 +61,7 @@ Program {
                                                                         1,
                                                                     ),
                                                                     debug_info: DebugInfo {
-                                                                        file_info: FileInfo {
-                                                                            file_name: "not impl name.c",
-                                                                            src: "int main() {\n    int array[3] = {1, 2};\n}",
-                                                                        },
+                                                                        file_info: ,
                                                                         pos: Position {
                                                                             n_char: 20,
                                                                             n_line: 1,
@@ -81,10 +75,7 @@ Program {
                                                                         2,
                                                                     ),
                                                                     debug_info: DebugInfo {
-                                                                        file_info: FileInfo {
-                                                                            file_name: "not impl name.c",
-                                                                            src: "int main() {\n    int array[3] = {1, 2};\n}",
-                                                                        },
+                                                                        file_info: ,
                                                                         pos: Position {
                                                                             n_char: 23,
                                                                             n_line: 1,
@@ -98,10 +89,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n    int array[3] = {1, 2};\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 1,
@@ -109,16 +97,27 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 1,
+                                    },
+                                },
                             },
                         ],
                     ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "int main() {\n    int array[3] = {1, 2};\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 0,

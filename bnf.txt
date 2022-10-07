@@ -31,7 +31,7 @@
 <declarator>                := "*"* <direct-declarator>
 <direct-declarator>         := <ident>
                                 | "(" <declarator> ")"
-                                | <direct-declarator> "[" <assign>? "]"                                  # array
+                                | <direct-declarator> "[" <assign>? "]"                                 # array
                                 | <direct-declarator> "(" (<declaration> ("," <declaration>) )? ")"     # function
 <initializer>               := <assign>
                                 | "{" <initializer-list> "}"
@@ -54,15 +54,25 @@
 <stmt>                      := <expr> ";"
                                 | <blockstmt>
                                 | "return" <expr> ";"
+                                | "return" ";"
                                 | "if" "(" <expr> ")" <stmt> ("else" stmt)?
                                 | "for" "(" <expr>? ";" <expr>? ";" <expr>? ")" <stmt>
                                 | "for" "(" <declaration> ";" <expr>? ";" <expr>? ")" <stmt>
-                                | <declaration> 
-<blockstmt>                 := "{" <stmt>* "}"
+                                | switch "(" <expr> ")" <stmt>
+                                | <labeled-stmt>
+                                | <jump-statement>
+<blockstmt>                 := "{" ( <stmt> | <declaration> ";" )* "}"
+<labeled-stmt>              := <ident> ":" <stmt>
+                                | "case" <expr> : <stmt>
+                                | "default" ":" <stmt>
+<jump-statement>            := "continue" ";"
+                                | "break" ";"
+
 
 
 <expr>                      := <assign>
 <assign>                    := <conditional> ("=" <assign>)?
+<assign-operator>           := "=" | "*=" | "/=" | "+=" | "-=" | "<<=" | ">>=" | "&=" | "^=" | "|="
 <conditional>               := <logical-or> 
                                 | <logical-or> "?" <expr> : <conditional>
 <logical-or>                := <logical-or>

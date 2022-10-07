@@ -27,10 +27,7 @@ Program {
                         },
                     ),
                     debug_info: DebugInfo {
-                        file_info: FileInfo {
-                            file_name: "not impl name.c",
-                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                        },
+                        file_info: ,
                         pos: Position {
                             n_char: 0,
                             n_line: 0,
@@ -39,10 +36,7 @@ Program {
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 0,
@@ -96,10 +90,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 2,
@@ -107,6 +98,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 2,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Declare(
@@ -135,10 +133,7 @@ Program {
                                                                 5,
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_info: FileInfo {
-                                                                    file_name: "not impl name.c",
-                                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                                                },
+                                                                file_info: ,
                                                                 pos: Position {
                                                                     n_char: 13,
                                                                     n_line: 3,
@@ -150,10 +145,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 3,
@@ -161,6 +153,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 3,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Declare(
@@ -189,10 +188,7 @@ Program {
                                                                 6,
                                                             ),
                                                             debug_info: DebugInfo {
-                                                                file_info: FileInfo {
-                                                                    file_name: "not impl name.c",
-                                                                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                                                },
+                                                                file_info: ,
                                                                 pos: Position {
                                                                     n_char: 13,
                                                                     n_line: 4,
@@ -204,10 +200,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 4,
                                                 n_line: 4,
@@ -215,67 +208,78 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 4,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Return(
-                                    Expr {
-                                        kind: Binary(
-                                            Binary {
-                                                kind: Add,
-                                                lhs: Expr {
-                                                    kind: Ident(
-                                                        "a",
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
+                                    Some(
+                                        Expr {
+                                            kind: Binary(
+                                                Binary {
+                                                    kind: Add,
+                                                    lhs: Expr {
+                                                        kind: Ident(
+                                                            "a",
+                                                        ),
+                                                        debug_info: DebugInfo {
+                                                            file_info: ,
+                                                            pos: Position {
+                                                                n_char: 11,
+                                                                n_line: 5,
+                                                            },
                                                         },
-                                                        pos: Position {
-                                                            n_char: 11,
-                                                            n_line: 5,
+                                                    },
+                                                    rhs: Expr {
+                                                        kind: Ident(
+                                                            "b",
+                                                        ),
+                                                        debug_info: DebugInfo {
+                                                            file_info: ,
+                                                            pos: Position {
+                                                                n_char: 15,
+                                                                n_line: 5,
+                                                            },
                                                         },
                                                     },
                                                 },
-                                                rhs: Expr {
-                                                    kind: Ident(
-                                                        "b",
-                                                    ),
-                                                    debug_info: DebugInfo {
-                                                        file_info: FileInfo {
-                                                            file_name: "not impl name.c",
-                                                            src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                                        },
-                                                        pos: Position {
-                                                            n_char: 15,
-                                                            n_line: 5,
-                                                        },
-                                                    },
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: ,
+                                                pos: Position {
+                                                    n_char: 13,
+                                                    n_line: 5,
                                                 },
-                                            },
-                                        ),
-                                        debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                                            },
-                                            pos: Position {
-                                                n_char: 13,
-                                                n_line: 5,
                                             },
                                         },
-                                    },
+                                    ),
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 5,
+                                    },
+                                },
                             },
                         ],
                     ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 1,
+                        },
+                    },
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "typedef int int2;\nint2 main() {\n    typedef int2 int3;\n    int2 a = 5;\n    int3 b = 6;\n    return a + b;\n}",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 1,

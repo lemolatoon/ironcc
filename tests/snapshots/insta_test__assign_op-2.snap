@@ -1,0 +1,262 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: FuncDef(
+                Int,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "main",
+                        ),
+                        [],
+                        true,
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Array(
+                                                        Ident(
+                                                            "a",
+                                                        ),
+                                                        Some(
+                                                            Expr {
+                                                                kind: Num(
+                                                                    2,
+                                                                ),
+                                                                debug_info: DebugInfo {
+                                                                    file_info: ,
+                                                                    pos: Position {
+                                                                        n_char: 10,
+                                                                        n_line: 1,
+                                                                    },
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                },
+                                                initializer: Some(
+                                                    Array(
+                                                        [
+                                                            Expr(
+                                                                Expr {
+                                                                    kind: Num(
+                                                                        1,
+                                                                    ),
+                                                                    debug_info: DebugInfo {
+                                                                        file_info: ,
+                                                                        pos: Position {
+                                                                            n_char: 16,
+                                                                            n_line: 1,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            ),
+                                                            Expr(
+                                                                Expr {
+                                                                    kind: Num(
+                                                                        2,
+                                                                    ),
+                                                                    debug_info: DebugInfo {
+                                                                        file_info: ,
+                                                                        pos: Position {
+                                                                            n_char: 19,
+                                                                            n_line: 1,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            },
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 1,
+                                            },
+                                        },
+                                    },
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 1,
+                                    },
+                                },
+                            },
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        declaration_specifiers: [
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 1,
+                                                    direct_declarator: Ident(
+                                                        "p",
+                                                    ),
+                                                },
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: Ident(
+                                                                "a",
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 13,
+                                                                    n_line: 2,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 2,
+                                            },
+                                        },
+                                    },
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 2,
+                                    },
+                                },
+                            },
+                            Stmt {
+                                kind: Expr(
+                                    Expr {
+                                        kind: Assign(
+                                            Expr {
+                                                kind: Ident(
+                                                    "p",
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 4,
+                                                        n_line: 3,
+                                                    },
+                                                },
+                                            },
+                                            Expr {
+                                                kind: Num(
+                                                    1,
+                                                ),
+                                                debug_info: DebugInfo {
+                                                    file_info: ,
+                                                    pos: Position {
+                                                        n_char: 9,
+                                                        n_line: 3,
+                                                    },
+                                                },
+                                            },
+                                            Plus,
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 6,
+                                                n_line: 3,
+                                            },
+                                        },
+                                    },
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 3,
+                                    },
+                                },
+                            },
+                            Stmt {
+                                kind: Return(
+                                    Some(
+                                        Expr {
+                                            kind: Deref(
+                                                Expr {
+                                                    kind: Ident(
+                                                        "p",
+                                                    ),
+                                                    debug_info: DebugInfo {
+                                                        file_info: ,
+                                                        pos: Position {
+                                                            n_char: 12,
+                                                            n_line: 4,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                            debug_info: DebugInfo {
+                                                file_info: ,
+                                                pos: Position {
+                                                    n_char: 11,
+                                                    n_line: 4,
+                                                },
+                                            },
+                                        },
+                                    ),
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 11,
+                                        n_line: 4,
+                                    },
+                                },
+                            },
+                        ],
+                    ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
+                },
+            ),
+            debug_info: DebugInfo {
+                file_info: ,
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
+            },
+        },
+    ],
+}

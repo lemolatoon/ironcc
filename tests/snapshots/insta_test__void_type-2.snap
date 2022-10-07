@@ -40,10 +40,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 1,
@@ -51,6 +48,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 1,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Declare(
@@ -72,10 +76,7 @@ Program {
                                             },
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 8,
                                                 n_line: 2,
@@ -83,6 +84,13 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 2,
+                                    },
+                                },
                             },
                             Stmt {
                                 kind: Expr(
@@ -93,10 +101,7 @@ Program {
                                                     "p",
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 8,
                                                         n_line: 3,
@@ -110,10 +115,7 @@ Program {
                                                             "a",
                                                         ),
                                                         debug_info: DebugInfo {
-                                                            file_info: FileInfo {
-                                                                file_name: "not impl name.c",
-                                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                                            },
+                                                            file_info: ,
                                                             pos: Position {
                                                                 n_char: 13,
                                                                 n_line: 3,
@@ -122,22 +124,17 @@ Program {
                                                     },
                                                 ),
                                                 debug_info: DebugInfo {
-                                                    file_info: FileInfo {
-                                                        file_name: "not impl name.c",
-                                                        src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                                    },
+                                                    file_info: ,
                                                     pos: Position {
                                                         n_char: 12,
                                                         n_line: 3,
                                                     },
                                                 },
                                             },
+                                            Eq,
                                         ),
                                         debug_info: DebugInfo {
-                                            file_info: FileInfo {
-                                                file_name: "not impl name.c",
-                                                src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                                            },
+                                            file_info: ,
                                             pos: Position {
                                                 n_char: 10,
                                                 n_line: 3,
@@ -145,16 +142,27 @@ Program {
                                         },
                                     },
                                 ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 8,
+                                        n_line: 3,
+                                    },
+                                },
                             },
                         ],
                     ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
                 },
             ),
             debug_info: DebugInfo {
-                file_info: FileInfo {
-                    file_name: "not impl name.c",
-                    src: "int main() {\n        void *p;\n        int ****a;\n        p = &a;\n    }",
-                },
+                file_info: ,
                 pos: Position {
                     n_char: 0,
                     n_line: 0,

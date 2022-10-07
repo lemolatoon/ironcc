@@ -1,4 +1,5 @@
 /target
+/validation/9cc
 /tmp.s
 /tmp.tmp
 /tmp.c
@@ -8,6 +9,7 @@
 /test/tmp.s
 /test/test.s
 *.s
+*.o
 /test/tmp
 /.vscode/
 /src.c
@@ -16,6 +18,7 @@
 /samples/tmp.c
 a.out
 link.c
+/lemola_cc
 
 /tetris.c
 /tetris2.c
