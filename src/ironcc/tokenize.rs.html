@@ -731,9 +731,150 @@
 <span id="731">731</span>
 <span id="732">732</span>
 <span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::CompileError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse::Scope</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::preprocess</span>::{<span class="ident">Preprocessor</span>, <span class="ident">PreprocessorTokenContainerStream</span>, <span class="ident">PreprocessorTokenStream</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="self">self</span>, <span class="ident">BinOpKind</span>, <span class="ident">Scope</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::preprocess</span>::{
+    <span class="ident">Preprocessor</span>, <span class="ident">PreprocessorTokenContainerStream</span>, <span class="ident">PreprocessorTokenStream</span>, <span class="ident">SrcCursor</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unimplemented_err</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
 
@@ -755,7 +896,6 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="lifetime">&#39;tokenize_loop</span>: <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// dbg!(self.stream.clone().map(|(_, ch)| ch).collect::&lt;String&gt;());</span>
             <span class="comment">// skip white spaces</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot; &quot;</span>)
                 <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;\t&quot;</span>)
@@ -763,9 +903,17 @@
             {
                 <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) {
+            }
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) {
                 <span class="comment">// TODO: remove unwrap</span>
                 <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance_until</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">unwrap</span>();
+                <span class="kw">continue</span>;
+            }
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*&quot;</span>) {
+                <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;*/&quot;</span>) {
+                    <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance</span>(<span class="number">1</span>);
+                }
+                <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">advance</span>(<span class="number">2</span>);
                 <span class="kw">continue</span>;
             }
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;#&quot;</span>) {
@@ -775,6 +923,8 @@
 
             <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="macro">vec!</span>[
                 (<span class="string">&quot;...&quot;</span>, <span class="ident">TokenKind::DotDotDot</span>),
+                (<span class="string">&quot;&lt;&lt;=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::LShift</span>)),
+                (<span class="string">&quot;&gt;&gt;=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::RShift</span>)),
                 (<span class="string">&quot;&lt;&lt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::LShift</span>)),
                 (<span class="string">&quot;&gt;&gt;&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::RShift</span>)),
                 (<span class="string">&quot;&lt;=&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Le</span>)),
@@ -786,6 +936,12 @@
                 (<span class="string">&quot;++&quot;</span>, <span class="ident">TokenKind::PlusPlus</span>),
                 (<span class="string">&quot;--&quot;</span>, <span class="ident">TokenKind::MinusMinus</span>),
                 (<span class="string">&quot;-&gt;&quot;</span>, <span class="ident">TokenKind::Arrow</span>),
+                (<span class="string">&quot;+=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Plus</span>)),
+                (<span class="string">&quot;-=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Minus</span>)),
+                (<span class="string">&quot;*=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Star</span>)),
+                (<span class="string">&quot;/=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Slash</span>)),
+                (<span class="string">&quot;&amp;=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::And</span>)),
+                (<span class="string">&quot;%=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Percent</span>)),
                 (<span class="string">&quot;+&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Plus</span>)),
                 (<span class="string">&quot;-&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Minus</span>)),
                 (<span class="string">&quot;*&quot;</span>, <span class="ident">TokenKind::BinOp</span>(<span class="ident">BinOpToken::Star</span>)),
@@ -806,7 +962,7 @@
                 (<span class="string">&quot;?&quot;</span>, <span class="ident">TokenKind::Question</span>),
                 (<span class="string">&quot;:&quot;</span>, <span class="ident">TokenKind::Colon</span>),
                 (<span class="string">&quot;;&quot;</span>, <span class="ident">TokenKind::Semi</span>),
-                (<span class="string">&quot;=&quot;</span>, <span class="ident">TokenKind::Eq</span>),
+                (<span class="string">&quot;=&quot;</span>, <span class="ident">TokenKind::BinOpEq</span>(<span class="ident">AssignBinOpToken::Eq</span>)),
                 (<span class="string">&quot;.&quot;</span>, <span class="ident">TokenKind::Dot</span>),
             ];
 
@@ -818,6 +974,51 @@
                         .<span class="ident">unwrap</span>();
                     <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">kind</span>, <span class="ident">this_token_debug_info</span>));
                     <span class="kw">continue</span> <span class="lifetime">&#39;tokenize_loop</span>;
+                }
+            }
+
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">starts_with</span>(<span class="string">&quot;&#39;&quot;</span>) {
+                <span class="comment">// char literal</span>
+                <span class="kw">let</span> (<span class="ident">debug_info</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(); <span class="comment">// -&gt; &#39;</span>
+                <span class="kw">let</span> <span class="ident">ch</span>;
+                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>() {
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>() {
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; <span class="ident">ch</span> <span class="op">=</span> <span class="string">&#39;\n&#39;</span>,
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; <span class="ident">ch</span> <span class="op">=</span> <span class="string">&#39;\t&#39;</span>,
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;e&#39;</span>)) =&gt; {
+                            <span class="ident">ch</span> <span class="op">=</span> <span class="number">0x1bu8</span>.<span class="ident">into</span>();
+                        }
+                        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;0&#39;</span>)) =&gt; <span class="ident">ch</span> <span class="op">=</span> <span class="string">&#39;\0&#39;</span>,
+                        <span class="kw">_</span> =&gt; {
+                            <span class="kw">let</span> <span class="ident">debug_info</span> <span class="op">=</span>
+                                <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">peek</span>().<span class="ident">map_or</span>(
+                                    <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_prev_debug_info</span>(),
+                                    <span class="op">|</span>(<span class="ident">debug_info</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">debug_info</span>.<span class="ident">clone</span>(),
+                                );
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
+                                <span class="ident">debug_info</span>,
+                                <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;</span>
+                            ));
+                        }
+                    },
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) =&gt; {
+                        <span class="ident">ch</span> <span class="op">=</span> <span class="ident">c</span>;
+                    }
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof_tokenize</span>(<span class="ident">debug_info</span>)),
+                }
+                <span class="kw">let</span> <span class="ident">popped</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>();
+                <span class="kw">match</span> <span class="ident">popped</span> {
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
+                        <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token::new</span>(<span class="ident">TokenKind::Num</span>(<span class="ident">ch</span> <span class="kw">as</span> <span class="ident">isize</span>), <span class="ident">debug_info</span>));
+                        <span class="kw">continue</span>;
+                    }
+                    <span class="prelude-val">Some</span>((<span class="ident">debug_info</span>, <span class="ident">ch</span>)) =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
+                            <span class="ident">debug_info</span>,
+                            <span class="macro">format!</span>(<span class="string">&quot;Expected &#39; , but got {}&quot;</span>, <span class="ident">ch</span>)
+                        ));
+                    }
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::new_unexpected_eof_tokenize</span>(<span class="ident">debug_info</span>)),
                 }
             }
 
@@ -833,6 +1034,9 @@
                         <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">next</span>() {
                             <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; {
                                 <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                            }
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; {
+                                <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="string">&#39;\t&#39;</span>);
                             }
                             <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;e&#39;</span>)) =&gt; {
                                 <span class="ident">str_lit</span>.<span class="ident">push</span>(<span class="number">0x1bu8</span>.<span class="ident">into</span>());
@@ -925,10 +1129,23 @@
                         <span class="string">&quot;struct&quot;</span> =&gt; <span class="ident">TokenKind::Struct</span>,
                         <span class="string">&quot;enum&quot;</span> =&gt; <span class="ident">TokenKind::Enum</span>,
                         <span class="string">&quot;typedef&quot;</span> =&gt; <span class="ident">TokenKind::TypeDef</span>,
+                        <span class="string">&quot;extern&quot;</span> =&gt; <span class="ident">TokenKind::Extern</span>,
                         <span class="string">&quot;__asm__&quot;</span> =&gt; <span class="ident">TokenKind::Asm</span>,
+                        <span class="string">&quot;__nullptr&quot;</span> =&gt; <span class="ident">TokenKind::NullPtr</span>,
+                        <span class="string">&quot;__builtin_va_start&quot;</span> =&gt; <span class="ident">TokenKind::BuiltinVaStart</span>,
+                        <span class="string">&quot;switch&quot;</span> =&gt; <span class="ident">TokenKind::Switch</span>,
+                        <span class="string">&quot;default&quot;</span> =&gt; <span class="ident">TokenKind::Default</span>,
+                        <span class="string">&quot;case&quot;</span> =&gt; <span class="ident">TokenKind::Case</span>,
+                        <span class="string">&quot;break&quot;</span> =&gt; <span class="ident">TokenKind::Break</span>,
+                        <span class="string">&quot;continue&quot;</span> =&gt; <span class="ident">TokenKind::Continue</span>,
                         <span class="string">&quot;const&quot;</span> =&gt; {
                             <span class="comment">// TODO: support const</span>
                             <span class="macro">eprintln!</span>(<span class="string">&quot;WARNING: `const` is just ignored this time.&quot;</span>);
+                            <span class="kw">continue</span>;
+                        }
+                        <span class="string">&quot;static&quot;</span> =&gt; {
+                            <span class="comment">// TODO: support static</span>
+                            <span class="macro">eprintln!</span>(<span class="string">&quot;WARNING: `static` is just ignored this time.&quot;</span>);
                             <span class="kw">continue</span>;
                         }
                         <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Ident</span>(<span class="ident">ident</span>),
@@ -951,7 +1168,10 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenKind</span> {
+    <span class="doccomment">/// Binary operator</span>
     <span class="ident">BinOp</span>(<span class="ident">BinOpToken</span>),
+    <span class="doccomment">/// Binary operator with eq (`=`) such as `+=`</span>
+    <span class="ident">BinOpEq</span>(<span class="ident">AssignBinOpToken</span>),
     <span class="doccomment">/// string literal</span>
     <span class="ident">Str</span>(<span class="ident">String</span>),
     <span class="doccomment">/// number literal</span>
@@ -984,10 +1204,24 @@
     <span class="ident">Enum</span>,
     <span class="doccomment">/// `typedef`, reserved word</span>
     <span class="ident">TypeDef</span>,
+    <span class="doccomment">/// `extern`, reserved word</span>
+    <span class="ident">Extern</span>,
+    <span class="doccomment">/// `switch`, reserved word</span>
+    <span class="ident">Switch</span>,
+    <span class="doccomment">/// `default`, reserved word</span>
+    <span class="ident">Default</span>,
+    <span class="doccomment">/// `case`, reserved word</span>
+    <span class="ident">Case</span>,
+    <span class="doccomment">/// `break`, reserved word</span>
+    <span class="ident">Break</span>,
+    <span class="doccomment">/// `continue`, reserved word</span>
+    <span class="ident">Continue</span>,
     <span class="doccomment">/// `__asm__`, reserved word (not standard)</span>
     <span class="ident">Asm</span>,
-    <span class="doccomment">/// `=` assign</span>
-    <span class="ident">Eq</span>,
+    <span class="doccomment">/// `__nullptr`, reserved word (not standard)</span>
+    <span class="ident">NullPtr</span>,
+    <span class="doccomment">/// `___builtin_va_start`, reserved word (not standard)</span>
+    <span class="ident">BuiltinVaStart</span>,
     <span class="doccomment">/// `,`</span>
     <span class="ident">Comma</span>,
     <span class="doccomment">/// `~`</span>
@@ -1028,6 +1262,45 @@
     <span class="ident">Bracket</span>,
     <span class="doccomment">/// A curly brase (i.e., `{` or `}`)</span>
     <span class="ident">Brace</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignBinOpToken</span> {
+    <span class="doccomment">/// `=`</span>
+    <span class="ident">Eq</span>,
+    <span class="doccomment">/// `+=`</span>
+    <span class="ident">Plus</span>,
+    <span class="doccomment">/// `-=`</span>
+    <span class="ident">Minus</span>,
+    <span class="doccomment">/// `*=`</span>
+    <span class="ident">Star</span>,
+    <span class="doccomment">/// `/=`</span>
+    <span class="ident">Slash</span>,
+    <span class="doccomment">/// `%=`</span>
+    <span class="ident">Percent</span>,
+    <span class="doccomment">/// `&amp;=`</span>
+    <span class="ident">And</span>,
+    <span class="doccomment">/// `&lt;&lt;=`</span>
+    <span class="ident">LShift</span>,
+    <span class="doccomment">/// `&gt;&gt;=`</span>
+    <span class="ident">RShift</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">AssignBinOpToken</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">parse::BinOpKind</span> {
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">op</span>: <span class="ident">AssignBinOpToken</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
+            <span class="ident">AssignBinOpToken::Eq</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+            <span class="ident">AssignBinOpToken::Plus</span> =&gt; <span class="ident">BinOpKind::Add</span>,
+            <span class="ident">AssignBinOpToken::Minus</span> =&gt; <span class="ident">BinOpKind::Sub</span>,
+            <span class="ident">AssignBinOpToken::Star</span> =&gt; <span class="ident">BinOpKind::Mul</span>,
+            <span class="ident">AssignBinOpToken::Slash</span> =&gt; <span class="ident">BinOpKind::Div</span>,
+            <span class="ident">AssignBinOpToken::Percent</span> =&gt; <span class="ident">BinOpKind::Rem</span>,
+            <span class="ident">AssignBinOpToken::And</span> =&gt; <span class="ident">BinOpKind::BitWiseAnd</span>,
+            <span class="ident">AssignBinOpToken::LShift</span> =&gt; <span class="ident">BinOpKind::LShift</span>,
+            <span class="ident">AssignBinOpToken::RShift</span> =&gt; <span class="ident">BinOpKind::RShift</span>,
+        })
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
@@ -1097,10 +1370,16 @@
     <span class="ident">pos</span>: <span class="ident">Position</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileInfo</span> {
     <span class="ident">file_name</span>: <span class="ident">String</span>,
     <span class="ident">src</span>: <span class="ident">String</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">FileInfo</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
+        <span class="prelude-val">Ok</span>(())
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">FileInfo</span> {
@@ -1278,7 +1557,7 @@
     }
 
     <span class="doccomment">/// if next token is expected kind, do nothing, otherwise `panic`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DebugInfo</span>, <span class="ident">CompileError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::error::Tokens</span><span class="op">&gt;</span>,
     {
@@ -1302,7 +1581,7 @@
                         <span class="ident">token</span>,
                     ));
                 }
-                <span class="prelude-val">Ok</span>(())
+                <span class="prelude-val">Ok</span>(<span class="ident">token</span>.<span class="ident">debug_info</span>)
             }
         }
     }
@@ -1454,8 +1733,7 @@
         <span class="ident">src</span>: <span class="ident">input</span>.<span class="ident">to_string</span>(),
     });
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">preproccor</span> <span class="op">=</span> <span class="ident">Preprocessor::new</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>(), <span class="string">&quot;&quot;</span>);
-    <span class="kw">let</span> <span class="ident">derective_count</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>;
-    <span class="kw">let</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">preproccor</span>.<span class="ident">preprocess</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="prelude-val">None</span>, <span class="ident">derective_count</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">preproccor</span>.<span class="ident">preprocess</span>(<span class="kw-2">&amp;mut</span> <span class="ident">SrcCursor::new</span>(<span class="ident">file_info</span>.<span class="ident">clone</span>()), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">PreprocessorTokenStream::new</span>(<span class="ident">tokens</span>.<span class="ident">into_iter</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokenizer</span> <span class="op">=</span> <span class="ident">Tokenizer::new</span>(<span class="ident">PreprocessorTokenContainerStream::new</span>(<span class="ident">stream</span>.<span class="ident">collect</span>()));
     <span class="prelude-val">Ok</span>(<span class="ident">tokenizer</span>
