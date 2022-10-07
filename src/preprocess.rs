@@ -19,7 +19,6 @@ pub struct Preprocessor<'b> {
     define_table: BTreeMap<String, String>,
     ifdef_depth: usize,
     watching_label: usize,
-    // ifdef_stack: Vec<usize>,
 }
 
 pub enum SrcCursorGenerator {
@@ -363,6 +362,7 @@ impl<'b> Preprocessor<'b> {
         Ok(tokens)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn include_from_include_dir(
         &mut self,
         debug_info: &DebugInfo,
@@ -387,6 +387,53 @@ impl<'b> Preprocessor<'b> {
         tokens = self.preprocess(&mut SrcCursor::new(file_info), Some(tokens))?;
         Ok(tokens)
     }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn include_from_include_dir(
+        &mut self,
+        debug_info: &DebugInfo,
+        file_path: &str,
+        mut tokens: Vec<Token<TokenKind>>,
+    ) -> Result<Vec<Token<TokenKind>>, CompileError> {
+        let src = match file_path {
+            "assert.h" => Includer::get_assert_h(),
+            "ctype.h" => Includer::get_ctype_h(),
+            "stdarg.h" => Includer::get_stdarg_h(),
+            "stdbool.h" => Includer::get_stdbool_h(),
+            "stddef.h" => Includer::get_stddef_h(),
+            "stdio.h" => Includer::get_stdio_h(),
+            "stdlib.h" => Includer::get_stdlib_h(),
+            "string.h" => Includer::get_string_h(),
+            _ => {
+                return Err(unimplemented_err!(
+                    debug_info.clone(),
+                    format!("include file does not exist: {:?}", file_path)
+                ))
+            }
+        };
+        let file_info = Rc::new(FileInfo::new(file_path.to_string(), src.to_string()));
+        tokens = self.preprocess(&mut SrcCursor::new(file_info), Some(tokens))?;
+        Ok(tokens)
+    }
+}
+
+mod Includer {
+    macro_rules! gen_include {
+        ($func_name:ident, $file_path:expr) => {
+            pub const fn $func_name() -> &'static str {
+                include_str!($file_path)
+            }
+        };
+    }
+
+    gen_include!(get_assert_h, "../include/assert.h");
+    gen_include!(get_ctype_h, "../include/ctype.h");
+    gen_include!(get_stdarg_h, "../include/stdarg.h");
+    gen_include!(get_stdbool_h, "../include/stdbool.h");
+    gen_include!(get_stddef_h, "../include/stddef.h");
+    gen_include!(get_stdio_h, "../include/stdio.h");
+    gen_include!(get_stdlib_h, "../include/stdlib.h");
+    gen_include!(get_string_h, "../include/string.h");
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
