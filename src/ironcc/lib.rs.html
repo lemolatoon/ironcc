@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -15,22 +15,204 @@
 <span id="15">15</span>
 <span id="16">16</span>
 <span id="17">17</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::pedantic</span>, <span class="ident">clippy::nursery</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::missing_errors_doc</span>, <span class="ident">clippy::must_use_candidate</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy::cast_possible_wrap</span>,
-    <span class="ident">clippy::missing_panics_doc</span>,
-    <span class="ident">clippy::use_self</span>,
-    <span class="ident">clippy::module_name_repetitions</span>,
-    <span class="ident">clippy::vec_init_then_push</span>,
-    <span class="ident">clippy::large_enum_variant</span>
-)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">analyze</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">common</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generate</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">parse</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">preprocess</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tokenize</span>;
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+</pre><pre class="rust"><code><span class="attribute">#![warn(clippy::pedantic, clippy::nursery)]
+#![allow(clippy::missing_errors_doc, clippy::must_use_candidate)]
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::missing_panics_doc,
+    clippy::use_self,
+    clippy::module_name_repetitions,
+    clippy::vec_init_then_push,
+    clippy::large_enum_variant
+)]
+
+</span><span class="kw">pub mod </span>analyze;
+<span class="kw">pub mod </span>common;
+<span class="kw">pub mod </span>error;
+<span class="kw">pub mod </span>generate;
+<span class="kw">pub mod </span>parse;
+<span class="kw">pub mod </span>preprocess;
+<span class="kw">pub mod </span>tokenize;
+
+<span class="kw">use </span><span class="kw">crate</span>::generate::Generator;
+<span class="kw">use </span>analyze::Analyzer;
+<span class="kw">use </span>error::CompileError;
+<span class="kw">use </span>parse::Parser;
+<span class="kw">use </span>preprocess::Preprocessor;
+<span class="kw">use </span>preprocess::PreprocessorTokenContainerStream;
+<span class="kw">use </span>preprocess::PreprocessorTokenStream;
+<span class="kw">use </span>preprocess::SrcCursor;
+<span class="kw">use </span>std::io::BufWriter;
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>tokenize::FileInfo;
+<span class="kw">use </span>tokenize::TokenStream;
+<span class="kw">use </span>tokenize::Tokenizer;
+
+<span class="kw">pub fn </span>preprocess_and_compile(<span class="kw-2">mut </span>input: String) -&gt; <span class="prelude-ty">Result</span>&lt;String, CompileError&gt; {
+    <span class="kw">use </span>std::io::Write;
+    input.push(<span class="string">&#39;\n&#39;</span>);
+
+    <span class="kw">let </span>file_name = <span class="string">&quot;src.c&quot;</span>.to_string();
+    <span class="kw">let </span>main_file_info = Rc::new(FileInfo::new(file_name.clone(), input.clone()));
+    <span class="kw">let </span><span class="kw-2">mut </span>preprocessor = Preprocessor::new(main_file_info.clone(), <span class="string">&quot;include&quot;</span>);
+    <span class="kw">let </span>tokens = preprocessor.preprocess(<span class="kw-2">&amp;mut </span>SrcCursor::new(main_file_info), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>stream = PreprocessorTokenStream::new(tokens.into_iter());
+    <span class="kw">let </span>container_stream = PreprocessorTokenContainerStream::new(stream.collect());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>tokenizer = Tokenizer::new(container_stream);
+    <span class="kw">let </span>file_info = Rc::new(FileInfo::new(file_name, input));
+    <span class="kw">let </span>tokens = tokenizer.tokenize(<span class="kw-2">&amp;</span>file_info)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>token_stream = TokenStream::new(tokens.into_iter());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new();
+    <span class="kw">let </span>program = parser.parse_program(<span class="kw-2">&amp;mut </span>token_stream)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>analyzer = Analyzer::new();
+    <span class="kw">let </span>converted_program = analyzer.traverse_program(program)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>buf_writer = BufWriter::new(Vec::new());
+    <span class="kw">let </span><span class="kw-2">mut </span>generater = Generator::new();
+    generater.gen_head(<span class="kw-2">&amp;mut </span>buf_writer, converted_program)<span class="question-mark">?</span>;
+    buf_writer.flush()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>asm = String::from_utf8(buf_writer.into_inner().unwrap()).unwrap();
+    <span class="prelude-val">Ok</span>(asm)
+}
+
+<span class="kw">pub fn </span>preprocessed_source(<span class="kw-2">mut </span>input: String) -&gt; <span class="prelude-ty">Result</span>&lt;String, CompileError&gt; {
+    input.push(<span class="string">&#39;\n&#39;</span>);
+
+    <span class="kw">let </span>file_name = <span class="string">&quot;src.c&quot;</span>.to_string();
+    <span class="kw">let </span>main_file_info = Rc::new(FileInfo::new(file_name, input.clone()));
+    <span class="kw">let </span><span class="kw-2">mut </span>preprocessor = Preprocessor::new(main_file_info.clone(), <span class="string">&quot;include&quot;</span>);
+    <span class="kw">let </span>tokens = preprocessor.preprocess(<span class="kw-2">&amp;mut </span>SrcCursor::new(main_file_info), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>stream = PreprocessorTokenStream::new(tokens.into_iter());
+    <span class="kw">let </span>container_stream = PreprocessorTokenContainerStream::new(stream.collect());
+
+    <span class="prelude-val">Ok</span>(container_stream.map(|(<span class="kw">_</span>, ch)| ch).collect())
+}
+
+<span class="kw">pub fn </span>tokens(
+    <span class="kw-2">mut </span>input: String,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;tokenize::Token&lt;tokenize::TokenKind&gt;&gt;, CompileError&gt; {
+    input.push(<span class="string">&#39;\n&#39;</span>);
+
+    <span class="kw">let </span>file_name = <span class="string">&quot;src.c&quot;</span>.to_string();
+    <span class="kw">let </span>main_file_info = Rc::new(FileInfo::new(file_name.clone(), input.clone()));
+    <span class="kw">let </span><span class="kw-2">mut </span>preprocessor = Preprocessor::new(main_file_info.clone(), <span class="string">&quot;include&quot;</span>);
+    <span class="kw">let </span>tokens = preprocessor.preprocess(<span class="kw-2">&amp;mut </span>SrcCursor::new(main_file_info), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>stream = PreprocessorTokenStream::new(tokens.into_iter());
+    <span class="kw">let </span>container_stream = PreprocessorTokenContainerStream::new(stream.collect());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>tokenizer = Tokenizer::new(container_stream);
+    <span class="kw">let </span>file_info = Rc::new(FileInfo::new(file_name, input));
+    tokenizer.tokenize(<span class="kw-2">&amp;</span>file_info)
+}
+
+<span class="kw">pub fn </span>parsed_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;parse::Program, CompileError&gt; {
+    <span class="kw">let </span>tokens = tokens(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>token_stream = TokenStream::new(tokens.into_iter());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new();
+    <span class="kw">let </span>program = parser.parse_program(<span class="kw-2">&amp;mut </span>token_stream)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(program)
+}
+
+<span class="kw">pub fn </span>converted_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;analyze::ConvProgram, CompileError&gt; {
+    <span class="kw">let </span>ast = parsed_ast(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>analyzer = Analyzer::new();
+    analyzer.traverse_program(ast)
+}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

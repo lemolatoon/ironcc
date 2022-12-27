@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ironcc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ironcc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -761,768 +761,768 @@
 <span id="761">761</span>
 <span id="762">762</span>
 <span id="763">763</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConstExpr</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExpr</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::ConvExprKind</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::GVar</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::analyze::Type</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::preprocess</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::DebugInfo</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::Position</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tokenize::Token</span>;
-<span class="kw">use</span> <span class="ident">std::error::Error</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::analyze::ConstExpr;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExpr;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExprKind;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::GVar;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::Type;
+<span class="kw">use </span><span class="kw">crate</span>::preprocess;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::DebugInfo;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::Position;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::Token;
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt::Debug;
+<span class="kw">use </span>std::fmt::Display;
+<span class="kw">use </span>std::io;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileError</span> {
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">CompileErrorKind</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>CompileError {
+    <span class="kw">pub </span>kind: CompileErrorKind,
 }
 
-<span class="kw">impl</span> <span class="ident">CompileError</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">CompileErrorKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">kind</span> }
+<span class="kw">impl </span>CompileError {
+    <span class="kw">pub const fn </span>new(kind: CompileErrorKind) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ kind }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompileErrorKind</span> {
-    <span class="ident">TokenizeError</span>(<span class="ident">TokenizeErrorKind</span>),
-    <span class="ident">ParseError</span>(<span class="ident">ParseErrorKind</span>),
-    <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind</span>),
-    <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind</span>),
-    <span class="ident">Unimplemented</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DebugInfo</span><span class="op">&gt;</span>, <span class="ident">String</span>),
-    <span class="ident">IOError</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>CompileErrorKind {
+    TokenizeError(TokenizeErrorKind),
+    ParseError(ParseErrorKind),
+    AnalyzeError(AnalyzeErrorKind),
+    GenerateError(GenerateErrorKind),
+    Unimplemented(<span class="prelude-ty">Option</span>&lt;DebugInfo&gt;, String),
+    IOError(Box&lt;<span class="kw">dyn </span>Debug&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">CompileErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::TokenizeError</span>(<span class="ident">arg0</span>) =&gt; <span class="ident"><span class="self">Self</span>::TokenizeError</span>(<span class="ident">arg0</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::ParseError</span>(<span class="ident">arg0</span>) =&gt; <span class="ident"><span class="self">Self</span>::ParseError</span>(<span class="ident">arg0</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::AnalyzeError</span>(<span class="ident">arg0</span>) =&gt; <span class="ident"><span class="self">Self</span>::AnalyzeError</span>(<span class="ident">arg0</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::GenerateError</span>(<span class="ident">arg0</span>) =&gt; <span class="ident"><span class="self">Self</span>::GenerateError</span>(<span class="ident">arg0</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::Unimplemented</span>(<span class="ident">arg0</span>, <span class="ident">arg1</span>) =&gt; <span class="ident"><span class="self">Self</span>::Unimplemented</span>(<span class="ident">arg0</span>.<span class="ident">clone</span>(), <span class="ident">arg1</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::IOError</span>(<span class="ident">arg0</span>) =&gt; <span class="ident"><span class="self">Self</span>::IOError</span>(<span class="ident">Box::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">arg0</span>))),
+<span class="kw">impl </span>Clone <span class="kw">for </span>CompileErrorKind {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::TokenizeError(arg0) =&gt; <span class="self">Self</span>::TokenizeError(arg0.clone()),
+            <span class="self">Self</span>::ParseError(arg0) =&gt; <span class="self">Self</span>::ParseError(arg0.clone()),
+            <span class="self">Self</span>::AnalyzeError(arg0) =&gt; <span class="self">Self</span>::AnalyzeError(arg0.clone()),
+            <span class="self">Self</span>::GenerateError(arg0) =&gt; <span class="self">Self</span>::GenerateError(arg0.clone()),
+            <span class="self">Self</span>::Unimplemented(arg0, arg1) =&gt; <span class="self">Self</span>::Unimplemented(arg0.clone(), arg1.clone()),
+            <span class="self">Self</span>::IOError(arg0) =&gt; <span class="self">Self</span>::IOError(Box::new(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, arg0))),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">CompileError</span> {}
+<span class="kw">impl </span>Error <span class="kw">for </span>CompileError {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CompileError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">io::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">kind</span>: <span class="ident">CompileErrorKind::IOError</span>(<span class="ident">Box::new</span>(<span class="ident">err</span>)),
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>CompileError {
+    <span class="kw">fn </span>from(err: io::Error) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: CompileErrorKind::IOError(Box::new(err)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">preprocess::TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Tokens</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">preprocess::TokenKind</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Tokens::Preprocess</span>(<span class="ident">token</span>)
+<span class="kw">impl </span>From&lt;Token&lt;preprocess::TokenKind&gt;&gt; <span class="kw">for </span>Tokens {
+    <span class="kw">fn </span>from(token: Token&lt;preprocess::TokenKind&gt;) -&gt; <span class="self">Self </span>{
+        Tokens::Preprocess(token)
     }
 }
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">tokenize::TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Tokens</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">tokenize::TokenKind</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Tokens::Tokenize</span>(<span class="ident">token</span>)
+<span class="kw">impl </span>From&lt;Token&lt;tokenize::TokenKind&gt;&gt; <span class="kw">for </span>Tokens {
+    <span class="kw">fn </span>from(token: Token&lt;tokenize::TokenKind&gt;) -&gt; <span class="self">Self </span>{
+        Tokens::Tokenize(token)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">CompileError</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_unexpected_char</span>(<span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">CompileError</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::TokenizeError</span>(
-            <span class="ident">TokenizeErrorKind::UnexpectedChar</span>(<span class="ident">debug_info</span>, <span class="ident">c</span>),
+<span class="kw">impl </span>CompileError {
+    <span class="kw">pub const fn </span>new_unexpected_char(debug_info: DebugInfo, c: char) -&gt; CompileError {
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedChar(debug_info, c),
         ))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unexpected_eof</span>(<span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">kind</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::UnexpectedEof</span>(
-            <span class="ident">input</span>, <span class="ident">kind</span>,
+    <span class="kw">pub fn </span>new_unexpected_eof(input: <span class="prelude-ty">Option</span>&lt;String&gt;, kind: Box&lt;<span class="kw">dyn </span>Debug&gt;) -&gt; CompileError {
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::UnexpectedEof(
+            input, kind,
         )))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_expected_failed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="ident">expect</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>, <span class="ident">got</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span>,
-        <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Tokens</span><span class="op">&gt;</span>,
+    <span class="kw">pub fn </span>new_expected_failed&lt;K&gt;(expect: Box&lt;<span class="kw">dyn </span>Debug&gt;, got: Token&lt;K&gt;) -&gt; CompileError
+    <span class="kw">where
+        </span>K: PartialEq + Debug + Clone,
+        Token&lt;K&gt;: Into&lt;Tokens&gt;,
     {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> {
-            <span class="ident">expect</span>,
-            <span class="ident">got</span>: <span class="ident">got</span>.<span class="ident">into</span>(),
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
+            expect,
+            got: got.into(),
         }))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ident_expected_failed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="ident">got</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span>,
-        <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Tokens</span><span class="op">&gt;</span>,
+    <span class="kw">pub fn </span>new_ident_expected_failed&lt;K&gt;(got: Token&lt;K&gt;) -&gt; CompileError
+    <span class="kw">where
+        </span>K: PartialEq + Debug + Clone,
+        Token&lt;K&gt;: Into&lt;Tokens&gt;,
     {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::ParseError</span>(
-            <span class="ident">ParseErrorKind::IdentExpectFailed</span> { <span class="ident">got</span>: <span class="ident">got</span>.<span class="ident">into</span>() },
+        CompileError::new(CompileErrorKind::ParseError(
+            ParseErrorKind::IdentExpectFailed { got: got.into() },
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_expected_failed_with_box</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="ident">expect</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>, <span class="ident">got</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>) -&gt; <span class="ident">CompileError</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Clone</span>,
-        <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Tokens</span><span class="op">&gt;</span>,
+    <span class="kw">pub fn </span>new_expected_failed_with_box&lt;K&gt;(expect: Box&lt;<span class="kw">dyn </span>Debug&gt;, got: Token&lt;K&gt;) -&gt; CompileError
+    <span class="kw">where
+        </span>K: PartialEq + Debug + Clone,
+        Token&lt;K&gt;: Into&lt;Tokens&gt;,
     {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> {
-            <span class="ident">expect</span>,
-            <span class="ident">got</span>: <span class="ident">got</span>.<span class="ident">into</span>(),
+        CompileError::new(CompileErrorKind::ParseError(ParseErrorKind::ExpectFailed {
+            expect,
+            got: got.into(),
         }))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_unexpected_eof_tokenize</span>(<span class="ident">pos</span>: <span class="ident">DebugInfo</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::TokenizeError</span>(
-            <span class="ident">TokenizeErrorKind::UnexpectedEof</span>(<span class="ident">pos</span>),
+    <span class="kw">pub const fn </span>new_unexpected_eof_tokenize(pos: DebugInfo) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::TokenizeError(
+            TokenizeErrorKind::UnexpectedEof(pos),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_unexpected_void</span>(<span class="ident">pos</span>: <span class="ident">DebugInfo</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(<span class="ident">TypeExpectedFailedKind::UnexpectedVoid</span>(<span class="ident">pos</span>, <span class="ident">msg</span>)),
+    <span class="kw">pub const fn </span>new_unexpected_void(pos: DebugInfo, msg: String) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::UnexpectedVoid(pos, msg)),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_redefined_variable</span>(
-        <span class="ident">name</span>: <span class="ident">String</span>,
-        <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">kind</span>: <span class="ident">VariableKind</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::RedefinedError</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>, <span class="ident">kind</span>),
+    <span class="kw">pub const fn </span>new_redefined_variable(
+        name: String,
+        debug_info: DebugInfo,
+        kind: VariableKind,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::RedefinedError(name, debug_info, kind),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_no_such_member</span>(
-        <span class="ident">tag_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">pos</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">got_member_name</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::NoSuchMemberError</span> {
-                <span class="ident">tag_name</span>,
-                <span class="ident">pos</span>,
-                <span class="ident">got_member_name</span>,
+    <span class="kw">pub const fn </span>new_no_such_member(
+        tag_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        pos: DebugInfo,
+        got_member_name: String,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::NoSuchMemberError {
+                tag_name,
+                pos,
+                got_member_name,
             },
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_undeclared_error</span>(
-        <span class="ident">name</span>: <span class="ident">String</span>,
-        <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">kind</span>: <span class="ident">VariableKind</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::UndeclaredError</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>, <span class="ident">kind</span>),
+    <span class="kw">pub const fn </span>new_undeclared_error(
+        name: String,
+        debug_info: DebugInfo,
+        kind: VariableKind,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::UndeclaredError(name, debug_info, kind),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_args_error</span>(
-        <span class="ident">name</span>: <span class="ident">String</span>,
-        <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">expected</span>: <span class="ident">usize</span>,
-        <span class="ident">got</span>: <span class="ident">usize</span>,
-        <span class="ident">declared_debug_info</span>: <span class="ident">DebugInfo</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::FuncArgsError</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>, <span class="ident">expected</span>, <span class="ident">got</span>, <span class="ident">declared_debug_info</span>),
+    <span class="kw">pub const fn </span>new_args_error(
+        name: String,
+        debug_info: DebugInfo,
+        expected: usize,
+        got: usize,
+        declared_debug_info: DebugInfo,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::FuncArgsError(name, debug_info, expected, got, declared_debug_info),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">lhs</span>: <span class="ident">ConvExpr</span>, <span class="ident">rhs</span>: <span class="ident">ConvExpr</span>, <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
-            <span class="ident">TypeErrorKind::Expr</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span> },
-            <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
+    <span class="kw">pub fn </span>new_type_error&lt;T: Into&lt;String&gt;&gt;(lhs: ConvExpr, rhs: ConvExpr, msg: <span class="prelude-ty">Option</span>&lt;T&gt;) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::Expr { lhs, rhs },
+            msg.map(std::convert::Into::into),
         )))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error_const</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="ident">expr0</span>: <span class="ident">ConstExpr</span>,
-        <span class="ident">expr1</span>: <span class="ident">ConstExpr</span>,
-        <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
-            <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>),
-            <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
+    <span class="kw">pub fn </span>new_type_error_const&lt;T: Into&lt;String&gt;&gt;(
+        expr0: ConstExpr,
+        expr1: ConstExpr,
+        msg: <span class="prelude-ty">Option</span>&lt;T&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::ConstExpr(expr0, expr1),
+            msg.map(std::convert::Into::into),
         )))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_type_error_types</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="ident">debug_info0</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">debug_info1</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">ty0</span>: <span class="ident">Type</span>,
-        <span class="ident">ty1</span>: <span class="ident">Type</span>,
-        <span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(
-            <span class="ident">TypeErrorKind::Type</span>(<span class="ident">debug_info0</span>, <span class="ident">debug_info1</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>),
-            <span class="ident">msg</span>.<span class="ident">map</span>(<span class="ident">std::convert::Into::into</span>),
+    <span class="kw">pub fn </span>new_type_error_types&lt;T: Into&lt;String&gt;&gt;(
+        debug_info0: DebugInfo,
+        debug_info1: DebugInfo,
+        ty0: Type,
+        ty1: Type,
+        msg: <span class="prelude-ty">Option</span>&lt;T&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(AnalyzeErrorKind::TypeError(
+            TypeErrorKind::Type(debug_info0, debug_info1, ty0, ty1),
+            msg.map(std::convert::Into::into),
         )))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_type_expect_failed</span>(<span class="ident">pos</span>: <span class="ident">DebugInfo</span>, <span class="ident">expected</span>: <span class="ident">Type</span>, <span class="ident">got</span>: <span class="ident">Type</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(<span class="ident">TypeExpectedFailedKind::Type</span> { <span class="ident">pos</span>, <span class="ident">expected</span>, <span class="ident">got</span> }),
+    <span class="kw">pub const fn </span>new_type_expect_failed(pos: DebugInfo, expected: Type, got: Type) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type { pos, expected, got }),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_type_expect_failed_with_str</span>(
-        <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">expected</span>: <span class="ident">String</span>,
-        <span class="ident">got</span>: <span class="ident">Type</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(<span class="ident">TypeExpectedFailedKind::TypeWithPatternStr</span> {
-                <span class="ident">pos</span>: <span class="ident">debug_info</span>,
-                <span class="ident">expected</span>,
-                <span class="ident">got</span>,
+    <span class="kw">pub const fn </span>new_type_expect_failed_with_str(
+        debug_info: DebugInfo,
+        expected: String,
+        got: Type,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::TypeWithPatternStr {
+                pos: debug_info,
+                expected,
+                got,
             }),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_const_expr_error</span>(<span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>, <span class="ident">kind</span>: <span class="ident">ConvExprKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::ConstExprError</span>(<span class="ident">debug_info</span>, <span class="ident">kind</span>),
+    <span class="kw">pub const fn </span>new_const_expr_error(debug_info: DebugInfo, kind: ConvExprKind) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::ConstExprError(debug_info, kind),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_not_allowed_stmt_error</span>(
-        <span class="ident">debug_info</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">kind</span>: <span class="ident">NotAllowedStmtKind</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::AnalyzeError</span>(
-            <span class="ident">AnalyzeErrorKind::NotAllowedStmtError</span>(<span class="ident">debug_info</span>, <span class="ident">kind</span>),
+    <span class="kw">pub const fn </span>new_not_allowed_stmt_error(
+        debug_info: DebugInfo,
+        kind: NotAllowedStmtKind,
+    ) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::AnalyzeError(
+            AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_deref_error</span>(<span class="ident">expr</span>: <span class="ident">ConvExpr</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::GenerateError</span>(
-            <span class="ident">GenerateErrorKind::DerefError</span>(<span class="ident">expr</span>),
+    <span class="kw">pub const fn </span>new_deref_error(expr: ConvExpr) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::DerefError(expr),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_lvalue_error</span>(<span class="ident">expr</span>: <span class="ident">ConvExpr</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::GenerateError</span>(
-            <span class="ident">GenerateErrorKind::LeftValueError</span>(<span class="ident">expr</span>),
+    <span class="kw">pub const fn </span>new_lvalue_error(expr: ConvExpr) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::LeftValueError(expr),
         ))
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_type_size_error</span>(<span class="ident">status</span>: <span class="ident">UnexpectedTypeSizeStatus</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileError::new</span>(<span class="ident">CompileErrorKind::GenerateError</span>(
-            <span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(<span class="ident">status</span>),
+    <span class="kw">pub const fn </span>new_type_size_error(status: UnexpectedTypeSizeStatus) -&gt; <span class="self">Self </span>{
+        CompileError::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::UnexpectedTypeSize(status),
         ))
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenizeErrorKind</span> {
-    <span class="ident">UnexpectedChar</span>(<span class="ident">DebugInfo</span>, <span class="ident">char</span>),
-    <span class="ident">UnexpectedEof</span>(<span class="ident">DebugInfo</span>),
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>TokenizeErrorKind {
+    UnexpectedChar(DebugInfo, char),
+    UnexpectedEof(DebugInfo),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Tokens</span> {
-    <span class="ident">Preprocess</span>(<span class="ident">Token</span><span class="op">&lt;</span><span class="ident">preprocess::TokenKind</span><span class="op">&gt;</span>),
-    <span class="ident">Tokenize</span>(<span class="ident">Token</span><span class="op">&lt;</span><span class="ident">tokenize::TokenKind</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>Tokens {
+    Preprocess(Token&lt;preprocess::TokenKind&gt;),
+    Tokenize(Token&lt;tokenize::TokenKind&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">Tokens</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_debug_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DebugInfo</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Tokens::Preprocess</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>(),
-            <span class="ident">Tokens::Tokenize</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>(),
+<span class="kw">impl </span>Tokens {
+    <span class="kw">pub fn </span>get_debug_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugInfo {
+        <span class="kw">match </span><span class="self">self </span>{
+            Tokens::Preprocess(token) =&gt; token.debug_info.clone(),
+            Tokens::Tokenize(token) =&gt; token.debug_info.clone(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_kind_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Tokens::Preprocess</span>(<span class="ident">token</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">token</span>.<span class="ident">kind</span>),
-            <span class="ident">Tokens::Tokenize</span>(<span class="ident">token</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">token</span>.<span class="ident">kind</span>),
+    <span class="kw">pub fn </span>get_kind_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="self">self </span>{
+            Tokens::Preprocess(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, token.kind),
+            Tokens::Tokenize(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, token.kind),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">get_tokenize_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">tokenize::TokenKind</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Tokens::Preprocess</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Tokens::Tokenize</span>(<span class="ident">token</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">token</span>),
+    <span class="kw">pub const fn </span>get_tokenize_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&lt;tokenize::TokenKind&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Tokens::Preprocess(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Tokens::Tokenize(token) =&gt; <span class="prelude-val">Some</span>(token),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParseErrorKind</span> {
-    <span class="doccomment">/// An error returned when an operation could not be completed because an &quot;end of file&quot; was reached prematurely.</span>
-    <span class="ident">UnexpectedEof</span>(<span class="comment">/* src */</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>),
-    <span class="ident">ExpectFailed</span> {
-        <span class="ident">expect</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Debug</span><span class="op">&gt;</span>,
-        <span class="ident">got</span>: <span class="ident">Tokens</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ParseErrorKind {
+    <span class="doccomment">/// An error returned when an operation could not be completed because an &quot;end of file&quot; was reached prematurely.
+    </span>UnexpectedEof(<span class="comment">/* src */ </span><span class="prelude-ty">Option</span>&lt;String&gt;, Box&lt;<span class="kw">dyn </span>Debug&gt;),
+    ExpectFailed {
+        expect: Box&lt;<span class="kw">dyn </span>Debug&gt;,
+        got: Tokens,
     },
-    <span class="ident">IdentExpectFailed</span> {
-        <span class="ident">got</span>: <span class="ident">Tokens</span>,
+    IdentExpectFailed {
+        got: Tokens,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ParseErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::UnexpectedEof</span>(<span class="ident">src</span>, <span class="ident">arg0</span>) =&gt; {
-                <span class="ident"><span class="self">Self</span>::UnexpectedEof</span>(<span class="ident">src</span>.<span class="ident">clone</span>(), <span class="ident">Box::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">arg0</span>)))
+<span class="kw">impl </span>Clone <span class="kw">for </span>ParseErrorKind {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::UnexpectedEof(src, arg0) =&gt; {
+                <span class="self">Self</span>::UnexpectedEof(src.clone(), Box::new(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, arg0)))
             }
-            <span class="ident"><span class="self">Self</span>::ExpectFailed</span> { <span class="ident">expect</span>, <span class="ident">got</span> } =&gt; <span class="ident"><span class="self">Self</span>::ExpectFailed</span> {
-                <span class="ident">expect</span>: <span class="ident">Box::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">expect</span>)),
-                <span class="ident">got</span>: <span class="ident">got</span>.<span class="ident">clone</span>(),
+            <span class="self">Self</span>::ExpectFailed { expect, got } =&gt; <span class="self">Self</span>::ExpectFailed {
+                expect: Box::new(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, expect)),
+                got: got.clone(),
             },
-            <span class="ident">ParseErrorKind::IdentExpectFailed</span> { <span class="ident">got</span> } =&gt; {
-                <span class="ident"><span class="self">Self</span>::IdentExpectFailed</span> { <span class="ident">got</span>: <span class="ident">got</span>.<span class="ident">clone</span>() }
+            ParseErrorKind::IdentExpectFailed { got } =&gt; {
+                <span class="self">Self</span>::IdentExpectFailed { got: got.clone() }
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompileError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Debug</span><span class="op">&gt;</span><span class="ident">::fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>Display <span class="kw">for </span>CompileError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        &lt;<span class="self">Self </span><span class="kw">as </span>Debug&gt;::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">CompileError</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_lines</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">use</span> <span class="ident">CompileErrorKind</span>::{
-            <span class="ident">AnalyzeError</span>, <span class="ident">GenerateError</span>, <span class="ident">IOError</span>, <span class="ident">ParseError</span>, <span class="ident">TokenizeError</span>, <span class="ident">Unimplemented</span>,
+<span class="kw">impl </span>Debug <span class="kw">for </span>CompileError {
+    <span class="attribute">#[allow(clippy::too_many_lines)]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">use </span>CompileErrorKind::{
+            AnalyzeError, GenerateError, IOError, ParseError, TokenizeError, Unimplemented,
         };
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">TokenizeError</span>(<span class="ident">TokenizeErrorKind::UnexpectedEof</span>(<span class="ident">debug_info</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Got Unexpected Eof while tokenizing&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            TokenizeError(TokenizeErrorKind::UnexpectedEof(debug_info)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;Got Unexpected Eof while tokenizing&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">TokenizeError</span>(<span class="ident">TokenizeErrorKind::UnexpectedChar</span>(<span class="ident">debug_info</span>, <span class="ident">c</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Got Unexpected char while tokenizing: `{}`&quot;</span>, <span class="ident">c</span>)<span class="question-mark">?</span>;
+            TokenizeError(TokenizeErrorKind::UnexpectedChar(debug_info, c)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;Got Unexpected char while tokenizing: `{}`&quot;</span>, c)<span class="question-mark">?</span>;
             }
-            <span class="ident">ParseError</span>(<span class="ident">ParseErrorKind::UnexpectedEof</span>(<span class="ident">src</span>, <span class="ident">expect</span>)) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">src</span>) <span class="op">=</span> <span class="ident">src</span> {
-                    <span class="ident">error_at_eof</span>(<span class="ident">src</span>.<span class="ident">as_str</span>(), <span class="ident">f</span>)<span class="question-mark">?</span>;
+            ParseError(ParseErrorKind::UnexpectedEof(src, expect)) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(src) = src {
+                    error_at_eof(src.as_str(), f)<span class="question-mark">?</span>;
                 }
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Expected `{:?}`, but got EOF.&quot;</span>, <span class="ident">expect</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;Expected `{:?}`, but got EOF.&quot;</span>, expect)<span class="question-mark">?</span>;
             }
-            <span class="ident">ParseError</span>(<span class="ident">ParseErrorKind::ExpectFailed</span> { <span class="ident">expect</span>, <span class="ident">got</span> }) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">got</span>.<span class="ident">get_debug_info</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+            ParseError(ParseErrorKind::ExpectFailed { expect, got }) =&gt; {
+                error_at(<span class="macro">vec!</span>[got.get_debug_info()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;Expected `{:?}`, but got `{:?}`.&quot;</span>,
-                    <span class="ident">expect</span>,
-                    <span class="ident">got</span>.<span class="ident">get_kind_str</span>(),
+                    expect,
+                    got.get_kind_str(),
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">ParseError</span>(<span class="ident">ParseErrorKind::IdentExpectFailed</span> { <span class="ident">got</span> }) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">got</span>.<span class="ident">get_debug_info</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+            ParseError(ParseErrorKind::IdentExpectFailed { got }) =&gt; {
+                error_at(<span class="macro">vec!</span>[got.get_debug_info()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;Expected `TokenKind::Ident(_)`, but got `{:?}`.&quot;</span>,
-                    <span class="ident">got</span>.<span class="ident">get_kind_str</span>(),
+                    got.get_kind_str(),
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(
-                <span class="ident">TypeExpectedFailedKind::UnexpectedVoid</span>(<span class="ident">debug_info</span>, <span class="ident">msg</span>),
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::UnexpectedVoid(debug_info, msg),
             )) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?}&quot;</span>, msg)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::UndeclaredError</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>, <span class="ident">kind</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} Variable `{}` Undeclared&quot;</span>, <span class="ident">kind</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+            AnalyzeError(AnalyzeErrorKind::UndeclaredError(name, debug_info, kind)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} Variable `{}` Undeclared&quot;</span>, kind, name)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::RedefinedError</span>(<span class="ident">name</span>, <span class="ident">debug_info</span>, <span class="ident">kind</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} Variable `{}` Redefined&quot;</span>, <span class="ident">kind</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+            AnalyzeError(AnalyzeErrorKind::RedefinedError(name, debug_info, kind)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} Variable `{}` Redefined&quot;</span>, kind, name)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::NoSuchMemberError</span> {
-                <span class="ident">tag_name</span>,
-                <span class="ident">pos</span>: <span class="ident">debug_info</span>,
-                <span class="ident">got_member_name</span>,
+            AnalyzeError(AnalyzeErrorKind::NoSuchMemberError {
+                tag_name,
+                pos: debug_info,
+                got_member_name,
             }) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tag_name</span>) <span class="op">=</span> <span class="ident">tag_name</span> {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(tag_name) = tag_name {
                     <span class="macro">writeln!</span>(
-                        <span class="ident">f</span>,
+                        f,
                         <span class="string">&quot;`struct {}` &#39;s members do not contain `{}`.&quot;</span>,
-                        <span class="ident">tag_name</span>, <span class="ident">got_member_name</span>
+                        tag_name, got_member_name
                     )<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
+                } <span class="kw">else </span>{
                     <span class="macro">writeln!</span>(
-                        <span class="ident">f</span>,
+                        f,
                         <span class="string">&quot;this struct &#39;s members do not contain `{}`.&quot;</span>,
-                        <span class="ident">got_member_name</span>
+                        got_member_name
                     )<span class="question-mark">?</span>;
                 }
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(<span class="ident">TypeExpectedFailedKind::Type</span> {
-                <span class="ident">pos</span>: <span class="ident">debug_info</span>,
-                <span class="ident">expected</span>,
-                <span class="ident">got</span>,
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(TypeExpectedFailedKind::Type {
+                pos: debug_info,
+                expected,
+                got,
             })) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} type expected, but got {:?}&quot;</span>, <span class="ident">expected</span>, <span class="ident">got</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} type expected, but got {:?}&quot;</span>, expected, got)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeExpectFailed</span>(
-                <span class="ident">TypeExpectedFailedKind::TypeWithPatternStr</span> {
-                    <span class="ident">pos</span>: <span class="ident">debug_info</span>,
-                    <span class="ident">expected</span>,
-                    <span class="ident">got</span>,
+            AnalyzeError(AnalyzeErrorKind::TypeExpectFailed(
+                TypeExpectedFailedKind::TypeWithPatternStr {
+                    pos: debug_info,
+                    expected,
+                    got,
                 },
             )) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} type expected, but got {:?}&quot;</span>, <span class="ident">expected</span>, <span class="ident">got</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} type expected, but got {:?}&quot;</span>, expected, got)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::TypeError</span>(<span class="ident">error</span>, <span class="ident">msg</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">poses</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">positions</span>();
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">poses</span>.<span class="number">0</span>, <span class="ident">poses</span>.<span class="number">1</span>], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">types</span>();
+            AnalyzeError(AnalyzeErrorKind::TypeError(error, msg)) =&gt; {
+                <span class="kw">let </span>poses = error.positions();
+                error_at(<span class="macro">vec!</span>[poses.<span class="number">0</span>, poses.<span class="number">1</span>], f)<span class="question-mark">?</span>;
+                <span class="kw">let </span>types = error.types();
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;Type conversion from {:?} into {:?} is not allowed.&quot;</span>,
-                    <span class="ident">types</span>.<span class="number">1</span>, <span class="ident">types</span>.<span class="number">0</span>
-                )<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">msg</span> {
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
+                    types.<span class="number">1</span>, types.<span class="number">0
+                </span>)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = msg {
+                    <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, msg)<span class="question-mark">?</span>;
                 }
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::FuncArgsError</span>(
-                <span class="ident">name</span>,
-                <span class="ident">debug_info</span>,
-                <span class="ident">expected</span>,
-                <span class="ident">got</span>,
-                <span class="ident">declared_pos</span>,
+            AnalyzeError(AnalyzeErrorKind::FuncArgsError(
+                name,
+                debug_info,
+                expected,
+                got,
+                declared_pos,
             )) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;In {:?}&#39;s calling, {} args expected, but got {}&quot;</span>,
-                    <span class="ident">name</span>, <span class="ident">expected</span>, <span class="ident">got</span>
+                    name, expected, got
                 )<span class="question-mark">?</span>;
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">declared_pos</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{} is first declared here.&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[declared_pos.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{} is first declared here.&quot;</span>, name)<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::ConstExprError</span>(<span class="ident">debug_info</span>, <span class="ident">kind</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+            AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;This kind({:?}) of Expr cannot be evaluated as constants.&quot;</span>,
-                    <span class="ident">kind</span>
+                    kind
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">AnalyzeError</span>(<span class="ident">AnalyzeErrorKind::NotAllowedStmtError</span>(<span class="ident">debug_info</span>, <span class="ident">kind</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="kw">match</span> <span class="ident">kind</span> {
-                    <span class="ident">NotAllowedStmtKind::Break</span> =&gt; {
-                        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;`break` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?</span>
-                    }
-                    <span class="ident">NotAllowedStmtKind::Continue</span> =&gt; {
-                        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;`continue` statement not in loop statement.&quot;</span>)<span class="question-mark">?</span>
-                    }
-                    <span class="ident">NotAllowedStmtKind::Case</span> =&gt; {
-                        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;`case` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?</span>
-                    }
-                    <span class="ident">NotAllowedStmtKind::Default</span> =&gt; {
-                        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;`default` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?</span>
-                    }
+            AnalyzeError(AnalyzeErrorKind::NotAllowedStmtError(debug_info, kind)) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="kw">match </span>kind {
+                    NotAllowedStmtKind::Break =&gt; {
+                        <span class="macro">writeln!</span>(f, <span class="string">&quot;`break` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?
+                    </span>}
+                    NotAllowedStmtKind::Continue =&gt; {
+                        <span class="macro">writeln!</span>(f, <span class="string">&quot;`continue` statement not in loop statement.&quot;</span>)<span class="question-mark">?
+                    </span>}
+                    NotAllowedStmtKind::Case =&gt; {
+                        <span class="macro">writeln!</span>(f, <span class="string">&quot;`case` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?
+                    </span>}
+                    NotAllowedStmtKind::Default =&gt; {
+                        <span class="macro">writeln!</span>(f, <span class="string">&quot;`default` statement not in loop or switch statement.&quot;</span>)<span class="question-mark">?
+                    </span>}
                 }
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::DerefError</span>(<span class="ident">expr</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} cannot be dereferenced.&quot;</span>, <span class="ident">expr</span>.<span class="ident">ty</span>)<span class="question-mark">?</span>;
+            GenerateError(GenerateErrorKind::DerefError(expr)) =&gt; {
+                error_at(<span class="macro">vec!</span>[expr.debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} cannot be dereferenced.&quot;</span>, expr.ty)<span class="question-mark">?</span>;
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::LeftValueError</span>(<span class="ident">expr</span>)) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+            GenerateError(GenerateErrorKind::LeftValueError(expr)) =&gt; {
+                error_at(<span class="macro">vec!</span>[expr.debug_info.clone()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;This expr cannot be used for generate address(Not left value). Type: {:?}&quot;</span>,
-                    <span class="ident">expr</span>.<span class="ident">ty</span>
+                    expr.ty
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(
-                <span class="ident">UnexpectedTypeSizeStatus::Expr</span>(<span class="ident">expr</span>),
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Expr(expr),
             )) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
+                error_at(<span class="macro">vec!</span>[expr.debug_info.clone()], f)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;This expr&#39;s type size is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}&quot;</span>,
-                    <span class="ident">expr</span>.<span class="ident">ty</span>
+                    expr.ty
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(
-                <span class="ident">UnexpectedTypeSizeStatus::FuncArgs</span>(<span class="ident">name</span>, <span class="ident">ty</span>),
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::FuncArgs(name, ty),
             )) =&gt; {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;one of func {}&#39;s args is unexpected. This type cannot be treated as any size of ptr which is allowed by CPU itself. Type: {:?}&quot;</span>,
-                    <span class="ident">name</span>,
-                    <span class="ident">ty</span>
+                    name,
+                    ty
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(
-                <span class="ident">UnexpectedTypeSizeStatus::Global</span>(<span class="ident">GVar</span> {
-                    <span class="ident">name</span>,
-                    <span class="ident">ty</span>,
-                    <span class="ident">init</span>: <span class="kw">_</span>,
-                    <span class="ident">is_extern</span>,
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Global(GVar {
+                    name,
+                    ty,
+                    init: <span class="kw">_</span>,
+                    is_extern,
                 }),
             )) =&gt; {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
-                    <span class="string">&quot;This Global Variable&#39;s type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}, is_extern: {}&quot;</span>, <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">ty</span>.<span class="ident">size_of</span>(), <span class="ident">is_extern</span>
+                    f,
+                    <span class="string">&quot;This Global Variable&#39;s type size is unexpected. name: {}, ty: {:?}, ty.sizeof(): {}, is_extern: {}&quot;</span>, name, ty, ty.size_of(), is_extern
                 )<span class="question-mark">?</span>;
             }
-            <span class="ident">GenerateError</span>(<span class="ident">GenerateErrorKind::UnexpectedTypeSize</span>(
-                <span class="ident">UnexpectedTypeSizeStatus::Size</span>(<span class="ident">size</span>),
+            GenerateError(GenerateErrorKind::UnexpectedTypeSize(
+                UnexpectedTypeSizeStatus::Size(size),
             )) =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;this type size is unexpected. size: {}&quot;</span>, <span class="ident">size</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;this type size is unexpected. size: {}&quot;</span>, size)<span class="question-mark">?</span>;
             }
-            <span class="ident">Unimplemented</span>(<span class="prelude-val">Some</span>(<span class="ident">debug_info</span>), <span class="ident">msg</span>) =&gt; {
-                <span class="ident">error_at</span>(<span class="macro">vec!</span>[<span class="ident">debug_info</span>.<span class="ident">clone</span>()], <span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
+            Unimplemented(<span class="prelude-val">Some</span>(debug_info), msg) =&gt; {
+                error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, msg)<span class="question-mark">?</span>;
             }
-            <span class="ident">Unimplemented</span>(<span class="prelude-val">None</span>, <span class="ident">msg</span>) =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>)<span class="question-mark">?</span>;
+            Unimplemented(<span class="prelude-val">None</span>, msg) =&gt; {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, msg)<span class="question-mark">?</span>;
             }
-            <span class="ident">IOError</span>(<span class="ident">err</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>)<span class="question-mark">?</span>,
+            IOError(err) =&gt; Debug::fmt(err, f)<span class="question-mark">?</span>,
         };
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AnalyzeErrorKind</span> {
-    <span class="ident">RedefinedError</span>(<span class="ident">String</span>, <span class="ident">DebugInfo</span>, <span class="ident">VariableKind</span>),
-    <span class="ident">UndeclaredError</span>(<span class="ident">String</span>, <span class="ident">DebugInfo</span>, <span class="ident">VariableKind</span>),
-    <span class="ident">NoSuchMemberError</span> {
-        <span class="ident">tag_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">pos</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">got_member_name</span>: <span class="ident">String</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>AnalyzeErrorKind {
+    RedefinedError(String, DebugInfo, VariableKind),
+    UndeclaredError(String, DebugInfo, VariableKind),
+    NoSuchMemberError {
+        tag_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        pos: DebugInfo,
+        got_member_name: String,
     },
-    <span class="ident">FuncArgsError</span>(<span class="ident">String</span>, <span class="ident">DebugInfo</span>, <span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">DebugInfo</span>),
-    <span class="ident">TypeError</span>(<span class="ident">TypeErrorKind</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
-    <span class="ident">TypeExpectFailed</span>(<span class="ident">TypeExpectedFailedKind</span>),
-    <span class="ident">ConstExprError</span>(<span class="ident">DebugInfo</span>, <span class="ident">ConvExprKind</span>),
-    <span class="ident">NotAllowedStmtError</span>(<span class="ident">DebugInfo</span>, <span class="ident">NotAllowedStmtKind</span>),
+    FuncArgsError(String, DebugInfo, usize, usize, DebugInfo),
+    TypeError(TypeErrorKind, <span class="prelude-ty">Option</span>&lt;String&gt;),
+    TypeExpectFailed(TypeExpectedFailedKind),
+    ConstExprError(DebugInfo, ConvExprKind),
+    NotAllowedStmtError(DebugInfo, NotAllowedStmtKind),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NotAllowedStmtKind</span> {
-    <span class="ident">Break</span>,
-    <span class="ident">Continue</span>,
-    <span class="ident">Case</span>,
-    <span class="ident">Default</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>NotAllowedStmtKind {
+    Break,
+    Continue,
+    Case,
+    Default,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeExpectedFailedKind</span> {
-    <span class="ident">Type</span> {
-        <span class="ident">pos</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">expected</span>: <span class="ident">Type</span>,
-        <span class="ident">got</span>: <span class="ident">Type</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>TypeExpectedFailedKind {
+    Type {
+        pos: DebugInfo,
+        expected: Type,
+        got: Type,
     },
-    <span class="ident">TypeWithPatternStr</span> {
-        <span class="ident">pos</span>: <span class="ident">DebugInfo</span>,
-        <span class="ident">expected</span>: <span class="ident">String</span>,
-        <span class="ident">got</span>: <span class="ident">Type</span>,
+    TypeWithPatternStr {
+        pos: DebugInfo,
+        expected: String,
+        got: Type,
     },
-    <span class="ident">UnexpectedVoid</span>(<span class="ident">DebugInfo</span>, <span class="ident">String</span>),
+    UnexpectedVoid(DebugInfo, String),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeErrorKind</span> {
-    <span class="ident">Expr</span> { <span class="ident">lhs</span>: <span class="ident">ConvExpr</span>, <span class="ident">rhs</span>: <span class="ident">ConvExpr</span> },
-    <span class="ident">ConstExpr</span>(<span class="ident">ConstExpr</span>, <span class="ident">ConstExpr</span>),
-    <span class="ident">Type</span>(<span class="ident">DebugInfo</span>, <span class="ident">DebugInfo</span>, <span class="ident">Type</span>, <span class="ident">Type</span>),
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>TypeErrorKind {
+    Expr { lhs: ConvExpr, rhs: ConvExpr },
+    ConstExpr(ConstExpr, ConstExpr),
+    Type(DebugInfo, DebugInfo, Type, Type),
 }
 
-<span class="kw">impl</span> <span class="ident">TypeErrorKind</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">DebugInfo</span>, <span class="ident">DebugInfo</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TypeErrorKind::Expr</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; (<span class="ident">lhs</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>(), <span class="ident">rhs</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>()),
-            <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; {
-                (<span class="ident">expr0</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>(), <span class="ident">expr1</span>.<span class="ident">debug_info</span>.<span class="ident">clone</span>())
+<span class="kw">impl </span>TypeErrorKind {
+    <span class="kw">pub fn </span>positions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (DebugInfo, DebugInfo) {
+        <span class="kw">match </span><span class="self">self </span>{
+            TypeErrorKind::Expr { lhs, rhs } =&gt; (lhs.debug_info.clone(), rhs.debug_info.clone()),
+            TypeErrorKind::ConstExpr(expr0, expr1) =&gt; {
+                (expr0.debug_info.clone(), expr1.debug_info.clone())
             }
-            <span class="ident">TypeErrorKind::Type</span>(<span class="ident">pos0</span>, <span class="ident">pos1</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; (<span class="ident">pos0</span>.<span class="ident">clone</span>(), <span class="ident">pos1</span>.<span class="ident">clone</span>()),
+            TypeErrorKind::Type(pos0, pos1, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; (pos0.clone(), pos1.clone()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">types</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">Type</span>, <span class="ident">Type</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TypeErrorKind::Expr</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; (<span class="ident">lhs</span>.<span class="ident">ty</span>.<span class="ident">clone</span>(), <span class="ident">rhs</span>.<span class="ident">ty</span>.<span class="ident">clone</span>()),
-            <span class="ident">TypeErrorKind::ConstExpr</span>(<span class="ident">expr0</span>, <span class="ident">expr1</span>) =&gt; (<span class="ident">expr0</span>.<span class="ident">ty</span>.<span class="ident">clone</span>(), <span class="ident">expr1</span>.<span class="ident">ty</span>.<span class="ident">clone</span>()),
-            <span class="ident">TypeErrorKind::Type</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">ty0</span>, <span class="ident">ty1</span>) =&gt; (<span class="ident">ty0</span>.<span class="ident">clone</span>(), <span class="ident">ty1</span>.<span class="ident">clone</span>()),
+    <span class="kw">pub fn </span>types(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (Type, Type) {
+        <span class="kw">match </span><span class="self">self </span>{
+            TypeErrorKind::Expr { lhs, rhs } =&gt; (lhs.ty.clone(), rhs.ty.clone()),
+            TypeErrorKind::ConstExpr(expr0, expr1) =&gt; (expr0.ty.clone(), expr1.ty.clone()),
+            TypeErrorKind::Type(<span class="kw">_</span>, <span class="kw">_</span>, ty0, ty1) =&gt; (ty0.clone(), ty1.clone()),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableKind</span> {
-    <span class="ident">Local</span>,
-    <span class="ident">Global</span>,
-    <span class="ident">Func</span>,
-    <span class="ident">Struct</span>,
-    <span class="ident">Enum</span>,
-    <span class="ident">Typedef</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>VariableKind {
+    Local,
+    Global,
+    Func,
+    Struct,
+    Enum,
+    Typedef,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenerateErrorKind</span> {
-    <span class="ident">UnexpectedTypeSize</span>(<span class="ident">UnexpectedTypeSizeStatus</span>),
-    <span class="ident">LeftValueError</span>(<span class="ident">ConvExpr</span>),
-    <span class="ident">DerefError</span>(<span class="ident">ConvExpr</span>),
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>GenerateErrorKind {
+    UnexpectedTypeSize(UnexpectedTypeSizeStatus),
+    LeftValueError(ConvExpr),
+    DerefError(ConvExpr),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnexpectedTypeSizeStatus</span> {
-    <span class="ident">Size</span>(<span class="ident">usize</span>),
-    <span class="ident">Expr</span>(<span class="ident">ConvExpr</span>),
-    <span class="ident">FuncArgs</span>(<span class="ident">String</span>, <span class="ident">Type</span>),
-    <span class="ident">Global</span>(<span class="ident">GVar</span>),
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>UnexpectedTypeSizeStatus {
+    Size(usize),
+    Expr(ConvExpr),
+    FuncArgs(String, Type),
+    Global(GVar),
 }
 
-<span class="doccomment">/// write source annotation which indicates `pos` in `src`</span>
-<span class="kw">fn</span> <span class="ident">error_at</span>(<span class="kw-2">mut</span> <span class="ident">positions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DebugInfo</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;
-    <span class="ident">positions</span>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> {
-        (<span class="ident">a</span>.<span class="ident">get_file_name</span>(), <span class="ident">a</span>.<span class="ident">get_n_line</span>(), <span class="ident">a</span>.<span class="ident">get_n_char</span>()).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span>(
-            <span class="ident">b</span>.<span class="ident">get_file_name</span>(),
-            <span class="ident">b</span>.<span class="ident">get_n_line</span>(),
-            <span class="ident">b</span>.<span class="ident">get_n_char</span>(),
+<span class="doccomment">/// write source annotation which indicates `pos` in `src`
+</span><span class="kw">fn </span>error_at(<span class="kw-2">mut </span>positions: Vec&lt;DebugInfo&gt;, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="macro">writeln!</span>(f, <span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;
+    positions.sort_by(|a, b| {
+        (a.get_file_name(), a.get_n_line(), a.get_n_char()).cmp(<span class="kw-2">&amp;</span>(
+            b.get_file_name(),
+            b.get_n_line(),
+            b.get_n_char(),
         ))
     });
-    <span class="kw">let</span> <span class="ident">max_prefix_len</span> <span class="op">=</span> <span class="ident">positions</span>
-        .<span class="ident">iter</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">debug_info</span><span class="op">|</span> <span class="ident">debug_info</span>.<span class="ident">to_error_msg_prefix_string</span>().<span class="ident">len</span>())
-        .<span class="ident">max</span>()
-        .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
-        <span class="op">+</span> <span class="number">3</span>;
-    <span class="kw">let</span> <span class="ident">collect_by_lines</span> <span class="op">=</span> <span class="op">|</span><span class="ident">same_file_name_info_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DebugInfo</span><span class="op">&gt;</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">same_line_positions</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="comment">// TOOD: handle None well</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_line</span> <span class="op">=</span> <span class="ident">same_file_name_info_vec</span>
-            .<span class="ident">first</span>()
-            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="ident">DebugInfo::get_n_line</span>);
-        <span class="kw">for</span> <span class="ident">pos</span> <span class="kw">in</span> <span class="ident">same_file_name_info_vec</span> {
-            <span class="kw">if</span> <span class="ident">pos</span>.<span class="ident">get_n_line</span>() <span class="op">==</span> <span class="ident">tmp_line</span> {
-                <span class="ident">tmp_vec</span>.<span class="ident">push</span>(<span class="ident">pos</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">tmp_line</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">get_n_line</span>();
-                <span class="ident">same_line_positions</span>.<span class="ident">push</span>(<span class="ident">tmp_vec</span>);
-                <span class="ident">tmp_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">pos</span>];
+    <span class="kw">let </span>max_prefix_len = positions
+        .iter()
+        .map(|debug_info| debug_info.to_error_msg_prefix_string().len())
+        .max()
+        .unwrap_or(<span class="number">0</span>)
+        + <span class="number">3</span>;
+    <span class="kw">let </span>collect_by_lines = |same_file_name_info_vec: Vec&lt;DebugInfo&gt;| {
+        <span class="kw">let </span><span class="kw-2">mut </span>same_line_positions = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>tmp_vec = Vec::new();
+        <span class="comment">// TOOD: handle None well
+        </span><span class="kw">let </span><span class="kw-2">mut </span>tmp_line = same_file_name_info_vec
+            .first()
+            .map_or(<span class="number">0</span>, DebugInfo::get_n_line);
+        <span class="kw">for </span>pos <span class="kw">in </span>same_file_name_info_vec {
+            <span class="kw">if </span>pos.get_n_line() == tmp_line {
+                tmp_vec.push(pos);
+            } <span class="kw">else </span>{
+                tmp_line = pos.get_n_line();
+                same_line_positions.push(tmp_vec);
+                tmp_vec = <span class="macro">vec!</span>[pos];
             }
         }
-        <span class="ident">same_line_positions</span>.<span class="ident">push</span>(<span class="ident">tmp_vec</span>);
-        <span class="ident">same_line_positions</span>
+        same_line_positions.push(tmp_vec);
+        same_line_positions
     };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collected_by_file_name_by_lines_debug_infos</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_file_name</span> <span class="op">=</span> <span class="ident">positions</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">get_file_name</span>();
-    <span class="kw">for</span> <span class="ident">debug_info</span> <span class="kw">in</span> <span class="ident">positions</span> {
-        <span class="kw">if</span> <span class="ident">debug_info</span>.<span class="ident">get_file_name</span>() <span class="op">==</span> <span class="ident">tmp_file_name</span> {
-            <span class="ident">tmp_vec</span>.<span class="ident">push</span>(<span class="ident">debug_info</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">tmp_file_name</span> <span class="op">=</span> <span class="ident">debug_info</span>.<span class="ident">get_file_name</span>();
-            <span class="ident">collected_by_file_name_by_lines_debug_infos</span>.<span class="ident">push</span>(<span class="ident">collect_by_lines</span>(<span class="ident">tmp_vec</span>));
-            <span class="ident">tmp_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">debug_info</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>collected_by_file_name_by_lines_debug_infos = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>tmp_vec = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>tmp_file_name = positions.first().unwrap().get_file_name();
+    <span class="kw">for </span>debug_info <span class="kw">in </span>positions {
+        <span class="kw">if </span>debug_info.get_file_name() == tmp_file_name {
+            tmp_vec.push(debug_info);
+        } <span class="kw">else </span>{
+            tmp_file_name = debug_info.get_file_name();
+            collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+            tmp_vec = <span class="macro">vec!</span>[debug_info];
         }
     }
-    <span class="ident">collected_by_file_name_by_lines_debug_infos</span>.<span class="ident">push</span>(<span class="ident">collect_by_lines</span>(<span class="ident">tmp_vec</span>));
-    <span class="comment">// let max_prefix_len = same_line_positions</span>
-    <span class="comment">//     .last()</span>
-    <span class="comment">//     .unwrap()</span>
-    <span class="comment">//     .first()</span>
-    <span class="comment">//     .unwrap()</span>
-    <span class="comment">//     .get_n_line()</span>
-    <span class="comment">//     .to_string()</span>
-    <span class="comment">//     .len()</span>
-    <span class="comment">//     + 3;</span>
-    <span class="kw">for</span> <span class="ident">same_line_positions</span> <span class="kw">in</span> <span class="ident">collected_by_file_name_by_lines_debug_infos</span> {
-        <span class="kw">let</span> <span class="ident">file_info</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">same_line_positions</span>[<span class="number">0</span>][<span class="number">0</span>];
-        <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">file_info</span>.<span class="ident">get_file_name</span>();
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">file_info</span>.<span class="ident">get_file_src</span>();
-        <span class="kw">for</span> <span class="ident">same_line_pos</span> <span class="kw">in</span> <span class="ident">same_line_positions</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">splited</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>);
-            <span class="kw">let</span> <span class="ident">n_line</span> <span class="op">=</span> <span class="ident">same_line_pos</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">get_n_line</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">max_prefix_len</span>);
-            <span class="ident">prefix</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">file_name</span>, <span class="ident">n_line</span> <span class="op">+</span> <span class="number">1</span>));
-            <span class="kw">while</span> <span class="ident">prefix</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">max_prefix_len</span> {
-                <span class="kw">if</span> <span class="ident">prefix</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">max_prefix_len</span> <span class="op">-</span> <span class="number">2</span> {
-                    <span class="ident">prefix</span>.<span class="ident">push</span>(<span class="string">&#39;:&#39;</span>);
+    collected_by_file_name_by_lines_debug_infos.push(collect_by_lines(tmp_vec));
+    <span class="comment">// let max_prefix_len = same_line_positions
+    //     .last()
+    //     .unwrap()
+    //     .first()
+    //     .unwrap()
+    //     .get_n_line()
+    //     .to_string()
+    //     .len()
+    //     + 3;
+    </span><span class="kw">for </span>same_line_positions <span class="kw">in </span>collected_by_file_name_by_lines_debug_infos {
+        <span class="kw">let </span>file_info = <span class="kw-2">&amp;</span>same_line_positions[<span class="number">0</span>][<span class="number">0</span>];
+        <span class="kw">let </span>file_name = file_info.get_file_name();
+        <span class="kw">let </span>src = file_info.get_file_src();
+        <span class="kw">for </span>same_line_pos <span class="kw">in </span>same_line_positions {
+            <span class="kw">let </span><span class="kw-2">mut </span>splited = src.split(<span class="string">&#39;\n&#39;</span>);
+            <span class="kw">let </span>n_line = same_line_pos.first().unwrap().get_n_line();
+            <span class="kw">let </span><span class="kw-2">mut </span>prefix = String::with_capacity(max_prefix_len);
+            prefix.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="kw-2">&amp;</span>file_name, n_line + <span class="number">1</span>));
+            <span class="kw">while </span>prefix.len() &lt; max_prefix_len {
+                <span class="kw">if </span>prefix.len() == max_prefix_len - <span class="number">2 </span>{
+                    prefix.push(<span class="string">&#39;:&#39;</span>);
                     <span class="kw">continue</span>;
                 }
-                <span class="ident">prefix</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
+                prefix.push(<span class="string">&#39; &#39;</span>);
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">line</span>) <span class="op">=</span> <span class="ident">splited</span>.<span class="ident">nth</span>(<span class="ident">n_line</span>) {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">prefix</span>, <span class="ident">line</span>)
-            } <span class="kw">else</span> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = splited.nth(n_line) {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}{}&quot;</span>, prefix, line)
+            } <span class="kw">else </span>{
                 <span class="macro">writeln!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;[While Dealing Error, another error occured.] DebugInfo is illegal,\nPosition: {:?}&quot;</span>,
-                <span class="ident">same_line_pos</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>()
+                same_line_pos.first().unwrap()
             )
             }<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">n_iter</span> <span class="op">=</span> <span class="ident">same_line_pos</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">get_n_char</span>() <span class="op">+</span> <span class="ident">max_prefix_len</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">n_iter</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">point</span> <span class="op">=</span> <span class="ident">same_line_pos</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">pos</span>.<span class="ident">get_n_char</span>() <span class="op">+</span> <span class="ident">max_prefix_len</span>)
-                .<span class="ident">peekable</span>();
-            <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="ident">n_iter</span> {
-                <span class="kw">match</span> <span class="ident">point</span>.<span class="ident">peek</span>() {
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">idx</span> =&gt; {
-                        <span class="ident">point</span>.<span class="ident">next</span>();
-                        <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39;^&#39;</span>);
+            <span class="kw">let </span>n_iter = same_line_pos.last().unwrap().get_n_char() + max_prefix_len;
+            <span class="kw">let </span><span class="kw-2">mut </span>buffer = String::with_capacity(n_iter + <span class="number">1</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>point = same_line_pos
+                .into_iter()
+                .map(|pos| pos.get_n_char() + max_prefix_len)
+                .peekable();
+            <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..=n_iter {
+                <span class="kw">match </span>point.peek() {
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>next) <span class="kw">if </span>next == idx =&gt; {
+                        point.next();
+                        buffer.push(<span class="string">&#39;^&#39;</span>);
                     }
-                    <span class="kw">_</span> =&gt; <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>),
+                    <span class="kw">_ </span>=&gt; buffer.push(<span class="string">&#39; &#39;</span>),
                 }
             }
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, buffer)<span class="question-mark">?</span>;
         }
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// write source annotation which indicates `pos` in `src` with previous lines</span>
-<span class="kw">fn</span> <span class="ident">error_at_eof</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-    <span class="kw">let</span> <span class="ident">splited</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">collect</span>();
-    <span class="kw">let</span> <span class="ident">last_n_line</span> <span class="op">=</span> <span class="ident">splited</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-    <span class="kw">let</span> <span class="ident">n_char</span> <span class="op">=</span> <span class="ident">splited</span>.<span class="ident">last</span>().<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}:{}:  &quot;</span>, <span class="ident">last_n_line</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">n_char</span> <span class="op">+</span> <span class="number">1</span>);
-    <span class="kw">for</span> <span class="ident">n_line</span> <span class="kw">in</span> <span class="ident">last_n_line</span>.<span class="ident">saturating_sub</span>(<span class="number">3</span>)..<span class="ident">last_n_line</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_prefix</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">prefix</span>.<span class="ident">len</span>());
-        <span class="ident">num_prefix</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span>(<span class="ident">n_line</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">to_string</span>());
-        <span class="kw">while</span> <span class="ident">num_prefix</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">prefix</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="ident">num_prefix</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">prefix</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">3</span> {
-                <span class="ident">num_prefix</span>.<span class="ident">push</span>(<span class="string">&#39;:&#39;</span>);
+<span class="doccomment">/// write source annotation which indicates `pos` in `src` with previous lines
+</span><span class="kw">fn </span>error_at_eof(src: <span class="kw-2">&amp;</span>str, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">let </span>splited: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = src.split(<span class="string">&#39;\n&#39;</span>).collect();
+    <span class="kw">let </span>last_n_line = splited.len() - <span class="number">1</span>;
+    <span class="kw">let </span>n_char = splited.last().map_or(<span class="number">0</span>, |s| s.len());
+    <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">&quot;{}:{}:  &quot;</span>, last_n_line + <span class="number">1</span>, n_char + <span class="number">1</span>);
+    <span class="kw">for </span>n_line <span class="kw">in </span>last_n_line.saturating_sub(<span class="number">3</span>)..last_n_line {
+        <span class="kw">let </span><span class="kw-2">mut </span>num_prefix = String::with_capacity(prefix.len());
+        num_prefix.push_str(<span class="kw-2">&amp;</span>(n_line + <span class="number">1</span>).to_string());
+        <span class="kw">while </span>num_prefix.len() &lt; prefix.len() {
+            <span class="kw">if </span>num_prefix.len() == prefix.len() - <span class="number">3 </span>{
+                num_prefix.push(<span class="string">&#39;:&#39;</span>);
                 <span class="kw">continue</span>;
             }
-            <span class="ident">num_prefix</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
+            num_prefix.push(<span class="string">&#39; &#39;</span>);
         }
-        <span class="kw">match</span> <span class="ident">splited</span>.<span class="ident">get</span>(<span class="ident">n_line</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">line</span>) <span class="kw">if</span> <span class="ident">n_line</span> <span class="op">==</span> <span class="ident">last_n_line</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">prefix</span>, <span class="ident">line</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">line</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">num_prefix</span>, <span class="ident">line</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="macro">writeln!</span>(
-                <span class="ident">f</span>,
+        <span class="kw">match </span>splited.get(n_line) {
+            <span class="prelude-val">Some</span>(line) <span class="kw">if </span>n_line == last_n_line =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;{}{}&quot;</span>, prefix, line),
+            <span class="prelude-val">Some</span>(line) =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;{}{}&quot;</span>, num_prefix, line),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">writeln!</span>(
+                f,
                 <span class="string">&quot;[While Dealing Error, another error occured.]Position is illegal,\nPosition: {:?}&quot;</span>,
-                <span class="ident">Position</span> { <span class="ident">n_char</span>, <span class="ident">n_line</span> }
+                Position { n_char, n_line }
             ),
         }<span class="question-mark">?</span>;
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">n_char</span> <span class="op">+</span> <span class="number">1</span>);
-    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">n_char</span> <span class="op">+</span> <span class="ident">prefix</span>.<span class="ident">len</span>()) {
-        <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = String::with_capacity(n_char + <span class="number">1</span>);
+    <span class="kw">for _ in </span><span class="number">0</span>..(n_char + prefix.len()) {
+        buffer.push(<span class="string">&#39; &#39;</span>);
     }
-    <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="string">&#39;^&#39;</span>);
-    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>)<span class="question-mark">?</span>;
+    buffer.push(<span class="string">&#39;^&#39;</span>);
+    <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, buffer)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ironcc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>
