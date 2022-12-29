@@ -1,4 +1,4 @@
-name: make test CI
+name: make test CI(Ubuntu-20.04)
 
 on:
   push:
