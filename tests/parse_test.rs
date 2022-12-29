@@ -8,6 +8,10 @@ use test_utils::ast::*;
 #[test]
 fn parse_test() {
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -29,6 +33,10 @@ fn parse_test() {
     );
 
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Plus),
@@ -55,6 +63,10 @@ fn parse_test() {
     );
 
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -74,6 +86,10 @@ fn parse_test() {
     );
 
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -111,6 +127,10 @@ fn parse_test() {
 #[test]
 fn parse_unary_test() {
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::OpenDelim(DelimToken::Paren),
         TokenKind::Num(1),
@@ -148,6 +168,10 @@ fn parse_unary_test() {
     );
 
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Plus),
         TokenKind::Num(1),
@@ -159,6 +183,10 @@ fn parse_unary_test() {
     assert_eq!(expr.kind, unary(UnaryOp::Plus, num(1)).kind);
 
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::BinOp(BinOpToken::Minus),
         TokenKind::OpenDelim(DelimToken::Paren),
@@ -180,6 +208,10 @@ fn parse_unary_test() {
 #[test]
 fn parse_compare_op_test() {
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::EqEq),
@@ -203,6 +235,10 @@ fn parse_compare_op_test() {
         .kind
     );
     let mut parser = Parser::new();
+    parser
+        .context
+        .push_ctx(ParserContextKind::TopFuncArgs, false)
+        .unwrap();
     let tokens = tokens!(
         TokenKind::Num(1),
         TokenKind::BinOp(BinOpToken::Ne),

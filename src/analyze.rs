@@ -1269,6 +1269,16 @@ impl Analyzer {
                     debug_info,
                 )?)
             }
+            ExprKind::Comma(lhs, rhs) => {
+                let rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
+                let ty = rhs.ty.clone();
+                Ok(ConvExpr::new_comma(
+                    self.traverse_expr(*lhs, BTreeSet::new())?,
+                    rhs,
+                    ty,
+                    debug_info,
+                ))
+            }
         };
         if attrs.contains(&DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -2221,6 +2231,13 @@ impl ConvExpr {
             debug_info,
         }
     }
+    pub fn new_comma(lhs: ConvExpr, rhs: ConvExpr, ty: Type, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConvExprKind::Comma(Box::new(lhs), Box::new(rhs)),
+            ty,
+            debug_info,
+        }
+    }
 
     pub fn new_postfix_increment(
         lhs: ConvExpr,
@@ -2417,6 +2434,7 @@ pub enum ConvExprKind {
         els: Box<ConvExpr>,
     },
     Binary(ConvBinary),
+    Comma(Box<ConvExpr>, Box<ConvExpr>),
     Unary(ConvUnaryOp, Box<ConvExpr>),
     Num(isize),
     LVar(LVar),
@@ -3260,6 +3278,7 @@ impl ConstExpr {
                     debug_info: expr_debug_info,
                 }
             }
+            ConvExprKind::Comma(_, rhs) => Self::try_eval_as_const(*rhs)?,
             ConvExprKind::Block(_, _) => todo!(),
         })
     }
