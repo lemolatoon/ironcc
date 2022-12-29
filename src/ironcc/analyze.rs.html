@@ -3838,6 +3838,23 @@
 <span id="3838">3838</span>
 <span id="3839">3839</span>
 <span id="3840">3840</span>
+<span id="3841">3841</span>
+<span id="3842">3842</span>
+<span id="3843">3843</span>
+<span id="3844">3844</span>
+<span id="3845">3845</span>
+<span id="3846">3846</span>
+<span id="3847">3847</span>
+<span id="3848">3848</span>
+<span id="3849">3849</span>
+<span id="3850">3850</span>
+<span id="3851">3851</span>
+<span id="3852">3852</span>
+<span id="3853">3853</span>
+<span id="3854">3854</span>
+<span id="3855">3855</span>
+<span id="3856">3856</span>
+<span id="3857">3857</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Debug,
@@ -5233,6 +5250,17 @@
                             ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
                         },
                     );
+                } <span class="kw">else if </span>got_expr.ty.is_base()
+                    &amp;&amp; expected_ty.get_ptr_to().map_or(<span class="bool-val">false</span>, |ty| ty.is_func())
+                {
+                    <span class="kw-2">*</span>got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::Base2FuncPtr(
+                            got_expr.ty.get_base().unwrap().clone(),
+                            expected_ty,
+                        ),
+                    );
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_type_expect_failed(
                         got_expr.debug_info.clone(),
@@ -5730,7 +5758,11 @@
                     <span class="attribute">#[allow(clippy::cast_sign_loss)]
                     </span><span class="kw">let </span>size = ConstExpr::try_eval_as_const(
                         <span class="comment">// TODO: not unwrap, but check has init or not.
-                        </span><span class="self">self</span>.traverse_expr(expr.clone().unwrap(), BTreeSet::new())<span class="question-mark">?</span>,
+                        </span><span class="self">self</span>.traverse_expr(
+                            expr.clone()
+                                .ok_or_else(|| <span class="macro">unimplemented_err!</span>(<span class="string">&quot;No Array size expr&quot;</span>))<span class="question-mark">?</span>,
+                            BTreeSet::new(),
+                        )<span class="question-mark">?</span>,
                     )<span class="question-mark">?
                     </span>.get_num_lit()<span class="question-mark">? </span><span class="kw">as </span>usize;
                     ty = Type::Array(Box::new(ty), size);
@@ -6319,6 +6351,7 @@
     FromVoidPtr {
         ptr_to: Type,
     },
+    Base2FuncPtr(BaseType, Type),
 }
 
 <span class="attribute">#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -7051,7 +7084,8 @@
                 minus_offset: <span class="kw">_</span>,
             }
             | ConvExprKind::OpAssign(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)
-            | ConvExprKind::FuncPtr(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+            | ConvExprKind::FuncPtr(<span class="kw">_</span>, <span class="kw">_</span>)
+            | ConvExprKind::Cast(<span class="kw">_</span>, CastKind::Base2FuncPtr(<span class="kw">_</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_const_expr_error(debug_info, kind))
             }
             ConvExprKind::Cast(expr, CastKind::Base2Base(to, <span class="kw">_</span>)) =&gt; num_expr(

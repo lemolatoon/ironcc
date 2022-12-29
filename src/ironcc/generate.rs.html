@@ -1452,6 +1452,8 @@
 <span id="1452">1452</span>
 <span id="1453">1453</span>
 <span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{BufWriter, Write};
 
 <span class="kw">use crate</span>::{
@@ -2415,7 +2417,9 @@
             }
             CastKind::ToVoidPtr { ptr_to: <span class="kw">_ </span>}
             | CastKind::FromVoidPtr { ptr_to: <span class="kw">_ </span>}
-            | CastKind::NoCast =&gt; {
+            | CastKind::NoCast
+            | CastKind::Base2FuncPtr(<span class="kw">_</span>, <span class="kw">_</span>) <span class="comment">// TODO: check need movsx or not
+            </span>=&gt; {
                 <span class="self">self</span>.gen_expr(f, expr)<span class="question-mark">?</span>;
             }
             CastKind::Ptr2Ptr {
