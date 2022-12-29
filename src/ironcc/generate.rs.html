@@ -1421,6 +1421,10 @@
 <span id="1421">1421</span>
 <span id="1422">1422</span>
 <span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{BufWriter, Write};
 
 <span class="kw">use crate</span>::{
@@ -1663,6 +1667,7 @@
                     body,
                     stack_size,
                 }) =&gt; {
+                    <span class="self">self</span>.depth = <span class="number">1</span>;
                     <span class="macro">writeln!</span>(f, <span class="string">&quot;.text&quot;</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(f, <span class="string">&quot;.global {}&quot;</span>, name)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(f, <span class="string">&quot;{}:&quot;</span>, name)<span class="question-mark">?</span>;
@@ -2056,13 +2061,15 @@
                 }
 
                 <span class="comment">// 16bit align
+                // NOTE: local variable stack area is aligned to 16byte.
+                // `calling after 1 push (including `push rbp`)` is OK.
                 </span><span class="kw">if </span><span class="self">self</span>.depth % <span class="number">2 </span>== <span class="number">0 </span>{
+                    <span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
+                } <span class="kw">else </span>{
                     <span class="macro">writeln!</span>(f, <span class="string">&quot;  sub rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// align
                     </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(f, <span class="string">&quot;  add rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// revert
-                </span>} <span class="kw">else </span>{
-                    <span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
-                }
+                </span>}
                 <span class="self">self</span>.push(f, RegKind::Rax)<span class="question-mark">?</span>;
             }
             ConvExprKind::Deref(expr) =&gt; {
@@ -2160,6 +2167,7 @@
                 )<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(f, <span class="string">&quot;  je .Lelse{}&quot;</span>, label_index)<span class="question-mark">?</span>;
                 <span class="self">self</span>.gen_expr(f, <span class="kw-2">*</span>then)<span class="question-mark">?</span>;
+                <span class="self">self</span>.depth -= <span class="number">1</span>;
                 <span class="macro">writeln!</span>(f, <span class="string">&quot;  jmp .Lend{}&quot;</span>, label_index)<span class="question-mark">?</span>;
                 <span class="macro">writeln!</span>(f, <span class="string">&quot;.Lelse{}:&quot;</span>, label_index)<span class="question-mark">?</span>;
                 <span class="self">self</span>.gen_expr(f, <span class="kw-2">*</span>els)<span class="question-mark">?</span>;
