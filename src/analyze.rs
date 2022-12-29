@@ -1393,6 +1393,17 @@ impl Analyzer {
                             ptr_to: got_expr.ty.get_ptr_to().unwrap().clone(),
                         },
                     );
+                } else if got_expr.ty.is_base()
+                    && expected_ty.get_ptr_to().map_or(false, |ty| ty.is_func())
+                {
+                    *got_expr = ConvExpr::new_cast(
+                        got_expr.clone(),
+                        expected_ty.clone(),
+                        CastKind::Base2FuncPtr(
+                            got_expr.ty.get_base().unwrap().clone(),
+                            expected_ty,
+                        ),
+                    );
                 } else {
                     return Err(CompileError::new_type_expect_failed(
                         got_expr.debug_info.clone(),
@@ -1887,10 +1898,15 @@ impl Analyzer {
                     watching_direct_declarator = direct_declarator;
                 }
                 DirectDeclarator::Array(direct_declarator, expr) => {
+                    dbg!(direct_declarator);
                     #[allow(clippy::cast_sign_loss)]
                     let size = ConstExpr::try_eval_as_const(
                         // TODO: not unwrap, but check has init or not.
-                        self.traverse_expr(expr.clone().unwrap(), BTreeSet::new())?,
+                        self.traverse_expr(
+                            expr.clone()
+                                .ok_or_else(|| unimplemented_err!("No Array size expr"))?,
+                            BTreeSet::new(),
+                        )?,
                     )?
                     .get_num_lit()? as usize;
                     ty = Type::Array(Box::new(ty), size);
@@ -2479,6 +2495,7 @@ pub enum CastKind {
     FromVoidPtr {
         ptr_to: Type,
     },
+    Base2FuncPtr(BaseType, Type),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -3211,7 +3228,8 @@ impl ConstExpr {
                 minus_offset: _,
             }
             | ConvExprKind::OpAssign(_, _, _)
-            | ConvExprKind::FuncPtr(_, _) => {
+            | ConvExprKind::FuncPtr(_, _)
+            | ConvExprKind::Cast(_, CastKind::Base2FuncPtr(_, _)) => {
                 return Err(CompileError::new_const_expr_error(debug_info, kind))
             }
             ConvExprKind::Cast(expr, CastKind::Base2Base(to, _)) => num_expr(

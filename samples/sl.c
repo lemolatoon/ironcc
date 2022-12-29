@@ -67,7 +67,6 @@ int my_mvaddstr(int y, int x, char *str)
 
 void option(char *str)
 {
-    extern int ACCIDENT, LOGO, FLY, C51;
 
     while (*str != '\0') {
         switch (*str++) {
@@ -80,9 +79,9 @@ void option(char *str)
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    int x, i;
+    int x; int i;
 
     for (i = 1; i < argc; ++i) {
         if (*argv[i] == '-') {
@@ -134,7 +133,7 @@ int add_sl(int x)
     static char *car[LOGOHEIGHT + 1]
         = {LCAR1, LCAR2, LCAR3, LCAR4, LCAR5, LCAR6, DELLN};
 
-    int i, y, py1 = 0, py2 = 0, py3 = 0;
+    int i;int y; int py1 = 0; int  py2 = 0; int py3 = 0;
 
     if (x < - LOGOLENGTH)  return ERR;
     y = LINES / 2 - 3;
@@ -178,7 +177,8 @@ int add_D51(int x)
         = {COAL01, COAL02, COAL03, COAL04, COAL05,
            COAL06, COAL07, COAL08, COAL09, COAL10, COALDEL};
 
-    int y, i, dy = 0;
+    int y;int i;int dy = 0;
+
 
     if (x < - D51LENGTH)  return ERR;
     y = LINES / 2 - 5;
@@ -218,7 +218,7 @@ int add_C51(int x)
         = {COALDEL, COAL01, COAL02, COAL03, COAL04, COAL05,
            COAL06, COAL07, COAL08, COAL09, COAL10, COALDEL};
 
-    int y, i, dy = 0;
+    int y;int i;int dy = 0;
 
     if (x < - C51LENGTH)  return ERR;
     y = LINES / 2 - 5;
@@ -251,15 +251,15 @@ void add_man(int y, int x)
 }
 
 
-void add_smoke(int y, int x)
 #define SMOKEPTNS        16
+void add_smoke(int y, int x)
 {
     static struct smokes {
-        int y, x;
-        int ptrn, kind;
+        int y;int x;
+        int ptrn;int kind;
     } S[1000];
     static int sum = 0;
-    static char *Smoke[2][SMOKEPTNS]
+    static char *Smoke[2][ SMOKEPTNS ]
         = {{"(   )", "(    )", "(    )", "(   )", "(  )",
             "(  )" , "( )"   , "( )"   , "()"   , "()"  ,
             "O"    , "O"     , "O"     , "O"    , "O"   ,

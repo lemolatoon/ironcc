@@ -961,7 +961,9 @@ impl Generator {
             }
             CastKind::ToVoidPtr { ptr_to: _ }
             | CastKind::FromVoidPtr { ptr_to: _ }
-            | CastKind::NoCast => {
+            | CastKind::NoCast
+            | CastKind::Base2FuncPtr(_, _) // TODO: check need movsx or not
+            => {
                 self.gen_expr(f, expr)?;
             }
             CastKind::Ptr2Ptr {

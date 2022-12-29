@@ -18,7 +18,7 @@ run: a.out $(COMPILER)
 
 fmt: FORCE
 	cargo fmt
-	clang-format -i */**/*.c
+	clang-format -i tests/insta_srcs/*.c test/*.c
 
 test: $(COMPILER)
 	./test/test.sh
@@ -43,6 +43,11 @@ life2: samples/cellular_automaton.c
 donut: rotate.c
 	cargo run rotate.c
 	clang rotate.s
+	./a.out
+
+sl: samples/sl.c samples/sl.h
+	cargo run samples/sl.c
+	$(CC) sl.s -lcurses
 	./a.out
 
 tetris.s: $(COMPILER) tetris.c
