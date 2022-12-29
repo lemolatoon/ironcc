@@ -865,6 +865,11 @@ impl Generator {
                 writeln!(f, "  lea rax, [rip+{}]", label)?;
                 self.push(f, RegKind::Rax)?;
             }
+            ConvExprKind::Comma(lhs, rhs) => {
+                self.gen_expr(f, *lhs)?;
+                self.pop(f, RegKind::Rax)?;
+                self.gen_expr(f, *rhs)?;
+            }
         }
         Ok(())
     }

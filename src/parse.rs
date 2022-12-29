@@ -3,7 +3,7 @@ use crate::{
         Analyzer, BaseType, ConstExpr, ConstInitializer, ConvExpr, ConvStmt, InCompleteKind, LVar,
         Type,
     },
-    error::{CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
+    error::{self, CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
     tokenize::{
         AssignBinOpToken, BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream,
         TypeToken,
@@ -17,12 +17,76 @@ use std::{
 
 pub struct Parser {
     scope: Scope,
+    pub context: ParserContext,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Copy, Clone, Debug)]
+pub enum ParserContextKind {
+    TopFuncArgs,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct ParserContext(BTreeMap<ParserContextKind, Vec<bool>>);
+
+impl ParserContext {
+    pub fn new() -> Self {
+        let mut map = BTreeMap::new();
+        // insert all kinds
+        map.insert(ParserContextKind::TopFuncArgs, Vec::new());
+        Self(map)
+    }
+
+    pub fn push_ctx(&mut self, context: ParserContextKind, flag: bool) -> Result<(), CompileError> {
+        self.0
+            .get_mut(&context)
+            .ok_or_else(|| {
+                unimplemented_err!(format!(
+                    "INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.",
+                    &context
+                ))
+            })?
+            .push(flag);
+        Ok(())
+    }
+
+    pub fn pop(&mut self, context: ParserContextKind) -> Result<(), CompileError> {
+        let vec = self.0.get_mut(&context).ok_or_else(|| {
+            unimplemented_err!(format!(
+                "INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.",
+                &context
+            ))
+        })?;
+        if vec.is_empty() {
+            return Err(Self::error());
+        }
+        vec.pop();
+        Ok(())
+    }
+
+    pub fn in_top_func_args(&self, context: ParserContextKind) -> Result<bool, CompileError> {
+        let vec = self.0.get(&context).ok_or_else(|| {
+            unimplemented_err!(format!(
+                "INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.",
+                &context
+            ))
+        })?;
+        if let Some(stack_top) = vec.last() {
+            Ok(*stack_top)
+        } else {
+            Err(Self::error())
+        }
+    }
+
+    fn error() -> CompileError {
+        unimplemented_err!("INTERNAL COMPILER ERROR: ParserContext's stack state is broken")
+    }
 }
 
 impl Parser {
     pub fn new() -> Self {
         Self {
             scope: Scope::new(),
+            context: ParserContext::new(),
         }
     }
     pub fn parse_program<I>(
@@ -293,7 +357,10 @@ impl Parser {
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Brace))?;
             Ok(Initializer::Array(init_list))
         } else {
+            self.context
+                .push_ctx(ParserContextKind::TopFuncArgs, false)?;
             let expr = self.parse_assign(tokens)?;
+            self.context.pop(ParserContextKind::TopFuncArgs)?;
             Ok(Initializer::Expr(expr))
         }
     }
@@ -640,13 +707,13 @@ impl Parser {
             if tokens.consume(&TokenKind::Semi) {
                 Ok(Stmt::ret(None, debug_info))
             } else {
-                let returning_expr = self.parse_expr(tokens)?;
+                let returning_expr = self.parse_expr_with_new_context(tokens, false)?;
                 tokens.expect(&TokenKind::Semi)?;
                 Ok(Stmt::ret(Some(returning_expr), debug_info))
             }
         } else if tokens.consume(&TokenKind::If) {
             let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
-            let conditional_expr = self.parse_expr(tokens)?;
+            let conditional_expr = self.parse_expr_with_new_context(tokens, false)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
             let else_stmt = if tokens.consume(&TokenKind::Else) {
@@ -662,7 +729,7 @@ impl Parser {
             ))
         } else if tokens.consume(&TokenKind::While) {
             let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
-            let conditional_expr = self.parse_expr(tokens)?;
+            let conditional_expr = self.parse_expr_with_new_context(tokens, false)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let then_stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_while(conditional_expr, then_stmt, debug_info))
@@ -677,7 +744,7 @@ impl Parser {
                     tokens.expect(&TokenKind::Semi)?;
                     ForInitKind::Declaration(declaration)
                 } else {
-                    let expr = self.parse_expr(tokens)?;
+                    let expr = self.parse_expr_with_new_context(tokens, false)?;
                     tokens.expect(&TokenKind::Semi)?;
                     ForInitKind::Expr(expr)
                 })
@@ -685,14 +752,14 @@ impl Parser {
             let cond_expr = if tokens.consume(&TokenKind::Semi) {
                 None
             } else {
-                let expr = self.parse_expr(tokens)?;
+                let expr = self.parse_expr_with_new_context(tokens, false)?;
                 tokens.expect(&TokenKind::Semi)?;
                 Some(expr)
             };
             let inc_expr = if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                 None
             } else {
-                let expr = self.parse_expr(tokens)?;
+                let expr = self.parse_expr_with_new_context(tokens, false)?;
                 tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
                 Some(expr)
             };
@@ -714,7 +781,7 @@ impl Parser {
             Ok(Stmt::new_block(stmts, debug_info))
         } else if tokens.consume(&TokenKind::Switch) {
             let debug_info = tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
-            let expr = self.parse_expr(tokens)?;
+            let expr = self.parse_expr_with_new_context(tokens, false)?;
             tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
             let stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_switch(expr, stmt, debug_info))
@@ -722,7 +789,7 @@ impl Parser {
             let debug_info = tokens
                 .peek_debug_info()
                 .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("Expr")))?;
-            let expr = self.parse_expr(tokens)?;
+            let expr = self.parse_expr_with_new_context(tokens, false)?;
             tokens.expect(&TokenKind::Colon)?;
             let stmt = self.parse_stmt(tokens)?;
             Ok(Stmt::new_labeled_stmt(
@@ -763,13 +830,27 @@ impl Parser {
             let debug_info = tokens
                 .peek_debug_info()
                 .ok_or_else(|| CompileError::new_unexpected_eof(None, Box::new("Expr")))?;
-            let expr = self.parse_expr(tokens)?;
+            let expr = self.parse_expr_with_new_context(tokens, false)?;
             tokens.expect(&TokenKind::Semi)?;
             Ok(Stmt::expr(expr, debug_info))
         };
         stmt
     }
 
+    pub fn parse_expr_with_new_context<I>(
+        &mut self,
+        tokens: &mut TokenStream<I, TokenKind>,
+        in_top_func_args: bool,
+    ) -> Result<Expr, CompileError>
+    where
+        I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
+    {
+        self.context
+            .push_ctx(ParserContextKind::TopFuncArgs, in_top_func_args)?;
+        let expr = self.parse_expr(tokens)?;
+        self.context.pop(ParserContextKind::TopFuncArgs)?;
+        Ok(expr)
+    }
     pub fn parse_expr<I>(
         &mut self,
         tokens: &mut TokenStream<I, TokenKind>,
@@ -777,7 +858,18 @@ impl Parser {
     where
         I: Clone + Debug + Iterator<Item = Token<TokenKind>>,
     {
-        self.parse_assign(tokens)
+        let mut expr = self.parse_assign(tokens)?;
+        if self
+            .context
+            .in_top_func_args(ParserContextKind::TopFuncArgs)?
+        {
+            return Ok(expr);
+        }
+        while tokens.consume(&TokenKind::Comma) {
+            let debug_info = expr.debug_info.clone();
+            expr = Expr::new_comma(expr, self.parse_assign(tokens)?, debug_info);
+        }
+        Ok(expr)
     }
 
     pub fn parse_assign<I>(
@@ -1125,7 +1217,7 @@ impl Parser {
                     Expr::new_str_lit(string, debug_info)
                 },
                 TokenKind::OpenDelim(DelimToken::Paren) => {
-                    let expr = self.parse_expr(tokens)?;
+                    let expr = self.parse_expr_with_new_context(tokens, false)?;
                     tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
                     expr
                 }
@@ -1136,10 +1228,10 @@ impl Parser {
                         if tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                             return Ok(Expr::new_func(name, args, debug_info));
                         }
-                        args.push(self.parse_expr(tokens)?);
+                        args.push(self.parse_expr_with_new_context(tokens, true)?);
                         while !tokens.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
                             tokens.expect(&TokenKind::Comma)?;
-                            args.push(self.parse_expr(tokens)?);
+                            args.push(self.parse_expr_with_new_context(tokens, true)?);
                         }
                         return Ok(Expr::new_func(name, args, debug_info));
                     }
@@ -1148,9 +1240,9 @@ impl Parser {
                 }
                 TokenKind::BuiltinVaStart => {
                     tokens.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
-                    let ap = self.parse_expr(tokens)?;
+                    let ap = self.parse_expr_with_new_context(tokens, false)?;
                     tokens.expect(&TokenKind::Comma)?;
-                    let last = self.parse_expr(tokens)?;
+                    let last = self.parse_expr_with_new_context(tokens, false)?;
                     tokens.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
                     // local variable
                     return Ok(Expr::new_built_in_va_start(ap, last));
@@ -1879,6 +1971,7 @@ pub struct Expr {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub enum ExprKind {
     Binary(Binary),
+    Comma(Box<Expr>, Box<Expr>),
     Num(isize),
     StrLit(String),
     Unary(UnaryOp, Box<Expr>),
@@ -1922,6 +2015,12 @@ pub enum UnaryOp {
 }
 
 impl Expr {
+    pub fn new_comma(lhs: Expr, rhs: Expr, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ExprKind::Comma(Box::new(lhs), Box::new(rhs)),
+            debug_info,
+        }
+    }
     pub fn new_inline_asm(asm: String, debug_info: DebugInfo) -> Self {
         Self {
             kind: ExprKind::Asm(asm),
