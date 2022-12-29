@@ -1898,7 +1898,6 @@ impl Analyzer {
                     watching_direct_declarator = direct_declarator;
                 }
                 DirectDeclarator::Array(direct_declarator, expr) => {
-                    dbg!(direct_declarator);
                     #[allow(clippy::cast_sign_loss)]
                     let size = ConstExpr::try_eval_as_const(
                         // TODO: not unwrap, but check has init or not.
