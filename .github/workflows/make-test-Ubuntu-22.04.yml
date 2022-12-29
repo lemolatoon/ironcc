@@ -28,7 +28,7 @@ jobs:
     - name: make test written in C
       run: make testc
   doc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     if:  github.event_name == 'push' || github.event.pull_request.merged == true
 
