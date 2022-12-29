@@ -20,7 +20,9 @@ ConvProgram {
                         Switch {
                             expr: ConvExpr {
                                 kind: Func(
-                                    "f",
+                                    Label(
+                                        "f",
+                                    ),
                                     [],
                                     true,
                                     0,
@@ -31,7 +33,7 @@ ConvProgram {
                                 debug_info: DebugInfo {
                                     file_info: ,
                                     pos: Position {
-                                        n_char: 12,
+                                        n_char: 10,
                                         n_line: 3,
                                     },
                                 },
@@ -57,7 +59,7 @@ ConvProgram {
                                                         debug_info: DebugInfo {
                                                             file_info: ,
                                                             pos: Position {
-                                                                n_char: 19,
+                                                                n_char: 13,
                                                                 n_line: 5,
                                                             },
                                                         },
@@ -82,7 +84,7 @@ ConvProgram {
                                                         debug_info: DebugInfo {
                                                             file_info: ,
                                                             pos: Position {
-                                                                n_char: 19,
+                                                                n_char: 13,
                                                                 n_line: 7,
                                                             },
                                                         },
@@ -106,7 +108,7 @@ ConvProgram {
                                                         debug_info: DebugInfo {
                                                             file_info: ,
                                                             pos: Position {
-                                                                n_char: 19,
+                                                                n_char: 13,
                                                                 n_line: 9,
                                                             },
                                                         },

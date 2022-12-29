@@ -4,7 +4,7 @@ use crate::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
         ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        GVar, LVar, LoopControlKind, Type,
+        FuncCallTargetKind, GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     parse::BinOpKind,
@@ -628,20 +628,38 @@ impl Generator {
                 } // pop args
                   // e.g) if arg_len == 2, pop rsi, pop rdi
 
-                if is_flexible_length {
-                    // for flexible-length-arg function
-                    writeln!(f, "  mov al, {}", n_floating)?;
-                }
-
                 // 16bit align
                 // NOTE: local variable stack area is aligned to 16byte.
                 // `calling after 1 push (including `push rbp`)` is OK.
-                if self.depth % 2 == 0 {
-                    writeln!(f, "  call {}", name)?;
-                } else {
-                    writeln!(f, "  sub rsp, 8")?; // align
-                    writeln!(f, "  call {}", name)?;
-                    writeln!(f, "  add rsp, 8")?; // revert
+                match name {
+                    FuncCallTargetKind::Label(name) => {
+                        if is_flexible_length {
+                            // for flexible-length-arg function
+                            writeln!(f, "  mov al, {}", n_floating)?;
+                        }
+                        if self.depth % 2 == 0 {
+                            writeln!(f, "  call {}", name)?;
+                        } else {
+                            writeln!(f, "  sub rsp, 8")?; // align
+                            writeln!(f, "  call {}", name)?;
+                            writeln!(f, "  add rsp, 8")?; // revert
+                        }
+                    }
+                    FuncCallTargetKind::Expr(expr) => {
+                        self.gen_expr(f, *expr)?;
+                        self.pop(f, RegKind::R10)?;
+                        if is_flexible_length {
+                            // for flexible-length-arg function
+                            writeln!(f, "  mov al, {}", n_floating)?;
+                        }
+                        if self.depth % 2 == 0 {
+                            writeln!(f, "  call {}", RegKind::R10.qword())?;
+                        } else {
+                            writeln!(f, "  sub rsp, 8")?; // align
+                            writeln!(f, "  call {}", RegKind::R10.qword())?;
+                            writeln!(f, "  add rsp, 8")?; // revert
+                        }
+                    }
                 }
                 self.push(f, RegKind::Rax)?;
             }
@@ -842,6 +860,10 @@ impl Generator {
                 } else {
                     self.push_lit(f, 0)?; // push tmp value
                 }
+            }
+            ConvExprKind::FuncPtr(_, label) => {
+                writeln!(f, "  lea rax, [rip+{}]", label)?;
+                self.push(f, RegKind::Rax)?;
             }
         }
         Ok(())

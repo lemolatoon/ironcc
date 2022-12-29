@@ -1032,7 +1032,24 @@ impl Analyzer {
                 let lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
                 Self::new_assign_expr_with_type_check(lhs, rhs, assign_bin_op, debug_info)
             }
-            ExprKind::Ident(name) => self.fetch_lvar(&name, debug_info),
+            ExprKind::Ident(name) => {
+                let err = |name: &str, debug_info: DebugInfo| {
+                    Err(CompileError::new(CompileErrorKind::AnalyzeError(
+                        AnalyzeErrorKind::UndeclaredError(
+                            name.to_string(),
+                            debug_info,
+                            VariableKind::LocalOrGlobalOrFunc,
+                        ),
+                    )))
+                };
+                self.fetch_lvar(&name, debug_info.clone()).map_or_else(
+                    move || {
+                        self.fetch_func_ptr(&name, debug_info.clone())
+                            .map_or_else(|| err(&name, debug_info), |expr| Ok(expr))
+                    },
+                    |expr| Ok(expr),
+                )
+            }
             ExprKind::Func(name, args) => {
                 self.new_call_func_with_type_check(name, args, debug_info, &attrs)
             }
@@ -1267,39 +1284,79 @@ impl Analyzer {
         debug_info: DebugInfo,
         _attrs: &BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
+        // TODO: check if `name` is a variable which is function ptr
+        let (target, arg_types, ret_ty, declared_debug_info, is_flexible_length): (
+            FuncCallTargetKind,
+            Vec<Type>,
+            Type,
+            DebugInfo,
+            bool,
+        ) = (|name: &str, debug_info: &DebugInfo| {
+            if let Some(var) = self.fetch_lvar(&name, debug_info.clone()) {
+                if let Some(Type::Func {
+                    ret_ty,
+                    args,
+                    is_flexible,
+                }) = var.ty.get_ptr_to_recursively()
+                {
+                    let (args_types, ret_ty, declared_debug_info, is_flexible) = (
+                        args.clone(),
+                        *ret_ty.clone(),
+                        var.debug_info.clone(),
+                        *is_flexible,
+                    );
+                    return Ok((
+                        FuncCallTargetKind::Expr(Box::new(var)),
+                        args_types,
+                        ret_ty,
+                        declared_debug_info,
+                        is_flexible,
+                    ));
+                }
+            }
+            let func = match self.func_map.get(name) {
+                Some(func) => func,
+                None => {
+                    return Err(CompileError::new_undeclared_error(
+                        name.to_string(),
+                        debug_info.clone(),
+                        VariableKind::Func,
+                    ));
+                }
+            };
+            let is_flexible_length = func.args.is_flexible_length();
+            let Func {
+                name,
+                args,
+                ret,
+                debug_info,
+            } = func.clone();
+            Ok((
+                FuncCallTargetKind::Label(name),
+                args.args,
+                ret,
+                debug_info,
+                is_flexible_length,
+            ))
+        })(&name, &debug_info)?;
         // args type check
         let mut args = args
             .into_iter()
             .map(|expr| self.traverse_expr(expr, BTreeSet::new()))
             .collect::<Result<Vec<_>, CompileError>>()?;
-        let Func {
-            name: _,
-            args: func_args,
-            ret: ret_ty,
-            debug_info: declared_debug_info,
-        } = match self.func_map.get(&name) {
-            Some(func) => func,
-            None => {
-                return Err(CompileError::new_undeclared_error(
-                    name,
-                    debug_info,
-                    VariableKind::Func,
-                ));
-            }
-        };
-        let is_flexible_length = func_args.is_flexible_length();
-        if !is_flexible_length && func_args.args.len() != args.len() {
+
+        if !is_flexible_length && arg_types.len() != args.len() {
             return Err(CompileError::new_args_error(
-                name,
+                target,
                 debug_info,
-                func_args.args.len(),
+                arg_types.len(),
                 args.len(),
                 declared_debug_info.clone(),
             ));
         }
 
         // implicit cast
-        for (expected_ty, got_expr) in func_args.args.iter().zip(args.iter_mut()) {
+        for (expected_ty, got_expr) in arg_types.iter().zip(args.iter_mut()) {
             let expected_ty = expected_ty.clone().into_ptr();
             if !expected_ty.ty_eq(&got_expr.ty) {
                 if expected_ty.is_base() && got_expr.ty.is_base() {
@@ -1336,7 +1393,7 @@ impl Analyzer {
             }
         }
         Ok(ConvExpr::new_func(
-            name,
+            target,
             args,
             ret_ty.clone(),
             is_flexible_length,
@@ -1840,20 +1897,9 @@ impl Analyzer {
         Ok(ty)
     }
 
-    pub fn fetch_lvar(&self, name: &str, debug_info: DebugInfo) -> Result<ConvExpr, CompileError> {
-        let var = match self.scope.look_up(&name.to_string()) {
-            Some(lvar) => lvar,
-            None => {
-                return Err(CompileError::new(CompileErrorKind::AnalyzeError(
-                    AnalyzeErrorKind::UndeclaredError(
-                        name.to_string(),
-                        debug_info,
-                        VariableKind::Local,
-                    ),
-                )))
-            }
-        };
-        Ok(match var {
+    pub fn fetch_lvar(&self, name: &str, debug_info: DebugInfo) -> Option<ConvExpr> {
+        let var = self.scope.look_up(&name.to_string())?;
+        Some(match var {
             Var::GVar(global) => ConvExpr::new_gvar(global, debug_info),
             Var::LVar(local) => {
                 let ty = local.ty.clone();
@@ -1863,6 +1909,16 @@ impl Analyzer {
                 ConvExpr::new_num(value as isize, debug_info)
             }
         })
+    }
+
+    pub fn fetch_func_ptr(&self, name: &str, debug_info: DebugInfo) -> Option<ConvExpr> {
+        let func = self.func_map.get(name)?;
+        let func_ty = Type::from(func.clone());
+        Some(ConvExpr::new_func_ptr(
+            func_ty,
+            name.to_string(),
+            debug_info,
+        ))
     }
 }
 
@@ -2216,14 +2272,14 @@ impl ConvExpr {
     }
 
     pub fn new_func(
-        name: String,
+        target: FuncCallTargetKind,
         args: Vec<ConvExpr>,
         ret_ty: Type,
         is_flexible: bool,
         debug_info: DebugInfo,
     ) -> Self {
         Self {
-            kind: ConvExprKind::Func(name, args, is_flexible, 0),
+            kind: ConvExprKind::Func(target, args, is_flexible, 0),
             ty: ret_ty,
             debug_info,
         }
@@ -2293,6 +2349,15 @@ impl ConvExpr {
         }
     }
 
+    pub fn new_func_ptr(func_ty: Type, func_name: String, debug_info: DebugInfo) -> Self {
+        let ty = Type::ptr(func_ty.clone());
+        ConvExpr {
+            kind: ConvExprKind::FuncPtr(func_ty, func_name),
+            ty,
+            debug_info,
+        }
+    }
+
     pub fn new_deref(expr: ConvExpr, base_ty: Type, debug_info: DebugInfo) -> Self {
         Self {
             kind: ConvExprKind::Deref(Box::new(expr)),
@@ -2335,6 +2400,12 @@ pub enum CastContext {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub enum FuncCallTargetKind {
+    Label(String),
+    Expr(Box<ConvExpr>),
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConvExprKind {
     Member {
         struct_expr: Box<ConvExpr>,
@@ -2350,10 +2421,11 @@ pub enum ConvExprKind {
     Num(isize),
     LVar(LVar),
     GVar(GVar),
+    FuncPtr(Type, String),
     Assign(Box<ConvExpr>, Box<ConvExpr>),
     OpAssign(Box<ConvExpr>, Box<ConvExpr>, AssignBinOpToken),
     Func(
-        String,
+        FuncCallTargetKind,
         Vec<ConvExpr>,
         /* is_flexible_length */ bool,
         usize,
@@ -3120,7 +3192,8 @@ impl ConstExpr {
                 struct_expr: _,
                 minus_offset: _,
             }
-            | ConvExprKind::OpAssign(_, _, _) => {
+            | ConvExprKind::OpAssign(_, _, _)
+            | ConvExprKind::FuncPtr(_, _) => {
                 return Err(CompileError::new_const_expr_error(debug_info, kind))
             }
             ConvExprKind::Cast(expr, CastKind::Base2Base(to, _)) => num_expr(
@@ -3263,6 +3336,28 @@ impl Type {
             Type::Ptr(base_ty)
         } else {
             self
+        }
+    }
+
+    pub fn get_ptr_to_recursively(&self) -> Option<&Self> {
+        let mut ptr_to = self.get_ptr_to()?;
+        while let Some(next_ptr_to) = ptr_to.get_ptr_to() {
+            ptr_to = next_ptr_to;
+        }
+        return Some(ptr_to);
+    }
+
+    pub const fn is_func(&self) -> bool {
+        matches!(self, Type::Func { .. })
+    }
+}
+
+impl From<Func> for Type {
+    fn from(func: Func) -> Self {
+        Type::Func {
+            ret_ty: Box::new(func.ret),
+            args: func.args.args,
+            is_flexible: func.args.is_flexible_length,
         }
     }
 }

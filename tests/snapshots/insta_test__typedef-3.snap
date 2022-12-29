@@ -38,7 +38,7 @@ ConvProgram {
                                         debug_info: DebugInfo {
                                             file_info: ,
                                             pos: Position {
-                                                n_char: 4,
+                                                n_char: 2,
                                                 n_line: 3,
                                             },
                                         },
@@ -53,7 +53,7 @@ ConvProgram {
                                         debug_info: DebugInfo {
                                             file_info: ,
                                             pos: Position {
-                                                n_char: 13,
+                                                n_char: 11,
                                                 n_line: 3,
                                             },
                                         },
@@ -65,7 +65,7 @@ ConvProgram {
                                 debug_info: DebugInfo {
                                     file_info: ,
                                     pos: Position {
-                                        n_char: 4,
+                                        n_char: 2,
                                         n_line: 3,
                                     },
                                 },
@@ -89,7 +89,7 @@ ConvProgram {
                                         debug_info: DebugInfo {
                                             file_info: ,
                                             pos: Position {
-                                                n_char: 4,
+                                                n_char: 2,
                                                 n_line: 4,
                                             },
                                         },
@@ -104,7 +104,7 @@ ConvProgram {
                                         debug_info: DebugInfo {
                                             file_info: ,
                                             pos: Position {
-                                                n_char: 13,
+                                                n_char: 11,
                                                 n_line: 4,
                                             },
                                         },
@@ -116,7 +116,7 @@ ConvProgram {
                                 debug_info: DebugInfo {
                                     file_info: ,
                                     pos: Position {
-                                        n_char: 4,
+                                        n_char: 2,
                                         n_line: 4,
                                     },
                                 },
@@ -143,7 +143,7 @@ ConvProgram {
                                                 debug_info: DebugInfo {
                                                     file_info: ,
                                                     pos: Position {
-                                                        n_char: 11,
+                                                        n_char: 9,
                                                         n_line: 5,
                                                     },
                                                 },
@@ -163,7 +163,7 @@ ConvProgram {
                                                 debug_info: DebugInfo {
                                                     file_info: ,
                                                     pos: Position {
-                                                        n_char: 15,
+                                                        n_char: 13,
                                                         n_line: 5,
                                                     },
                                                 },
@@ -176,7 +176,7 @@ ConvProgram {
                                     debug_info: DebugInfo {
                                         file_info: ,
                                         pos: Position {
-                                            n_char: 13,
+                                            n_char: 11,
                                             n_line: 5,
                                         },
                                     },

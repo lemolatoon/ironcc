@@ -44,7 +44,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 1,
             },
         },
@@ -54,7 +54,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 6,
+                n_char: 4,
                 n_line: 1,
             },
         },
@@ -66,7 +66,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 2,
             },
         },
@@ -76,7 +76,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 6,
+                n_char: 4,
                 n_line: 2,
             },
         },
@@ -132,7 +132,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 6,
             },
         },
@@ -142,7 +142,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 6,
+                n_char: 4,
                 n_line: 6,
             },
         },
@@ -154,7 +154,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 7,
             },
         },
@@ -164,7 +164,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 6,
+                n_char: 4,
                 n_line: 7,
             },
         },
@@ -268,7 +268,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 11,
             },
         },
@@ -280,7 +280,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 9,
+                n_char: 7,
                 n_line: 11,
             },
         },
@@ -292,7 +292,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 11,
+                n_char: 9,
                 n_line: 11,
             },
         },
@@ -304,7 +304,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 13,
+                n_char: 11,
                 n_line: 11,
             },
         },
@@ -316,7 +316,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 15,
+                n_char: 13,
                 n_line: 11,
             },
         },
@@ -326,7 +326,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 17,
+                n_char: 15,
                 n_line: 11,
             },
         },
@@ -336,7 +336,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 4,
+                n_char: 2,
                 n_line: 12,
             },
         },
@@ -348,7 +348,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 11,
+                n_char: 9,
                 n_line: 12,
             },
         },
@@ -358,7 +358,7 @@ expression: tester.tokens().as_ref().unwrap()
         debug_info: DebugInfo {
             file_info: ,
             pos: Position {
-                n_char: 13,
+                n_char: 11,
                 n_line: 12,
             },
         },
