@@ -870,6 +870,10 @@
 <span id="870">870</span>
 <span id="871">871</span>
 <span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::CompileError;
 <span class="kw">use </span><span class="kw">crate</span>::parse::{<span class="self">self</span>, BinOpKind, Scope};
 <span class="kw">use </span><span class="kw">crate</span>::preprocess::{
@@ -989,7 +993,7 @@
                             ch = <span class="number">0x1bu8</span>.into();
                         }
                         <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;0&#39;</span>)) =&gt; ch = <span class="string">&#39;\0&#39;</span>,
-                        <span class="kw">_ </span>=&gt; {
+                        got =&gt; {
                             <span class="kw">let </span>debug_info =
                                 <span class="self">self</span>.stream.peek().map_or(
                                     <span class="self">self</span>.stream.get_prev_debug_info(),
@@ -997,8 +1001,8 @@
                                 );
                             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
                                 debug_info,
-                                <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;
-                            </span>));
+                                <span class="macro">format!</span>(<span class="string">&quot;This type of escape Sequences are not currently implemented. ({:?})&quot;</span>, got)
+                            ));
                         }
                     },
                     <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) =&gt; {
@@ -1041,15 +1045,19 @@
                             <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;e&#39;</span>)) =&gt; {
                                 str_lit.push(<span class="number">0x1bu8</span>.into());
                             }
-                            <span class="kw">_ </span>=&gt; {
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; {
+                                str_lit.push(<span class="string">&#39;\\&#39;</span>);
+                            }
+                            got =&gt; {
                                 <span class="kw">let </span>debug_info = <span class="self">self</span>.stream.peek().map_or(
                                     <span class="self">self</span>.stream.get_prev_debug_info(),
                                     |(debug_info, <span class="kw">_</span>)| debug_info.clone(),
                                 );
+
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
-                                    debug_info,
-                                    <span class="string">&quot;This type of escape Sequences are not currently implemented.&quot;
-                                </span>));
+                                debug_info,
+                                <span class="macro">format!</span>(<span class="string">&quot;This type of escape Sequences are not currently implemented. ({:?})&quot;</span>, got)
+                            ));
                             }
                         },
                         <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) =&gt; {
