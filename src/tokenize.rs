@@ -117,7 +117,7 @@ impl Tokenizer {
                             ch = 0x1bu8.into();
                         }
                         Some((_, '0')) => ch = '\0',
-                        _ => {
+                        got => {
                             let debug_info =
                                 self.stream.peek().map_or(
                                     self.stream.get_prev_debug_info(),
@@ -125,7 +125,7 @@ impl Tokenizer {
                                 );
                             return Err(unimplemented_err!(
                                 debug_info,
-                                "This type of escape Sequences are not currently implemented."
+                                format!("This type of escape Sequences are not currently implemented. ({:?})", got)
                             ));
                         }
                     },
@@ -169,15 +169,19 @@ impl Tokenizer {
                             Some((_, 'e')) => {
                                 str_lit.push(0x1bu8.into());
                             }
-                            _ => {
+                            Some((_, '\\')) => {
+                                str_lit.push('\\');
+                            }
+                            got => {
                                 let debug_info = self.stream.peek().map_or(
                                     self.stream.get_prev_debug_info(),
                                     |(debug_info, _)| debug_info.clone(),
                                 );
+
                                 return Err(unimplemented_err!(
-                                    debug_info,
-                                    "This type of escape Sequences are not currently implemented."
-                                ));
+                                debug_info,
+                                format!("This type of escape Sequences are not currently implemented. ({:?})", got)
+                            ));
                             }
                         },
                         Some((_, c)) => {
