@@ -568,7 +568,7 @@ fn _cfor_(
 
 fn _cfunc(name: &str, args: Vec<ConvExpr>, is_flexible: bool) -> ConvExpr {
     ConvExpr::new_func(
-        name.to_string(),
+        FuncCallTargetKind::Label(name.to_string()),
         args,
         Type::Base(BaseType::Int),
         is_flexible,

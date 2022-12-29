@@ -361,7 +361,9 @@ ConvProgram {
                         Expr(
                             ConvExpr {
                                 kind: Func(
-                                    "printf",
+                                    Label(
+                                        "printf",
+                                    ),
                                     [
                                         ConvExpr {
                                             kind: Addr(

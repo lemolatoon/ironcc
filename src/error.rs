@@ -1,6 +1,7 @@
 use crate::analyze::ConstExpr;
 use crate::analyze::ConvExpr;
 use crate::analyze::ConvExprKind;
+use crate::analyze::FuncCallTargetKind;
 use crate::analyze::GVar;
 use crate::analyze::Type;
 use crate::preprocess;
@@ -159,7 +160,7 @@ impl CompileError {
     }
 
     pub const fn new_args_error(
-        name: String,
+        name: FuncCallTargetKind,
         debug_info: DebugInfo,
         expected: usize,
         got: usize,
@@ -443,7 +444,7 @@ impl Debug for CompileError {
                     name, expected, got
                 )?;
                 error_at(vec![declared_pos.clone()], f)?;
-                writeln!(f, "{} is first declared here.", name)?;
+                writeln!(f, "{:?} is first declared here.", name)?;
             }
             AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) => {
                 error_at(vec![debug_info.clone()], f)?;
@@ -542,7 +543,7 @@ pub enum AnalyzeErrorKind {
         pos: DebugInfo,
         got_member_name: String,
     },
-    FuncArgsError(String, DebugInfo, usize, usize, DebugInfo),
+    FuncArgsError(FuncCallTargetKind, DebugInfo, usize, usize, DebugInfo),
     TypeError(TypeErrorKind, Option<String>),
     TypeExpectFailed(TypeExpectedFailedKind),
     ConstExprError(DebugInfo, ConvExprKind),
@@ -604,6 +605,7 @@ pub enum VariableKind {
     Local,
     Global,
     Func,
+    LocalOrGlobalOrFunc,
     Struct,
     Enum,
     Typedef,

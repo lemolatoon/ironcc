@@ -60,7 +60,7 @@ fn variable_undeclared() {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
                     _,
                     _,
-                    VariableKind::Local
+                    VariableKind::LocalOrGlobalOrFunc
                 )),
             })
         ),
@@ -238,7 +238,7 @@ fn scopes() {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
                     _,
                     _,
-                    VariableKind::Local,
+                    VariableKind::LocalOrGlobalOrFunc,
                 )),
             })
         ),
@@ -304,7 +304,7 @@ fn scopes() {
                 kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
                     _,
                     _,
-                    VariableKind::Local,
+                    VariableKind::LocalOrGlobalOrFunc,
                 )),
             })
         ),

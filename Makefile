@@ -16,6 +16,9 @@ a.out: tmp.s link.c
 run: a.out $(COMPILER)
 	./a.out
 
+fmt: FORCE
+	cargo fmt
+	clang-format -i */**/*.c
 
 test: $(COMPILER)
 	./test/test.sh

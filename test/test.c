@@ -79,6 +79,7 @@ int test68(void);
 int test69(void);
 int test70(void);
 int test71(void);
+int test72(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -176,6 +177,7 @@ int main(void)
     my_assert(69, 0, test69());
     my_assert(70, 70, test70());
     my_assert(71, 0, test71());
+    my_assert(72, 0, test72());
 
     print_ok();
     return 0;
@@ -1437,5 +1439,19 @@ int test71(void) {
     my_assert(71, 1, a2.a);
     my_assert(71, 2, a2.b);
     my_assert(71, 1001, *a1.p);
+    return 0;
+}
+
+int just_ret_double(int n) {return n * 2;}
+
+int just_ret_triple(int n) {return n * 3;}
+
+int test72(void) {
+    int (*f)(int arg1) = just_ret_double;
+    my_assert(72, 10, f(5));
+    my_assert(72, 4, f(2));
+    f = just_ret_triple;
+    my_assert(72, 15, f(5));
+    my_assert(72, 6, f(2));
     return 0;
 }
