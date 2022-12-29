@@ -761,9 +761,12 @@
 <span id="761">761</span>
 <span id="762">762</span>
 <span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::analyze::ConstExpr;
 <span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExpr;
 <span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExprKind;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::FuncCallTargetKind;
 <span class="kw">use </span><span class="kw">crate</span>::analyze::GVar;
 <span class="kw">use </span><span class="kw">crate</span>::analyze::Type;
 <span class="kw">use </span><span class="kw">crate</span>::preprocess;
@@ -922,7 +925,7 @@
     }
 
     <span class="kw">pub const fn </span>new_args_error(
-        name: String,
+        name: FuncCallTargetKind,
         debug_info: DebugInfo,
         expected: usize,
         got: usize,
@@ -1206,7 +1209,7 @@
                     name, expected, got
                 )<span class="question-mark">?</span>;
                 error_at(<span class="macro">vec!</span>[declared_pos.clone()], f)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;{} is first declared here.&quot;</span>, name)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{:?} is first declared here.&quot;</span>, name)<span class="question-mark">?</span>;
             }
             AnalyzeError(AnalyzeErrorKind::ConstExprError(debug_info, kind)) =&gt; {
                 error_at(<span class="macro">vec!</span>[debug_info.clone()], f)<span class="question-mark">?</span>;
@@ -1305,7 +1308,7 @@
         pos: DebugInfo,
         got_member_name: String,
     },
-    FuncArgsError(String, DebugInfo, usize, usize, DebugInfo),
+    FuncArgsError(FuncCallTargetKind, DebugInfo, usize, usize, DebugInfo),
     TypeError(TypeErrorKind, <span class="prelude-ty">Option</span>&lt;String&gt;),
     TypeExpectFailed(TypeExpectedFailedKind),
     ConstExprError(DebugInfo, ConvExprKind),
@@ -1367,6 +1370,7 @@
     Local,
     Global,
     Func,
+    LocalOrGlobalOrFunc,
     Struct,
     Enum,
     Typedef,

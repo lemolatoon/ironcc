@@ -1425,13 +1425,35 @@
 <span id="1425">1425</span>
 <span id="1426">1426</span>
 <span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{BufWriter, Write};
 
 <span class="kw">use crate</span>::{
     analyze::{
         BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
         ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        GVar, LVar, LoopControlKind, Type,
+        FuncCallTargetKind, GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     parse::BinOpKind,
@@ -2055,21 +2077,39 @@
                 } <span class="comment">// pop args
                   // e.g) if arg_len == 2, pop rsi, pop rdi
 
-                </span><span class="kw">if </span>is_flexible_length {
-                    <span class="comment">// for flexible-length-arg function
-                    </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  mov al, {}&quot;</span>, n_floating)<span class="question-mark">?</span>;
-                }
-
-                <span class="comment">// 16bit align
+                // 16bit align
                 // NOTE: local variable stack area is aligned to 16byte.
                 // `calling after 1 push (including `push rbp`)` is OK.
-                </span><span class="kw">if </span><span class="self">self</span>.depth % <span class="number">2 </span>== <span class="number">0 </span>{
-                    <span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
-                } <span class="kw">else </span>{
-                    <span class="macro">writeln!</span>(f, <span class="string">&quot;  sub rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// align
-                    </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
-                    <span class="macro">writeln!</span>(f, <span class="string">&quot;  add rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// revert
-                </span>}
+                </span><span class="kw">match </span>name {
+                    FuncCallTargetKind::Label(name) =&gt; {
+                        <span class="kw">if </span>is_flexible_length {
+                            <span class="comment">// for flexible-length-arg function
+                            </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  mov al, {}&quot;</span>, n_floating)<span class="question-mark">?</span>;
+                        }
+                        <span class="kw">if </span><span class="self">self</span>.depth % <span class="number">2 </span>== <span class="number">0 </span>{
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
+                        } <span class="kw">else </span>{
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  sub rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// align
+                            </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, name)<span class="question-mark">?</span>;
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  add rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// revert
+                        </span>}
+                    }
+                    FuncCallTargetKind::Expr(expr) =&gt; {
+                        <span class="self">self</span>.gen_expr(f, <span class="kw-2">*</span>expr)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.pop(f, RegKind::R10)<span class="question-mark">?</span>;
+                        <span class="kw">if </span>is_flexible_length {
+                            <span class="comment">// for flexible-length-arg function
+                            </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  mov al, {}&quot;</span>, n_floating)<span class="question-mark">?</span>;
+                        }
+                        <span class="kw">if </span><span class="self">self</span>.depth % <span class="number">2 </span>== <span class="number">0 </span>{
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, RegKind::R10.qword())<span class="question-mark">?</span>;
+                        } <span class="kw">else </span>{
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  sub rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// align
+                            </span><span class="macro">writeln!</span>(f, <span class="string">&quot;  call {}&quot;</span>, RegKind::R10.qword())<span class="question-mark">?</span>;
+                            <span class="macro">writeln!</span>(f, <span class="string">&quot;  add rsp, 8&quot;</span>)<span class="question-mark">?</span>; <span class="comment">// revert
+                        </span>}
+                    }
+                }
                 <span class="self">self</span>.push(f, RegKind::Rax)<span class="question-mark">?</span>;
             }
             ConvExprKind::Deref(expr) =&gt; {
@@ -2269,6 +2309,10 @@
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.push_lit(f, <span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// push tmp value
                 </span>}
+            }
+            ConvExprKind::FuncPtr(<span class="kw">_</span>, label) =&gt; {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;  lea rax, [rip+{}]&quot;</span>, label)<span class="question-mark">?</span>;
+                <span class="self">self</span>.push(f, RegKind::Rax)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())

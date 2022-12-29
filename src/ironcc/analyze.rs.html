@@ -3724,6 +3724,101 @@
 <span id="3724">3724</span>
 <span id="3725">3725</span>
 <span id="3726">3726</span>
+<span id="3727">3727</span>
+<span id="3728">3728</span>
+<span id="3729">3729</span>
+<span id="3730">3730</span>
+<span id="3731">3731</span>
+<span id="3732">3732</span>
+<span id="3733">3733</span>
+<span id="3734">3734</span>
+<span id="3735">3735</span>
+<span id="3736">3736</span>
+<span id="3737">3737</span>
+<span id="3738">3738</span>
+<span id="3739">3739</span>
+<span id="3740">3740</span>
+<span id="3741">3741</span>
+<span id="3742">3742</span>
+<span id="3743">3743</span>
+<span id="3744">3744</span>
+<span id="3745">3745</span>
+<span id="3746">3746</span>
+<span id="3747">3747</span>
+<span id="3748">3748</span>
+<span id="3749">3749</span>
+<span id="3750">3750</span>
+<span id="3751">3751</span>
+<span id="3752">3752</span>
+<span id="3753">3753</span>
+<span id="3754">3754</span>
+<span id="3755">3755</span>
+<span id="3756">3756</span>
+<span id="3757">3757</span>
+<span id="3758">3758</span>
+<span id="3759">3759</span>
+<span id="3760">3760</span>
+<span id="3761">3761</span>
+<span id="3762">3762</span>
+<span id="3763">3763</span>
+<span id="3764">3764</span>
+<span id="3765">3765</span>
+<span id="3766">3766</span>
+<span id="3767">3767</span>
+<span id="3768">3768</span>
+<span id="3769">3769</span>
+<span id="3770">3770</span>
+<span id="3771">3771</span>
+<span id="3772">3772</span>
+<span id="3773">3773</span>
+<span id="3774">3774</span>
+<span id="3775">3775</span>
+<span id="3776">3776</span>
+<span id="3777">3777</span>
+<span id="3778">3778</span>
+<span id="3779">3779</span>
+<span id="3780">3780</span>
+<span id="3781">3781</span>
+<span id="3782">3782</span>
+<span id="3783">3783</span>
+<span id="3784">3784</span>
+<span id="3785">3785</span>
+<span id="3786">3786</span>
+<span id="3787">3787</span>
+<span id="3788">3788</span>
+<span id="3789">3789</span>
+<span id="3790">3790</span>
+<span id="3791">3791</span>
+<span id="3792">3792</span>
+<span id="3793">3793</span>
+<span id="3794">3794</span>
+<span id="3795">3795</span>
+<span id="3796">3796</span>
+<span id="3797">3797</span>
+<span id="3798">3798</span>
+<span id="3799">3799</span>
+<span id="3800">3800</span>
+<span id="3801">3801</span>
+<span id="3802">3802</span>
+<span id="3803">3803</span>
+<span id="3804">3804</span>
+<span id="3805">3805</span>
+<span id="3806">3806</span>
+<span id="3807">3807</span>
+<span id="3808">3808</span>
+<span id="3809">3809</span>
+<span id="3810">3810</span>
+<span id="3811">3811</span>
+<span id="3812">3812</span>
+<span id="3813">3813</span>
+<span id="3814">3814</span>
+<span id="3815">3815</span>
+<span id="3816">3816</span>
+<span id="3817">3817</span>
+<span id="3818">3818</span>
+<span id="3819">3819</span>
+<span id="3820">3820</span>
+<span id="3821">3821</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Debug,
@@ -4758,7 +4853,24 @@
                 <span class="kw">let </span>lhs = <span class="self">self</span>.traverse_expr(<span class="kw-2">*</span>lhs, BTreeSet::new())<span class="question-mark">?</span>;
                 <span class="self">Self</span>::new_assign_expr_with_type_check(lhs, rhs, assign_bin_op, debug_info)
             }
-            ExprKind::Ident(name) =&gt; <span class="self">self</span>.fetch_lvar(<span class="kw-2">&amp;</span>name, debug_info),
+            ExprKind::Ident(name) =&gt; {
+                <span class="kw">let </span>err = |name: <span class="kw-2">&amp;</span>str, debug_info: DebugInfo| {
+                    <span class="prelude-val">Err</span>(CompileError::new(CompileErrorKind::AnalyzeError(
+                        AnalyzeErrorKind::UndeclaredError(
+                            name.to_string(),
+                            debug_info,
+                            VariableKind::LocalOrGlobalOrFunc,
+                        ),
+                    )))
+                };
+                <span class="self">self</span>.fetch_lvar(<span class="kw-2">&amp;</span>name, debug_info.clone()).map_or_else(
+                    <span class="kw">move </span>|| {
+                        <span class="self">self</span>.fetch_func_ptr(<span class="kw-2">&amp;</span>name, debug_info.clone())
+                            .map_or_else(|| err(<span class="kw-2">&amp;</span>name, debug_info), |expr| <span class="prelude-val">Ok</span>(expr))
+                    },
+                    |expr| <span class="prelude-val">Ok</span>(expr),
+                )
+            }
             ExprKind::Func(name, args) =&gt; {
                 <span class="self">self</span>.new_call_func_with_type_check(name, args, debug_info, <span class="kw-2">&amp;</span>attrs)
             }
@@ -4993,39 +5105,79 @@
         debug_info: DebugInfo,
         _attrs: <span class="kw-2">&amp;</span>BTreeSet&lt;DownExprAttribute&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ConvExpr, CompileError&gt; {
+        <span class="comment">// TODO: check if `name` is a variable which is function ptr
+        </span><span class="kw">let </span>(target, arg_types, ret_ty, declared_debug_info, is_flexible_length): (
+            FuncCallTargetKind,
+            Vec&lt;Type&gt;,
+            Type,
+            DebugInfo,
+            bool,
+        ) = (|name: <span class="kw-2">&amp;</span>str, debug_info: <span class="kw-2">&amp;</span>DebugInfo| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(var) = <span class="self">self</span>.fetch_lvar(<span class="kw-2">&amp;</span>name, debug_info.clone()) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(Type::Func {
+                    ret_ty,
+                    args,
+                    is_flexible,
+                }) = var.ty.get_ptr_to_recursively()
+                {
+                    <span class="kw">let </span>(args_types, ret_ty, declared_debug_info, is_flexible) = (
+                        args.clone(),
+                        <span class="kw-2">*</span>ret_ty.clone(),
+                        var.debug_info.clone(),
+                        <span class="kw-2">*</span>is_flexible,
+                    );
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>((
+                        FuncCallTargetKind::Expr(Box::new(var)),
+                        args_types,
+                        ret_ty,
+                        declared_debug_info,
+                        is_flexible,
+                    ));
+                }
+            }
+            <span class="kw">let </span>func = <span class="kw">match </span><span class="self">self</span>.func_map.get(name) {
+                <span class="prelude-val">Some</span>(func) =&gt; func,
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_undeclared_error(
+                        name.to_string(),
+                        debug_info.clone(),
+                        VariableKind::Func,
+                    ));
+                }
+            };
+            <span class="kw">let </span>is_flexible_length = func.args.is_flexible_length();
+            <span class="kw">let </span>Func {
+                name,
+                args,
+                ret,
+                debug_info,
+            } = func.clone();
+            <span class="prelude-val">Ok</span>((
+                FuncCallTargetKind::Label(name),
+                args.args,
+                ret,
+                debug_info,
+                is_flexible_length,
+            ))
+        })(<span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;</span>debug_info)<span class="question-mark">?</span>;
         <span class="comment">// args type check
         </span><span class="kw">let </span><span class="kw-2">mut </span>args = args
             .into_iter()
             .map(|expr| <span class="self">self</span>.traverse_expr(expr, BTreeSet::new()))
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, CompileError&gt;&gt;()<span class="question-mark">?</span>;
-        <span class="kw">let </span>Func {
-            name: <span class="kw">_</span>,
-            args: func_args,
-            ret: ret_ty,
-            debug_info: declared_debug_info,
-        } = <span class="kw">match </span><span class="self">self</span>.func_map.get(<span class="kw-2">&amp;</span>name) {
-            <span class="prelude-val">Some</span>(func) =&gt; func,
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_undeclared_error(
-                    name,
-                    debug_info,
-                    VariableKind::Func,
-                ));
-            }
-        };
-        <span class="kw">let </span>is_flexible_length = func_args.is_flexible_length();
-        <span class="kw">if </span>!is_flexible_length &amp;&amp; func_args.args.len() != args.len() {
+
+        <span class="kw">if </span>!is_flexible_length &amp;&amp; arg_types.len() != args.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_args_error(
-                name,
+                target,
                 debug_info,
-                func_args.args.len(),
+                arg_types.len(),
                 args.len(),
                 declared_debug_info.clone(),
             ));
         }
 
         <span class="comment">// implicit cast
-        </span><span class="kw">for </span>(expected_ty, got_expr) <span class="kw">in </span>func_args.args.iter().zip(args.iter_mut()) {
+        </span><span class="kw">for </span>(expected_ty, got_expr) <span class="kw">in </span>arg_types.iter().zip(args.iter_mut()) {
             <span class="kw">let </span>expected_ty = expected_ty.clone().into_ptr();
             <span class="kw">if </span>!expected_ty.ty_eq(<span class="kw-2">&amp;</span>got_expr.ty) {
                 <span class="kw">if </span>expected_ty.is_base() &amp;&amp; got_expr.ty.is_base() {
@@ -5062,7 +5214,7 @@
             }
         }
         <span class="prelude-val">Ok</span>(ConvExpr::new_func(
-            name,
+            target,
             args,
             ret_ty.clone(),
             is_flexible_length,
@@ -5566,20 +5718,9 @@
         <span class="prelude-val">Ok</span>(ty)
     }
 
-    <span class="kw">pub fn </span>fetch_lvar(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, debug_info: DebugInfo) -&gt; <span class="prelude-ty">Result</span>&lt;ConvExpr, CompileError&gt; {
-        <span class="kw">let </span>var = <span class="kw">match </span><span class="self">self</span>.scope.look_up(<span class="kw-2">&amp;</span>name.to_string()) {
-            <span class="prelude-val">Some</span>(lvar) =&gt; lvar,
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new(CompileErrorKind::AnalyzeError(
-                    AnalyzeErrorKind::UndeclaredError(
-                        name.to_string(),
-                        debug_info,
-                        VariableKind::Local,
-                    ),
-                )))
-            }
-        };
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span>var {
+    <span class="kw">pub fn </span>fetch_lvar(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, debug_info: DebugInfo) -&gt; <span class="prelude-ty">Option</span>&lt;ConvExpr&gt; {
+        <span class="kw">let </span>var = <span class="self">self</span>.scope.look_up(<span class="kw-2">&amp;</span>name.to_string())<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<span class="kw">match </span>var {
             Var::GVar(global) =&gt; ConvExpr::new_gvar(global, debug_info),
             Var::LVar(local) =&gt; {
                 <span class="kw">let </span>ty = local.ty.clone();
@@ -5589,6 +5730,16 @@
                 ConvExpr::new_num(value <span class="kw">as </span>isize, debug_info)
             }
         })
+    }
+
+    <span class="kw">pub fn </span>fetch_func_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, debug_info: DebugInfo) -&gt; <span class="prelude-ty">Option</span>&lt;ConvExpr&gt; {
+        <span class="kw">let </span>func = <span class="self">self</span>.func_map.get(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>func_ty = Type::from(func.clone());
+        <span class="prelude-val">Some</span>(ConvExpr::new_func_ptr(
+            func_ty,
+            name.to_string(),
+            debug_info,
+        ))
     }
 }
 
@@ -5942,14 +6093,14 @@
     }
 
     <span class="kw">pub fn </span>new_func(
-        name: String,
+        target: FuncCallTargetKind,
         args: Vec&lt;ConvExpr&gt;,
         ret_ty: Type,
         is_flexible: bool,
         debug_info: DebugInfo,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            kind: ConvExprKind::Func(name, args, is_flexible, <span class="number">0</span>),
+            kind: ConvExprKind::Func(target, args, is_flexible, <span class="number">0</span>),
             ty: ret_ty,
             debug_info,
         }
@@ -6019,6 +6170,15 @@
         }
     }
 
+    <span class="kw">pub fn </span>new_func_ptr(func_ty: Type, func_name: String, debug_info: DebugInfo) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>ty = Type::ptr(func_ty.clone());
+        ConvExpr {
+            kind: ConvExprKind::FuncPtr(func_ty, func_name),
+            ty,
+            debug_info,
+        }
+    }
+
     <span class="kw">pub fn </span>new_deref(expr: ConvExpr, base_ty: Type, debug_info: DebugInfo) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ConvExprKind::Deref(Box::new(expr)),
@@ -6061,6 +6221,12 @@
 </span>}
 
 <span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub enum </span>FuncCallTargetKind {
+    Label(String),
+    Expr(Box&lt;ConvExpr&gt;),
+}
+
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub enum </span>ConvExprKind {
     Member {
         struct_expr: Box&lt;ConvExpr&gt;,
@@ -6076,10 +6242,11 @@
     Num(isize),
     LVar(LVar),
     GVar(GVar),
+    FuncPtr(Type, String),
     Assign(Box&lt;ConvExpr&gt;, Box&lt;ConvExpr&gt;),
     OpAssign(Box&lt;ConvExpr&gt;, Box&lt;ConvExpr&gt;, AssignBinOpToken),
     Func(
-        String,
+        FuncCallTargetKind,
         Vec&lt;ConvExpr&gt;,
         <span class="comment">/* is_flexible_length */ </span>bool,
         usize,
@@ -6846,7 +7013,8 @@
                 struct_expr: <span class="kw">_</span>,
                 minus_offset: <span class="kw">_</span>,
             }
-            | ConvExprKind::OpAssign(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+            | ConvExprKind::OpAssign(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)
+            | ConvExprKind::FuncPtr(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(CompileError::new_const_expr_error(debug_info, kind))
             }
             ConvExprKind::Cast(expr, CastKind::Base2Base(to, <span class="kw">_</span>)) =&gt; num_expr(
@@ -6990,6 +7158,28 @@
         } <span class="kw">else </span>{
             <span class="self">self
         </span>}
+    }
+
+    <span class="kw">pub fn </span>get_ptr_to_recursively(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ptr_to = <span class="self">self</span>.get_ptr_to()<span class="question-mark">?</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(next_ptr_to) = ptr_to.get_ptr_to() {
+            ptr_to = next_ptr_to;
+        }
+        <span class="kw">return </span><span class="prelude-val">Some</span>(ptr_to);
+    }
+
+    <span class="kw">pub const fn </span>is_func(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Type::Func { .. })
+    }
+}
+
+<span class="kw">impl </span>From&lt;Func&gt; <span class="kw">for </span>Type {
+    <span class="kw">fn </span>from(func: Func) -&gt; <span class="self">Self </span>{
+        Type::Func {
+            ret_ty: Box::new(func.ret),
+            args: func.args.args,
+            is_flexible: func.args.is_flexible_length,
+        }
     }
 }
 
