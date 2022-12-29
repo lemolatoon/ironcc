@@ -240,6 +240,7 @@ impl Generator {
                     body,
                     stack_size,
                 }) => {
+                    self.depth = 1;
                     writeln!(f, ".text")?;
                     writeln!(f, ".global {}", name)?;
                     writeln!(f, "{}:", name)?;
@@ -633,12 +634,14 @@ impl Generator {
                 }
 
                 // 16bit align
+                // NOTE: local variable stack area is aligned to 16byte.
+                // `calling after 1 push (including `push rbp`)` is OK.
                 if self.depth % 2 == 0 {
+                    writeln!(f, "  call {}", name)?;
+                } else {
                     writeln!(f, "  sub rsp, 8")?; // align
                     writeln!(f, "  call {}", name)?;
                     writeln!(f, "  add rsp, 8")?; // revert
-                } else {
-                    writeln!(f, "  call {}", name)?;
                 }
                 self.push(f, RegKind::Rax)?;
             }
@@ -737,6 +740,7 @@ impl Generator {
                 )?;
                 writeln!(f, "  je .Lelse{}", label_index)?;
                 self.gen_expr(f, *then)?;
+                self.depth -= 1;
                 writeln!(f, "  jmp .Lend{}", label_index)?;
                 writeln!(f, ".Lelse{}:", label_index)?;
                 self.gen_expr(f, *els)?;

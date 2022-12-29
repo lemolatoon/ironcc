@@ -1,4 +1,4 @@
-name: make test CI
+name: make test CI(Ubuntu-22.04)
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
     - name: make test written in C
       run: make testc
   doc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     if:  github.event_name == 'push' || github.event.pull_request.merged == true
 

@@ -1,0 +1,29 @@
+name: make test CI(Ubuntu-20.04)
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: build
+      run: cargo build --verbose
+
+    - name: cargo test
+      run: cargo test --verbose
+
+    - name: make test
+      run: make test
+
+    - name: make test written in C
+      run: make testc
