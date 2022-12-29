@@ -2187,12 +2187,111 @@
 <span id="2187">2187</span>
 <span id="2188">2188</span>
 <span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     analyze::{
         Analyzer, BaseType, ConstExpr, ConstInitializer, ConvExpr, ConvStmt, InCompleteKind, LVar,
         Type,
     },
-    error::{CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
+    error::{<span class="self">self</span>, CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
     tokenize::{
         AssignBinOpToken, BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream,
         TypeToken,
@@ -2206,12 +2305,76 @@
 
 <span class="kw">pub struct </span>Parser {
     scope: Scope,
+    <span class="kw">pub </span>context: ParserContext,
+}
+
+<span class="attribute">#[derive(PartialOrd, Ord, PartialEq, Eq, Copy, Clone, Debug)]
+</span><span class="kw">pub enum </span>ParserContextKind {
+    TopFuncArgs,
+}
+
+<span class="attribute">#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">pub struct </span>ParserContext(BTreeMap&lt;ParserContextKind, Vec&lt;bool&gt;&gt;);
+
+<span class="kw">impl </span>ParserContext {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>map = BTreeMap::new();
+        <span class="comment">// insert all kinds
+        </span>map.insert(ParserContextKind::TopFuncArgs, Vec::new());
+        <span class="self">Self</span>(map)
+    }
+
+    <span class="kw">pub fn </span>push_ctx(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: ParserContextKind, flag: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompileError&gt; {
+        <span class="self">self</span>.<span class="number">0
+            </span>.get_mut(<span class="kw-2">&amp;</span>context)
+            .ok_or_else(|| {
+                <span class="macro">unimplemented_err!</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.&quot;</span>,
+                    <span class="kw-2">&amp;</span>context
+                ))
+            })<span class="question-mark">?
+            </span>.push(flag);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: ParserContextKind) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompileError&gt; {
+        <span class="kw">let </span>vec = <span class="self">self</span>.<span class="number">0</span>.get_mut(<span class="kw-2">&amp;</span>context).ok_or_else(|| {
+            <span class="macro">unimplemented_err!</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.&quot;</span>,
+                <span class="kw-2">&amp;</span>context
+            ))
+        })<span class="question-mark">?</span>;
+        <span class="kw">if </span>vec.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">Self</span>::error());
+        }
+        vec.pop();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>in_top_func_args(<span class="kw-2">&amp;</span><span class="self">self</span>, context: ParserContextKind) -&gt; <span class="prelude-ty">Result</span>&lt;bool, CompileError&gt; {
+        <span class="kw">let </span>vec = <span class="self">self</span>.<span class="number">0</span>.get(<span class="kw-2">&amp;</span>context).ok_or_else(|| {
+            <span class="macro">unimplemented_err!</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;INTERNAL COMPILER ERROR: ParserContextKind: {:?} is not initialized.&quot;</span>,
+                <span class="kw-2">&amp;</span>context
+            ))
+        })<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(stack_top) = vec.last() {
+            <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>stack_top)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">Self</span>::error())
+        }
+    }
+
+    <span class="kw">fn </span>error() -&gt; CompileError {
+        <span class="macro">unimplemented_err!</span>(<span class="string">&quot;INTERNAL COMPILER ERROR: ParserContext&#39;s stack state is broken&quot;</span>)
+    }
 }
 
 <span class="kw">impl </span>Parser {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             scope: Scope::new(),
+            context: ParserContext::new(),
         }
     }
     <span class="kw">pub fn </span>parse_program&lt;I&gt;(
@@ -2482,7 +2645,10 @@
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Brace))<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Initializer::Array(init_list))
         } <span class="kw">else </span>{
+            <span class="self">self</span>.context
+                .push_ctx(ParserContextKind::TopFuncArgs, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="kw">let </span>expr = <span class="self">self</span>.parse_assign(tokens)<span class="question-mark">?</span>;
+            <span class="self">self</span>.context.pop(ParserContextKind::TopFuncArgs)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Initializer::Expr(expr))
         }
     }
@@ -2829,13 +2995,13 @@
             <span class="kw">if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::Semi) {
                 <span class="prelude-val">Ok</span>(Stmt::ret(<span class="prelude-val">None</span>, debug_info))
             } <span class="kw">else </span>{
-                <span class="kw">let </span>returning_expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                <span class="kw">let </span>returning_expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Semi)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(Stmt::ret(<span class="prelude-val">Some</span>(returning_expr), debug_info))
             }
         } <span class="kw">else if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::If) {
             <span class="kw">let </span>debug_info = tokens.expect(<span class="kw-2">&amp;</span>TokenKind::OpenDelim(DelimToken::Paren))<span class="question-mark">?</span>;
-            <span class="kw">let </span>conditional_expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+            <span class="kw">let </span>conditional_expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
             <span class="kw">let </span>then_stmt = <span class="self">self</span>.parse_stmt(tokens)<span class="question-mark">?</span>;
             <span class="kw">let </span>else_stmt = <span class="kw">if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::Else) {
@@ -2851,7 +3017,7 @@
             ))
         } <span class="kw">else if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::While) {
             <span class="kw">let </span>debug_info = tokens.expect(<span class="kw-2">&amp;</span>TokenKind::OpenDelim(DelimToken::Paren))<span class="question-mark">?</span>;
-            <span class="kw">let </span>conditional_expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+            <span class="kw">let </span>conditional_expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
             <span class="kw">let </span>then_stmt = <span class="self">self</span>.parse_stmt(tokens)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Stmt::new_while(conditional_expr, then_stmt, debug_info))
@@ -2866,7 +3032,7 @@
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Semi)<span class="question-mark">?</span>;
                     ForInitKind::Declaration(declaration)
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Semi)<span class="question-mark">?</span>;
                     ForInitKind::Expr(expr)
                 })
@@ -2874,14 +3040,14 @@
             <span class="kw">let </span>cond_expr = <span class="kw">if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::Semi) {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Semi)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(expr)
             };
             <span class="kw">let </span>inc_expr = <span class="kw">if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren)) {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(expr)
             };
@@ -2903,7 +3069,7 @@
             <span class="prelude-val">Ok</span>(Stmt::new_block(stmts, debug_info))
         } <span class="kw">else if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::Switch) {
             <span class="kw">let </span>debug_info = tokens.expect(<span class="kw-2">&amp;</span>TokenKind::OpenDelim(DelimToken::Paren))<span class="question-mark">?</span>;
-            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
             <span class="kw">let </span>stmt = <span class="self">self</span>.parse_stmt(tokens)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Stmt::new_switch(expr, stmt, debug_info))
@@ -2911,7 +3077,7 @@
             <span class="kw">let </span>debug_info = tokens
                 .peek_debug_info()
                 .ok_or_else(|| CompileError::new_unexpected_eof(<span class="prelude-val">None</span>, Box::new(<span class="string">&quot;Expr&quot;</span>)))<span class="question-mark">?</span>;
-            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Colon)<span class="question-mark">?</span>;
             <span class="kw">let </span>stmt = <span class="self">self</span>.parse_stmt(tokens)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Stmt::new_labeled_stmt(
@@ -2952,13 +3118,27 @@
             <span class="kw">let </span>debug_info = tokens
                 .peek_debug_info()
                 .ok_or_else(|| CompileError::new_unexpected_eof(<span class="prelude-val">None</span>, Box::new(<span class="string">&quot;Expr&quot;</span>)))<span class="question-mark">?</span>;
-            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+            <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Semi)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Stmt::expr(expr, debug_info))
         };
         stmt
     }
 
+    <span class="kw">pub fn </span>parse_expr_with_new_context&lt;I&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tokens: <span class="kw-2">&amp;mut </span>TokenStream&lt;I, TokenKind&gt;,
+        in_top_func_args: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, CompileError&gt;
+    <span class="kw">where
+        </span>I: Clone + Debug + Iterator&lt;Item = Token&lt;TokenKind&gt;&gt;,
+    {
+        <span class="self">self</span>.context
+            .push_ctx(ParserContextKind::TopFuncArgs, in_top_func_args)<span class="question-mark">?</span>;
+        <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+        <span class="self">self</span>.context.pop(ParserContextKind::TopFuncArgs)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(expr)
+    }
     <span class="kw">pub fn </span>parse_expr&lt;I&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tokens: <span class="kw-2">&amp;mut </span>TokenStream&lt;I, TokenKind&gt;,
@@ -2966,7 +3146,18 @@
     <span class="kw">where
         </span>I: Clone + Debug + Iterator&lt;Item = Token&lt;TokenKind&gt;&gt;,
     {
-        <span class="self">self</span>.parse_assign(tokens)
+        <span class="kw">let </span><span class="kw-2">mut </span>expr = <span class="self">self</span>.parse_assign(tokens)<span class="question-mark">?</span>;
+        <span class="kw">if </span><span class="self">self
+            </span>.context
+            .in_top_func_args(ParserContextKind::TopFuncArgs)<span class="question-mark">?
+        </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(expr);
+        }
+        <span class="kw">while </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::Comma) {
+            <span class="kw">let </span>debug_info = expr.debug_info.clone();
+            expr = Expr::new_comma(expr, <span class="self">self</span>.parse_assign(tokens)<span class="question-mark">?</span>, debug_info);
+        }
+        <span class="prelude-val">Ok</span>(expr)
     }
 
     <span class="kw">pub fn </span>parse_assign&lt;I&gt;(
@@ -3314,7 +3505,7 @@
                     Expr::new_str_lit(string, debug_info)
                 },
                 TokenKind::OpenDelim(DelimToken::Paren) =&gt; {
-                    <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>expr = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
                     expr
                 }
@@ -3325,10 +3516,10 @@
                         <span class="kw">if </span>tokens.consume(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren)) {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(Expr::new_func(name, args, debug_info));
                         }
-                        args.push(<span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>);
+                        args.push(<span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">true</span>)<span class="question-mark">?</span>);
                         <span class="kw">while </span>!tokens.consume(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren)) {
                             tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Comma)<span class="question-mark">?</span>;
-                            args.push(<span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>);
+                            args.push(<span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">true</span>)<span class="question-mark">?</span>);
                         }
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(Expr::new_func(name, args, debug_info));
                     }
@@ -3337,9 +3528,9 @@
                 }
                 TokenKind::BuiltinVaStart =&gt; {
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::OpenDelim(DelimToken::Paren))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>ap = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>ap = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::Comma)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>last = <span class="self">self</span>.parse_expr(tokens)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>last = <span class="self">self</span>.parse_expr_with_new_context(tokens, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     tokens.expect(<span class="kw-2">&amp;</span>TokenKind::CloseDelim(DelimToken::Paren))<span class="question-mark">?</span>;
                     <span class="comment">// local variable
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Expr::new_built_in_va_start(ap, last));
@@ -4068,6 +4259,7 @@
 <span class="attribute">#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub enum </span>ExprKind {
     Binary(Binary),
+    Comma(Box&lt;Expr&gt;, Box&lt;Expr&gt;),
     Num(isize),
     StrLit(String),
     Unary(UnaryOp, Box&lt;Expr&gt;),
@@ -4111,6 +4303,12 @@
 }
 
 <span class="kw">impl </span>Expr {
+    <span class="kw">pub fn </span>new_comma(lhs: Expr, rhs: Expr, debug_info: DebugInfo) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ExprKind::Comma(Box::new(lhs), Box::new(rhs)),
+            debug_info,
+        }
+    }
     <span class="kw">pub fn </span>new_inline_asm(asm: String, debug_info: DebugInfo) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ExprKind::Asm(asm),

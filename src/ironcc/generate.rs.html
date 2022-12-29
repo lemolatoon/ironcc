@@ -1447,6 +1447,11 @@
 <span id="1447">1447</span>
 <span id="1448">1448</span>
 <span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{BufWriter, Write};
 
 <span class="kw">use crate</span>::{
@@ -2313,6 +2318,11 @@
             ConvExprKind::FuncPtr(<span class="kw">_</span>, label) =&gt; {
                 <span class="macro">writeln!</span>(f, <span class="string">&quot;  lea rax, [rip+{}]&quot;</span>, label)<span class="question-mark">?</span>;
                 <span class="self">self</span>.push(f, RegKind::Rax)<span class="question-mark">?</span>;
+            }
+            ConvExprKind::Comma(lhs, rhs) =&gt; {
+                <span class="self">self</span>.gen_expr(f, <span class="kw-2">*</span>lhs)<span class="question-mark">?</span>;
+                <span class="self">self</span>.pop(f, RegKind::Rax)<span class="question-mark">?</span>;
+                <span class="self">self</span>.gen_expr(f, <span class="kw-2">*</span>rhs)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())

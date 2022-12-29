@@ -3819,6 +3819,25 @@
 <span id="3819">3819</span>
 <span id="3820">3820</span>
 <span id="3821">3821</span>
+<span id="3822">3822</span>
+<span id="3823">3823</span>
+<span id="3824">3824</span>
+<span id="3825">3825</span>
+<span id="3826">3826</span>
+<span id="3827">3827</span>
+<span id="3828">3828</span>
+<span id="3829">3829</span>
+<span id="3830">3830</span>
+<span id="3831">3831</span>
+<span id="3832">3832</span>
+<span id="3833">3833</span>
+<span id="3834">3834</span>
+<span id="3835">3835</span>
+<span id="3836">3836</span>
+<span id="3837">3837</span>
+<span id="3838">3838</span>
+<span id="3839">3839</span>
+<span id="3840">3840</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Debug,
@@ -5090,6 +5109,16 @@
                     debug_info,
                 )<span class="question-mark">?</span>)
             }
+            ExprKind::Comma(lhs, rhs) =&gt; {
+                <span class="kw">let </span>rhs = <span class="self">self</span>.traverse_expr(<span class="kw-2">*</span>rhs, BTreeSet::new())<span class="question-mark">?</span>;
+                <span class="kw">let </span>ty = rhs.ty.clone();
+                <span class="prelude-val">Ok</span>(ConvExpr::new_comma(
+                    <span class="self">self</span>.traverse_expr(<span class="kw-2">*</span>lhs, BTreeSet::new())<span class="question-mark">?</span>,
+                    rhs,
+                    ty,
+                    debug_info,
+                ))
+            }
         };
         <span class="kw">if </span>attrs.contains(<span class="kw-2">&amp;</span>DownExprAttribute::NoArrayPtrConversion) {
             expr
@@ -6042,6 +6071,13 @@
             debug_info,
         }
     }
+    <span class="kw">pub fn </span>new_comma(lhs: ConvExpr, rhs: ConvExpr, ty: Type, debug_info: DebugInfo) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ConvExprKind::Comma(Box::new(lhs), Box::new(rhs)),
+            ty,
+            debug_info,
+        }
+    }
 
     <span class="kw">pub fn </span>new_postfix_increment(
         lhs: ConvExpr,
@@ -6238,6 +6274,7 @@
         els: Box&lt;ConvExpr&gt;,
     },
     Binary(ConvBinary),
+    Comma(Box&lt;ConvExpr&gt;, Box&lt;ConvExpr&gt;),
     Unary(ConvUnaryOp, Box&lt;ConvExpr&gt;),
     Num(isize),
     LVar(LVar),
@@ -7081,6 +7118,7 @@
                     debug_info: expr_debug_info,
                 }
             }
+            ConvExprKind::Comma(<span class="kw">_</span>, rhs) =&gt; <span class="self">Self</span>::try_eval_as_const(<span class="kw-2">*</span>rhs)<span class="question-mark">?</span>,
             ConvExprKind::Block(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(),
         })
     }
