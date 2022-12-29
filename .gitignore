@@ -19,6 +19,7 @@
 a.out
 link.c
 /lemola_cc
+/cellular_automaton
 
 /tetris.c
 /tetris2.c
