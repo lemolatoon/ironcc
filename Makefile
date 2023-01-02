@@ -28,6 +28,7 @@ testc: $(COMPILER) test/test.c
 	$(CC) test.s test/test_utils.c $(CFLAGS) -o a.out && \
 	./a.out
 
+# Samples
 life_game.s: $(COMPILER) life_game.c
 	cargo run life_game.c
 
@@ -48,6 +49,11 @@ donut: rotate.c
 sl: samples/sl.c samples/sl.h
 	cargo run samples/sl.c
 	$(CC) sl.s -lcurses
+	./a.out
+
+ls: samples/ls.c
+	cargo run samples/ls.c
+	$(CC) ls.s
 	./a.out
 
 tetris.s: $(COMPILER) tetris.c
