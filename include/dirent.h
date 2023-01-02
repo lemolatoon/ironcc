@@ -20,6 +20,7 @@ struct dirent {
 };
 
 extern DIR *opendir(const char *__name);
+extern int closedir(DIR *__dirp);
 extern struct dirent *readdir(DIR *__dirp);
 
 #endif
