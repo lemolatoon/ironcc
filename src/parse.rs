@@ -1595,7 +1595,6 @@ impl DirectDeclarator {
     }
 
     pub fn is_func(&self) -> bool {
-        dbg!(self);
         matches!(self, DirectDeclarator::Func(_, _, _))
     }
 }

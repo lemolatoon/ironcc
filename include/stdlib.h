@@ -3,6 +3,8 @@
 #define _STDLIB_H 1
 
 #define NULL __nullptr
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 0
 
 #include <stddef.h>
 
