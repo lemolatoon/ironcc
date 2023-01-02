@@ -82,6 +82,7 @@ int test70(void);
 int test71(void);
 int test72(void);
 int test73(void);
+int test74(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -180,6 +181,7 @@ int main(void) {
   my_assert(71, 0, test71());
   my_assert(72, 0, test72());
   my_assert(73, 0, test73());
+  my_assert(74, 0, test74());
 
   print_ok();
   return 0;
@@ -1390,5 +1392,23 @@ int test73(void) {
   my_assert(73, a, 5);
   my_assert(73, 3, (1, 2, 3, (4, 5), 3));
   my_assert(73, 29, test73_test_func(a, (t = 3, t + 2), c));
+  return 0;
+}
+
+typedef struct test74_tag Test74;
+
+struct test74_tag {
+  int value;
+};
+
+struct test74_tag *test74_f(int n) {
+  Test74 *ptr = malloc(sizeof(Test74));
+  ptr->value = n;
+  return ptr;
+}
+
+int test74(void) {
+  Test74 *ptr = test74_f(9);
+  my_assert(74, 9, ptr->value);
   return 0;
 }

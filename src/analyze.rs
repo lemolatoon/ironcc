@@ -190,9 +190,11 @@ impl Analyzer {
                         let name = init_declarator.ident_name();
                         let init = &init_declarator.initializer.as_ref();
                         let debug_info = declaration.debug_info.clone();
-                        self.register_struct_tag_from_type_specifier(
-                            &declaration.declaration_specifiers,
-                        );
+                        if !init_declarator.declarator.direct_declarator.is_func() {
+                            self.register_struct_tag_from_type_specifier(
+                                &declaration.declaration_specifiers,
+                            )?;
+                        }
                         let converted_type = self.resolve_name_and_convert_to_type(
                             &declaration.declaration_specifiers,
                             debug_info.clone(),
@@ -298,7 +300,7 @@ impl Analyzer {
 
                         self.register_struct_tag_from_type_specifier(
                             &declaration.declaration_specifiers,
-                        );
+                        )?;
                         // TODO: check more than one type specifier
                         assert!(declaration.declaration_specifiers.len() == 1);
                         match declaration
@@ -3667,7 +3669,7 @@ impl Analyzer {
     pub fn register_struct_tag_from_type_specifier(
         &mut self,
         declaration_specifiers: &Vec<DeclarationSpecifier>,
-    ) {
+    ) -> Result<(), CompileError> {
         for declaration_specifer in declaration_specifiers {
             if let DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
                 StructOrUnionSpec::WithTag(name) | StructOrUnionSpec::WithList(Some(name), _),
@@ -3678,8 +3680,42 @@ impl Analyzer {
                     Taged::Struct(StructTagKind::OnlyTag(name.clone())),
                 );
             }
+            match declaration_specifer {
+                DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
+                    StructOrUnionSpec::WithTag(name),
+                )) => {
+                    self.scope.register_tag(
+                        name.clone(),
+                        Taged::Struct(StructTagKind::OnlyTag(name.clone())),
+                    );
+                }
+                DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
+                    StructOrUnionSpec::WithList(Some(name), list),
+                )) => {
+                    let names = list
+                        .iter()
+                        .map(|struct_declaration| struct_declaration.ident_name().to_string())
+                        .collect();
+                    let types = list
+                        .iter()
+                        .map(|struct_declaration| {
+                            struct_declaration.get_type(self, struct_declaration.debug_info.clone())
+                        })
+                        .collect::<Result<_, CompileError>>()?;
+                    self.scope.register_tag(
+                        name.clone(),
+                        Taged::Struct(StructTagKind::Struct(Struct::new(
+                            name.clone(),
+                            names,
+                            types,
+                        ))),
+                    );
+                }
+                _ => {}
+            }
             // Note: Enum has no necessary to register tag before analyze its variants.
         }
+        Ok(())
     }
 }
 

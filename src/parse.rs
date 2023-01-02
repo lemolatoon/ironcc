@@ -1593,6 +1593,10 @@ impl DirectDeclarator {
             DirectDeclarator::Func(_, args, _) => Some(args.clone()),
         }
     }
+
+    pub fn is_func(&self) -> bool {
+        matches!(self, DirectDeclarator::Func(_, _, _))
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
