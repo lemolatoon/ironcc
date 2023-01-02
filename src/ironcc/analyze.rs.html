@@ -3855,6 +3855,42 @@
 <span id="3855">3855</span>
 <span id="3856">3856</span>
 <span id="3857">3857</span>
+<span id="3858">3858</span>
+<span id="3859">3859</span>
+<span id="3860">3860</span>
+<span id="3861">3861</span>
+<span id="3862">3862</span>
+<span id="3863">3863</span>
+<span id="3864">3864</span>
+<span id="3865">3865</span>
+<span id="3866">3866</span>
+<span id="3867">3867</span>
+<span id="3868">3868</span>
+<span id="3869">3869</span>
+<span id="3870">3870</span>
+<span id="3871">3871</span>
+<span id="3872">3872</span>
+<span id="3873">3873</span>
+<span id="3874">3874</span>
+<span id="3875">3875</span>
+<span id="3876">3876</span>
+<span id="3877">3877</span>
+<span id="3878">3878</span>
+<span id="3879">3879</span>
+<span id="3880">3880</span>
+<span id="3881">3881</span>
+<span id="3882">3882</span>
+<span id="3883">3883</span>
+<span id="3884">3884</span>
+<span id="3885">3885</span>
+<span id="3886">3886</span>
+<span id="3887">3887</span>
+<span id="3888">3888</span>
+<span id="3889">3889</span>
+<span id="3890">3890</span>
+<span id="3891">3891</span>
+<span id="3892">3892</span>
+<span id="3893">3893</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Debug,
@@ -4047,9 +4083,11 @@
                         <span class="kw">let </span>name = init_declarator.ident_name();
                         <span class="kw">let </span>init = <span class="kw-2">&amp;</span>init_declarator.initializer.as_ref();
                         <span class="kw">let </span>debug_info = declaration.debug_info.clone();
-                        <span class="self">self</span>.register_struct_tag_from_type_specifier(
-                            <span class="kw-2">&amp;</span>declaration.declaration_specifiers,
-                        );
+                        <span class="kw">if </span>!init_declarator.declarator.direct_declarator.is_func() {
+                            <span class="self">self</span>.register_struct_tag_from_type_specifier(
+                                <span class="kw-2">&amp;</span>declaration.declaration_specifiers,
+                            )<span class="question-mark">?</span>;
+                        }
                         <span class="kw">let </span>converted_type = <span class="self">self</span>.resolve_name_and_convert_to_type(
                             <span class="kw-2">&amp;</span>declaration.declaration_specifiers,
                             debug_info.clone(),
@@ -4155,7 +4193,7 @@
 
                         </span><span class="self">self</span>.register_struct_tag_from_type_specifier(
                             <span class="kw-2">&amp;</span>declaration.declaration_specifiers,
-                        );
+                        )<span class="question-mark">?</span>;
                         <span class="comment">// TODO: check more than one type specifier
                         </span><span class="macro">assert!</span>(declaration.declaration_specifiers.len() == <span class="number">1</span>);
                         <span class="kw">match </span>declaration
@@ -7524,7 +7562,7 @@
     </span><span class="kw">pub fn </span>register_struct_tag_from_type_specifier(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         declaration_specifiers: <span class="kw-2">&amp;</span>Vec&lt;DeclarationSpecifier&gt;,
-    ) {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompileError&gt; {
         <span class="kw">for </span>declaration_specifer <span class="kw">in </span>declaration_specifiers {
             <span class="kw">if let </span>DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
                 StructOrUnionSpec::WithTag(name) | StructOrUnionSpec::WithList(<span class="prelude-val">Some</span>(name), <span class="kw">_</span>),
@@ -7535,8 +7573,42 @@
                     Taged::Struct(StructTagKind::OnlyTag(name.clone())),
                 );
             }
+            <span class="kw">match </span>declaration_specifer {
+                DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
+                    StructOrUnionSpec::WithTag(name),
+                )) =&gt; {
+                    <span class="self">self</span>.scope.register_tag(
+                        name.clone(),
+                        Taged::Struct(StructTagKind::OnlyTag(name.clone())),
+                    );
+                }
+                DeclarationSpecifier::Type(TypeSpecifier::StructOrUnion(
+                    StructOrUnionSpec::WithList(<span class="prelude-val">Some</span>(name), list),
+                )) =&gt; {
+                    <span class="kw">let </span>names = list
+                        .iter()
+                        .map(|struct_declaration| struct_declaration.ident_name().to_string())
+                        .collect();
+                    <span class="kw">let </span>types = list
+                        .iter()
+                        .map(|struct_declaration| {
+                            struct_declaration.get_type(<span class="self">self</span>, struct_declaration.debug_info.clone())
+                        })
+                        .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, CompileError&gt;&gt;()<span class="question-mark">?</span>;
+                    <span class="self">self</span>.scope.register_tag(
+                        name.clone(),
+                        Taged::Struct(StructTagKind::Struct(Struct::new(
+                            name.clone(),
+                            names,
+                            types,
+                        ))),
+                    );
+                }
+                <span class="kw">_ </span>=&gt; {}
+            }
             <span class="comment">// Note: Enum has no necessary to register tag before analyze its variants.
         </span>}
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

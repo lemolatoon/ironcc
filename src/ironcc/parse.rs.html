@@ -2286,6 +2286,10 @@
 <span id="2286">2286</span>
 <span id="2287">2287</span>
 <span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     analyze::{
         Analyzer, BaseType, ConstExpr, ConstInitializer, ConvExpr, ConvStmt, InCompleteKind, LVar,
@@ -3880,6 +3884,10 @@
             DirectDeclarator::Declarator(declarator) =&gt; declarator.direct_declarator.args(),
             DirectDeclarator::Func(<span class="kw">_</span>, args, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(args.clone()),
         }
+    }
+
+    <span class="kw">pub fn </span>is_func(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DirectDeclarator::Func(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>))
     }
 }
 
