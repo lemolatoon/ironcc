@@ -83,6 +83,7 @@ int test71(void);
 int test72(void);
 int test73(void);
 int test74(void);
+int test75(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -182,6 +183,7 @@ int main(void) {
   my_assert(72, 0, test72());
   my_assert(73, 0, test73());
   my_assert(74, 0, test74());
+  my_assert(75, 0, test75());
 
   print_ok();
   return 0;
@@ -1410,5 +1412,12 @@ struct test74_tag *test74_f(int n) {
 int test74(void) {
   Test74 *ptr = test74_f(9);
   my_assert(74, 9, ptr->value);
+  return 0;
+}
+
+#define TEST75_ARRAY_LEN 11
+int test75(void) {
+  int array[5][TEST75_ARRAY_LEN];
+  my_assert(75, /*  4 * 5 * 11  */ 220, sizeof(array));
   return 0;
 }
