@@ -18,7 +18,7 @@ run: a.out $(COMPILER)
 
 fmt: FORCE
 	cargo fmt
-	clang-format -i tests/insta_srcs/*.c test/*.c
+	clang-format -i tests/insta_srcs/*.c test/*.c samples/*.c
 
 test: $(COMPILER)
 	./test/test.sh

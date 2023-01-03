@@ -1,6 +1,7 @@
 use core::panic;
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
+use std::fmt::format;
 use std::iter::Peekable;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -325,6 +326,23 @@ impl<'b> Preprocessor<'b> {
                 continue 'preprocess_loop;
             }
 
+            if let Some((debug_info, ident)) = main_chars.get_debug_info_and_read_ident() {
+                if let Some(macro_value) = self.define_table.get(&ident) {
+                    tokens.push(Token::new(
+                        TokenKind::Ident(macro_value.clone()),
+                        debug_info,
+                    ));
+                    continue;
+                }
+                tokens.push(Token::new(TokenKind::Ident(ident), debug_info));
+                continue 'preprocess_loop;
+            }
+
+            if let Some((debug_info, number)) = main_chars.get_debug_info_and_read_number() {
+                tokens.push(Token::new(TokenKind::NumLit(number), debug_info));
+                continue 'preprocess_loop;
+            }
+
             if let Some((debug_info, rest)) = main_chars.get_debug_info_and_skip_until_white_space()
             {
                 tokens.push(Token::new(rest, debug_info));
@@ -404,6 +422,9 @@ impl<'b> Preprocessor<'b> {
             "stdio.h" => Includer::get_stdio_h(),
             "stdlib.h" => Includer::get_stdlib_h(),
             "string.h" => Includer::get_string_h(),
+            "curses.h" => Includer::get_curses_h(),
+            "unistd.h" => Includer::get_unistd_h(),
+            "dirent.h" => Includer::get_dirent_h(),
             _ => {
                 return Err(unimplemented_err!(
                     debug_info.clone(),
@@ -417,6 +438,7 @@ impl<'b> Preprocessor<'b> {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 mod Includer {
     macro_rules! gen_include {
         ($func_name:ident, $file_path:expr) => {
@@ -434,6 +456,9 @@ mod Includer {
     gen_include!(get_stdio_h, "../include/stdio.h");
     gen_include!(get_stdlib_h, "../include/stdlib.h");
     gen_include!(get_string_h, "../include/string.h");
+    gen_include!(get_curses_h, "../include/curses.h");
+    gen_include!(get_dirent_h, "../include/dirent.h");
+    gen_include!(get_unistd_h, "../include/unistd.h");
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -485,6 +510,31 @@ impl SrcCursor {
             return Some((debug_info, ident));
         }
         None
+    }
+
+    pub fn get_debug_info_and_read_number_literal(
+        &mut self,
+    ) -> Result<Option<(DebugInfo, isize)>, CompileError> {
+        let mut number = String::new();
+        let debug_info = self.get_debug_info();
+        let mut has_minus = false;
+        if let Some('-') = self.src.front() {
+            number.push('-');
+            has_minus = true;
+        }
+        if let Some(ch @ ('1'..='9')) = self.src.get(1) {
+            number.push(*ch);
+            self.advance(if has_minus { 2 } else { 1 });
+            while let Some(ch @ ('0'..='9')) = self.src.front() {
+                number.push(*ch);
+                self.advance(1);
+            }
+            let number = number.parse().map_err(|e| {
+                unimplemented_err!(debug_info.clone(), format!("Number parse failed: {:?}", e))
+            })?;
+            return Ok(Some((debug_info, number)));
+        }
+        Ok(None)
     }
 
     pub fn skip_until(&mut self, keyword: &str) {
@@ -570,6 +620,10 @@ impl SrcCursor {
     pub fn get_debug_info_and_read_number(&mut self) -> Option<(DebugInfo, String)> {
         if let Some(ch @ ('0'..='9' | '-')) = self.src.front() {
             let debug_info = self.get_debug_info();
+            if *ch == '0' {
+                self.advance(1);
+                return Some((debug_info, "0".to_string()));
+            }
             let mut ident = String::from(*ch);
             self.advance(1);
             while let Some(ch @ ('0'..='9')) = self.src.front() {
@@ -755,6 +809,7 @@ pub enum TokenKind {
     Define,
     HashTag,
     StrLit(String),
+    NumLit(String),
     Punctuator(String),
     Space(String),
     Comment(String),
@@ -770,6 +825,7 @@ impl TokenKind {
             TokenKind::HashTag => 1,
             TokenKind::Comment(content)
             | TokenKind::StrLit(content)
+            | TokenKind::NumLit(content)
             | TokenKind::Punctuator(content)
             | TokenKind::Space(content)
             | TokenKind::Ident(content)
@@ -789,6 +845,7 @@ impl TokenKind {
             TokenKind::HashTag => "#",
             TokenKind::Comment(content)
             | TokenKind::StrLit(content)
+            | TokenKind::NumLit(content)
             | TokenKind::Punctuator(content)
             | TokenKind::Space(content)
             | TokenKind::Ident(content)
