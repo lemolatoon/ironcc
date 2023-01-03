@@ -311,6 +311,32 @@ fn scopes() {
         "{:?}",
         tester.conv_program()
     );
+
+    let src = "
+    void f(void) {
+        static int a;
+    }
+    int main(void) {
+        f();
+        return a;
+    }
+    ";
+
+    let mut tester = CachedProcessor::new(src);
+    assert!(
+        matches!(
+            tester.conv_program(),
+            Err(CompileError {
+                kind: CompileErrorKind::AnalyzeError(AnalyzeErrorKind::UndeclaredError(
+                    _,
+                    _,
+                    VariableKind::LocalOrGlobalOrFunc,
+                )),
+            })
+        ),
+        "{:?}",
+        tester.conv_program()
+    );
 }
 
 #[test]

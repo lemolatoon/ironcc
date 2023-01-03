@@ -84,6 +84,9 @@ int test72(void);
 int test73(void);
 int test74(void);
 int test75(void);
+int test76(void);
+int test77(void);
+int test78(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -184,6 +187,9 @@ int main(void) {
   my_assert(73, 0, test73());
   my_assert(74, 0, test74());
   my_assert(75, 0, test75());
+  my_assert(76, 0, test76());
+  my_assert(77, 0, test77());
+  my_assert(78, 0, test78());
 
   print_ok();
   return 0;
@@ -1419,5 +1425,53 @@ int test74(void) {
 int test75(void) {
   int array[5][TEST75_ARRAY_LEN];
   my_assert(75, /*  4 * 5 * 11  */ 220, sizeof(array));
+  return 0;
+}
+
+int test76(void) {
+  struct fibArray {
+    int idx;
+    int fib;
+  } numerical_array[10];
+  numerical_array[0].idx = 0;
+  numerical_array[0].fib = 1;
+  numerical_array[1].idx = 1;
+  numerical_array[1].fib = 1;
+  for (int i = 2; i < 10; i++) {
+    numerical_array[i].idx = i;
+    numerical_array[i].fib =
+        numerical_array[i - 1].fib + numerical_array[i - 2].fib;
+  }
+  int prev = 1;
+  int current = 1;
+  for (int i = 2; i < 10; i++) {
+    int new = prev + current;
+    prev = current;
+    current = new;
+    my_assert(76, new, numerical_array[i].fib);
+  }
+  return 0;
+}
+
+int test77(void) {
+  char *array[5] = {
+      "1", "12", "123", "1234", "12345",
+  };
+  for (int i = 0; i < 5; i++) {
+    my_assert(77, i + 1, strlen(array[i]));
+  }
+  return 0;
+}
+
+int test79_increment_function(int n) {
+  static int count = 1;  // should be initialized once
+  count += n;
+  return count;
+}
+
+int test78(void) {
+  my_assert(78, 1, test79_increment_function(0));
+  my_assert(78, 4, test79_increment_function(3));
+  my_assert(78, -96, test79_increment_function(-100));
   return 0;
 }
