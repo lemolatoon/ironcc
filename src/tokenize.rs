@@ -270,14 +270,10 @@ impl Tokenizer {
                         "case" => TokenKind::Case,
                         "break" => TokenKind::Break,
                         "continue" => TokenKind::Continue,
+                        "static" => TokenKind::Static,
                         "const" => {
                             // TODO: support const
                             eprintln!("WARNING: `const` is just ignored this time.");
-                            continue;
-                        }
-                        "static" => {
-                            // TODO: support static
-                            eprintln!("WARNING: `static` is just ignored this time.");
                             continue;
                         }
                         _ => TokenKind::Ident(ident),
@@ -338,6 +334,8 @@ pub enum TokenKind {
     TypeDef,
     /// `extern`, reserved word
     Extern,
+    /// `static`, reserved word
+    Static,
     /// `switch`, reserved word
     Switch,
     /// `default`, reserved word
@@ -746,7 +744,12 @@ impl<I: Iterator<Item = Token<TokenKind>> + Clone + Debug> TokenStream<I, TokenK
         if let Some(token) = self.peek() {
             return matches!(
                 *token.kind,
-                TokenKind::Type(_) | TokenKind::Struct | TokenKind::Enum | TokenKind::TypeDef
+                TokenKind::Type(_)
+                    | TokenKind::Struct
+                    | TokenKind::Enum
+                    | TokenKind::TypeDef
+                    | TokenKind::Extern
+                    | TokenKind::Static
             ) || if let TokenKind::Ident(ref ident) = *token.kind {
                 scope.look_up_typedef_name(ident).is_some()
             } else {
