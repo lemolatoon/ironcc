@@ -380,7 +380,8 @@ impl<'b> Preprocessor<'b> {
         Ok(tokens)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    // includes `wasm32-wasi`
+    #[cfg(not(target_arch = "wasm32-unknown-unknown"))]
     pub fn include_from_include_dir(
         &mut self,
         debug_info: &DebugInfo,
@@ -406,7 +407,8 @@ impl<'b> Preprocessor<'b> {
         Ok(tokens)
     }
 
-    #[cfg(target_arch = "wasm32")]
+    // for `wasm-pack build --target web`
+    #[cfg(target_arch = "wasm32-unknown-unknown")]
     pub fn include_from_include_dir(
         &mut self,
         debug_info: &DebugInfo,

@@ -2,10 +2,17 @@ CC=clang
 CFLAGS=-g3 -static
 MAKEFILE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPILER=$(MAKEFILE_DIR)/target/debug/ironcc
+WASM_COMPILER=$(MAKEFILE_DIR)/target/wasm32_wasi/debug/ironcc.wasm
 LEMOLA_CC_PATH=$(MAKEFILE_DIR)validation/lemola_cc
+
 
 $(COMPILER): FORCE
 	cargo build 
+
+build_wasm: $(WASM_COMPILER)
+
+$(WASM_COMPILER): FORCE
+	cargo build --target=wasm32-wasi
 
 tmp.s: tmp.c $(COMPILER)
 	cargo run tmp.c
