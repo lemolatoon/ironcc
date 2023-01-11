@@ -1050,6 +1050,8 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
 </pre><pre class="rust"><code><span class="kw">use </span>core::panic;
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::collections::VecDeque;
@@ -1432,7 +1434,8 @@
         <span class="prelude-val">Ok</span>(tokens)
     }
 
-    <span class="attribute">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+    <span class="comment">// includes `wasm32-wasi`
+    </span><span class="attribute">#[cfg(not(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>))]
     </span><span class="kw">pub fn </span>include_from_include_dir(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         debug_info: <span class="kw-2">&amp;</span>DebugInfo,
@@ -1458,7 +1461,8 @@
         <span class="prelude-val">Ok</span>(tokens)
     }
 
-    <span class="attribute">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+    <span class="comment">// for `wasm-pack build --target web`
+    </span><span class="attribute">#[cfg(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>)]
     </span><span class="kw">pub fn </span>include_from_include_dir(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         debug_info: <span class="kw-2">&amp;</span>DebugInfo,
