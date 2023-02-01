@@ -594,9 +594,26 @@ impl Analyzer {
                 block
             }
             StmtKind::Declare(declaration) => {
-                let is_typedef = declaration.declaration_specifiers.contains(
-                    &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
-                );
+                println!("{:?}", &declaration.declaration_specifiers);
+                let mut is_typedef = false;
+                let mut is_static = false;
+                for declaration_specifier in &declaration.declaration_specifiers {
+                    match declaration_specifier {
+                        DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) => {
+                            is_typedef = true
+                        }
+                        DeclarationSpecifier::StorageClass(StorageClassSpecifier::Static) => {
+                            is_static = true
+                        }
+                        DeclarationSpecifier::StorageClass(specifier) => {
+                            return Err(unimplemented_err!(
+                                declaration.debug_info.clone(),
+                                format!("processing {:?} is not yet implemented.", specifier)
+                            ))
+                        }
+                        DeclarationSpecifier::Type(_) => {}
+                    }
+                }
                 // — void
                 // — char
                 // — signed char
@@ -622,15 +639,27 @@ impl Analyzer {
                 // — typedef name
                 if declaration.init_declarator.is_none() || is_typedef {
                     // TODO: check more than one type-specifier possibility
-                    let mut declaration_specifiers =
-                        Vec::with_capacity(declaration.declaration_specifiers.len());
-                    for declaration_specifier in &declaration.declaration_specifiers {
-                        if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
-                            != *declaration_specifier
-                        {
-                            declaration_specifiers.push(declaration_specifier.clone());
-                        }
-                    }
+                    // let mut declaration_specifiers =
+                    //     Vec::with_capacity(declaration.declaration_specifiers.len());
+                    // for declaration_specifier in &declaration.declaration_specifiers {
+                    //     if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
+                    //         != *declaration_specifier
+                    //     {
+                    //         declaration_specifiers.push(declaration_specifier.clone());
+                    //     }
+                    // }
+                    let declaration_specifiers = declaration
+                        .declaration_specifiers
+                        .iter()
+                        .filter(|specifier| {
+                            !matches!(
+                                specifier,
+                                DeclarationSpecifier::StorageClass(
+                                    StorageClassSpecifier::Typedef | StorageClassSpecifier::Static
+                                )
+                            )
+                        })
+                        .collect::<Vec<_>>();
                     if declaration_specifiers.len() == 1 {
                         match declaration_specifiers
                             .last()
@@ -638,6 +667,7 @@ impl Analyzer {
                             .get_type_specifier()
                             .unwrap()
                         {
+                            _ if is_static => return Err(unimplemented_err!(declaration.debug_info, "struct or enum declaration in function with static is not currently implemented.")),
                             TypeSpecifier::StructOrUnion(StructOrUnionSpec::WithList(
                                 Some(name),
                                 vec,
@@ -747,23 +777,51 @@ impl Analyzer {
                 let ty =
                     self.resolve_incomplete_type_second_depth(ty, declaration.debug_info.clone())?;
 
-                let lvar = self.scope.register_lvar(
-                    declaration.debug_info.clone(),
-                    &mut self.offset,
-                    name,
-                    ty,
-                )?;
-                match declaration
-                    .init_declarator
-                    .and_then(|init_declarator| init_declarator.initializer)
-                {
-                    Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
-                        let debug_info = declaration.debug_info.clone();
-                        let left_ty = lvar.ty.clone();
-                        init.gen_assign_exprs_stmt(self, lvar, &left_ty, debug_info)?
+                if is_static {
+                    let debug_info = declaration.debug_info.clone();
+                    let default_initializer = || {
+                        Ok(match ty {
+                            Type::Base(base_ty) => ConstInitializer::Expr(
+                                ConstExpr::new_literal_with_type(0, base_ty, debug_info),
+                            ),
+                            Type::Array(..) => todo!(),
+                            Type::Ptr(_) => ConstInitializer::Expr(ConstExpr::null_ptr(debug_info)),
+                            ty => return Err(unimplemented_err!(
+                                debug_info,
+                                format!(
+                                    "{:?} type static variable in function is not yet implemented.",
+                                    ty
+                                )
+                            )),
+                        })
+                    };
+                    let initializer: ConstInitializer = declaration
+                        .init_declarator
+                        .and_then(|init_initializer| init_initializer.initializer)
+                        .map_or_else(default_initializer, |initializer| ConstInitializer::try_new(self, initializer))?;
+                    
+                    println!("{:?}", initializer);
+                    todo!()
+                } else {
+                    let lvar = self.scope.register_lvar(
+                        declaration.debug_info.clone(),
+                        &mut self.offset,
+                        name,
+                        ty,
+                    )?;
+
+                    match declaration
+                        .init_declarator
+                        .and_then(|init_declarator| init_declarator.initializer)
+                    {
+                        Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
+                            let debug_info = declaration.debug_info.clone();
+                            let left_ty = lvar.ty.clone();
+                            init.gen_assign_exprs_stmt(self, lvar, &left_ty, debug_info)?
+                        }
+                        // just declaration does nothing
+                        None => ConvStmt::new_block(vec![]),
                     }
-                    // just declaration does nothing
-                    None => ConvStmt::new_block(vec![]),
                 }
             }
             StmtKind::Switch(expr, stmt) => {
@@ -2935,6 +2993,23 @@ pub enum ConstInitializer {
 }
 
 impl ConstInitializer {
+    pub fn try_new(
+        analyzer: &mut Analyzer,
+        initializer: Initializer,
+    ) -> Result<Self, CompileError> {
+        Ok(match initializer {
+            Initializer::Expr(expr) => ConstInitializer::Expr(ConstExpr::try_eval_as_const(
+                analyzer.traverse_expr(expr, BTreeSet::new())?,
+            )?),
+            Initializer::Array(array) => ConstInitializer::Array(
+                array
+                    .into_iter()
+                    .map(|initializer| Self::try_new(analyzer, initializer))
+                    .collect::<Result<Vec<ConstInitializer>, CompileError>>()?,
+            ),
+        })
+    }
+
     #[must_use]
     pub fn map_ty(self, f: impl Fn(Type) -> Type) -> Self {
         match self {
@@ -2979,6 +3054,17 @@ pub struct ConstExpr {
 }
 
 impl ConstExpr {
+    pub const fn new_literal_with_type(n: isize, base_ty: BaseType, debug_info: DebugInfo) -> Self {
+        match base_ty {
+            BaseType::Int => Self::new_int(n as i32, debug_info),
+            BaseType::Char => Self::new_char(n as i8, debug_info),
+        }
+    }
+
+    pub fn null_ptr(debug_info: DebugInfo) -> Self {
+        Self { kind: ConstExprKind::Int(0), ty: Type::ptr(Type::Void), debug_info}
+    }
+
     pub const fn new_int(n: i32, debug_info: DebugInfo) -> Self {
         Self {
             kind: ConstExprKind::Int(n),
@@ -3472,19 +3558,21 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
         let mut is_typedef = false;
-        let mut is_extern = false;
+        let mut _is_extern = false;
+        let mut is_static = false;
         let mut declaration_specifiers = Vec::with_capacity(ty_spec.len());
         for declaration_specifier in ty_spec {
-            if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
-                == *declaration_specifier
-            {
-                is_typedef = true;
-            } else if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern)
-                == *declaration_specifier
-            {
-                is_extern = true;
-            } else {
-                declaration_specifiers.push(declaration_specifier.clone());
+            match *declaration_specifier {
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) => {
+                    is_typedef = true
+                }
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern) => {
+                    _is_extern = true
+                }
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Static) => {
+                    is_static = true
+                }
+                _ => declaration_specifiers.push(declaration_specifier.clone()),
             }
         }
         // In this case, the enum specifier and int specifier have no relationships.

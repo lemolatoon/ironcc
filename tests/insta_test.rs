@@ -320,3 +320,4 @@ gen_test!(array_initializer);
 gen_test!(typedef);
 gen_test!(switch);
 gen_test!(assign_op);
+gen_test!(static_declarations);
