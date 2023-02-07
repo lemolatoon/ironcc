@@ -1,0 +1,168 @@
+---
+source: tests/insta_test.rs
+expression: tester.tokens().as_ref().unwrap()
+---
+[
+    Token {
+        kind: Type(
+            Void,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 0,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "f",
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 5,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 6,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Type(
+            Void,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 7,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Paren,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 11,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: OpenDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 13,
+                n_line: 0,
+            },
+        },
+    },
+    Token {
+        kind: Static,
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 4,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Type(
+            Int,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 11,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Ident(
+            "count",
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 15,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: BinOpEq(
+            Eq,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 21,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Num(
+            0,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 23,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: Semi,
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 24,
+                n_line: 1,
+            },
+        },
+    },
+    Token {
+        kind: CloseDelim(
+            Brace,
+        ),
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 0,
+                n_line: 2,
+            },
+        },
+    },
+    Token {
+        kind: Eof,
+        debug_info: DebugInfo {
+            file_info: ,
+            pos: Position {
+                n_char: 0,
+                n_line: 2,
+            },
+        },
+    },
+]

@@ -1,7 +1,7 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 use std::rc::Rc;
 
 use ironcc::analyze::{self, *};
@@ -19,7 +19,7 @@ use pretty_assertions::assert_eq;
 fn analysis_test() {
     let mut analyzer = Analyzer::new();
     let expr = unary(UnaryOp::Minus, bin(BinOpKind::Mul, num(1), num(22)));
-    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, None, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -38,7 +38,7 @@ fn analysis_test() {
 
     let mut analyzer = Analyzer::new();
     let expr = bin(BinOpKind::Ge, num(1), num(2));
-    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, None, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -52,7 +52,7 @@ fn analysis_test() {
 
     let mut analyzer = Analyzer::new();
     let expr = bin(BinOpKind::Gt, num(1), num(2));
-    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, None, BTreeSet::new()).unwrap();
     assert_eq!(
         converted_expr.kind,
         cbin(
@@ -82,7 +82,7 @@ fn analysis_ident_test() {
         )
         .unwrap();
     // dummy fucn defining end
-    let converted_expr = analyzer.traverse_expr(expr, BTreeSet::new()).unwrap();
+    let converted_expr = analyzer.traverse_expr(expr, None, BTreeSet::new()).unwrap();
     analyzer.scope.pop_scope(&mut offset);
     assert_eq!(offset, 0);
     assert_eq!(
@@ -431,7 +431,9 @@ fn extract_ty(src: &str) -> Type {
     let mut tokens = TokenStream::new(tokens.into_iter());
     let ast = Parser::new().parse_stmt(&mut tokens).unwrap();
     let mut analyzer = Analyzer::new();
-    let conv_stmt = analyzer.traverse_stmt(ast, "main".to_string()).unwrap();
+    let conv_stmt = analyzer
+        .traverse_stmt(ast, &mut TraverseStmtContext::new("main".to_string()))
+        .unwrap();
     if let ConvStmt::Block(vec) = conv_stmt {
         let second_stmt = vec.get(1).unwrap();
         if let ConvStmt::Return(expr, _) = second_stmt {
@@ -493,7 +495,7 @@ fn align_to_test() {
 }
 
 fn cprog(components: Vec<ConvProgramKind>) -> ConvProgram {
-    ConvProgram::with_vec(components)
+    ConvProgram::with_vec(components.into_iter().collect())
 }
 
 fn cfunc_def(

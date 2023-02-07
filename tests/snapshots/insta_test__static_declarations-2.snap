@@ -1,0 +1,97 @@
+---
+source: tests/insta_test.rs
+expression: tester.program().as_ref().unwrap()
+---
+Program {
+    components: [
+        ProgramComponent {
+            kind: FuncDef(
+                Void,
+                Declarator {
+                    n_star: 0,
+                    direct_declarator: Func(
+                        Ident(
+                            "f",
+                        ),
+                        [],
+                        false,
+                    ),
+                },
+                Stmt {
+                    kind: Block(
+                        [
+                            Stmt {
+                                kind: Declare(
+                                    Declaration {
+                                        declaration_specifiers: [
+                                            StorageClass(
+                                                Static,
+                                            ),
+                                            Type(
+                                                Int,
+                                            ),
+                                        ],
+                                        init_declarator: Some(
+                                            InitDeclarator {
+                                                declarator: Declarator {
+                                                    n_star: 0,
+                                                    direct_declarator: Ident(
+                                                        "count",
+                                                    ),
+                                                },
+                                                initializer: Some(
+                                                    Expr(
+                                                        Expr {
+                                                            kind: Num(
+                                                                0,
+                                                            ),
+                                                            debug_info: DebugInfo {
+                                                                file_info: ,
+                                                                pos: Position {
+                                                                    n_char: 23,
+                                                                    n_line: 1,
+                                                                },
+                                                            },
+                                                        },
+                                                    ),
+                                                ),
+                                            },
+                                        ),
+                                        debug_info: DebugInfo {
+                                            file_info: ,
+                                            pos: Position {
+                                                n_char: 4,
+                                                n_line: 1,
+                                            },
+                                        },
+                                    },
+                                ),
+                                debug_info: DebugInfo {
+                                    file_info: ,
+                                    pos: Position {
+                                        n_char: 4,
+                                        n_line: 1,
+                                    },
+                                },
+                            },
+                        ],
+                    ),
+                    debug_info: DebugInfo {
+                        file_info: ,
+                        pos: Position {
+                            n_char: 0,
+                            n_line: 0,
+                        },
+                    },
+                },
+            ),
+            debug_info: DebugInfo {
+                file_info: ,
+                pos: Position {
+                    n_char: 0,
+                    n_line: 0,
+                },
+            },
+        },
+    ],
+}

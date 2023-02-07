@@ -606,6 +606,7 @@ pub enum VariableKind {
     Global,
     Func,
     LocalOrGlobalOrFunc,
+    StaticInFunction,
     Struct,
     Enum,
     Typedef,
