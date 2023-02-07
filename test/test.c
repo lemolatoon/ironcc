@@ -87,6 +87,7 @@ int test75(void);
 int test76(void);
 int test77(void);
 int test78(void);
+int test79(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -190,6 +191,7 @@ int main(void) {
   my_assert(76, 0, test76());
   my_assert(77, 0, test77());
   my_assert(78, 0, test78());
+  my_assert(79, 0, test79());
 
   print_ok();
   return 0;
@@ -1463,15 +1465,17 @@ int test77(void) {
   return 0;
 }
 
-int test79_increment_function(int n) {
+int test78_increment_function(int n) {
   static int count = 1;  // should be initialized once
   count += n;
   return count;
 }
 
 int test78(void) {
-  my_assert(78, 1, test79_increment_function(0));
-  my_assert(78, 4, test79_increment_function(3));
-  my_assert(78, -96, test79_increment_function(-100));
+  my_assert(78, 1, test78_increment_function(0));
+  my_assert(78, 4, test78_increment_function(3));
+  my_assert(78, -96, test78_increment_function(-100));
   return 0;
 }
+
+int test79(void) { return 0; }
