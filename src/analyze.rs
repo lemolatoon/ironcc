@@ -825,7 +825,13 @@ impl Analyzer {
                             Type::Base(base_ty) => ConstInitializer::Expr(
                                 ConstExpr::new_literal_with_type(0, *base_ty, debug_info.clone()),
                             ),
-                            Type::Array(..) => todo!(),
+                            ty @ Type::Array(..) => ConstInitializer::Array(vec![
+                                    ConstInitializer::Expr(ConstExpr::new_char(
+                                        0,
+                                        debug_info.clone(),
+                                    ));
+                                    ty.size_of()
+                                ]),
                             Type::Ptr(_) => {
                                 ConstInitializer::Expr(ConstExpr::null_ptr(debug_info.clone()))
                             }
@@ -1479,7 +1485,7 @@ impl Analyzer {
         // args type check
         let mut args = args
             .into_iter()
-            .map(|expr| self.traverse_expr(expr, None, BTreeSet::new()))
+            .map(|expr| self.traverse_expr(expr, fn_name, BTreeSet::new()))
             .collect::<Result<Vec<_>, CompileError>>()?;
 
         if !is_flexible_length && arg_types.len() != args.len() {
