@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, VecDeque},
     fmt::Debug,
     vec,
 };
@@ -25,6 +25,20 @@ pub struct Analyzer {
     pub conv_program: ConvProgram,
     lc_label: usize,
     loop_stack: LoopStack,
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct TraverseStmtContext {
+    fn_name: String,
+}
+
+impl TraverseStmtContext {
+    pub fn new(fn_name: String) -> Self {
+        Self { fn_name }
+    }
+    pub fn fn_name(&self) -> &str {
+        &self.fn_name
+    }
 }
 
 const VA_AREA_LEN: usize = 136;
@@ -146,6 +160,10 @@ impl Analyzer {
         lc_label
     }
 
+    pub fn insert_declaration_as_gvar(&mut self, gvar: GVar) {
+        self.conv_program.push_front(ConvProgramKind::Global(gvar));
+    }
+
     #[allow(clippy::too_many_lines)]
     pub fn traverse_program(&mut self, program: Program) -> Result<ConvProgram, CompileError> {
         self.scope.push_tag_scope();
@@ -239,7 +257,7 @@ impl Analyzer {
                             }
                             _ => {}
                         }
-                        match self.get_type(converted_type, &init_declarator.declarator)? {
+                        match self.get_type(converted_type, &init_declarator.declarator, None)? {
                             _ if is_typedef => {}
                             ty @ (Type::Base(_)
                             | Type::Ptr(_)
@@ -264,6 +282,7 @@ impl Analyzer {
                                     name.to_string(),
                                     Func::new_raw(
                                         name.to_string(),
+                                        BTreeMap::new(),
                                         args,
                                         is_flexible,
                                         *ret_ty,
@@ -395,7 +414,7 @@ impl Analyzer {
                 };
                 expr.clone().map(&mut |expr| {
                     ConstExpr::try_eval_as_const(Self::new_cast_expr_with_type_check(
-                        self.traverse_expr(expr, BTreeSet::new())?,
+                        self.traverse_expr(expr, None, BTreeSet::new())?,
                         cast_to.clone(),
                     )?)
                 })
@@ -418,7 +437,7 @@ impl Analyzer {
         let ident = declarator.direct_declarator.ident_name();
         let ty_spec = vec![DeclarationSpecifier::Type(ty_spec.clone())];
         let converted_type = self.resolve_name_and_convert_to_type(&ty_spec, debug_info.clone())?;
-        let ty = self.get_type(converted_type, declarator)?;
+        let ty = self.get_type(converted_type, declarator, None)?;
 
         let (ret_ty, args_ty, is_flexible) = if let Type::Func {
             ret_ty: this_ret_ty,
@@ -443,6 +462,7 @@ impl Analyzer {
             ));
         };
         self.scope.push_scope();
+        let mut traverse_stmt_context = TraverseStmtContext::new(ident.to_string());
         let body = if let StmtKind::Block(stmts) = body.kind {
             let arg_n = args.len();
             let mut has_va_start = false;
@@ -479,6 +499,7 @@ impl Analyzer {
                         .as_ref()
                         .unwrap_or_else(|| todo!("struct"))
                         .declarator,
+                    None,
                 )?;
                 let name = arg.ident_name();
                 let name = name.as_ref().expect("struct");
@@ -489,7 +510,14 @@ impl Analyzer {
             }
             self.func_map.insert(
                 ident.to_string(),
-                Func::new_raw(ident.to_string(), args_ty, is_flexible, *ret_ty, debug_info),
+                Func::new_raw(
+                    ident.to_string(),
+                    BTreeMap::new(),
+                    args_ty,
+                    is_flexible,
+                    *ret_ty,
+                    debug_info,
+                ),
             );
             // Add VaStartInit
             let mut conv_stmts = if is_flexible && has_va_start {
@@ -500,7 +528,7 @@ impl Analyzer {
             };
             let conv_stmts_iter = stmts
                 .into_iter()
-                .map(|stmt| self.traverse_stmt(stmt, ident.to_string()));
+                .map(|stmt| self.traverse_stmt(stmt, &mut traverse_stmt_context));
             for conv_stmt in conv_stmts_iter {
                 conv_stmts.push(conv_stmt?);
             }
@@ -523,31 +551,40 @@ impl Analyzer {
     }
 
     #[allow(clippy::pedantic)]
-    pub fn traverse_stmt(&mut self, stmt: Stmt, fn_name: String) -> Result<ConvStmt, CompileError> {
+    pub fn traverse_stmt(
+        &mut self,
+        stmt: Stmt,
+        ctx: &mut TraverseStmtContext,
+    ) -> Result<ConvStmt, CompileError> {
         Ok(match stmt.kind {
-            StmtKind::Expr(expr) => ConvStmt::new_expr(self.traverse_expr(expr, BTreeSet::new())?),
+            StmtKind::Expr(expr) => ConvStmt::new_expr(self.traverse_expr(
+                expr,
+                Some(&ctx.fn_name().to_string()),
+                BTreeSet::new(),
+            )?),
             StmtKind::Return(expr) => ConvStmt::new_ret(
-                expr.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
-                    .transpose()?,
-                fn_name,
+                expr.map(|expr| {
+                    self.traverse_expr(expr, Some(&ctx.fn_name().to_string()), BTreeSet::new())
+                })
+                .transpose()?,
+                ctx.fn_name().to_string(),
             ),
             StmtKind::If(cond, then, els) => ConvStmt::new_if(
-                self.traverse_expr(cond, BTreeSet::new())?,
-                self.traverse_stmt(*then, fn_name.clone())?,
-                els.map(|stmt| self.traverse_stmt(*stmt, fn_name.clone()))
-                    .transpose()?,
+                self.traverse_expr(cond, Some(&ctx.fn_name().to_string()), BTreeSet::new())?,
+                self.traverse_stmt(*then, ctx)?,
+                els.map(|stmt| self.traverse_stmt(*stmt, ctx)).transpose()?,
             ),
             StmtKind::While(cond, then) => ConvStmt::new_while(
-                self.traverse_expr(cond, BTreeSet::new())?,
-                self.traverse_stmt(*then, fn_name)?,
+                self.traverse_expr(cond, Some(&ctx.fn_name().to_string()), BTreeSet::new())?,
+                self.traverse_stmt(*then, ctx)?,
             ),
             StmtKind::For(init, cond, inc, then) => {
                 self.scope.push_scope();
                 let for_stmt = ConvStmt::new_for(
                     init.map_or(Ok(None), |expr| match expr {
-                        ForInitKind::Expr(expr) => {
-                            self.traverse_expr(expr, BTreeSet::new()).map(Some)
-                        }
+                        ForInitKind::Expr(expr) => self
+                            .traverse_expr(expr, Some(&ctx.fn_name().to_string()), BTreeSet::new())
+                            .map(Some),
                         ForInitKind::Declaration(declaration) => {
                             let ty = declaration.ty(self, declaration.debug_info.clone())?;
                             let lvar = self.scope.register_lvar(
@@ -565,6 +602,7 @@ impl Analyzer {
                                     init,
                                     lvar,
                                     ty,
+                                    Some(&ctx.fn_name().to_string()),
                                     BTreeSet::new(),
                                     declaration.debug_info,
                                 )?))
@@ -573,11 +611,15 @@ impl Analyzer {
                             }
                         }
                     })?,
-                    cond.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
-                        .transpose()?,
-                    inc.map(|expr| self.traverse_expr(expr, BTreeSet::new()))
-                        .transpose()?,
-                    self.traverse_stmt(*then, fn_name)?,
+                    cond.map(|expr| {
+                        self.traverse_expr(expr, Some(&ctx.fn_name().to_string()), BTreeSet::new())
+                    })
+                    .transpose()?,
+                    inc.map(|expr| {
+                        self.traverse_expr(expr, Some(&ctx.fn_name().to_string()), BTreeSet::new())
+                    })
+                    .transpose()?,
+                    self.traverse_stmt(*then, ctx)?,
                 );
                 self.scope.pop_scope(&mut self.offset);
                 for_stmt
@@ -587,16 +629,32 @@ impl Analyzer {
                 let block = ConvStmt::new_block(
                     stmts
                         .into_iter()
-                        .map(|stmt| self.traverse_stmt(stmt, fn_name.clone()))
+                        .map(|stmt| self.traverse_stmt(stmt, ctx))
                         .collect::<Result<Vec<_>, CompileError>>()?,
                 );
                 self.scope.pop_scope(&mut self.offset);
                 block
             }
             StmtKind::Declare(declaration) => {
-                let is_typedef = declaration.declaration_specifiers.contains(
-                    &DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef),
-                );
+                let mut is_typedef = false;
+                let mut is_static = false;
+                for declaration_specifier in &declaration.declaration_specifiers {
+                    match declaration_specifier {
+                        DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) => {
+                            is_typedef = true
+                        }
+                        DeclarationSpecifier::StorageClass(StorageClassSpecifier::Static) => {
+                            is_static = true
+                        }
+                        DeclarationSpecifier::StorageClass(specifier) => {
+                            return Err(unimplemented_err!(
+                                declaration.debug_info.clone(),
+                                format!("processing {:?} is not yet implemented.", specifier)
+                            ))
+                        }
+                        DeclarationSpecifier::Type(_) => {}
+                    }
+                }
                 // — void
                 // — char
                 // — signed char
@@ -622,15 +680,27 @@ impl Analyzer {
                 // — typedef name
                 if declaration.init_declarator.is_none() || is_typedef {
                     // TODO: check more than one type-specifier possibility
-                    let mut declaration_specifiers =
-                        Vec::with_capacity(declaration.declaration_specifiers.len());
-                    for declaration_specifier in &declaration.declaration_specifiers {
-                        if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
-                            != *declaration_specifier
-                        {
-                            declaration_specifiers.push(declaration_specifier.clone());
-                        }
-                    }
+                    // let mut declaration_specifiers =
+                    //     Vec::with_capacity(declaration.declaration_specifiers.len());
+                    // for declaration_specifier in &declaration.declaration_specifiers {
+                    //     if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
+                    //         != *declaration_specifier
+                    //     {
+                    //         declaration_specifiers.push(declaration_specifier.clone());
+                    //     }
+                    // }
+                    let declaration_specifiers = declaration
+                        .declaration_specifiers
+                        .iter()
+                        .filter(|specifier| {
+                            !matches!(
+                                specifier,
+                                DeclarationSpecifier::StorageClass(
+                                    StorageClassSpecifier::Typedef | StorageClassSpecifier::Static
+                                )
+                            )
+                        })
+                        .collect::<Vec<_>>();
                     if declaration_specifiers.len() == 1 {
                         match declaration_specifiers
                             .last()
@@ -638,6 +708,7 @@ impl Analyzer {
                             .get_type_specifier()
                             .unwrap()
                         {
+                            _ if is_static => return Err(unimplemented_err!(declaration.debug_info, "struct or enum declaration in function with static is not currently implemented.")),
                             TypeSpecifier::StructOrUnion(StructOrUnionSpec::WithList(
                                 Some(name),
                                 vec,
@@ -747,30 +818,79 @@ impl Analyzer {
                 let ty =
                     self.resolve_incomplete_type_second_depth(ty, declaration.debug_info.clone())?;
 
-                let lvar = self.scope.register_lvar(
-                    declaration.debug_info.clone(),
-                    &mut self.offset,
-                    name,
-                    ty,
-                )?;
-                match declaration
-                    .init_declarator
-                    .and_then(|init_declarator| init_declarator.initializer)
-                {
-                    Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
-                        let debug_info = declaration.debug_info.clone();
-                        let left_ty = lvar.ty.clone();
-                        init.gen_assign_exprs_stmt(self, lvar, &left_ty, debug_info)?
+                if is_static {
+                    let debug_info = declaration.debug_info.clone();
+                    let default_initializer = || {
+                        Ok(match &ty {
+                            Type::Base(base_ty) => ConstInitializer::Expr(
+                                ConstExpr::new_literal_with_type(0, *base_ty, debug_info.clone()),
+                            ),
+                            ty @ Type::Array(..) => ConstInitializer::Array(vec![
+                                    ConstInitializer::Expr(ConstExpr::new_char(
+                                        0,
+                                        debug_info.clone(),
+                                    ));
+                                    ty.size_of()
+                                ]),
+                            Type::Ptr(_) => {
+                                ConstInitializer::Expr(ConstExpr::null_ptr(debug_info.clone()))
+                            }
+                            ty => {
+                                return Err(unimplemented_err!(
+                                    debug_info.clone(),
+                                    format!(
+                                    "{:?} type static variable in function is not yet implemented.",
+                                    ty
+                                )
+                                ))
+                            }
+                        })
+                    };
+                    let initializer: ConstInitializer = declaration
+                        .init_declarator
+                        .clone()
+                        .and_then(|init_initializer| init_initializer.initializer)
+                        .map_or_else(default_initializer, |initializer| {
+                            ConstInitializer::try_new(self, initializer)
+                        })?;
+
+                    let gvar = self.insert_static_func_variable(
+                        name.to_string(),
+                        ty,
+                        Some(initializer),
+                        &ctx.fn_name().to_string(),
+                        &debug_info,
+                    )?;
+                    self.insert_declaration_as_gvar(gvar);
+                    ConvStmt::new_block(Vec::new())
+                } else {
+                    let lvar = self.scope.register_lvar(
+                        declaration.debug_info.clone(),
+                        &mut self.offset,
+                        name,
+                        ty,
+                    )?;
+
+                    match declaration
+                        .init_declarator
+                        .and_then(|init_declarator| init_declarator.initializer)
+                    {
+                        Some(init @ (Initializer::Array(_) | Initializer::Expr(_))) => {
+                            let debug_info = declaration.debug_info.clone();
+                            let left_ty = lvar.ty.clone();
+                            init.gen_assign_exprs_stmt(self, lvar, &left_ty, debug_info)?
+                        }
+                        // just declaration does nothing
+                        None => ConvStmt::new_block(vec![]),
                     }
-                    // just declaration does nothing
-                    None => ConvStmt::new_block(vec![]),
                 }
             }
             StmtKind::Switch(expr, stmt) => {
                 let debug_info = expr.debug_info.clone();
                 self.loop_stack.push(LoopKind::new_switch());
-                let conv_expr = self.traverse_expr(expr, BTreeSet::new())?;
-                let conv_stmt = self.traverse_stmt(*stmt, fn_name)?;
+                let conv_expr =
+                    self.traverse_expr(expr, Some(&ctx.fn_name().to_string()), BTreeSet::new())?;
+                let conv_stmt = self.traverse_stmt(*stmt, ctx)?;
                 let switch = self.loop_stack.pop();
                 if let Some(LoopKind::Switch { cases, has_default }) = switch {
                     ConvStmt::new_switch(conv_expr, cases, conv_stmt, has_default)
@@ -782,9 +902,12 @@ impl Analyzer {
                 }
             }
             StmtKind::Labeled(LabelKind::Case(expr), stmt) => {
-                let const_expr =
-                    ConstExpr::try_eval_as_const(self.traverse_expr(expr, BTreeSet::new())?)?;
-                let stmt = self.traverse_stmt(*stmt, fn_name)?;
+                let const_expr = ConstExpr::try_eval_as_const(self.traverse_expr(
+                    expr,
+                    Some(&ctx.fn_name().to_string()),
+                    BTreeSet::new(),
+                )?)?;
+                let stmt = self.traverse_stmt(*stmt, ctx)?;
                 self.loop_stack.register_case_label(&const_expr)?;
                 ConvStmt::LoopControl(LoopControlKind::Case(
                     const_expr.get_num_lit()?,
@@ -795,7 +918,7 @@ impl Analyzer {
             StmtKind::Labeled(LabelKind::Default(debug_info), stmt) => {
                 self.loop_stack.register_default(debug_info)?;
                 ConvStmt::LoopControl(LoopControlKind::Default(Box::new(
-                    self.traverse_stmt(*stmt, fn_name)?,
+                    self.traverse_stmt(*stmt, ctx)?,
                 )))
             }
             StmtKind::Break => ConvStmt::LoopControl(LoopControlKind::Break),
@@ -933,6 +1056,7 @@ impl Analyzer {
     pub fn traverse_expr(
         &mut self,
         expr: Expr,
+        fn_name: Option<&String>,
         mut attrs: BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         let debug_info = expr.debug_info;
@@ -942,13 +1066,13 @@ impl Analyzer {
                 kind: BinOpKind::Ge,
                 lhs,
                 rhs,
-            }) => self.traverse_binary(Binary::new(BinOpKind::Le, rhs, lhs), debug_info),
+            }) => self.traverse_binary(Binary::new(BinOpKind::Le, rhs, lhs), fn_name, debug_info),
             // `a > b` := `b < a`
             ExprKind::Binary(Binary {
                 kind: BinOpKind::Gt,
                 lhs,
                 rhs,
-            }) => self.traverse_binary(Binary::new(BinOpKind::Lt, rhs, lhs), debug_info),
+            }) => self.traverse_binary(Binary::new(BinOpKind::Lt, rhs, lhs), fn_name, debug_info),
             ExprKind::Binary(Binary {
                 kind: BinOpKind::LogicalOr,
                 lhs,
@@ -961,7 +1085,7 @@ impl Analyzer {
                     *rhs,
                     debug_info,
                 );
-                self.traverse_expr(conditional, attrs.clone())
+                self.traverse_expr(conditional, fn_name, attrs.clone())
             }
             ExprKind::Binary(Binary {
                 kind: BinOpKind::LogicalAnd,
@@ -975,10 +1099,10 @@ impl Analyzer {
                     Expr::new_num(0, debug_info.clone()),
                     debug_info,
                 );
-                self.traverse_expr(conditional, attrs.clone())
+                self.traverse_expr(conditional, fn_name, attrs.clone())
             }
             // do nothing
-            ExprKind::Binary(binary) => self.traverse_binary(binary, debug_info), // do nothing
+            ExprKind::Binary(binary) => self.traverse_binary(binary, fn_name, debug_info), // do nothing
             ExprKind::Num(n) => Ok(ConvExpr::new_num(n, debug_info)),
             ExprKind::StrLit(mut letters) => {
                 let name = format!(".LC{}", self.get_lc_label());
@@ -1006,7 +1130,7 @@ impl Analyzer {
             }
             // substitute `-x` into `0-x`
             ExprKind::Unary(unary_op, operand) => {
-                self.traverse_unary(&unary_op, operand, debug_info)
+                self.traverse_unary(&unary_op, operand, fn_name, debug_info)
             }
             ExprKind::Assign(lhs, rhs, assign_bin_op) => {
                 let rhs = if assign_bin_op != AssignBinOpToken::Eq {
@@ -1016,6 +1140,7 @@ impl Analyzer {
                             lhs: lhs.clone(),
                             rhs: rhs.clone(),
                         },
+                        fn_name,
                         debug_info.clone(),
                     )?; // type check and necessary cast and ptr calc conversion
                     if let ConvExprKind::Binary(ConvBinary {
@@ -1029,9 +1154,9 @@ impl Analyzer {
                         unreachable!()
                     }
                 } else {
-                    self.traverse_expr(*rhs, BTreeSet::new())?
+                    self.traverse_expr(*rhs, fn_name, BTreeSet::new())?
                 };
-                let lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
+                let lhs = self.traverse_expr(*lhs, fn_name, BTreeSet::new())?;
                 Self::new_assign_expr_with_type_check(lhs, rhs, assign_bin_op, debug_info)
             }
             ExprKind::Ident(name) => {
@@ -1044,20 +1169,21 @@ impl Analyzer {
                         ),
                     )))
                 };
-                self.fetch_lvar(&name, debug_info.clone()).map_or_else(
-                    move || {
-                        self.fetch_func_ptr(&name, debug_info.clone())
-                            .map_or_else(|| err(&name, debug_info), |expr| Ok(expr))
-                    },
-                    |expr| Ok(expr),
-                )
+                self.fetch_var(&name, fn_name, debug_info.clone())?
+                    .map_or_else(
+                        move || {
+                            self.fetch_func_ptr(&name, debug_info.clone())
+                                .map_or_else(|| err(&name, debug_info), |expr| Ok(expr))
+                        },
+                        |expr| Ok(expr),
+                    )
             }
             ExprKind::Func(name, args) => {
-                self.new_call_func_with_type_check(name, args, debug_info, &attrs)
+                self.new_call_func_with_type_check(name, args, debug_info, fn_name, &attrs)
             }
             ExprKind::Deref(expr) => {
                 // type check
-                let conv_expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let conv_expr = self.traverse_expr(*expr, fn_name, BTreeSet::new())?;
                 match conv_expr.ty.clone() {
                     ty @ (Type::Base(_)
                     | Type::Func {
@@ -1088,12 +1214,15 @@ impl Analyzer {
                 }
             }
             ExprKind::Addr(expr) => Ok(ConvExpr::new_addr(
-                self.traverse_expr(*expr, BTreeSet::new())?,
+                self.traverse_expr(*expr, fn_name, BTreeSet::new())?,
                 debug_info,
             )),
             ExprKind::SizeOf(SizeOfOperandKind::Expr(expr)) => {
                 attrs.insert(DownExprAttribute::NoArrayPtrConversion);
-                let size = self.traverse_expr(*expr, attrs.clone())?.ty.size_of() as isize;
+                let size = self
+                    .traverse_expr(*expr, fn_name, attrs.clone())?
+                    .ty
+                    .size_of() as isize;
                 Ok(ConvExpr::new_num(size, debug_info))
             }
             ExprKind::SizeOf(SizeOfOperandKind::Type(type_name)) => {
@@ -1108,10 +1237,10 @@ impl Analyzer {
                     Expr::new_binary(BinOpKind::Add, *expr, *index, debug_info.clone()),
                     debug_info,
                 );
-                self.traverse_expr(desugared, BTreeSet::new())
+                self.traverse_expr(desugared, fn_name, BTreeSet::new())
             }
             ExprKind::Member(expr, ident_name) => {
-                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let expr = self.traverse_expr(*expr, fn_name, BTreeSet::new())?;
                 let ty = self.resolve_incomplete_type(expr.ty.clone(), expr.debug_info.clone())?;
                 let member = if let Type::Struct(Struct { tag, members }) = ty {
                     members
@@ -1143,16 +1272,16 @@ impl Analyzer {
                     ident_name,
                     debug_info,
                 );
-                self.traverse_expr(converted_expr, BTreeSet::new())
+                self.traverse_expr(converted_expr, fn_name, BTreeSet::new())
             }
             ExprKind::Conditional { cond, then, els } => {
-                let cond = self.traverse_expr(*cond, BTreeSet::new())?;
-                let then = self.traverse_expr(*then, BTreeSet::new())?;
-                let els = self.traverse_expr(*els, BTreeSet::new())?;
+                let cond = self.traverse_expr(*cond, fn_name, BTreeSet::new())?;
+                let then = self.traverse_expr(*then, fn_name, BTreeSet::new())?;
+                let els = self.traverse_expr(*els, fn_name, BTreeSet::new())?;
                 Self::new_conditional_with_type_checking(cond, then, els)
             }
             ExprKind::PostfixIncrement(expr) => {
-                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let expr = self.traverse_expr(*expr, fn_name, BTreeSet::new())?;
                 let expr_ty = expr.ty.clone();
                 let debug_info = expr.debug_info.clone();
                 let value = match &expr_ty {
@@ -1180,7 +1309,7 @@ impl Analyzer {
                 ))
             }
             ExprKind::PostfixDecrement(expr) => {
-                let expr = self.traverse_expr(*expr, BTreeSet::new())?;
+                let expr = self.traverse_expr(*expr, fn_name, BTreeSet::new())?;
                 let expr_ty = expr.ty.clone();
                 let debug_info = expr.debug_info.clone();
                 let value = match &expr_ty {
@@ -1222,7 +1351,7 @@ impl Analyzer {
                 // `*ap = *(*struct __builtin_va_list)__va_area__`
                 let va_area = self
                     .scope
-                    .look_up(&"__va_area__".to_string())
+                    .look_up_lvar(&"__va_area__".to_string())
                     .ok_or_else(|| {
                         unimplemented_err!(
                             debug_info.clone(),
@@ -1261,7 +1390,7 @@ impl Analyzer {
                 );
                 let derefed_va_area =
                     ConvExpr::new_deref(casted_va_area, ty_builtin_va_list, debug_info.clone());
-                let ap = self.traverse_expr(*ap, BTreeSet::new())?;
+                let ap = self.traverse_expr(*ap, fn_name, BTreeSet::new())?;
                 let ap_base_ty = ap.ty.get_ptr_to().unwrap().clone();
                 let derefed_ap = ConvExpr::new_deref(ap, ap_base_ty, debug_info.clone());
                 Ok(Self::new_assign_expr_with_type_check(
@@ -1272,10 +1401,10 @@ impl Analyzer {
                 )?)
             }
             ExprKind::Comma(lhs, rhs) => {
-                let rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
+                let rhs = self.traverse_expr(*rhs, fn_name, BTreeSet::new())?;
                 let ty = rhs.ty.clone();
                 Ok(ConvExpr::new_comma(
-                    self.traverse_expr(*lhs, BTreeSet::new())?,
+                    self.traverse_expr(*lhs, fn_name, BTreeSet::new())?,
                     rhs,
                     ty,
                     debug_info,
@@ -1294,6 +1423,7 @@ impl Analyzer {
         name: String,
         args: Vec<Expr>,
         debug_info: DebugInfo,
+        fn_name: Option<&String>,
         _attrs: &BTreeSet<DownExprAttribute>,
     ) -> Result<ConvExpr, CompileError> {
         // TODO: check if `name` is a variable which is function ptr
@@ -1304,7 +1434,7 @@ impl Analyzer {
             DebugInfo,
             bool,
         ) = (|name: &str, debug_info: &DebugInfo| {
-            if let Some(var) = self.fetch_lvar(&name, debug_info.clone()) {
+            if let Some(var) = self.fetch_var(&name, fn_name, debug_info.clone())? {
                 if let Some(Type::Func {
                     ret_ty,
                     args,
@@ -1339,6 +1469,7 @@ impl Analyzer {
             let is_flexible_length = func.args.is_flexible_length();
             let Func {
                 name,
+                static_variables: _static_variables, // TODO: deal with static variables even if it is a function pointer.
                 args,
                 ret,
                 debug_info,
@@ -1354,7 +1485,7 @@ impl Analyzer {
         // args type check
         let mut args = args
             .into_iter()
-            .map(|expr| self.traverse_expr(expr, BTreeSet::new()))
+            .map(|expr| self.traverse_expr(expr, fn_name, BTreeSet::new()))
             .collect::<Result<Vec<_>, CompileError>>()?;
 
         if !is_flexible_length && arg_types.len() != args.len() {
@@ -1451,10 +1582,11 @@ impl Analyzer {
     pub fn traverse_binary(
         &mut self,
         Binary { kind, lhs, rhs }: Binary,
+        fn_name: Option<&String>,
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
-        let mut rhs = self.traverse_expr(*rhs, BTreeSet::new())?;
-        let mut lhs = self.traverse_expr(*lhs, BTreeSet::new())?;
+        let mut rhs = self.traverse_expr(*rhs, fn_name, BTreeSet::new())?;
+        let mut lhs = self.traverse_expr(*lhs, fn_name, BTreeSet::new())?;
         let kind = ConvBinOpKind::new(&kind).unwrap();
         match kind {
             ConvBinOpKind::Add | ConvBinOpKind::Sub => match (&lhs.ty, &rhs.ty) {
@@ -1744,20 +1876,22 @@ impl Analyzer {
         &mut self,
         unary_op: &UnaryOp,
         operand: Box<Expr>,
+        fn_name: Option<&String>,
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         match unary_op {
-            UnaryOp::Plus => self.traverse_expr(*operand, BTreeSet::new()),
+            UnaryOp::Plus => self.traverse_expr(*operand, fn_name, BTreeSet::new()),
             UnaryOp::Minus => self.traverse_binary(
                 Binary::new(
                     BinOpKind::Sub,
                     Box::new(Expr::new_num(0, debug_info.clone())),
                     operand,
                 ),
+                fn_name,
                 debug_info,
             ),
             UnaryOp::BitInvert => {
-                let mut operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                let mut operand = self.traverse_expr(*operand, fn_name, BTreeSet::new())?;
                 if !operand.ty.ty_eq(&Type::Base(BaseType::Int)) {
                     if let Some(base_ty) = operand.ty.clone().get_base() {
                         operand = ConvExpr::new_cast(
@@ -1783,10 +1917,10 @@ impl Analyzer {
                     operand,
                     Box::new(Expr::new_num(0, debug_info.clone())),
                 );
-                Ok(self.traverse_binary(eq_with_0, debug_info)?)
+                Ok(self.traverse_binary(eq_with_0, fn_name, debug_info)?)
             }
             UnaryOp::Increment => {
-                let operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                let operand = self.traverse_expr(*operand, fn_name, BTreeSet::new())?;
                 let expr_ty = operand.ty.clone();
                 let debug_info = operand.debug_info.clone();
                 let value = match &expr_ty {
@@ -1810,7 +1944,7 @@ impl Analyzer {
                 Ok(ConvExpr::new_unary(ConvUnaryOp::Increment(value), operand))
             }
             UnaryOp::Decrement => {
-                let operand = self.traverse_expr(*operand, BTreeSet::new())?;
+                let operand = self.traverse_expr(*operand, fn_name, BTreeSet::new())?;
                 let expr_ty = operand.ty.clone();
                 let debug_info = operand.debug_info.clone();
                 let value = match &expr_ty {
@@ -1841,12 +1975,13 @@ impl Analyzer {
         init: Initializer,
         lvar: LVar,
         ty: Type,
+        fn_name: Option<&String>,
         attrs: BTreeSet<DownExprAttribute>,
         debug_info: DebugInfo,
     ) -> Result<ConvExpr, CompileError> {
         match init {
             Initializer::Expr(init) => {
-                let rhs = self.traverse_expr(init, attrs)?;
+                let rhs = self.traverse_expr(init, fn_name, attrs)?;
                 Self::new_assign_expr_with_type_check(
                     // Safety:
                     // the lvar is generated by `Self::register_lvar` which initializes lvar_map
@@ -1867,6 +2002,7 @@ impl Analyzer {
         &mut self,
         mut ty: Type,
         declarator: &Declarator,
+        fn_name: Option<&String>,
     ) -> Result<Type, CompileError> {
         for _ in 0..declarator.n_star {
             ty = Type::Ptr(Box::new(ty));
@@ -1892,6 +2028,7 @@ impl Analyzer {
                                         .as_ref()
                                         .expect("get type for struct is not yet implemented.")
                                         .declarator,
+                                    fn_name,
                                 )
                             })
                             .collect::<Result<Vec<_>, CompileError>>()?,
@@ -1906,6 +2043,7 @@ impl Analyzer {
                         self.traverse_expr(
                             expr.clone()
                                 .ok_or_else(|| unimplemented_err!("No Array size expr"))?,
+                            fn_name,
                             BTreeSet::new(),
                         )?,
                     )?
@@ -1914,7 +2052,7 @@ impl Analyzer {
                     watching_direct_declarator = direct_declarator;
                 }
                 DirectDeclarator::Declarator(declarator) => {
-                    ty = self.get_type(ty, declarator)?;
+                    ty = self.get_type(ty, declarator, fn_name)?;
                     break;
                 }
                 DirectDeclarator::Ident(_) => break,
@@ -1924,18 +2062,49 @@ impl Analyzer {
         Ok(ty)
     }
 
-    pub fn fetch_lvar(&self, name: &str, debug_info: DebugInfo) -> Option<ConvExpr> {
-        let var = self.scope.look_up(&name.to_string())?;
-        Some(match var {
-            Var::GVar(global) => ConvExpr::new_gvar(global, debug_info),
-            Var::LVar(local) => {
-                let ty = local.ty.clone();
-                ConvExpr::new_lvar_raw(local, ty, debug_info)
+    pub fn fetch_var(
+        &self,
+        name: &str,
+        fn_name: Option<&String>,
+        debug_info: DebugInfo,
+    ) -> Result<Option<ConvExpr>, CompileError> {
+        let var: Option<Var> = (|| {
+            if let Some(var) = self.scope.look_up_lvar(&name.to_string()) {
+                return Result::<_, CompileError>::Ok(Some(var));
             }
-            Var::EnumVariant(EnumVariant { name: _, value }) => {
-                ConvExpr::new_num(value as isize, debug_info)
+
+            if let Some(fn_name) = fn_name {
+                let func = self.func_map.get(fn_name).ok_or_else(|| unimplemented_err!(debug_info.clone(), format!("INTERNAL COMPILER ERROR: tried to define static in function({}) variable, but the function {} was not defined.", fn_name, fn_name)))?;
+                if let Some(gvar) = func.static_variables.get(name) {
+                    return Ok(Some(Var::GVar(gvar.clone())));
+                }
             }
-        })
+
+            if let Some(var) = self.scope.look_up_gvar(&name.to_string()) {
+                return Ok(Some(var));
+            }
+
+            if let Some(var) = self.scope.look_up_enum_variant(&name.to_string()) {
+                return Ok(Some(var));
+            }
+
+            Ok(None)
+        })()?;
+
+        if let Some(var) = var {
+            Ok(Some(match var {
+                Var::GVar(global) => ConvExpr::new_gvar(global, debug_info),
+                Var::LVar(local) => {
+                    let ty = local.ty.clone();
+                    ConvExpr::new_lvar_raw(local, ty, debug_info)
+                }
+                Var::EnumVariant(EnumVariant { name: _, value }) => {
+                    ConvExpr::new_num(value as isize, debug_info)
+                }
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn fetch_func_ptr(&self, name: &str, debug_info: DebugInfo) -> Option<ConvExpr> {
@@ -1947,6 +2116,53 @@ impl Analyzer {
             debug_info,
         ))
     }
+
+    pub fn insert_static_func_variable(
+        &mut self,
+        variable_name: String,
+        ty: Type,
+        init: Option<ConstInitializer>,
+        fn_name: &String,
+        debug_info: &DebugInfo,
+    ) -> Result<GVar, CompileError> {
+        let func = self
+            .func_map
+            .get_mut(fn_name)
+            .ok_or_else(|| unimplemented_err!(debug_info.clone(), format!("INTERNAL COMPILER ERROR: tried to define static in function({}) variable, but the function {} was not defined.", fn_name, fn_name)))?;
+        let name = format!(".L{}_{}", fn_name, variable_name);
+        let gvar = GVar {
+            name,
+            ty,
+            init,
+            is_extern: false,
+        };
+        if func
+            .static_variables
+            .insert(variable_name.clone(), gvar.clone())
+            .is_some()
+        {
+            Err(CompileError::new_redefined_variable(
+                variable_name,
+                debug_info.clone(),
+                VariableKind::StaticInFunction,
+            ))
+        } else {
+            Ok(gvar)
+        }
+    }
+
+    pub fn look_up_static_variable(
+        &self,
+        fn_name: &String,
+        name: &String,
+        debug_info: &DebugInfo,
+    ) -> Result<Option<GVar>, CompileError> {
+        let func = self
+            .func_map
+            .get(fn_name)
+            .ok_or_else(|| unimplemented_err!(debug_info.clone(), format!("INTERNAL COMPILER ERROR: tried to define static in function({}) variable, but the function {} was not defined.", fn_name, fn_name)))?;
+        Ok(func.static_variables.get(name).map(|gvar| gvar.clone()))
+    }
 }
 
 impl Default for Analyzer {
@@ -1957,29 +2173,33 @@ impl Default for Analyzer {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConvProgram {
-    components: Vec<ConvProgramKind>,
+    components: VecDeque<ConvProgramKind>,
 }
 
 impl ConvProgram {
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            components: Vec::new(),
+            components: VecDeque::new(),
         }
     }
 
-    pub fn with_vec(vec: Vec<ConvProgramKind>) -> Self {
+    pub fn with_vec(vec: VecDeque<ConvProgramKind>) -> Self {
         Self { components: vec }
     }
 
     pub fn push(&mut self, kind: ConvProgramKind) {
-        self.components.push(kind);
+        self.components.push_back(kind);
+    }
+
+    pub fn push_front(&mut self, kind: ConvProgramKind) {
+        self.components.push_front(kind);
     }
 }
 
 impl IntoIterator for ConvProgram {
     type Item = ConvProgramKind;
 
-    type IntoIter = std::vec::IntoIter<Self::Item>;
+    type IntoIter = std::collections::vec_deque::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.components.into_iter()
@@ -2612,6 +2832,30 @@ impl Scope {
         self.max_stack_size = 0;
     }
 
+    pub fn look_up_lvar(&self, name: &String) -> Option<Var> {
+        for map in self.scopes.iter().rev() {
+            if let Some(lvar) = map.get(name) {
+                return Some(Var::LVar(lvar.clone()));
+            }
+        }
+        None
+    }
+
+    pub fn look_up_gvar(&self, name: &String) -> Option<Var> {
+        if let Some(gvar) = self.global.get(name).map(|gvar| Var::GVar(gvar.clone())) {
+            return Some(gvar);
+        }
+        None
+    }
+
+    pub fn look_up_enum_variant(&self, name: &String) -> Option<Var> {
+        if let Some(enum_variant) = self.resolve_enum_variant_name(name) {
+            return Some(Var::EnumVariant(enum_variant));
+        }
+
+        None
+    }
+
     pub fn look_up(&self, name: &String) -> Option<Var> {
         for map in self.scopes.iter().rev() {
             if let Some(lvar) = map.get(name) {
@@ -2887,6 +3131,7 @@ impl Var {
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct Func {
     pub name: String,
+    pub static_variables: BTreeMap<String, GVar>,
     pub args: FuncArgs,
     pub ret: Type,
     pub debug_info: DebugInfo,
@@ -2895,6 +3140,7 @@ pub struct Func {
 impl Func {
     pub const fn new_raw(
         name: String,
+        static_variables: BTreeMap<String, GVar>,
         args: Vec<Type>,
         is_flexible_length_arg: bool,
         ret: Type,
@@ -2902,6 +3148,7 @@ impl Func {
     ) -> Self {
         Self {
             name,
+            static_variables,
             args: FuncArgs::new(args, is_flexible_length_arg),
             ret,
             debug_info,
@@ -2935,6 +3182,23 @@ pub enum ConstInitializer {
 }
 
 impl ConstInitializer {
+    pub fn try_new(
+        analyzer: &mut Analyzer,
+        initializer: Initializer,
+    ) -> Result<Self, CompileError> {
+        Ok(match initializer {
+            Initializer::Expr(expr) => ConstInitializer::Expr(ConstExpr::try_eval_as_const(
+                analyzer.traverse_expr(expr, None, BTreeSet::new())?,
+            )?),
+            Initializer::Array(array) => ConstInitializer::Array(
+                array
+                    .into_iter()
+                    .map(|initializer| Self::try_new(analyzer, initializer))
+                    .collect::<Result<Vec<ConstInitializer>, CompileError>>()?,
+            ),
+        })
+    }
+
     #[must_use]
     pub fn map_ty(self, f: impl Fn(Type) -> Type) -> Self {
         match self {
@@ -2979,6 +3243,21 @@ pub struct ConstExpr {
 }
 
 impl ConstExpr {
+    pub const fn new_literal_with_type(n: isize, base_ty: BaseType, debug_info: DebugInfo) -> Self {
+        match base_ty {
+            BaseType::Int => Self::new_int(n as i32, debug_info),
+            BaseType::Char => Self::new_char(n as i8, debug_info),
+        }
+    }
+
+    pub fn null_ptr(debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConstExprKind::Int(0),
+            ty: Type::ptr(Type::Void),
+            debug_info,
+        }
+    }
+
     pub const fn new_int(n: i32, debug_info: DebugInfo) -> Self {
         Self {
             kind: ConstExprKind::Int(n),
@@ -3472,19 +3751,21 @@ impl Analyzer {
         debug_info: DebugInfo,
     ) -> Result<Type, CompileError> {
         let mut is_typedef = false;
-        let mut is_extern = false;
+        let mut _is_extern = false;
+        let mut is_static = false;
         let mut declaration_specifiers = Vec::with_capacity(ty_spec.len());
         for declaration_specifier in ty_spec {
-            if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef)
-                == *declaration_specifier
-            {
-                is_typedef = true;
-            } else if DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern)
-                == *declaration_specifier
-            {
-                is_extern = true;
-            } else {
-                declaration_specifiers.push(declaration_specifier.clone());
+            match *declaration_specifier {
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Typedef) => {
+                    is_typedef = true
+                }
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Extern) => {
+                    _is_extern = true
+                }
+                DeclarationSpecifier::StorageClass(StorageClassSpecifier::Static) => {
+                    is_static = true
+                }
+                _ => declaration_specifiers.push(declaration_specifier.clone()),
             }
         }
         // In this case, the enum specifier and int specifier have no relationships.

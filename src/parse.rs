@@ -511,6 +511,10 @@ impl Parser {
                     tokens.next();
                     Ok((StorageClassSpecifier::Extern, debug_info))
                 }
+                TokenKind::Static => {
+                    tokens.next();
+                    Ok((StorageClassSpecifier::Static, debug_info))
+                }
                 _ => Err(CompileError::new_expected_failed(
                     Box::new("TokenKind::Typedef".to_string()),
                     Token::new(*kind, debug_info),
@@ -1532,6 +1536,7 @@ impl Declaration {
                     unimplemented_err!(debug_info, "get_type for struct is not yet implemented.")
                 })?
                 .declarator,
+            None,
         )
     }
 }
@@ -1645,7 +1650,7 @@ impl Initializer {
     ) -> Result<ConvStmt, CompileError> {
         match self {
             Initializer::Expr(expr) => {
-                let rhs = analyzer.traverse_expr(expr, BTreeSet::new())?;
+                let rhs = analyzer.traverse_expr(expr, None, BTreeSet::new())?;
                 Ok(ConvStmt::new_expr(
                     Analyzer::new_assign_expr_with_type_check(
                         ConvExpr::new_lvar_raw(
@@ -1766,7 +1771,7 @@ impl StructDeclaration {
                 .collect(),
             debug_info,
         )?;
-        analyzer.get_type(conveted_type, &self.declarator)
+        analyzer.get_type(conveted_type, &self.declarator, None)
     }
 }
 

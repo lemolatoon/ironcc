@@ -1,3 +1,4 @@
+#include <stdio.h>
 /*========================================
  *    sl.c: SL version 5.03
  *        Copyright 1993,1998,2014-2015
@@ -38,11 +39,11 @@
 /* sl version 1.00 : SL runs vomiting out smoke.                             */
 /*                                              by Toyoda Masashi 1992/12/11 */
 
-#include "sl.h"
-
 #include <curses.h>
 #include <signal.h>
 #include <unistd.h>
+
+#include "sl.h"
 
 void add_smoke(int y, int x);
 void add_man(int y, int x);

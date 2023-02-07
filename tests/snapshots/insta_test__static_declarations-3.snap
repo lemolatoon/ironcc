@@ -1,0 +1,55 @@
+---
+source: tests/insta_test.rs
+expression: tester.conv_program().as_ref().unwrap()
+---
+ConvProgram {
+    components: [
+        Global(
+            GVar {
+                name: ".Lf_count",
+                ty: Base(
+                    Int,
+                ),
+                init: Some(
+                    Expr(
+                        ConstExpr {
+                            kind: Int(
+                                0,
+                            ),
+                            ty: Base(
+                                Int,
+                            ),
+                            debug_info: DebugInfo {
+                                file_info: ,
+                                pos: Position {
+                                    n_char: 23,
+                                    n_line: 1,
+                                },
+                            },
+                        },
+                    ),
+                ),
+                is_extern: false,
+            },
+        ),
+        Func(
+            ConvFuncDef {
+                ty: Func {
+                    ret_ty: Void,
+                    args: [],
+                    is_flexible: false,
+                },
+                name: "f",
+                args: [],
+                body: Block(
+                    [
+                        Block(
+                            [],
+                        ),
+                    ],
+                ),
+                stack_size: 0,
+            },
+        ),
+    ],
+}
