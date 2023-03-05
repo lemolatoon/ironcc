@@ -1055,6 +1055,7 @@
 <a href="#1055" id="1055">1055</a>
 <a href="#1056" id="1056">1056</a>
 <a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::panic;
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::collections::VecDeque;
@@ -1354,8 +1355,9 @@
                                     .expect(<span class="string">&quot;arg(ident) of include with `&lt;` `&gt;` must exist.&quot;</span>);
                                 file_name.pop(); <span class="comment">// -&gt; &#39;&gt;&#39;
                                 </span>file_name.remove(<span class="number">0</span>); <span class="comment">// -&gt; &#39;&lt;&#39;
-                                </span>tokens =
-                                    <span class="self">self</span>.include_from_include_dir(<span class="kw-2">&amp;</span>debug_info, <span class="kw-2">&amp;</span>file_name, tokens)<span class="question-mark">?</span>;
+                                </span><span class="kw">let </span>file_name = file_name.trim();
+                                tokens =
+                                    <span class="self">self</span>.include_from_include_dir(<span class="kw-2">&amp;</span>debug_info, file_name, tokens)<span class="question-mark">?</span>;
                                 <span class="kw">continue </span><span class="lifetime">&#39;preprocess_loop</span>;
                             }
                             unknown =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown derective: {}&quot;</span>, unknown),
