@@ -297,8 +297,9 @@ impl<'b> Preprocessor<'b> {
                                     .expect("arg(ident) of include with `<` `>` must exist.");
                                 file_name.pop(); // -> '>'
                                 file_name.remove(0); // -> '<'
+                                let file_name = file_name.trim();
                                 tokens =
-                                    self.include_from_include_dir(&debug_info, &file_name, tokens)?;
+                                    self.include_from_include_dir(&debug_info, file_name, tokens)?;
                                 continue 'preprocess_loop;
                             }
                             unknown => panic!("unknown derective: {}", unknown),
