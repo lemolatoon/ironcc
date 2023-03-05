@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"ironcc":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"ironcc/error/struct.CompileError.html\" title=\"struct ironcc::error::CompileError\">CompileError</a>"]]
+"ironcc":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.1/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"ironcc/error/struct.CompileError.html\" title=\"struct ironcc::error::CompileError\">CompileError</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

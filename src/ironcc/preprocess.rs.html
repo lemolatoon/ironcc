@@ -1052,6 +1052,9 @@
 <a href="#1052" id="1052">1052</a>
 <a href="#1053" id="1053">1053</a>
 <a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::panic;
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::collections::VecDeque;
@@ -1435,7 +1438,10 @@
     }
 
     <span class="comment">// includes `wasm32-wasi`
-    </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(all(
+        not(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>),
+        not(feature = <span class="string">&quot;static_header&quot;</span>)
+    ))]
     </span><span class="kw">pub fn </span>include_from_include_dir(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         debug_info: <span class="kw-2">&amp;</span>DebugInfo,
@@ -1462,7 +1468,7 @@
     }
 
     <span class="comment">// for `wasm-pack build --target web`
-    </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>)]
+    </span><span class="attr">#[cfg(any(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>, feature = <span class="string">&quot;static_header&quot;</span>))]
     </span><span class="kw">pub fn </span>include_from_include_dir(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         debug_info: <span class="kw-2">&amp;</span>DebugInfo,
@@ -1470,17 +1476,17 @@
         <span class="kw-2">mut </span>tokens: Vec&lt;Token&lt;TokenKind&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Token&lt;TokenKind&gt;&gt;, CompileError&gt; {
         <span class="kw">let </span>src = <span class="kw">match </span>file_path {
-            <span class="string">&quot;assert.h&quot; </span>=&gt; Includer::get_assert_h(),
-            <span class="string">&quot;ctype.h&quot; </span>=&gt; Includer::get_ctype_h(),
-            <span class="string">&quot;stdarg.h&quot; </span>=&gt; Includer::get_stdarg_h(),
-            <span class="string">&quot;stdbool.h&quot; </span>=&gt; Includer::get_stdbool_h(),
-            <span class="string">&quot;stddef.h&quot; </span>=&gt; Includer::get_stddef_h(),
-            <span class="string">&quot;stdio.h&quot; </span>=&gt; Includer::get_stdio_h(),
-            <span class="string">&quot;stdlib.h&quot; </span>=&gt; Includer::get_stdlib_h(),
-            <span class="string">&quot;string.h&quot; </span>=&gt; Includer::get_string_h(),
-            <span class="string">&quot;curses.h&quot; </span>=&gt; Includer::get_curses_h(),
-            <span class="string">&quot;unistd.h&quot; </span>=&gt; Includer::get_unistd_h(),
-            <span class="string">&quot;dirent.h&quot; </span>=&gt; Includer::get_dirent_h(),
+            <span class="string">&quot;assert.h&quot; </span>=&gt; includer::get_assert_h(),
+            <span class="string">&quot;ctype.h&quot; </span>=&gt; includer::get_ctype_h(),
+            <span class="string">&quot;stdarg.h&quot; </span>=&gt; includer::get_stdarg_h(),
+            <span class="string">&quot;stdbool.h&quot; </span>=&gt; includer::get_stdbool_h(),
+            <span class="string">&quot;stddef.h&quot; </span>=&gt; includer::get_stddef_h(),
+            <span class="string">&quot;stdio.h&quot; </span>=&gt; includer::get_stdio_h(),
+            <span class="string">&quot;stdlib.h&quot; </span>=&gt; includer::get_stdlib_h(),
+            <span class="string">&quot;string.h&quot; </span>=&gt; includer::get_string_h(),
+            <span class="string">&quot;curses.h&quot; </span>=&gt; includer::get_curses_h(),
+            <span class="string">&quot;unistd.h&quot; </span>=&gt; includer::get_unistd_h(),
+            <span class="string">&quot;dirent.h&quot; </span>=&gt; includer::get_dirent_h(),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">unimplemented_err!</span>(
                     debug_info.clone(),
@@ -1494,8 +1500,8 @@
     }
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
-</span><span class="kw">mod </span>Includer {
+<span class="attr">#[cfg(any(target_arch = <span class="string">&quot;wasm32-unknown-unknown&quot;</span>, feature = <span class="string">&quot;static_header&quot;</span>))]
+</span><span class="kw">mod </span>includer {
     <span class="macro">macro_rules! </span>gen_include {
         (<span class="macro-nonterminal">$func_name</span>:ident, <span class="macro-nonterminal">$file_path</span>:expr) =&gt; {
             <span class="kw">pub const fn </span><span class="macro-nonterminal">$func_name</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
@@ -2107,4 +2113,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ironcc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ironcc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.1 (d5a82bbd2 2023-02-07)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
