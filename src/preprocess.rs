@@ -381,7 +381,10 @@ impl<'b> Preprocessor<'b> {
     }
 
     // includes `wasm32-wasi`
-    #[cfg(not(target_arch = "wasm32-unknown-unknown"))]
+    #[cfg(all(
+        not(target_arch = "wasm32-unknown-unknown"),
+        not(feature = "static_header")
+    ))]
     pub fn include_from_include_dir(
         &mut self,
         debug_info: &DebugInfo,
@@ -408,7 +411,7 @@ impl<'b> Preprocessor<'b> {
     }
 
     // for `wasm-pack build --target web`
-    #[cfg(target_arch = "wasm32-unknown-unknown")]
+    #[cfg(any(target_arch = "wasm32-unknown-unknown", feature = "static_header"))]
     pub fn include_from_include_dir(
         &mut self,
         debug_info: &DebugInfo,
@@ -416,17 +419,17 @@ impl<'b> Preprocessor<'b> {
         mut tokens: Vec<Token<TokenKind>>,
     ) -> Result<Vec<Token<TokenKind>>, CompileError> {
         let src = match file_path {
-            "assert.h" => Includer::get_assert_h(),
-            "ctype.h" => Includer::get_ctype_h(),
-            "stdarg.h" => Includer::get_stdarg_h(),
-            "stdbool.h" => Includer::get_stdbool_h(),
-            "stddef.h" => Includer::get_stddef_h(),
-            "stdio.h" => Includer::get_stdio_h(),
-            "stdlib.h" => Includer::get_stdlib_h(),
-            "string.h" => Includer::get_string_h(),
-            "curses.h" => Includer::get_curses_h(),
-            "unistd.h" => Includer::get_unistd_h(),
-            "dirent.h" => Includer::get_dirent_h(),
+            "assert.h" => includer::get_assert_h(),
+            "ctype.h" => includer::get_ctype_h(),
+            "stdarg.h" => includer::get_stdarg_h(),
+            "stdbool.h" => includer::get_stdbool_h(),
+            "stddef.h" => includer::get_stddef_h(),
+            "stdio.h" => includer::get_stdio_h(),
+            "stdlib.h" => includer::get_stdlib_h(),
+            "string.h" => includer::get_string_h(),
+            "curses.h" => includer::get_curses_h(),
+            "unistd.h" => includer::get_unistd_h(),
+            "dirent.h" => includer::get_dirent_h(),
             _ => {
                 return Err(unimplemented_err!(
                     debug_info.clone(),
@@ -440,8 +443,8 @@ impl<'b> Preprocessor<'b> {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-mod Includer {
+#[cfg(any(target_arch = "wasm32-unknown-unknown", feature = "static_header"))]
+mod includer {
     macro_rules! gen_include {
         ($func_name:ident, $file_path:expr) => {
             pub const fn $func_name() -> &'static str {
