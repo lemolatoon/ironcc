@@ -6,7 +6,7 @@ use crate::{
     unimplemented_err,
 };
 
-use super::preprocess::TokenKind;
+use super::tokenkind::TokenKind;
 
 pub enum SrcCursorGenerator {
     FromFile(Rc<FileInfo>),

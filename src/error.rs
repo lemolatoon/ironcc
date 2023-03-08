@@ -5,6 +5,7 @@ use crate::analyze::analyze::FuncCallTargetKind;
 use crate::analyze::analyze::GVar;
 use crate::analyze::analyze::Type;
 use crate::preprocess::preprocess;
+use crate::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
 use crate::tokenize::tokenize;
 use crate::tokenize::tokenize::DebugInfo;
 use crate::tokenize::tokenize::Position;
@@ -58,8 +59,8 @@ impl From<io::Error> for CompileError {
     }
 }
 
-impl From<Token<preprocess::TokenKind>> for Tokens {
-    fn from(token: Token<preprocess::TokenKind>) -> Self {
+impl From<Token<PreprocessTokenKind>> for Tokens {
+    fn from(token: Token<PreprocessTokenKind>) -> Self {
         Tokens::Preprocess(token)
     }
 }
@@ -264,7 +265,7 @@ pub enum TokenizeErrorKind {
 
 #[derive(Debug, Clone)]
 pub enum Tokens {
-    Preprocess(Token<preprocess::TokenKind>),
+    Preprocess(Token<PreprocessTokenKind>),
     Tokenize(Token<tokenize::TokenKind>),
 }
 

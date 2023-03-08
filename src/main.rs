@@ -16,6 +16,7 @@ use ironcc::preprocess::preprocess::Preprocessor;
 use ironcc::preprocess::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::preprocess::PreprocessorTokenStream;
 use ironcc::preprocess::srccursor::SrcCursor;
+use ironcc::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
 use ironcc::tokenize::tokenize::FileInfo;
 use ironcc::tokenize::tokenize::Token;
 use ironcc::tokenize::tokenize::TokenStream;
@@ -59,7 +60,7 @@ fn preprocess_and_compile() -> Result<(), CompileError> {
 fn preprocess(
     main_file_info: Rc<FileInfo>,
     include_dir: &str,
-) -> Result<Vec<Token<preprocess::TokenKind>>, CompileError> {
+) -> Result<Vec<Token<PreprocessTokenKind>>, CompileError> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
     preprocessor.preprocess(&mut SrcCursor::new(main_file_info), None)
 }
@@ -72,7 +73,7 @@ fn compile<I>(
     out_f: File,
 ) -> Result<(), CompileError>
 where
-    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+    I: Iterator<Item = Token<PreprocessTokenKind>> + Clone + Debug,
 {
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc
