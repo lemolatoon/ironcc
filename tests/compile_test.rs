@@ -1,7 +1,7 @@
 pub mod test_utils;
 
 use ironcc::{
-    analyze::{BaseType, Type},
+    analyze::analyze::{BaseType, Type},
     error::{
         AnalyzeErrorKind, CompileError, CompileErrorKind, ParseErrorKind, TokenizeErrorKind,
         TypeExpectedFailedKind, VariableKind,

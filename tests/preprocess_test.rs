@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-use ironcc::preprocess::Preprocessor;
-use ironcc::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::SrcCursor;
-use ironcc::tokenize::FileInfo;
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocess::PreprocessorTokenStream;
+use ironcc::preprocess::preprocess::SrcCursor;
+use ironcc::tokenize::tokenize::FileInfo;
 
 #[test]
 pub fn test_preprocess() {

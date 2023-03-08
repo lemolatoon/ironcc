@@ -3,10 +3,10 @@ pub mod test_utils;
 use std::rc::Rc;
 
 use ironcc::{
-    preprocess::{
+    preprocess::preprocess::{
         self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
     },
-    tokenize::*,
+    tokenize::tokenize::*,
 };
 
 #[test]

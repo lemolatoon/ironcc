@@ -1,8 +1,8 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use ironcc::parse::*;
-use ironcc::tokenize::*;
+use ironcc::parse::parse::*;
+use ironcc::tokenize::tokenize::*;
 use test_utils::ast::*;
 
 #[test]

@@ -1,15 +1,15 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::BTreeSet;
 use std::rc::Rc;
 
-use ironcc::analyze::{self, *};
-use ironcc::parse::*;
-use ironcc::preprocess::{
+use ironcc::analyze::analyze::{self, *};
+use ironcc::parse::parse::*;
+use ironcc::preprocess::preprocess::{
     Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
 };
-use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
+use ironcc::tokenize::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[cfg(test)]

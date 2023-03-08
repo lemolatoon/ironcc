@@ -9,18 +9,18 @@ use std::path::PathBuf;
 use std::process::exit;
 use std::rc::Rc;
 
-use ironcc::analyze::Analyzer;
+use ironcc::analyze::analyze::Analyzer;
 use ironcc::error::CompileError;
-use ironcc::preprocess;
-use ironcc::preprocess::Preprocessor;
-use ironcc::preprocess::PreprocessorTokenContainerStream;
-use ironcc::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::SrcCursor;
-use ironcc::tokenize::FileInfo;
-use ironcc::tokenize::Token;
-use ironcc::tokenize::TokenStream;
-use ironcc::tokenize::Tokenizer;
-use ironcc::{generate::Generator, parse::Parser};
+use ironcc::preprocess::preprocess;
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocess::PreprocessorTokenContainerStream;
+use ironcc::preprocess::preprocess::PreprocessorTokenStream;
+use ironcc::preprocess::preprocess::SrcCursor;
+use ironcc::tokenize::tokenize::FileInfo;
+use ironcc::tokenize::tokenize::Token;
+use ironcc::tokenize::tokenize::TokenStream;
+use ironcc::tokenize::tokenize::Tokenizer;
+use ironcc::{generate::generate::Generator, parse::parse::Parser};
 
 fn main() {
     let result = preprocess_and_compile();
