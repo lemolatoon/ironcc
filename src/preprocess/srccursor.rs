@@ -1,12 +1,10 @@
-use std::{collections::VecDeque, rc::Rc};
-
+use super::tokenkind::TokenKind;
 use crate::{
     error::CompileError,
-    tokenize::tokenize::{DebugInfo, FileInfo},
+    tokenize::debug_infos::{DebugInfo, FileInfo},
     unimplemented_err,
 };
-
-use super::tokenkind::TokenKind;
+use std::{collections::VecDeque, rc::Rc};
 
 pub enum SrcCursorGenerator {
     FromFile(Rc<FileInfo>),

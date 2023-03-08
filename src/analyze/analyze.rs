@@ -13,7 +13,7 @@ use crate::{
         ProgramKind, SizeOfOperandKind, Stmt, StmtKind, StorageClassSpecifier, StructOrUnionSpec,
         TypeSpecifier, UnaryOp,
     },
-    tokenize::tokenize::{AssignBinOpToken, DebugInfo},
+    tokenize::{debug_infos::DebugInfo, tokenize::AssignBinOpToken},
     unimplemented_err,
 };
 

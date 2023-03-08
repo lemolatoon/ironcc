@@ -1,17 +1,16 @@
-use core::panic;
-use std::collections::BTreeMap;
-use std::path::PathBuf;
-use std::rc::Rc;
-
 use super::srccursor::SrcCursor;
 use crate::common::read_file;
 use crate::error::CompileError;
 use crate::preprocess::srccursor::SrcCursorGenerator;
 use crate::preprocess::tokenkind::TokenKind;
-use crate::tokenize::tokenize::DebugInfo;
-use crate::tokenize::tokenize::FileInfo;
+use crate::tokenize::debug_infos::DebugInfo;
+use crate::tokenize::debug_infos::FileInfo;
 use crate::tokenize::tokenize::Token;
 use crate::unimplemented_err;
+use core::panic;
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+use std::rc::Rc;
 
 pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,

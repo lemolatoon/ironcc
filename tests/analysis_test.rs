@@ -11,7 +11,8 @@ use ironcc::preprocess::preprocessor_streams::{
     PreprocessorTokenContainerStream, PreprocessorTokenStream,
 };
 use ironcc::preprocess::srccursor::SrcCursor;
-use ironcc::tokenize::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
+use ironcc::tokenize::debug_infos::{DebugInfo, FileInfo};
+use ironcc::tokenize::tokenize::{TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[cfg(test)]

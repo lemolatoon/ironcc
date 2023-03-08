@@ -4,9 +4,11 @@ use crate::{
         Type,
     },
     error::{CompileError, CompileErrorKind, ParseErrorKind, VariableKind},
-    tokenize::tokenize::{
-        AssignBinOpToken, BinOpToken, DebugInfo, DelimToken, Token, TokenKind, TokenStream,
-        TypeToken,
+    tokenize::{
+        debug_infos::DebugInfo,
+        tokenize::{
+            AssignBinOpToken, BinOpToken, DelimToken, Token, TokenKind, TokenStream, TypeToken,
+        },
     },
     unimplemented_err,
 };
@@ -1130,7 +1132,7 @@ impl Parser {
                 let mut tmp_tokens = tokens.clone();
                 if let (
                     Some(TokenKind::OpenDelim(DelimToken::Paren)),
-                    Some(second @ (TokenKind::Type(_) | TokenKind::Struct | TokenKind::Ident(_))),
+                    Some(TokenKind::Type(_) | TokenKind::Struct | TokenKind::Ident(_)),
                 ) = (
                     tmp_tokens.next().map(|token| *token.kind()),
                     tmp_tokens.next().map(|token| *token.kind()),

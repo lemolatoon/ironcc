@@ -1,7 +1,7 @@
 use super::tokenkind::TokenKind;
 use crate::{
     error::CompileError,
-    tokenize::tokenize::{DebugInfo, Token},
+    tokenize::{debug_infos::DebugInfo, tokenize::Token},
 };
 use std::{collections::VecDeque, fmt::Debug, iter::Peekable};
 

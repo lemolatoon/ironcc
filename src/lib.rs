@@ -18,6 +18,7 @@ pub mod preprocess;
 pub mod tokenize;
 
 use crate::generate::generate::Generator;
+use crate::tokenize::debug_infos::FileInfo;
 use analyze::analyze::Analyzer;
 use analyze::analyze::ConvProgram;
 use error::CompileError;
@@ -28,7 +29,6 @@ use preprocess::preprocessor_streams::{PreprocessorTokenContainerStream, Preproc
 use preprocess::srccursor::SrcCursor;
 use std::io::BufWriter;
 use std::rc::Rc;
-use tokenize::tokenize::FileInfo;
 use tokenize::tokenize::Token as TokenizeToken;
 use tokenize::tokenize::TokenKind as TokenizeTokenKind;
 use tokenize::tokenize::TokenStream;

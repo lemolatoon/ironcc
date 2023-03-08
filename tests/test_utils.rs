@@ -8,7 +8,10 @@ use ironcc::{
         preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream},
         srccursor::SrcCursor,
     },
-    tokenize::tokenize::{FileInfo, Token, TokenKind, TokenStream, Tokenizer},
+    tokenize::{
+        debug_infos::FileInfo,
+        tokenize::{Token, TokenKind, TokenStream, Tokenizer},
+    },
 };
 use std::{fmt::Debug, rc::Rc};
 
@@ -191,7 +194,7 @@ impl CachedAnalyzer {
 }
 
 pub mod ast {
-    use ironcc::{parse::parse::*, tokenize::tokenize::DebugInfo};
+    use ironcc::{parse::parse::*, tokenize::debug_infos::DebugInfo};
     pub fn deref(expr: Expr) -> Expr {
         Expr::new_deref(expr, DebugInfo::default())
     }

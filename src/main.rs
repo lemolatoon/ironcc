@@ -1,3 +1,16 @@
+use ironcc::analyze::analyze::Analyzer;
+use ironcc::error::CompileError;
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
+};
+use ironcc::preprocess::srccursor::SrcCursor;
+use ironcc::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
+use ironcc::tokenize::debug_infos::FileInfo;
+use ironcc::tokenize::tokenize::Token;
+use ironcc::tokenize::tokenize::TokenStream;
+use ironcc::tokenize::tokenize::Tokenizer;
+use ironcc::{generate::generate::Generator, parse::parse::Parser};
 use std::env;
 use std::ffi::OsString;
 use std::fs::File;
@@ -8,20 +21,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::exit;
 use std::rc::Rc;
-
-use ironcc::analyze::analyze::Analyzer;
-use ironcc::error::CompileError;
-use ironcc::preprocess::preprocess::Preprocessor;
-use ironcc::preprocess::preprocessor_streams::{
-    PreprocessorTokenContainerStream, PreprocessorTokenStream,
-};
-use ironcc::preprocess::srccursor::SrcCursor;
-use ironcc::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
-use ironcc::tokenize::tokenize::FileInfo;
-use ironcc::tokenize::tokenize::Token;
-use ironcc::tokenize::tokenize::TokenStream;
-use ironcc::tokenize::tokenize::Tokenizer;
-use ironcc::{generate::generate::Generator, parse::parse::Parser};
 
 fn main() {
     let result = preprocess_and_compile();

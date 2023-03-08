@@ -1,7 +1,6 @@
 extern crate ironcc;
 pub mod test_utils;
-use std::rc::Rc;
-
+use ironcc::tokenize::debug_infos::DebugInfo;
 use ironcc::{
     preprocess::tokenkind::TokenKind as PreprocessTokenKind,
     preprocess::{
@@ -9,8 +8,9 @@ use ironcc::{
         preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream},
         srccursor::SrcCursor,
     },
-    tokenize::tokenize::*,
+    tokenize::{debug_infos::FileInfo, tokenize::*},
 };
+use std::rc::Rc;
 
 #[test]
 fn tokenize_plus_minus_test() {
