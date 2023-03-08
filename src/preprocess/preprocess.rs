@@ -36,7 +36,7 @@ impl<'b> Preprocessor<'b> {
         self.ifdef_depth += 1;
     }
 
-    pub fn dec_ifdef_lable(&mut self) -> Result<(), CompileError> {
+    pub fn decrement_ifdef_lable(&mut self) -> Result<(), CompileError> {
         let next_value = self.ifdef_depth.checked_sub(1);
         if let Some(next_vale) = next_value {
             self.ifdef_depth = next_vale;
@@ -92,25 +92,7 @@ impl<'b> Preprocessor<'b> {
                     if let Some((_, ident)) = main_chars.get_debug_info_and_read_ident() {
                         match ident.as_str() {
                             "define" => {
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
-                                let (_, macro_ident) = main_chars
-                                    .get_debug_info_and_read_ident()
-                                    .expect("arg(ident) of define must exist.");
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
-
-                                let mut macro_value = main_chars.get_debug_info_and_read_ident();
-
-                                if macro_value.is_none() {
-                                    macro_value = main_chars.get_debug_info_and_read_number();
-                                }
-
-                                if macro_value.is_none() {
-                                    macro_value = main_chars.get_debug_info_and_read_str_lit();
-                                }
-                                // just one operand define macro should be defined as 1 .
-                                let macro_value = macro_value
-                                    .map_or("1".to_string(), |(_, macro_value)| macro_value);
-                                self.define_table.insert(macro_ident, macro_value);
+                                self.process_define(main_chars)?;
                                 continue;
                             }
                             ifdefkind @ ("ifdef" | "ifndef") => {
@@ -133,7 +115,7 @@ impl<'b> Preprocessor<'b> {
                                 loop {
                                     match main_chars.skip_until_macro_keyword().as_str() {
                                         "endif" => {
-                                            self.dec_ifdef_lable()?;
+                                            self.decrement_ifdef_lable()?;
                                             if self.ifdef_depth + 1 == self.watching_label {
                                                 // reached same depth
                                                 self.decrement_watching_depth();
@@ -189,7 +171,7 @@ impl<'b> Preprocessor<'b> {
                                             // just increment depth.
                                         }
                                         "endif" => {
-                                            self.dec_ifdef_lable()?;
+                                            self.decrement_ifdef_lable()?;
                                             if self.ifdef_depth + 1 == self.watching_label {
                                                 // reached same depth
                                                 self.decrement_watching_depth();
@@ -203,7 +185,11 @@ impl<'b> Preprocessor<'b> {
                                             }
                                             // reached different depth
                                             // has to be higher depth ifdef/ifndef
-                                            assert!(self.watching_label < self.ifdef_depth);
+                                            if self.watching_label > self.ifdef_depth {
+                                                return Err(unimplemented_err!(
+                                                    main_chars.get_debug_info()
+                                                , format!("Assertion Failed `self.watching_label < self.ifdef_depth`, self.watching_label: {}, self.ifdef_depth: {}", self.watching_label, self.ifdef_depth)));
+                                            }
                                             continue;
                                         }
                                         "else" => {
@@ -216,7 +202,11 @@ impl<'b> Preprocessor<'b> {
                                             }
                                             // reached different depth
                                             // has to be higher depth ifdef/ifndef
-                                            assert!(self.watching_label < self.ifdef_depth);
+                                            if self.watching_label > self.ifdef_depth {
+                                                return Err(unimplemented_err!(
+                                                    main_chars.get_debug_info()
+                                                , format!("Assertion Failed `self.watching_label < self.ifdef_depth`, self.watching_label: {}, self.ifdef_depth: {}", self.watching_label, self.ifdef_depth)));
+                                            }
                                             continue;
                                         }
                                         _ => unreachable!(),
@@ -224,7 +214,7 @@ impl<'b> Preprocessor<'b> {
                                 }
                             }
                             "endif" => {
-                                self.dec_ifdef_lable()?;
+                                self.decrement_ifdef_lable()?;
                                 if self.ifdef_depth + 1 == self.watching_label {
                                     // reached same depth
                                     self.decrement_watching_depth();
@@ -330,6 +320,28 @@ impl<'b> Preprocessor<'b> {
         }
 
         Ok(tokens)
+    }
+
+    pub fn process_define(&mut self, main_chars: &mut SrcCursor) -> Result<(), CompileError> {
+        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+        let (_, macro_ident) = main_chars
+            .get_debug_info_and_read_ident()
+            .expect("arg(ident) of define must exist.");
+        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+
+        let mut macro_value = main_chars.get_debug_info_and_read_ident();
+
+        if macro_value.is_none() {
+            macro_value = main_chars.get_debug_info_and_read_number();
+        }
+
+        if macro_value.is_none() {
+            macro_value = main_chars.get_debug_info_and_read_str_lit();
+        }
+        // just one operand define macro should be defined as 1 .
+        let macro_value = macro_value.map_or("1".to_string(), |(_, macro_value)| macro_value);
+        self.define_table.insert(macro_ident, macro_value);
+        Ok(())
     }
 
     pub fn include_from_file_dir(
