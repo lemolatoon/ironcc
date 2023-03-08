@@ -194,7 +194,15 @@ impl CachedAnalyzer {
 }
 
 pub mod ast {
-    use ironcc::{parse::parse::*, tokenize::debug_infos::DebugInfo};
+    use ironcc::{
+        parse::{
+            declaration::{
+                Declaration, DeclarationSpecifier, DirectDeclarator, Initializer, TypeSpecifier,
+            },
+            parse::*,
+        },
+        tokenize::debug_infos::DebugInfo,
+    };
     pub fn deref(expr: Expr) -> Expr {
         Expr::new_deref(expr, DebugInfo::default())
     }

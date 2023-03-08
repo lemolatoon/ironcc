@@ -7,11 +7,15 @@ use std::{
 use crate::{
     error::{AnalyzeErrorKind, CompileError, CompileErrorKind, VariableKind},
     generate::generate::RegSize,
-    parse::parse::{
-        BinOpKind, Binary, DeclarationSpecifier, Declarator, DirectDeclarator, EnumConstant,
-        EnumSpec, Expr, ExprKind, ForInitKind, Initializer, LabelKind, Program, ProgramComponent,
-        ProgramKind, SizeOfOperandKind, Stmt, StmtKind, StorageClassSpecifier, StructOrUnionSpec,
-        TypeSpecifier, UnaryOp,
+    parse::{
+        declaration::{
+            DeclarationSpecifier, Declarator, DirectDeclarator, Initializer, StorageClassSpecifier,
+            StructOrUnionSpec, TypeSpecifier,
+        },
+        parse::{
+            BinOpKind, Binary, EnumConstant, EnumSpec, Expr, ExprKind, ForInitKind, LabelKind,
+            Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, UnaryOp,
+        },
     },
     tokenize::{debug_infos::DebugInfo, tokenize::AssignBinOpToken},
     unimplemented_err,
