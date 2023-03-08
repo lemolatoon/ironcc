@@ -15,7 +15,7 @@ use ironcc::preprocess::preprocess;
 use ironcc::preprocess::preprocess::Preprocessor;
 use ironcc::preprocess::preprocess::PreprocessorTokenContainerStream;
 use ironcc::preprocess::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::preprocess::SrcCursor;
+use ironcc::preprocess::srccursor::SrcCursor;
 use ironcc::tokenize::tokenize::FileInfo;
 use ironcc::tokenize::tokenize::Token;
 use ironcc::tokenize::tokenize::TokenStream;

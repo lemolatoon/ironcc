@@ -3,8 +3,9 @@ use ironcc::{
     analyze::analyze::{Analyzer, ConvProgram},
     error::CompileError,
     parse::parse::{Parser, Program},
-    preprocess::preprocess::{
-        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    preprocess::{
+        preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+        srccursor::SrcCursor,
     },
     tokenize::tokenize::{FileInfo, Token, TokenKind, TokenStream, Tokenizer},
 };

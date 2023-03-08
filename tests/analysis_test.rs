@@ -7,8 +7,9 @@ use std::rc::Rc;
 use ironcc::analyze::analyze::{self, *};
 use ironcc::parse::parse::*;
 use ironcc::preprocess::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream,
 };
+use ironcc::preprocess::srccursor::SrcCursor;
 use ironcc::tokenize::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
 use test_utils::ast::*;
 

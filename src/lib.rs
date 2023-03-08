@@ -26,7 +26,7 @@ use parse::parse::Program;
 use preprocess::preprocess::Preprocessor;
 use preprocess::preprocess::PreprocessorTokenContainerStream;
 use preprocess::preprocess::PreprocessorTokenStream;
-use preprocess::preprocess::SrcCursor;
+use preprocess::srccursor::SrcCursor;
 use std::io::BufWriter;
 use std::rc::Rc;
 use tokenize::tokenize::FileInfo;

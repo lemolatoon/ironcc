@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use ironcc::preprocess::preprocess::Preprocessor;
 use ironcc::preprocess::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::preprocess::SrcCursor;
+use ironcc::preprocess::srccursor::SrcCursor;
 use ironcc::tokenize::tokenize::FileInfo;
 
 #[test]

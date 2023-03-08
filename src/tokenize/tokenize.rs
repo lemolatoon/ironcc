@@ -1,8 +1,9 @@
 use crate::error::CompileError;
 use crate::parse::parse::{self, BinOpKind, Scope};
 use crate::preprocess::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream,
 };
+use crate::preprocess::srccursor::SrcCursor;
 use crate::unimplemented_err;
 use std::iter::Peekable;
 
