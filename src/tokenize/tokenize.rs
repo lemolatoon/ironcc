@@ -1,7 +1,8 @@
 use crate::error::CompileError;
 use crate::parse::parse::{self, BinOpKind, Scope};
-use crate::preprocess::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream,
+use crate::preprocess::preprocess::Preprocessor;
+use crate::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
 };
 use crate::preprocess::srccursor::SrcCursor;
 use crate::unimplemented_err;

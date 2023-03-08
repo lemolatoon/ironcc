@@ -5,7 +5,8 @@ use std::rc::Rc;
 use ironcc::{
     preprocess::tokenkind::TokenKind as PreprocessTokenKind,
     preprocess::{
-        preprocess::{Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream},
+        preprocess::Preprocessor,
+        preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream},
         srccursor::SrcCursor,
     },
     tokenize::tokenize::*,

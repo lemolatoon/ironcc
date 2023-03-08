@@ -6,8 +6,9 @@ use std::rc::Rc;
 
 use ironcc::analyze::analyze::{self, *};
 use ironcc::parse::parse::*;
-use ironcc::preprocess::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream,
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
 };
 use ironcc::preprocess::srccursor::SrcCursor;
 use ironcc::tokenize::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};

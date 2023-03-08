@@ -11,10 +11,10 @@ use std::rc::Rc;
 
 use ironcc::analyze::analyze::Analyzer;
 use ironcc::error::CompileError;
-use ironcc::preprocess::preprocess;
 use ironcc::preprocess::preprocess::Preprocessor;
-use ironcc::preprocess::preprocess::PreprocessorTokenContainerStream;
-use ironcc::preprocess::preprocess::PreprocessorTokenStream;
+use ironcc::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
+};
 use ironcc::preprocess::srccursor::SrcCursor;
 use ironcc::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
 use ironcc::tokenize::tokenize::FileInfo;
