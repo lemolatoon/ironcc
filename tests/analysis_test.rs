@@ -5,6 +5,9 @@ use std::collections::BTreeSet;
 use std::rc::Rc;
 
 use ironcc::analyze::analyze::*;
+use ironcc::analyze::expr::{
+    ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, FuncCallTargetKind,
+};
 use ironcc::analyze::types::{BaseType, Type};
 use ironcc::analyze::util::aligned_offset;
 use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
