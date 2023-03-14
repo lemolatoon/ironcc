@@ -1,5 +1,6 @@
 use crate::error::CompileError;
-use crate::parse::parse::{self, BinOpKind, Scope};
+use crate::parse::parse::{self, BinOpKind};
+use crate::parse::scope::Scope;
 use crate::preprocess::preprocess::Preprocessor;
 use crate::preprocess::preprocessor_streams::{
     PreprocessorTokenContainerStream, PreprocessorTokenStream,
