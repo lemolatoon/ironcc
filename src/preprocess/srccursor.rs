@@ -228,6 +228,41 @@ impl SrcCursor {
         }
         Some((debug_info, TokenKind::Space(space)))
     }
+
+    pub fn get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context(
+        &mut self,
+    ) -> Option<(DebugInfo, TokenKind)> {
+        let debug_info = self.get_debug_info();
+        let mut space = String::new();
+        while let Some(c) = self.src.front() {
+            match *c {
+                ch @ (' ' | '\t' | 'r') => {
+                    space.push(ch);
+                    self.advance(1);
+                    continue;
+                }
+                '\\' => {
+                    space.push('\\');
+                    self.advance(1);
+                    if Some(&'\n') == self.src.front() {
+                        space.push('\n');
+                        self.advance_with_new_line(1);
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+        if space.is_empty() {
+            return None;
+        }
+        Some((debug_info, TokenKind::Space(space)))
+    }
+
     pub fn get_debug_info_and_skip_new_line(&mut self) -> Option<(DebugInfo, TokenKind)> {
         let debug_info = self.get_debug_info();
         let mut space = String::new();

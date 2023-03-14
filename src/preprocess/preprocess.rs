@@ -95,7 +95,7 @@ impl<'b> Preprocessor<'b> {
                                 continue;
                             }
                             ifdefkind @ ("ifdef" | "ifndef") => {
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 let (_, macro_arg) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect("arg of `ifdef` must exist.");
@@ -236,7 +236,7 @@ impl<'b> Preprocessor<'b> {
                                 continue 'preprocess_loop;
                             }
                             "undef" => {
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 let (_, macro_ident) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect("arg(ident) of define must exist.");
@@ -245,7 +245,7 @@ impl<'b> Preprocessor<'b> {
                             }
                             "include" => {
                                 // e.g) # include "mylib.h";
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 if let Some((_, mut str_lit)) =
                                     main_chars.get_debug_info_and_read_str_lit()
                                 {
@@ -322,16 +322,19 @@ impl<'b> Preprocessor<'b> {
     }
 
     pub fn process_define(&mut self, main_chars: &mut SrcCursor) -> Result<(), CompileError> {
-        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+        main_chars
+            .get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
         let (_, macro_ident) = main_chars
             .get_debug_info_and_read_ident()
             .expect("arg(ident) of define must exist.");
-        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+        main_chars
+            .get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
 
         let mut macro_value = main_chars.get_debug_info_and_read_ident();
 
         if macro_value.is_none() {
             macro_value = main_chars.get_debug_info_and_read_number();
+            eprintln!("{:?}", macro_value);
         }
 
         if macro_value.is_none() {
