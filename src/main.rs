@@ -1,3 +1,16 @@
+use ironcc::analyze::analyze::Analyzer;
+use ironcc::error::CompileError;
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
+};
+use ironcc::preprocess::srccursor::SrcCursor;
+use ironcc::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
+use ironcc::tokenize::debug_infos::FileInfo;
+use ironcc::tokenize::tokenize::Token;
+use ironcc::tokenize::tokenize::TokenStream;
+use ironcc::tokenize::tokenize::Tokenizer;
+use ironcc::{generate::generate::Generator, parse::parse::Parser};
 use std::env;
 use std::ffi::OsString;
 use std::fs::File;
@@ -8,19 +21,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::exit;
 use std::rc::Rc;
-
-use ironcc::analyze::Analyzer;
-use ironcc::error::CompileError;
-use ironcc::preprocess;
-use ironcc::preprocess::Preprocessor;
-use ironcc::preprocess::PreprocessorTokenContainerStream;
-use ironcc::preprocess::PreprocessorTokenStream;
-use ironcc::preprocess::SrcCursor;
-use ironcc::tokenize::FileInfo;
-use ironcc::tokenize::Token;
-use ironcc::tokenize::TokenStream;
-use ironcc::tokenize::Tokenizer;
-use ironcc::{generate::Generator, parse::Parser};
 
 fn main() {
     let result = preprocess_and_compile();
@@ -59,7 +59,7 @@ fn preprocess_and_compile() -> Result<(), CompileError> {
 fn preprocess(
     main_file_info: Rc<FileInfo>,
     include_dir: &str,
-) -> Result<Vec<Token<preprocess::TokenKind>>, CompileError> {
+) -> Result<Vec<Token<PreprocessTokenKind>>, CompileError> {
     let mut preprocessor = Preprocessor::new(main_file_info.clone(), include_dir);
     preprocessor.preprocess(&mut SrcCursor::new(main_file_info), None)
 }
@@ -72,7 +72,7 @@ fn compile<I>(
     out_f: File,
 ) -> Result<(), CompileError>
 where
-    I: Iterator<Item = Token<preprocess::TokenKind>> + Clone + Debug,
+    I: Iterator<Item = Token<PreprocessTokenKind>> + Clone + Debug,
 {
     let mut tokenizer = Tokenizer::new(PreprocessorTokenContainerStream::new(stream.collect()));
     let file_info = Rc::new(FileInfo::new(file_name, input)); // TODO: remove this clone, by all input info around substituted with Rc

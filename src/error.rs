@@ -1,14 +1,14 @@
-use crate::analyze::ConstExpr;
-use crate::analyze::ConvExpr;
-use crate::analyze::ConvExprKind;
-use crate::analyze::FuncCallTargetKind;
-use crate::analyze::GVar;
-use crate::analyze::Type;
-use crate::preprocess;
-use crate::tokenize;
-use crate::tokenize::DebugInfo;
-use crate::tokenize::Position;
-use crate::tokenize::Token;
+use crate::analyze::expr::ConstExpr;
+use crate::analyze::expr::ConvExpr;
+use crate::analyze::expr::ConvExprKind;
+use crate::analyze::expr::FuncCallTargetKind;
+use crate::analyze::types::Type;
+use crate::analyze::variables::GVar;
+use crate::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
+use crate::tokenize::debug_infos::DebugInfo;
+use crate::tokenize::debug_infos::Position;
+use crate::tokenize::tokenize;
+use crate::tokenize::tokenize::Token;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fmt::Display;
@@ -58,8 +58,8 @@ impl From<io::Error> for CompileError {
     }
 }
 
-impl From<Token<preprocess::TokenKind>> for Tokens {
-    fn from(token: Token<preprocess::TokenKind>) -> Self {
+impl From<Token<PreprocessTokenKind>> for Tokens {
+    fn from(token: Token<PreprocessTokenKind>) -> Self {
         Tokens::Preprocess(token)
     }
 }
@@ -264,7 +264,7 @@ pub enum TokenizeErrorKind {
 
 #[derive(Debug, Clone)]
 pub enum Tokens {
-    Preprocess(Token<preprocess::TokenKind>),
+    Preprocess(Token<PreprocessTokenKind>),
     Tokenize(Token<tokenize::TokenKind>),
 }
 

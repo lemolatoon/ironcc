@@ -88,6 +88,7 @@ int test76(void);
 int test77(void);
 int test78(void);
 int test79(void);
+int test80(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -191,7 +192,8 @@ int main(void) {
   my_assert(76, 0, test76());
   my_assert(77, 0, test77());
   my_assert(78, 0, test78());
-  my_assert(79, 0, test79());
+  my_assert(79, 1, test79());
+  my_assert(80, 0, test80());
 
   print_ok();
   return 0;
@@ -1478,4 +1480,54 @@ int test78(void) {
   return 0;
 }
 
-int test79(void) { return 0; }
+int test79(void) {
+  // ifdef watching
+  int ret;
+#define A
+  // 0 0
+
+#ifdef A
+  // 1 0
+  // 1 1
+
+#ifdef A
+  // 2 1
+  // 2 2
+
+#else
+  // 2 2
+
+#endif
+  // 1 2
+  // 1 1
+
+  ret = 1;
+#else
+  // 1 1
+
+#ifdef A
+  // 2 1
+
+#ifdef A
+  // 3 1
+
+#else
+  // 3 1
+
+#endif
+  // 2 1
+
+#else
+  // 2 1
+
+#endif
+  // 1 1
+  ret = 2;
+#endif
+#undef A
+#ifdef A
+  ret = 999;
+#endif
+  return ret;
+}
+int test80(void) { return 0; }

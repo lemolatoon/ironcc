@@ -1,12 +1,17 @@
 extern crate ironcc;
 use ironcc::{
-    analyze::{Analyzer, ConvProgram},
+    analyze::analyze::{Analyzer, ConvProgram},
     error::CompileError,
-    parse::{Parser, Program},
+    parse::parse::{Parser, Program},
     preprocess::{
-        Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+        preprocess::Preprocessor,
+        preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream},
+        srccursor::SrcCursor,
     },
-    tokenize::{FileInfo, Token, TokenStream, Tokenizer},
+    tokenize::{
+        debug_infos::FileInfo,
+        tokenize::{Token, TokenKind, TokenStream, Tokenizer},
+    },
 };
 use std::{fmt::Debug, rc::Rc};
 
@@ -24,7 +29,6 @@ macro_rules! tokens {
 }
 
 #[cfg(test)]
-use ironcc::tokenize::TokenKind;
 pub fn kind_eq(lhs: &[Token<TokenKind>], rhs: &[Token<TokenKind>]) -> bool {
     lhs.iter()
         .zip(rhs.iter())
@@ -190,7 +194,17 @@ impl CachedAnalyzer {
 }
 
 pub mod ast {
-    use ironcc::{parse::*, tokenize::DebugInfo};
+    use ironcc::{
+        parse::{
+            declaration::{
+                Declaration, DeclarationSpecifier, DirectDeclarator, Initializer, TypeSpecifier,
+            },
+            expr::{BinOpKind, Expr, UnaryOp},
+            parse::*,
+            stmt::Stmt,
+        },
+        tokenize::debug_infos::DebugInfo,
+    };
     pub fn deref(expr: Expr) -> Expr {
         Expr::new_deref(expr, DebugInfo::default())
     }
@@ -295,7 +309,7 @@ pub mod ast {
         Expr::new_assign(
             lhs,
             rhs,
-            ironcc::tokenize::AssignBinOpToken::Eq,
+            ironcc::tokenize::tokenize::AssignBinOpToken::Eq,
             DebugInfo::default(),
         )
     }

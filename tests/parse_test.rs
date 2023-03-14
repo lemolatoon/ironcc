@@ -1,8 +1,12 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use ironcc::parse::*;
-use ironcc::tokenize::*;
+use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
+use ironcc::parse::expr::{BinOpKind, Expr, UnaryOp};
+use ironcc::parse::parse::*;
+use ironcc::parse::parser_context::ParserContextKind;
+use ironcc::tokenize::debug_infos::DebugInfo;
+use ironcc::tokenize::tokenize::*;
 use test_utils::ast::*;
 
 #[test]

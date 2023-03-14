@@ -1,15 +1,27 @@
 extern crate ironcc;
 pub mod test_utils;
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::BTreeSet;
 use std::rc::Rc;
 
-use ironcc::analyze::{self, *};
-use ironcc::parse::*;
-use ironcc::preprocess::{
-    Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+use ironcc::analyze::analyze::*;
+use ironcc::analyze::expr::{
+    ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, FuncCallTargetKind,
 };
-use ironcc::tokenize::{DebugInfo, FileInfo, TokenStream, Tokenizer};
+use ironcc::analyze::stmt::ConvStmt;
+use ironcc::analyze::types::{BaseType, Type};
+use ironcc::analyze::util::aligned_offset;
+use ironcc::analyze::variables::LVar;
+use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
+use ironcc::parse::expr::{BinOpKind, UnaryOp};
+use ironcc::parse::parse::*;
+use ironcc::preprocess::preprocess::Preprocessor;
+use ironcc::preprocess::preprocessor_streams::{
+    PreprocessorTokenContainerStream, PreprocessorTokenStream,
+};
+use ironcc::preprocess::srccursor::SrcCursor;
+use ironcc::tokenize::debug_infos::{DebugInfo, FileInfo};
+use ironcc::tokenize::tokenize::{TokenStream, Tokenizer};
 use test_utils::ast::*;
 
 #[cfg(test)]
@@ -356,8 +368,6 @@ fn analysis_ptr_addition() {
 
 #[test]
 fn parse_type_test() {
-    use analyze::BaseType;
-    use analyze::Type;
     let declaration_src = "{int *array[5]; return array;}";
     let ty = extract_ty(declaration_src);
     assert_eq!(

@@ -1,13 +1,16 @@
 extern crate ironcc;
 pub mod test_utils;
-use std::rc::Rc;
-
+use ironcc::tokenize::debug_infos::DebugInfo;
 use ironcc::{
+    preprocess::tokenkind::TokenKind as PreprocessTokenKind,
     preprocess::{
-        self, Preprocessor, PreprocessorTokenContainerStream, PreprocessorTokenStream, SrcCursor,
+        preprocess::Preprocessor,
+        preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream},
+        srccursor::SrcCursor,
     },
-    tokenize::*,
+    tokenize::{debug_infos::FileInfo, tokenize::*},
 };
+use std::rc::Rc;
 
 #[test]
 fn tokenize_plus_minus_test() {
@@ -573,9 +576,9 @@ fn tokenize_multi_token_input() {
     let input = String::from("0 + 0 + 11  -4");
     let file_info = Rc::new(FileInfo::new(String::new(), input));
     let tokens_iter = vec![
-        preprocess::TokenKind::Rest("0 ".to_string()),
-        preprocess::TokenKind::Rest("+ 0 + 1".to_string()),
-        preprocess::TokenKind::Rest("1  -4".to_string()),
+        PreprocessTokenKind::Rest("0 ".to_string()),
+        PreprocessTokenKind::Rest("+ 0 + 1".to_string()),
+        PreprocessTokenKind::Rest("1  -4".to_string()),
     ]
     .into_iter()
     .map(|kind| Token::new(kind, DebugInfo::default()));

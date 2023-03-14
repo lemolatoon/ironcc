@@ -17,19 +17,22 @@ pub mod parse;
 pub mod preprocess;
 pub mod tokenize;
 
-use crate::generate::Generator;
-use analyze::Analyzer;
+use crate::generate::generate::Generator;
+use crate::tokenize::debug_infos::FileInfo;
+use analyze::analyze::Analyzer;
+use analyze::analyze::ConvProgram;
 use error::CompileError;
-use parse::Parser;
-use preprocess::Preprocessor;
-use preprocess::PreprocessorTokenContainerStream;
-use preprocess::PreprocessorTokenStream;
-use preprocess::SrcCursor;
+use parse::parse::Parser;
+use parse::parse::Program;
+use preprocess::preprocess::Preprocessor;
+use preprocess::preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream};
+use preprocess::srccursor::SrcCursor;
 use std::io::BufWriter;
 use std::rc::Rc;
-use tokenize::FileInfo;
-use tokenize::TokenStream;
-use tokenize::Tokenizer;
+use tokenize::tokenize::Token as TokenizeToken;
+use tokenize::tokenize::TokenKind as TokenizeTokenKind;
+use tokenize::tokenize::TokenStream;
+use tokenize::tokenize::Tokenizer;
 
 pub fn preprocess_and_compile(mut input: String) -> Result<String, CompileError> {
     use std::io::Write;
@@ -75,9 +78,7 @@ pub fn preprocessed_source(mut input: String) -> Result<String, CompileError> {
     Ok(container_stream.map(|(_, ch)| ch).collect())
 }
 
-pub fn tokens(
-    mut input: String,
-) -> Result<Vec<tokenize::Token<tokenize::TokenKind>>, CompileError> {
+pub fn tokens(mut input: String) -> Result<Vec<TokenizeToken<TokenizeTokenKind>>, CompileError> {
     input.push('\n');
 
     let file_name = "src.c".to_string();
@@ -92,7 +93,7 @@ pub fn tokens(
     tokenizer.tokenize(&file_info)
 }
 
-pub fn parsed_ast(input: String) -> Result<parse::Program, CompileError> {
+pub fn parsed_ast(input: String) -> Result<Program, CompileError> {
     let tokens = tokens(input)?;
     let mut token_stream = TokenStream::new(tokens.into_iter());
 
@@ -101,7 +102,7 @@ pub fn parsed_ast(input: String) -> Result<parse::Program, CompileError> {
     Ok(program)
 }
 
-pub fn converted_ast(input: String) -> Result<analyze::ConvProgram, CompileError> {
+pub fn converted_ast(input: String) -> Result<ConvProgram, CompileError> {
     let ast = parsed_ast(input)?;
     let mut analyzer = Analyzer::new();
     analyzer.traverse_program(ast)
