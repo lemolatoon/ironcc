@@ -1,5 +1,8 @@
 use crate::{
-    analyze::analyze::{Analyzer, BaseType, InCompleteKind, Type},
+    analyze::{
+        analyze::Analyzer,
+        types::{BaseType, InCompleteKind, Type},
+    },
     error::{CompileError, CompileErrorKind, ParseErrorKind},
     tokenize::{
         debug_infos::DebugInfo,

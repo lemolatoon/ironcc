@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::{
-    analyze::analyze::Type,
+    analyze::types::Type,
     error::{CompileError, VariableKind},
     tokenize::debug_infos::DebugInfo,
 };

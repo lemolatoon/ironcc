@@ -1,10 +1,13 @@
 use std::io::{BufWriter, Write};
 
 use crate::{
-    analyze::analyze::{
-        BaseType, CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
-        ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt, ConvUnaryOp,
-        FuncCallTargetKind, GVar, LVar, LoopControlKind, Type,
+    analyze::{
+        analyze::{
+            CastKind, ConstExpr, ConstExprKind, ConstInitializer, ConvBinOpKind, ConvBinary,
+            ConvExpr, ConvExprKind, ConvFuncDef, ConvProgram, ConvProgramKind, ConvStmt,
+            ConvUnaryOp, FuncCallTargetKind, GVar, LVar, LoopControlKind,
+        },
+        types::{BaseType, Type},
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
     parse::expr::BinOpKind,

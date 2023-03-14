@@ -4,7 +4,8 @@ pub mod test_utils;
 use std::collections::BTreeSet;
 use std::rc::Rc;
 
-use ironcc::analyze::analyze::{self, *};
+use ironcc::analyze::analyze::*;
+use ironcc::analyze::types::{BaseType, Type};
 use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
 use ironcc::parse::expr::{BinOpKind, UnaryOp};
 use ironcc::parse::parse::*;
@@ -361,8 +362,6 @@ fn analysis_ptr_addition() {
 
 #[test]
 fn parse_type_test() {
-    use analyze::BaseType;
-    use analyze::Type;
     let declaration_src = "{int *array[5]; return array;}";
     let ty = extract_ty(declaration_src);
     assert_eq!(
