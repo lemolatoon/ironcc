@@ -6,7 +6,8 @@ use crate::{
 };
 
 use super::{
-    analyze::{ConvStmt, GVar, LVar},
+    analyze::{GVar, LVar},
+    stmt::ConvStmt,
     types::{BaseType, Type},
 };
 
