@@ -11,6 +11,7 @@ use ironcc::analyze::expr::{
 use ironcc::analyze::stmt::ConvStmt;
 use ironcc::analyze::types::{BaseType, Type};
 use ironcc::analyze::util::aligned_offset;
+use ironcc::analyze::variables::LVar;
 use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
 use ironcc::parse::expr::{BinOpKind, UnaryOp};
 use ironcc::parse::parse::*;

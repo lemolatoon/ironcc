@@ -6,11 +6,10 @@ use crate::{
 };
 
 use super::{
-    analyze::{
-        ConstInitializer, Enum, EnumTagKind, EnumVariant, GVar, LVar, StructTagKind, Taged, Var,
-    },
+    analyze::{ConstInitializer, Enum, EnumTagKind, StructTagKind, Taged},
     types::{InCompleteKind, Type},
     util::aligned_offset,
+    variables::{EnumVariant, GVar, LVar, Var},
 };
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]

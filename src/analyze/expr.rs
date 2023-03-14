@@ -6,9 +6,10 @@ use crate::{
 };
 
 use super::{
-    analyze::{ConstInitializer, GVar, LVar},
+    analyze::ConstInitializer,
     stmt::ConvStmt,
     types::{BaseType, Type},
+    variables::{GVar, LVar},
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]

@@ -1,9 +1,9 @@
-use crate::analyze::analyze::GVar;
 use crate::analyze::expr::ConstExpr;
 use crate::analyze::expr::ConvExpr;
 use crate::analyze::expr::ConvExprKind;
 use crate::analyze::expr::FuncCallTargetKind;
 use crate::analyze::types::Type;
+use crate::analyze::variables::GVar;
 use crate::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
 use crate::tokenize::debug_infos::DebugInfo;
 use crate::tokenize::debug_infos::Position;

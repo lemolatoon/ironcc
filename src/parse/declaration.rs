@@ -2,10 +2,11 @@ use std::collections::BTreeSet;
 
 use crate::{
     analyze::{
-        analyze::{Analyzer, ConstInitializer, LVar},
+        analyze::{Analyzer, ConstInitializer},
         expr::{ConstExpr, ConvExpr},
         stmt::ConvStmt,
         types::Type,
+        variables::LVar,
     },
     error::CompileError,
     tokenize::{debug_infos::DebugInfo, tokenize::AssignBinOpToken},
