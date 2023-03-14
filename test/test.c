@@ -217,6 +217,11 @@ void my_assert(int index, int expected, int got) {
   }
 }
 
+void fail(char *msg) {
+  fprintf(stderr, "%s\n", msg);
+  exit(1);
+}
+
 int test0(void) { return 3; }
 
 int test0_2(void) { return g(2); }
@@ -1530,4 +1535,32 @@ int test79(void) {
 #endif
   return ret;
 }
-int test80(void) { return 0; }
+int test80(void) {
+  // clang-format off
+#define A \
+80
+  // clang-format on
+#ifndef A
+  fail("unreachable");
+#endif
+  my_assert(80, 80, A);
+#undef A
+  // clang-format off
+#define \
+A \
+2
+#ifndef \
+A
+  fail("unreachable");
+#endif
+#ifdef \
+A
+  my_assert(80, 2, A);
+#else
+  fail("unreachable");
+#endif
+#undef \
+A
+  // clang-format on
+  return 0;
+}
