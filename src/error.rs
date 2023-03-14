@@ -1,5 +1,5 @@
-use crate::analyze::analyze::ConstExpr;
 use crate::analyze::analyze::GVar;
+use crate::analyze::expr::ConstExpr;
 use crate::analyze::expr::ConvExpr;
 use crate::analyze::expr::ConvExprKind;
 use crate::analyze::expr::FuncCallTargetKind;

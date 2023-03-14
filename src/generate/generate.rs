@@ -2,13 +2,10 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     analyze::{
-        analyze::{
-            ConstExpr, ConstExprKind, ConstInitializer, ConvFuncDef, ConvProgram, ConvProgramKind,
-            GVar, LVar,
-        },
+        analyze::{ConstInitializer, ConvFuncDef, ConvProgram, ConvProgramKind, GVar, LVar},
         expr::{
-            CastKind, ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind, ConvUnaryOp,
-            FuncCallTargetKind,
+            CastKind, ConstExpr, ConstExprKind, ConvBinOpKind, ConvBinary, ConvExpr, ConvExprKind,
+            ConvUnaryOp, FuncCallTargetKind,
         },
         stmt::{ConvStmt, LoopControlKind},
         types::{BaseType, Type},

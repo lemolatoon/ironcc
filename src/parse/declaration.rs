@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 
 use crate::{
     analyze::{
-        analyze::{Analyzer, ConstExpr, ConstInitializer, LVar},
-        expr::ConvExpr,
+        analyze::{Analyzer, ConstInitializer, LVar},
+        expr::{ConstExpr, ConvExpr},
         stmt::ConvStmt,
         types::Type,
     },

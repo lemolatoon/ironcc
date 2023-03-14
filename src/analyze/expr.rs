@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::{
-    analyze::{GVar, LVar},
+    analyze::{ConstInitializer, GVar, LVar},
     stmt::ConvStmt,
     types::{BaseType, Type},
 };
@@ -462,5 +462,351 @@ impl ConvBinOpKind {
             BinOpKind::BitWiseAnd => Some(ConvBinOpKind::BitWiseAnd),
             BinOpKind::LogicalOr | BinOpKind::LogicalAnd | BinOpKind::Ge | BinOpKind::Gt => None,
         }
+    }
+}
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub struct ConstExpr {
+    pub kind: ConstExprKind,
+    pub ty: Type,
+    pub debug_info: DebugInfo,
+}
+
+impl ConstExpr {
+    pub const fn new_literal_with_type(n: isize, base_ty: BaseType, debug_info: DebugInfo) -> Self {
+        match base_ty {
+            BaseType::Int => Self::new_int(n as i32, debug_info),
+            BaseType::Char => Self::new_char(n as i8, debug_info),
+        }
+    }
+
+    pub fn null_ptr(debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConstExprKind::Int(0),
+            ty: Type::ptr(Type::Void),
+            debug_info,
+        }
+    }
+
+    pub const fn new_int(n: i32, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConstExprKind::Int(n),
+            ty: Type::Base(BaseType::Int),
+            debug_info,
+        }
+    }
+
+    pub const fn new_char(n: i8, debug_info: DebugInfo) -> Self {
+        Self {
+            kind: ConstExprKind::Char(n),
+            ty: Type::Base(BaseType::Int),
+            debug_info,
+        }
+    }
+
+    pub fn display_literal(&self) -> String {
+        match &self.kind {
+            ConstExprKind::Int(n) => n.to_string(),
+            ConstExprKind::Char(n) => n.to_string(),
+            ConstExprKind::Addr(gvar) => gvar.name.clone(),
+        }
+    }
+
+    pub fn get_num_lit(&self) -> Result<isize, CompileError> {
+        Ok(match &self.kind {
+            ConstExprKind::Int(n) => *n as isize,
+            ConstExprKind::Char(n) => *n as isize,
+            ConstExprKind::Addr(_) => {
+                return Err(unimplemented_err!(format!(
+                    "This const Expr {:?} should be Literal.",
+                    self
+                )))
+            }
+        })
+    }
+
+    pub fn apply_unary_op(&self, unary_op: &ConvUnaryOp) -> Result<ConstExpr, CompileError> {
+        let debug_info = self.debug_info.clone();
+        Ok(match unary_op {
+            ConvUnaryOp::BitInvert => match &self.kind {
+                ConstExprKind::Int(n) => ConstExpr::new_int(!*n, debug_info),
+                ConstExprKind::Char(n) => ConstExpr::new_char(!*n, debug_info),
+                ConstExprKind::Addr(_) => {
+                    return Err(unimplemented_err!(format!(
+                        "Const Expr which will be applied `~` unary op ({:?}) should be Literal.",
+                        self
+                    )))
+                }
+            },
+            ConvUnaryOp::Increment(value) => {
+                let n = self.get_num_lit()?;
+                // This const expr has type `int`, so truncations is ok.
+                #[allow(clippy::cast_possible_truncation)]
+                ConstExpr::new_int(n as i32 + *value as i32, debug_info)
+            }
+            ConvUnaryOp::Decrement(value) => {
+                let n = self.get_num_lit()?;
+                // This const expr has type `int`, so truncations is ok.
+                #[allow(clippy::cast_possible_truncation)]
+                ConstExpr::new_int(n as i32 - *value as i32, debug_info)
+            }
+        })
+    }
+
+    #[must_use]
+    pub fn map_ty(mut self, f: impl FnOnce(Type) -> Type) -> Self {
+        self.ty = f(self.ty);
+        self
+    }
+}
+
+#[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
+pub enum ConstExprKind {
+    Int(i32),
+    Char(i8),
+    Addr(Box<GVar>),
+}
+
+impl ConstExpr {
+    #[allow(clippy::too_many_lines)]
+    pub fn try_eval_as_const(expr: ConvExpr) -> Result<Self, CompileError> {
+        let debug_info = expr.debug_info.clone();
+        let ty = expr.ty.clone();
+        let kind = expr.kind;
+        let bool_to_isize = |b| if b { 1 } else { 0 };
+        let num_expr = |num: isize, debug_info, ty: BaseType| {
+            let kind = match ty {
+                // Truncations are ok because each const expr's type has its bit size.
+                #[allow(clippy::cast_possible_truncation)]
+                BaseType::Int => ConstExprKind::Int(num as i32),
+                #[allow(clippy::cast_possible_truncation)]
+                BaseType::Char => ConstExprKind::Char(num as i8),
+            };
+            ConstExpr {
+                kind,
+                ty: Type::Base(ty),
+                debug_info,
+            }
+        };
+        Ok(match kind {
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Add,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    + Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Sub,
+                lhs,
+                rhs,
+            }) => {
+                num_expr(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        - Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                    debug_info,
+                    *ty.get_base().unwrap(), // This Option is always `Some`, because literal or not is checked in `get_num_lit`.
+                )
+            }
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Mul,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    * Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Div,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    / Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Rem,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    % Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Eq,
+                lhs,
+                rhs,
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        == Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Ne,
+                lhs,
+                rhs,
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        != Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Lt,
+                lhs,
+                rhs,
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        < Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::Le,
+                lhs,
+                rhs,
+            }) => num_expr(
+                bool_to_isize(
+                    Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                        <= Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                ),
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::LShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    << Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::RShift,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    >> Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::Binary(ConvBinary {
+                kind: ConvBinOpKind::BitWiseAnd,
+                lhs,
+                rhs,
+            }) => num_expr(
+                Self::try_eval_as_const(*lhs)?.get_num_lit()?
+                    & Self::try_eval_as_const(*rhs)?.get_num_lit()?,
+                debug_info,
+                *ty.get_base().unwrap(),
+            ),
+            ConvExprKind::GVar(ref gvar) => {
+                // TODO: check if gvar is const or not
+                if let Some(val) = gvar.init.as_ref().and_then(ConstInitializer::get_num_lit) {
+                    eprintln!("Have to check {:?} is const or not.", &gvar);
+                    return Ok(num_expr(val, debug_info, BaseType::Int));
+                }
+                return Err(CompileError::new_const_expr_error(debug_info, kind));
+            }
+            ConvExprKind::Num(num) => num_expr(num, debug_info, *ty.get_base().unwrap()),
+            ConvExprKind::LVar(_)
+            | ConvExprKind::Assign(_, _)
+            | ConvExprKind::Func(..)
+            | ConvExprKind::Deref(_)
+            | ConvExprKind::Asm(..)
+            | ConvExprKind::Member {
+                struct_expr: _,
+                minus_offset: _,
+            }
+            | ConvExprKind::OpAssign(_, _, _)
+            | ConvExprKind::FuncPtr(_, _)
+            | ConvExprKind::Cast(_, CastKind::Base2FuncPtr(_, _)) => {
+                return Err(CompileError::new_const_expr_error(debug_info, kind))
+            }
+            ConvExprKind::Cast(expr, CastKind::Base2Base(to, _)) => num_expr(
+                Self::try_eval_as_const(*expr)?.get_num_lit()?,
+                debug_info,
+                to,
+            ),
+            ConvExprKind::Cast(expr, CastKind::FromVoidPtr { ptr_to }) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(ptr_to));
+                const_expr
+            }
+            ConvExprKind::Cast(expr, CastKind::ToVoidPtr { ptr_to: _ }) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(Type::Void));
+                const_expr
+            }
+            ConvExprKind::Cast(
+                expr,
+                CastKind::Ptr2Ptr {
+                    from: _,
+                    to,
+                    cast_kind: _,
+                },
+            ) => {
+                let mut const_expr = Self::try_eval_as_const(*expr)?;
+                const_expr.ty = Type::Ptr(Box::new(to));
+                const_expr
+            }
+            ConvExprKind::Cast(expr, CastKind::NoCast) => Self::try_eval_as_const(*expr)?,
+            ConvExprKind::Addr(expr) => {
+                let expr_debug_info = expr.debug_info;
+                let expr_ty = expr.ty.clone();
+                let gvar = if let ConvExprKind::GVar(gvar) = expr.kind {
+                    gvar
+                } else {
+                    return Err(CompileError::new_const_expr_error(debug_info, expr.kind));
+                };
+                ConstExpr {
+                    kind: ConstExprKind::Addr(Box::new(gvar)),
+                    ty: Type::Ptr(Box::new(expr_ty)),
+                    debug_info: expr_debug_info,
+                }
+            }
+            ConvExprKind::Unary(unary_op, expr) => {
+                Self::try_eval_as_const(*expr)?.apply_unary_op(&unary_op)?
+            }
+            ConvExprKind::Conditional { cond, then, els } => {
+                let cond_val = Self::try_eval_as_const(*cond)?.get_num_lit()?;
+                if cond_val == 0 {
+                    Self::try_eval_as_const(*els)?
+                } else {
+                    Self::try_eval_as_const(*then)?
+                }
+            }
+            ConvExprKind::PostfixIncrement(expr, _) | ConvExprKind::PostfixDecrement(expr, _) => {
+                let expr_debug_info = expr.debug_info.clone();
+                let value = Self::try_eval_as_const(*expr)?.get_num_lit()?;
+                // This truncation is ok because this const expr has the type `int`
+                #[allow(clippy::cast_possible_truncation)]
+                ConstExpr {
+                    kind: ConstExprKind::Int(value as i32),
+                    ty: Type::Base(BaseType::Int),
+                    debug_info: expr_debug_info,
+                }
+            }
+            ConvExprKind::Comma(_, rhs) => Self::try_eval_as_const(*rhs)?,
+            ConvExprKind::Block(_, _) => todo!(),
+        })
     }
 }
