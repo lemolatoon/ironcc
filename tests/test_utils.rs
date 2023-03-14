@@ -201,6 +201,7 @@ pub mod ast {
             },
             expr::{BinOpKind, Expr, UnaryOp},
             parse::*,
+            stmt::Stmt,
         },
         tokenize::debug_infos::DebugInfo,
     };

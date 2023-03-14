@@ -15,8 +15,9 @@ use crate::{
         expr::{BinOpKind, Binary, Expr, ExprKind, SizeOfOperandKind, UnaryOp},
         parse::{
             EnumConstant, EnumSpec, ForInitKind, LabelKind, Program, ProgramComponent, ProgramKind,
-            Stmt, StmtKind,
+            StmtKind,
         },
+        stmt::Stmt,
     },
     tokenize::{debug_infos::DebugInfo, tokenize::AssignBinOpToken},
     unimplemented_err,
