@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["DeclarationSpecifier",""],["DirectDeclarator",""],["Initializer",""],["StorageClassSpecifier",""],["StructOrUnionSpec",""],["TypeSpecifier",""]],"struct":[["Declaration","Declaration"],["Declarator",""],["InitDeclarator",""],["StructDeclaration",""]]};

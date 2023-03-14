@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AssignBinOpToken",""],["BinOpToken",""],["DelimToken",""],["TokenKind",""],["TypeToken",""]],"fn":[["tokenize_and_kinds",""]],"struct":[["Token",""],["TokenStream",""],["Tokenizer",""]],"trait":[["Eof",""]]};

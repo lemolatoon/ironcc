@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["align_to",""],["aligned_offset","calculate aligned next offset"]]};

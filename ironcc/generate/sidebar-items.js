@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["LoopLabel",""],["RegKind",""],["RegOrLit",""],["RegSize",""]],"struct":[["Generator",""],["LoopLabelStack",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["generate",""]]};

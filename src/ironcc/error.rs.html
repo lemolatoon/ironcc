@@ -764,17 +764,17 @@
 <a href="#764" id="764">764</a>
 <a href="#765" id="765">765</a>
 <a href="#766" id="766">766</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::analyze::ConstExpr;
-<span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExpr;
-<span class="kw">use </span><span class="kw">crate</span>::analyze::ConvExprKind;
-<span class="kw">use </span><span class="kw">crate</span>::analyze::FuncCallTargetKind;
-<span class="kw">use </span><span class="kw">crate</span>::analyze::GVar;
-<span class="kw">use </span><span class="kw">crate</span>::analyze::Type;
-<span class="kw">use </span><span class="kw">crate</span>::preprocess;
-<span class="kw">use </span><span class="kw">crate</span>::tokenize;
-<span class="kw">use </span><span class="kw">crate</span>::tokenize::DebugInfo;
-<span class="kw">use </span><span class="kw">crate</span>::tokenize::Position;
-<span class="kw">use </span><span class="kw">crate</span>::tokenize::Token;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::analyze::expr::ConstExpr;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::expr::ConvExpr;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::expr::ConvExprKind;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::expr::FuncCallTargetKind;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::types::Type;
+<span class="kw">use </span><span class="kw">crate</span>::analyze::variables::GVar;
+<span class="kw">use </span><span class="kw">crate</span>::preprocess::tokenkind::TokenKind <span class="kw">as </span>PreprocessTokenKind;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::debug_infos::DebugInfo;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::debug_infos::Position;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::tokenize;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::tokenize::Token;
 <span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::fmt::Display;
@@ -824,8 +824,8 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;Token&lt;preprocess::TokenKind&gt;&gt; <span class="kw">for </span>Tokens {
-    <span class="kw">fn </span>from(token: Token&lt;preprocess::TokenKind&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;Token&lt;PreprocessTokenKind&gt;&gt; <span class="kw">for </span>Tokens {
+    <span class="kw">fn </span>from(token: Token&lt;PreprocessTokenKind&gt;) -&gt; <span class="self">Self </span>{
         Tokens::Preprocess(token)
     }
 }
@@ -1030,7 +1030,7 @@
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>Tokens {
-    Preprocess(Token&lt;preprocess::TokenKind&gt;),
+    Preprocess(Token&lt;PreprocessTokenKind&gt;),
     Tokenize(Token&lt;tokenize::TokenKind&gt;),
 }
 

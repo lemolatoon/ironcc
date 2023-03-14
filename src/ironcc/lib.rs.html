@@ -106,6 +106,7 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre><pre class="rust"><code><span class="attr">#![warn(clippy::pedantic, clippy::nursery)]
 #![allow(clippy::missing_errors_doc, clippy::must_use_candidate)]
 #![allow(
@@ -125,19 +126,22 @@
 <span class="kw">pub mod </span>preprocess;
 <span class="kw">pub mod </span>tokenize;
 
-<span class="kw">use </span><span class="kw">crate</span>::generate::Generator;
-<span class="kw">use </span>analyze::Analyzer;
+<span class="kw">use </span><span class="kw">crate</span>::generate::generate::Generator;
+<span class="kw">use </span><span class="kw">crate</span>::tokenize::debug_infos::FileInfo;
+<span class="kw">use </span>analyze::analyze::Analyzer;
+<span class="kw">use </span>analyze::analyze::ConvProgram;
 <span class="kw">use </span>error::CompileError;
-<span class="kw">use </span>parse::Parser;
-<span class="kw">use </span>preprocess::Preprocessor;
-<span class="kw">use </span>preprocess::PreprocessorTokenContainerStream;
-<span class="kw">use </span>preprocess::PreprocessorTokenStream;
-<span class="kw">use </span>preprocess::SrcCursor;
+<span class="kw">use </span>parse::parse::Parser;
+<span class="kw">use </span>parse::parse::Program;
+<span class="kw">use </span>preprocess::preprocess::Preprocessor;
+<span class="kw">use </span>preprocess::preprocessor_streams::{PreprocessorTokenContainerStream, PreprocessorTokenStream};
+<span class="kw">use </span>preprocess::srccursor::SrcCursor;
 <span class="kw">use </span>std::io::BufWriter;
 <span class="kw">use </span>std::rc::Rc;
-<span class="kw">use </span>tokenize::FileInfo;
-<span class="kw">use </span>tokenize::TokenStream;
-<span class="kw">use </span>tokenize::Tokenizer;
+<span class="kw">use </span>tokenize::tokenize::Token <span class="kw">as </span>TokenizeToken;
+<span class="kw">use </span>tokenize::tokenize::TokenKind <span class="kw">as </span>TokenizeTokenKind;
+<span class="kw">use </span>tokenize::tokenize::TokenStream;
+<span class="kw">use </span>tokenize::tokenize::Tokenizer;
 
 <span class="kw">pub fn </span>preprocess_and_compile(<span class="kw-2">mut </span>input: String) -&gt; <span class="prelude-ty">Result</span>&lt;String, CompileError&gt; {
     <span class="kw">use </span>std::io::Write;
@@ -183,9 +187,7 @@
     <span class="prelude-val">Ok</span>(container_stream.map(|(<span class="kw">_</span>, ch)| ch).collect())
 }
 
-<span class="kw">pub fn </span>tokens(
-    <span class="kw-2">mut </span>input: String,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;tokenize::Token&lt;tokenize::TokenKind&gt;&gt;, CompileError&gt; {
+<span class="kw">pub fn </span>tokens(<span class="kw-2">mut </span>input: String) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;TokenizeToken&lt;TokenizeTokenKind&gt;&gt;, CompileError&gt; {
     input.push(<span class="string">&#39;\n&#39;</span>);
 
     <span class="kw">let </span>file_name = <span class="string">&quot;src.c&quot;</span>.to_string();
@@ -200,7 +202,7 @@
     tokenizer.tokenize(<span class="kw-2">&amp;</span>file_info)
 }
 
-<span class="kw">pub fn </span>parsed_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;parse::Program, CompileError&gt; {
+<span class="kw">pub fn </span>parsed_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;Program, CompileError&gt; {
     <span class="kw">let </span>tokens = tokens(input)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>token_stream = TokenStream::new(tokens.into_iter());
 
@@ -209,7 +211,7 @@
     <span class="prelude-val">Ok</span>(program)
 }
 
-<span class="kw">pub fn </span>converted_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;analyze::ConvProgram, CompileError&gt; {
+<span class="kw">pub fn </span>converted_ast(input: String) -&gt; <span class="prelude-ty">Result</span>&lt;ConvProgram, CompileError&gt; {
     <span class="kw">let </span>ast = parsed_ast(input)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>analyzer = Analyzer::new();
     analyzer.traverse_program(ast)
