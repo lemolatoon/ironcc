@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 use ironcc::analyze::analyze::*;
 use ironcc::analyze::types::{BaseType, Type};
+use ironcc::analyze::util::aligned_offset;
 use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
 use ironcc::parse::expr::{BinOpKind, UnaryOp};
 use ironcc::parse::parse::*;
