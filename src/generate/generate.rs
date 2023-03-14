@@ -7,7 +7,7 @@ use crate::{
         FuncCallTargetKind, GVar, LVar, LoopControlKind, Type,
     },
     error::{CompileError, UnexpectedTypeSizeStatus},
-    parse::parse::BinOpKind,
+    parse::expr::BinOpKind,
     unimplemented_err,
 };
 

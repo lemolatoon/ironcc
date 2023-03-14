@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 use ironcc::analyze::analyze::{self, *};
 use ironcc::parse::declaration::{DirectDeclarator, TypeSpecifier};
+use ironcc::parse::expr::{BinOpKind, UnaryOp};
 use ironcc::parse::parse::*;
 use ironcc::preprocess::preprocess::Preprocessor;
 use ironcc::preprocess::preprocessor_streams::{

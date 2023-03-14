@@ -12,9 +12,10 @@ use crate::{
             DeclarationSpecifier, Declarator, DirectDeclarator, Initializer, StorageClassSpecifier,
             StructOrUnionSpec, TypeSpecifier,
         },
+        expr::{BinOpKind, Binary, Expr, ExprKind, SizeOfOperandKind, UnaryOp},
         parse::{
-            BinOpKind, Binary, EnumConstant, EnumSpec, Expr, ExprKind, ForInitKind, LabelKind,
-            Program, ProgramComponent, ProgramKind, SizeOfOperandKind, Stmt, StmtKind, UnaryOp,
+            EnumConstant, EnumSpec, ForInitKind, LabelKind, Program, ProgramComponent, ProgramKind,
+            Stmt, StmtKind,
         },
     },
     tokenize::{debug_infos::DebugInfo, tokenize::AssignBinOpToken},

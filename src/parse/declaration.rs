@@ -7,7 +7,7 @@ use crate::{
     unimplemented_err,
 };
 
-use super::parse::{EnumSpec, Expr};
+use super::{expr::Expr, parse::EnumSpec};
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 /// Declaration

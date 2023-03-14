@@ -199,6 +199,7 @@ pub mod ast {
             declaration::{
                 Declaration, DeclarationSpecifier, DirectDeclarator, Initializer, TypeSpecifier,
             },
+            expr::{BinOpKind, Expr, UnaryOp},
             parse::*,
         },
         tokenize::debug_infos::DebugInfo,

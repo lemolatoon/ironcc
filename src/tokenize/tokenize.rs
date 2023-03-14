@@ -1,5 +1,5 @@
 use crate::error::CompileError;
-use crate::parse::parse::{self, BinOpKind};
+use crate::parse::expr::BinOpKind;
 use crate::parse::scope::Scope;
 use crate::preprocess::preprocess::Preprocessor;
 use crate::preprocess::preprocessor_streams::{
@@ -419,7 +419,7 @@ pub enum AssignBinOpToken {
     RShift,
 }
 
-impl TryFrom<AssignBinOpToken> for parse::BinOpKind {
+impl TryFrom<AssignBinOpToken> for BinOpKind {
     type Error = ();
     fn try_from(op: AssignBinOpToken) -> Result<Self, ()> {
         Ok(match op {
