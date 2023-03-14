@@ -450,6 +450,9 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::srccursor::SrcCursor;
 <span class="kw">use </span><span class="kw">crate</span>::common::read_file;
 <span class="kw">use </span><span class="kw">crate</span>::error::CompileError;
@@ -547,7 +550,7 @@
                                 <span class="kw">continue</span>;
                             }
                             ifdefkind @ (<span class="string">&quot;ifdef&quot; </span>| <span class="string">&quot;ifndef&quot;</span>) =&gt; {
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 <span class="kw">let </span>(<span class="kw">_</span>, macro_arg) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect(<span class="string">&quot;arg of `ifdef` must exist.&quot;</span>);
@@ -688,7 +691,7 @@
                                 <span class="kw">continue </span><span class="lifetime">&#39;preprocess_loop</span>;
                             }
                             <span class="string">&quot;undef&quot; </span>=&gt; {
-                                main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 <span class="kw">let </span>(<span class="kw">_</span>, macro_ident) = main_chars
                                     .get_debug_info_and_read_ident()
                                     .expect(<span class="string">&quot;arg(ident) of define must exist.&quot;</span>);
@@ -697,7 +700,7 @@
                             }
                             <span class="string">&quot;include&quot; </span>=&gt; {
                                 <span class="comment">// e.g) # include &quot;mylib.h&quot;;
-                                </span>main_chars.get_debug_info_and_skip_white_space_without_new_line();
+                                </span>main_chars.get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
                                 <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">mut </span>str_lit)) =
                                     main_chars.get_debug_info_and_read_str_lit()
                                 {
@@ -774,16 +777,19 @@
     }
 
     <span class="kw">pub fn </span>process_define(<span class="kw-2">&amp;mut </span><span class="self">self</span>, main_chars: <span class="kw-2">&amp;mut </span>SrcCursor) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompileError&gt; {
-        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+        main_chars
+            .get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
         <span class="kw">let </span>(<span class="kw">_</span>, macro_ident) = main_chars
             .get_debug_info_and_read_ident()
             .expect(<span class="string">&quot;arg(ident) of define must exist.&quot;</span>);
-        main_chars.get_debug_info_and_skip_white_space_without_new_line();
+        main_chars
+            .get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
 
         <span class="kw">let </span><span class="kw-2">mut </span>macro_value = main_chars.get_debug_info_and_read_ident();
 
         <span class="kw">if </span>macro_value.is_none() {
             macro_value = main_chars.get_debug_info_and_read_number();
+            <span class="macro">eprintln!</span>(<span class="string">&quot;{:?}&quot;</span>, macro_value);
         }
 
         <span class="kw">if </span>macro_value.is_none() {
