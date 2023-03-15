@@ -1,4 +1,4 @@
-use crate::generate::generate::RegSize;
+use crate::generate::registers::RegSize;
 
 use super::analyze::{Func, Struct};
 
