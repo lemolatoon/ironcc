@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Preprocessor",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["DefineProcessor",""],["Preprocessor",""]]};

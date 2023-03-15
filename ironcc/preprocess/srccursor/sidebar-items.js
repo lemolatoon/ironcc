@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["SrcCursorGenerator",""]],"struct":[["SrcCursor",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["PPTokenKind",""],["SrcCursorGenerator",""]],"struct":[["PPToken",""],["PPTokens",""],["SrcCursor",""]]};
