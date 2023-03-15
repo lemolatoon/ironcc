@@ -89,6 +89,7 @@ int test77(void);
 int test78(void);
 int test79(void);
 int test80(void);
+int test81(void);
 int test(void);
 void my_assert(int index, int expected, int got);
 // this is comment for the test of function of comment
@@ -194,6 +195,7 @@ int main(void) {
   my_assert(78, 0, test78());
   my_assert(79, 1, test79());
   my_assert(80, 0, test80());
+  my_assert(81, 0, test81());
 
   print_ok();
   return 0;
@@ -1562,5 +1564,20 @@ A
 #undef \
 A
   // clang-format on
+  return 0;
+}
+
+int test81(void) {
+#define TEST81_SUM(A, B, C) A + B + C
+#define ARGS3 1 + 1, 2, 3
+  my_assert(81, 6, TEST81_SUM(1, 2, 3));
+  char num[4];
+  snprintf(num, sizeof(num), "%d%d%d", ARGS3);
+  my_assert(81, 0, strncmp("223", num, sizeof(num)));
+  // clang-format off
+#define TEST81_MAX(A, B) \
+  ((A) > (B) ? (A) : (B))
+  // clang-format on
+  my_assert(81, 32, TEST81_MAX(32, -5));
   return 0;
 }
