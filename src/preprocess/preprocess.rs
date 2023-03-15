@@ -1,3 +1,4 @@
+use super::srccursor::PPTokens;
 use super::srccursor::SrcCursor;
 use crate::common::read_file;
 use crate::error::CompileError;
@@ -12,10 +13,54 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+pub struct DefineProcessor {
+    pub arg_map: Vec<String>,
+    pub replacement_list: PPTokens,
+}
+
+impl DefineProcessor {
+    pub fn new_with_no_args(value: String, debug_info: DebugInfo) -> Result<Self, CompileError> {
+        let mut src_cursor = SrcCursor::new_raw(value.chars().collect(), debug_info);
+        let pp_tokens = src_cursor.tokenize_until_new_line()?;
+        Ok(Self {
+            arg_map: Vec::new(),
+            replacement_list: pp_tokens,
+        })
+    }
+
+    pub fn is_no_args(&self) -> bool {
+        self.arg_map.is_empty()
+    }
+
+    pub fn process(
+        &self,
+        args: Vec<PPTokens>,
+        debug_info: DebugInfo,
+    ) -> Result<PPTokens, CompileError> {
+        if args.len() != self.arg_map.len() {
+            return Err(unimplemented_err!(
+                debug_info,
+                format!(
+                    "Expected {} args, but got {} args.",
+                    self.arg_map.len(),
+                    args.len()
+                )
+            ));
+        }
+        let arg_map: BTreeMap<String, PPTokens> = self
+            .arg_map
+            .clone()
+            .into_iter()
+            .zip(args.into_iter())
+            .collect();
+        self.replacement_list.clone().replace_with(&arg_map)
+    }
+}
+
 pub struct Preprocessor<'b> {
     main_file_info: Rc<FileInfo>,
     include_dir: &'b str,
-    define_table: BTreeMap<String, String>,
+    define_table: BTreeMap<String, DefineProcessor>,
     ifdef_depth: usize,
     watching_label: usize,
 }
@@ -278,24 +323,20 @@ impl<'b> Preprocessor<'b> {
             }
 
             if let Some((debug_info, ident)) = main_chars.get_debug_info_and_read_ident() {
-                if let Some(macro_value) = self.define_table.get(&ident) {
-                    tokens.push(Token::new(
-                        TokenKind::Ident(macro_value.clone()),
-                        debug_info,
-                    ));
-                    continue;
-                }
-                tokens.push(Token::new(TokenKind::Ident(ident), debug_info));
-                continue 'preprocess_loop;
-            }
-
-            if let Some((debug_info, ident)) = main_chars.get_debug_info_and_read_ident() {
-                if let Some(macro_value) = self.define_table.get(&ident) {
-                    tokens.push(Token::new(
-                        TokenKind::Ident(macro_value.clone()),
-                        debug_info,
-                    ));
-                    continue;
+                if let Some(define_processor) = self.define_table.get(&ident) {
+                    if define_processor.is_no_args() {
+                        let replaced: Vec<Token<TokenKind>> = define_processor
+                            .process(Vec::new(), debug_info.clone())?
+                            .into();
+                        tokens.extend(replaced);
+                        continue;
+                    } else {
+                        let args = main_chars.parse_comma_splitted_args()?;
+                        let replaced: Vec<Token<TokenKind>> =
+                            define_processor.process(args, debug_info.clone())?.into();
+                        tokens.extend(replaced);
+                        continue;
+                    }
                 }
                 tokens.push(Token::new(TokenKind::Ident(ident), debug_info));
                 continue 'preprocess_loop;
@@ -330,19 +371,52 @@ impl<'b> Preprocessor<'b> {
         main_chars
             .get_debug_info_and_skip_white_space_without_new_line_in_preprocessor_token_context();
 
-        let mut macro_value = main_chars.get_debug_info_and_read_ident();
+        if main_chars.consume("(") {
+            // function-like define macro
+            // # define identifier lparen identifier-listopt ) replacement-list new-line
+            let identifiers = main_chars
+                .parse_identifier_list()?
+                .into_iter()
+                .map(|(_, ident)| ident)
+                .collect();
+            main_chars.expect(")")?;
+            self.define_table.insert(
+                macro_ident,
+                DefineProcessor {
+                    arg_map: identifiers,
+                    replacement_list: main_chars.tokenize_until_new_line()?,
+                },
+            );
+            // TODO: 置換先のidentをどんな感じでやるか考える
+            // # define identifier lparen ... ) replacement-list new-line
+            // # define identifier lparen identifier-list , ... ) replacement-list new-line
+
+            return Ok(());
+        }
+
+        let debug_info = main_chars.get_debug_info();
+        let mut cloned_chars = main_chars.clone();
+        let mut macro_value = cloned_chars.get_debug_info_and_read_ident();
 
         if macro_value.is_none() {
-            macro_value = main_chars.get_debug_info_and_read_number();
-            eprintln!("{:?}", macro_value);
+            macro_value = cloned_chars.get_debug_info_and_read_number();
         }
 
         if macro_value.is_none() {
-            macro_value = main_chars.get_debug_info_and_read_str_lit();
+            macro_value = cloned_chars.get_debug_info_and_read_str_lit();
         }
-        // just one operand define macro should be defined as 1 .
-        let macro_value = macro_value.map_or("1".to_string(), |(_, macro_value)| macro_value);
-        self.define_table.insert(macro_ident, macro_value);
+
+        let define_processor = if macro_value.is_none() {
+            // just one operand define macro should be defined as 1 .
+            DefineProcessor::new_with_no_args("1".to_string(), debug_info)?
+        } else {
+            DefineProcessor {
+                arg_map: Vec::new(),
+                replacement_list: main_chars.tokenize_until_new_line()?,
+            }
+        };
+
+        self.define_table.insert(macro_ident, define_processor);
         Ok(())
     }
 
