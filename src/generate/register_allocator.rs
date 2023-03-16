@@ -32,6 +32,24 @@ pub enum DataLocation {
     Stack(StackRegIdx),
 }
 
+impl From<RegKind> for DataLocation {
+    fn from(reg: RegKind) -> Self {
+        DataLocation::Register(reg)
+    }
+}
+
+impl DataLocation {
+    pub fn new_from_depth(depth: usize) -> Result<Self, CompileError> {
+        if depth % 8 != 0 {
+            return Err(unimplemented_err!(format!(
+                "try to new DataLocation from depth, but the provided depth was not multiple of 8."
+            )));
+        }
+
+        Ok(DataLocation::Stack(StackRegIdx(depth / 8)))
+    }
+}
+
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
 pub struct AllocatedRegisterTable([Option<RegId>; NUM_REGISTER]);
 
@@ -307,6 +325,29 @@ impl StackDepthTable {
         StackDepthTableEntry::new(StackRegIdx(stack_reg_idx), &mut self.reg_ids)
     }
 
+    pub fn allocate_entry_of_specific_depth(
+        &mut self,
+        stack_reg_idx: StackRegIdx,
+    ) -> Result<StackDepthTableEntry, CompileError> {
+        self.ensures_accessable_idx(stack_reg_idx.as_idx());
+        if let Some(maybe_stack_reg_idx) = self.reg_ids.get(stack_reg_idx.as_idx()) {
+            if maybe_stack_reg_idx.is_some() {
+                return Err(unimplemented_err!(format!("INTERNAL COMPILER ERROR: try to allocate specific depth in stack area, the specified stack_reg_idx: {:?} was already used", stack_reg_idx)));
+            }
+        } else {
+            unreachable!();
+        }
+        StackDepthTableEntry::new(stack_reg_idx, &mut self.reg_ids)
+    }
+
+    pub fn ensures_accessable_idx(&mut self, idx: usize) {
+        for idx in 0..=idx {
+            if self.reg_ids.get(idx).is_none() {
+                self.reg_ids.push(None);
+            }
+        }
+    }
+
     pub fn get(&self, idx: StackRegIdx) -> Option<&Option<RegId>> {
         self.reg_ids.get(idx.as_idx())
     }
@@ -379,6 +420,25 @@ impl RegisterAllocator {
         }
     }
 
+    /// subscribe unmanaged place for this RegisterAllocator
+    pub fn publish_reg_id(&mut self, location: DataLocation) -> Result<RegId, CompileError> {
+        let (id, location) = self.location_map.allocate(location);
+        match location {
+            DataLocation::Register(reg) => {
+                if let Some(mut entry) = self.allocated.allocate_entry(reg) {
+                    entry.insert(id);
+                } else {
+                    return Err(unimplemented_err!(format!("INTERNAL COMPILER ERROR: try to subscribe specified location: {:?}, but the location was already used", location)));
+                }
+            }
+            DataLocation::Stack(stack_reg_idx) => {
+                let mut entry = self.depth.allocate_entry_of_specific_depth(stack_reg_idx)?;
+                entry.insert(id);
+            }
+        }
+        Ok(id)
+    }
+
     fn look_up_reg_id_from_location(&self, location: DataLocation) -> Option<&RegId> {
         match location {
             DataLocation::Register(reg) => self.allocated.get(reg).as_ref(),
@@ -402,10 +462,13 @@ impl RegisterAllocator {
                 kind: reg,
                 entry: self.allocated.get_mut(reg),
             }),
-            DataLocation::Stack(stack_reg_idx) => RegIdEntry::Stack(StackDepthTableEntry::new(
-                stack_reg_idx,
-                self.depth.get_vec_mut(),
-            )?),
+            DataLocation::Stack(stack_reg_idx) => {
+                self.depth.ensures_accessable_idx(stack_reg_idx.as_idx());
+                RegIdEntry::Stack(StackDepthTableEntry::new(
+                    stack_reg_idx,
+                    self.depth.get_vec_mut(),
+                )?)
+            }
         })
     }
 
@@ -603,5 +666,39 @@ mod register_allocator_test {
                 .unwrap(),
             DataLocation::Register(RegKind::Rax)
         );
+    }
+
+    #[test]
+    pub fn publish_reg_id_test() {
+        let mut allocator = RegisterAllocator::new();
+        let (rax_id, _) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        let rdi_id = allocator.publish_reg_id(RegKind::Rdi.into()).unwrap();
+        assert_eq!(rdi_id, RegId(1));
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&rdi_id).unwrap(),
+            DataLocation::Register(RegKind::Rdi)
+        );
+        assert!(allocator.publish_reg_id(RegKind::Rax.into()).is_err());
+        allocator
+            .assign(rax_id, DataLocation::new_from_depth(0).unwrap())
+            .unwrap();
+        let stack_16_id = allocator
+            .publish_reg_id(DataLocation::new_from_depth(16).unwrap())
+            .unwrap();
+        assert_eq!(
+            *allocator
+                .look_up_location_from_reg_id(&stack_16_id)
+                .unwrap(),
+            DataLocation::new_from_depth(16).unwrap()
+        );
+        assert!(allocator
+            .publish_reg_id(DataLocation::new_from_depth(0).unwrap())
+            .is_err());
+        assert!(allocator
+            .publish_reg_id(DataLocation::new_from_depth(8).unwrap())
+            .is_ok());
+        assert!(allocator
+            .publish_reg_id(DataLocation::new_from_depth(16).unwrap())
+            .is_err());
     }
 }
