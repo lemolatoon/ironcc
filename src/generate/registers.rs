@@ -1,6 +1,7 @@
 use crate::{
     analyze::expr::ConvExpr,
     error::{CompileError, UnexpectedTypeSizeStatus},
+    unimplemented_err,
 };
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
@@ -49,23 +50,39 @@ impl ToString for RegOrLit {
     }
 }
 
+const NUM_REGISTER: usize = 15;
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum RegKind {
-    Rax,
-    Rdi,
-    Rsi,
-    Rdx,
-    Rcx,
-    Rbp,
-    Rsp,
-    R8,
-    R9,
-    R10,
-    R11,
-    R12,
-    R13,
-    R14,
-    R15,
+    Rax = 0,
+    Rdi = 1,
+    Rsi = 2,
+    Rdx = 3,
+    Rcx = 4,
+    Rbp = 5,
+    Rsp = 6,
+    R8 = 7,
+    R9 = 8,
+    R10 = 9,
+    R11 = 10,
+    R12 = 11,
+    R13 = 12,
+    R14 = 13,
+    R15 = 14,
+}
+
+impl TryFrom<usize> for RegKind {
+    type Error = CompileError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        let u8_value = value as u8;
+        if u8_value > NUM_REGISTER as u8 {
+            return Err(unimplemented_err!(format!(
+                "Try to convert usize to RegKind, but it exceeds its number: {}",
+                value
+            )));
+        }
+        Ok(unsafe { std::mem::transmute(u8_value) })
+    }
 }
 
 impl ToString for RegKind {
