@@ -50,7 +50,7 @@ impl ToString for RegOrLit {
     }
 }
 
-const NUM_REGISTER: usize = 15;
+pub const NUM_REGISTER: usize = 15;
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum RegKind {
     Rax = 0,

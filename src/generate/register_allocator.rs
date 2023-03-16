@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::{error::CompileError, unimplemented_err};
 
-use super::registers::RegKind;
+use super::registers::{RegKind, NUM_REGISTER};
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct RegId(usize);
@@ -33,7 +33,13 @@ pub enum DataLocation {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
-pub struct AllocatedRegisterTable([Option<RegId>; 16]);
+pub struct AllocatedRegisterTable([Option<RegId>; NUM_REGISTER]);
+
+impl AllocatedRegisterTable {
+    pub fn new() -> Self {
+        Self([None; NUM_REGISTER])
+    }
+}
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub struct AllocatedRegisterTableEntry<'a> {
@@ -145,6 +151,10 @@ impl AllocatedRegisterTable {
 pub struct LocationMap(BTreeMap<RegId, DataLocation>);
 
 impl LocationMap {
+    pub fn new() -> Self {
+        Self(BTreeMap::new())
+    }
+
     /// Call this function under the consumption that the location is not occupied. Check it by looking at AllocatedRegisterTable
     pub fn allocate(&mut self, location: DataLocation) -> (RegId, DataLocation) {
         for id in (0..).map(RegId::from) {
@@ -197,7 +207,7 @@ impl LocationMap {
                 )))
             }
         };
-        self.0.insert(id2, location2);
+        self.0.insert(id1, location2);
 
         Ok(())
     }
@@ -285,8 +295,15 @@ impl<'a> RegIdEntry<'a> {
 }
 
 impl StackDepthTable {
+    pub fn new() -> Self {
+        Self {
+            reg_ids: Vec::new(),
+        }
+    }
+
     pub fn allocate_entry(&mut self) -> Result<StackDepthTableEntry, CompileError> {
         let stack_reg_idx = self.reg_ids.len();
+        self.reg_ids.push(None);
         StackDepthTableEntry::new(StackRegIdx(stack_reg_idx), &mut self.reg_ids)
     }
 
@@ -311,6 +328,14 @@ pub struct RegisterAllocator {
 }
 
 impl RegisterAllocator {
+    pub fn new() -> Self {
+        Self {
+            location_map: LocationMap::new(),
+            allocated: AllocatedRegisterTable::new(),
+            depth: StackDepthTable::new(),
+        }
+    }
+
     /// High Layer abstraction of relocate data to specific register
     pub fn assign(
         &mut self,
@@ -364,11 +389,15 @@ impl RegisterAllocator {
         }
     }
 
+    pub fn look_up_location_from_reg_id(&self, reg_id: &RegId) -> Option<&DataLocation> {
+        self.location_map.get(reg_id)
+    }
+
     fn from_location_to_entry(
         &mut self,
         location: DataLocation,
     ) -> Result<RegIdEntry, CompileError> {
-        match location {
+        Ok(match location {
             DataLocation::Register(reg) => RegIdEntry::Reg(AllocatedRegisterTableEntry {
                 kind: reg,
                 entry: self.allocated.get_mut(reg),
@@ -377,8 +406,7 @@ impl RegisterAllocator {
                 stack_reg_idx,
                 self.depth.get_vec_mut(),
             )?),
-        };
-        todo!()
+        })
     }
 
     fn replace(
@@ -434,5 +462,146 @@ impl RegisterAllocator {
         let (id, location) = self.location_map.allocate(location);
         entry.insert(id);
         Ok((id, location))
+    }
+}
+
+#[cfg(test)]
+mod register_allocator_test {
+    use crate::generate::registers::NUM_REGISTER;
+
+    use super::*;
+    #[test]
+    pub fn allocate_register_test() {
+        let mut allocator = RegisterAllocator::new();
+        let (reg_id, location) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        assert_eq!(location, DataLocation::Register(RegKind::Rax));
+        assert_eq!(
+            *allocator.look_up_reg_id_from_location(location).unwrap(),
+            reg_id
+        );
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id).unwrap(),
+            location
+        );
+    }
+
+    #[test]
+    pub fn allocate_same_place_test() {
+        let mut allocator = RegisterAllocator::new();
+        let (reg_id1, location1) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        assert_eq!(location1, DataLocation::Register(RegKind::Rax));
+        assert_eq!(
+            *allocator.look_up_reg_id_from_location(location1).unwrap(),
+            reg_id1
+        );
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id1).unwrap(),
+            location1
+        );
+        let (reg_id2, location2) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        assert_eq!(location1, DataLocation::Register(RegKind::Rax));
+        assert_ne!(location2, DataLocation::Register(RegKind::Rax));
+        assert_eq!(
+            *allocator.look_up_reg_id_from_location(location2).unwrap(),
+            reg_id2
+        );
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id2).unwrap(),
+            location2
+        );
+    }
+
+    #[test]
+    pub fn assign_test() {
+        let mut allocator = RegisterAllocator::new();
+        let (reg_id1, location1) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        assert_eq!(location1, DataLocation::Register(RegKind::Rax));
+        let (reg_id2, location2) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        allocator
+            .assign(reg_id2, DataLocation::Register(RegKind::Rax))
+            .unwrap();
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id2).unwrap(),
+            DataLocation::Register(RegKind::Rax)
+        );
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id1).unwrap(),
+            location2
+        );
+    }
+
+    #[test]
+    pub fn assign_to_not_allocated_location() {
+        let mut allocator = RegisterAllocator::new();
+        let (reg_id1, _) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        allocator
+            .assign(reg_id1, DataLocation::Register(RegKind::Rdi))
+            .unwrap();
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&reg_id1).unwrap(),
+            DataLocation::Register(RegKind::Rdi)
+        );
+        assert_eq!(
+            allocator.look_up_reg_id_from_location(DataLocation::Register(RegKind::Rax)),
+            None
+        );
+    }
+
+    #[test]
+    pub fn stack_allocate_test() {
+        let mut allocator = RegisterAllocator::new();
+        let (rax_id, rax_location) = allocator.allocate(Some(RegKind::Rax)).unwrap();
+        assert_eq!(rax_location, DataLocation::Register(RegKind::Rax));
+        for _ in 0..(NUM_REGISTER - 1) {
+            allocator.allocate(None).unwrap();
+        }
+        // all register might be allocated
+        for maybe_reg_id in allocator.allocated.0 {
+            eprintln!("{:?}", maybe_reg_id);
+            assert!(maybe_reg_id.is_some());
+        }
+
+        // allocate stack
+        let (maybe_in_stack_reg_id, maybe_stack_location) = allocator.allocate(None).unwrap();
+        assert_eq!(maybe_stack_location, DataLocation::Stack(StackRegIdx(0)));
+        assert_eq!(
+            *allocator
+                .look_up_reg_id_from_location(maybe_stack_location)
+                .unwrap(),
+            maybe_in_stack_reg_id
+        );
+        assert_eq!(
+            *allocator
+                .look_up_location_from_reg_id(&maybe_in_stack_reg_id)
+                .unwrap(),
+            maybe_stack_location
+        );
+
+        // assign value on stack to specific register
+        allocator
+            .assign(maybe_in_stack_reg_id, DataLocation::Register(RegKind::Rax))
+            .unwrap();
+        assert_eq!(
+            *allocator
+                .look_up_reg_id_from_location(maybe_stack_location)
+                .unwrap(),
+            rax_id
+        );
+        assert_eq!(
+            *allocator.look_up_location_from_reg_id(&rax_id).unwrap(),
+            maybe_stack_location
+        );
+        assert_eq!(
+            *allocator
+                .look_up_reg_id_from_location(DataLocation::Register(RegKind::Rax))
+                .unwrap(),
+            maybe_in_stack_reg_id
+        );
+        assert_eq!(
+            *allocator
+                .look_up_location_from_reg_id(&maybe_in_stack_reg_id)
+                .unwrap(),
+            DataLocation::Register(RegKind::Rax)
+        );
     }
 }
