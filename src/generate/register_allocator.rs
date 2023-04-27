@@ -359,6 +359,10 @@ impl StackDepthTable {
     pub fn get_vec_mut(&mut self) -> &mut Vec<Option<RegId>> {
         &mut self.reg_ids
     }
+
+    pub fn deallocate_all(&mut self) {
+        self.reg_ids.clear();
+    }
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Clone, Debug)]
@@ -418,6 +422,11 @@ impl RegisterAllocator {
                 "given RegId is not yet allocated.",
             )),
         }
+    }
+
+    /// free all allocated stacks
+    pub fn deallocate_stacks(&mut self) {
+        self.depth.deallocate_all();
     }
 
     /// subscribe unmanaged place for this RegisterAllocator
@@ -701,4 +710,35 @@ mod register_allocator_test {
             .publish_reg_id(DataLocation::new_from_depth(16).unwrap())
             .is_err());
     }
+}
+
+#[test]
+pub fn deallocate_stacks_test() {
+    let mut allocator = RegisterAllocator::new();
+    let id1 = allocator
+        .publish_reg_id(DataLocation::new_from_depth(0).unwrap())
+        .unwrap();
+    assert_eq!(
+        allocator.look_up_reg_id_from_location(DataLocation::new_from_depth(0).unwrap()),
+        Some(&id1)
+    );
+    let (id2, _) = allocator.allocate_if_possible(RegKind::Rax.into()).unwrap();
+    let _id3 = allocator
+        .publish_reg_id(DataLocation::new_from_depth(8).unwrap())
+        .unwrap();
+    allocator.deallocate_stacks();
+    assert_eq!(
+        allocator.look_up_reg_id_from_location(RegKind::Rax.into()),
+        Some(&id2)
+    );
+
+    assert_eq!(
+        allocator.look_up_reg_id_from_location(DataLocation::new_from_depth(0).unwrap()),
+        None
+    );
+
+    assert_eq!(
+        allocator.look_up_reg_id_from_location(DataLocation::new_from_depth(8).unwrap()),
+        None
+    );
 }
