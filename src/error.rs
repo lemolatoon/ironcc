@@ -4,6 +4,8 @@ use crate::analyze::expr::ConvExprKind;
 use crate::analyze::expr::FuncCallTargetKind;
 use crate::analyze::types::Type;
 use crate::analyze::variables::GVar;
+use crate::generate::register_allocator::data_location::DataLocation;
+use crate::generate::register_allocator::data_location::RegId;
 use crate::preprocess::tokenkind::TokenKind as PreprocessTokenKind;
 use crate::tokenize::debug_infos::DebugInfo;
 use crate::tokenize::debug_infos::Position;
@@ -252,6 +254,20 @@ impl CompileError {
     pub const fn new_type_size_error(status: UnexpectedTypeSizeStatus) -> Self {
         CompileError::new(CompileErrorKind::GenerateError(
             GenerateErrorKind::UnexpectedTypeSize(status),
+        ))
+    }
+
+    pub fn new_register_assign_error(
+        try_assign_id: RegId,
+        to: DataLocation,
+        message: impl ToString,
+    ) -> Self {
+        Self::new(CompileErrorKind::GenerateError(
+            GenerateErrorKind::LocationAssignError {
+                try_assign_id,
+                to,
+                message: message.to_string(),
+            },
         ))
     }
 }
@@ -521,6 +537,13 @@ impl Debug for CompileError {
             )) => {
                 writeln!(f, "this type size is unexpected. size: {}", size)?;
             }
+            GenerateError(GenerateErrorKind::LocationAssignError {
+                try_assign_id,
+                to,
+                message,
+            }) => {
+                writeln!(f, "INTERNAL COMPILER(Register Allocator Error): try to assign RegId: {:?} to Register: {:?}, but failed.\n{}", try_assign_id, to, message)?;
+            }
             Unimplemented(Some(debug_info), msg) => {
                 error_at(vec![debug_info.clone()], f)?;
                 writeln!(f, "{}", msg)?;
@@ -617,6 +640,11 @@ pub enum GenerateErrorKind {
     UnexpectedTypeSize(UnexpectedTypeSizeStatus),
     LeftValueError(ConvExpr),
     DerefError(ConvExpr),
+    LocationAssignError {
+        try_assign_id: RegId,
+        to: DataLocation,
+        message: String,
+    },
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
