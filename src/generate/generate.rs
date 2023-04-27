@@ -16,10 +16,7 @@ use crate::{
     unimplemented_err,
 };
 
-use super::{
-    register_allocator::RegisterAllocator,
-    registers::{RegKind, RegOrLit, RegSize},
-};
+use super::registers::{RegKind, RegOrLit, RegSize};
 
 #[derive(Debug, Clone)]
 pub struct Generator {
